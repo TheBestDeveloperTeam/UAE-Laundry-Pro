@@ -4,7 +4,7 @@
 
 ---
 
-> **Codename / Product Family Reference:** `LaundraCore Local`
+> **Codename / Product Family Reference:** `LaundryPro Local`
 > **Developed & Maintained By:** Magnificent Solution
 > **Client Profile:** UAE Local Laundry Service MSME Vendor
 > **Initial Deployment Area:** Dubai, UAE — expandable to all UAE Emirates (Abu Dhabi, Sharjah, Ajman, Umm Al Quwain, Fujairah, Ras Al Khaimah) and KSA-ready
@@ -62,7 +62,7 @@
 
 ## 1. Project Overview
 
-**LaundryPro UAE** (internal architecture codename **LaundraCore Local**) is a **standalone, offline-first Windows desktop application** purpose-built for local laundry service MSMEs (Micro, Small & Medium Enterprises) in the United Arab Emirates. It is **not a generic website or a browser-dashboard imitation** — it is a dedicated desktop operator workstation designed to look, feel, and behave like a professional Point-of-Sale/Operations terminal.
+**LaundryPro UAE** (internal architecture codename **LaundryPro Local**) is a **standalone, offline-first Windows desktop application** purpose-built for local laundry service MSMEs (Micro, Small & Medium Enterprises) in the United Arab Emirates. It is **not a generic website or a browser-dashboard imitation** — it is a dedicated desktop operator workstation designed to look, feel, and behave like a professional Point-of-Sale/Operations terminal.
 
 The application manages the **complete end-to-end operational lifecycle** of a laundry business:
 
@@ -355,10 +355,10 @@ C:\LaundryPro\
   └── exports/      — CSV/Excel exports
 ```
 
-Extended (LaundraCore) file convention under application-owned root:
+Extended (LaundryPro) file convention under application-owned root:
 
 ```
-<AppData>/LaundraCore/
+<AppData>/LaundryPro/
   config/
   data/
   files/
@@ -389,7 +389,7 @@ The product must avoid accidental coupling between: widget and SQL; print output
 
 ## 7. Database Design Summary
 
-**Database name:** `laundrypro` (LaundraCore naming standard: snake_case tables)
+**Database name:** `laundrypro` (LaundryPro naming standard: snake_case tables)
 **Engine:** InnoDB
 **Charset:** `utf8mb4` (required for Arabic support)
 
@@ -421,9 +421,9 @@ The product must avoid accidental coupling between: widget and SQL; print output
 | `license` | License key, UMAC, expiry |
 | `audit_logs` | User ID, timestamp, action, and endpoint of every write operation |
 
-### 7.2 Extended Entity Blueprint (LaundraCore Naming)
+### 7.2 Extended Entity Blueprint (LaundryPro Naming)
 
-For teams adopting the fuller LaundraCore domain model, the following entity groups apply, each carrying `id`, `uuid`, `created_at/by`, `updated_at/by`, `is_active`, and `version_no` where relevant:
+For teams adopting the fuller LaundryPro domain model, the following entity groups apply, each carrying `id`, `uuid`, `created_at/by`, `updated_at/by`, `is_active`, and `version_no` where relevant:
 
 ```
 business, branch, terminal, app_user, role, permission, role_permission, user_role
@@ -800,7 +800,7 @@ On API startup:
 ## 12. API Documentation
 
 **Base URL:** `http://localhost/api/`
-**Extended Base Route (LaundraCore convention):** `/api/v1`
+**Extended Base Route (LaundryPro convention):** `/api/v1`
 
 All endpoints require `Authorization: Bearer <token>` **except** `/auth/token` (or `/auth/login`) and `/auth/refresh`. Full interactive documentation is available via **Swagger/OpenAPI** once the API service is running (see the `/docs` or `/swagger` route exposed by the API layer).
 
@@ -814,7 +814,7 @@ All endpoints require `Authorization: Bearer <token>` **except** `/auth/token` (
 }
 ```
 
-Extended contract (LaundraCore convention, recommended for new endpoints):
+Extended contract (LaundryPro convention, recommended for new endpoints):
 
 ```json
 {
@@ -1035,7 +1035,7 @@ Standard lifecycle (LaundryPro UAE core):
 RECEIVED → IN_PROCESS → READY → DELIVERED
 ```
 
-Extended lifecycle (LaundraCore full model):
+Extended lifecycle (LaundryPro full model):
 
 ```
 DRAFT → CONFIRMED → RECEIVED → SORTING → PROCESSING → QUALITY_CHECK
@@ -1236,7 +1236,7 @@ Raw unhashed concatenation must never be used as the sole license control token 
    (view-only, no new invoices) mode.
 ```
 
-Pseudocode (LaundraCore reference):
+Pseudocode (LaundryPro reference):
 
 ```text
 function validateLicense(key):
@@ -1299,7 +1299,7 @@ grandTotal          = discountedSubtotal + tax
 balanceDue          = grandTotal - amountPaid
 ```
 
-**Canonical calculation order (LaundraCore reference):**
+**Canonical calculation order (LaundryPro reference):**
 
 ```text
 Line Gross          = Quantity × Effective Rate
@@ -1473,7 +1473,7 @@ Arabic (`ar.json`):
 }
 ```
 
-Extended locale metadata format (LaundraCore reference):
+Extended locale metadata format (LaundryPro reference):
 
 ```json
 {
@@ -1821,7 +1821,7 @@ lib/
 │       └── ...
 ```
 
-Extended recommended feature-first structure (LaundraCore reference):
+Extended recommended feature-first structure (LaundryPro reference):
 
 ```
 lib/
@@ -1868,7 +1868,7 @@ api/
 └── .env
 ```
 
-Extended recommended structure (LaundraCore reference):
+Extended recommended structure (LaundryPro reference):
 
 ```
 api/
@@ -2024,11 +2024,11 @@ The following are explicitly **out of scope for the initial release** but preser
 ### 27.1 Product Family Roadmap
 
 ```
-LaundraCore Local  — offline/local desktop edition (current release — LaundryPro UAE)
-LaundraCore Pro    — multi-terminal / local-network edition
-LaundraCore Cloud  — future cloud edition
-LaundraCore UAE    — UAE localization package
-LaundraCore KSA    — future Saudi Arabia localization package
+LaundryPro Local  — offline/local desktop edition (current release — LaundryPro UAE)
+LaundryPro Pro    — multi-terminal / local-network edition
+LaundryPro Cloud  — future cloud edition
+LaundryPro UAE    — UAE localization package
+LaundryPro KSA    — future Saudi Arabia localization package
 ```
 
 ### 27.2 Phased Delivery Plan
@@ -2131,7 +2131,7 @@ Database schema versioning is tracked independently but related.
 
 ## 30. License (Legal)
 
-**LaundryPro UAE** (and its underlying `LaundraCore Local` architecture) is **proprietary software** developed and maintained by **Magnificent Solution**.
+**LaundryPro UAE** (and its underlying `LaundryPro Local` architecture) is **proprietary software** developed and maintained by **Magnificent Solution**.
 
 - All source code, documentation, database schema, print templates, and associated intellectual property are the property of **Magnificent Solution** unless otherwise licensed in writing.
 - Use of this software by any deployed business (client) is governed by the **License Key + UMAC + Physical Address Binding** mechanism described in [§16](#16-license-management--umac).
@@ -2356,7 +2356,7 @@ Targets are measured against realistic datasets, not synthetic empty databases.
 ### 32.11 Sign-Off Baseline
 
 ```text
-PROJECT: LaundryPro UAE (LaundraCore Local)
+PROJECT: LaundryPro UAE (LaundryPro Local)
 DEVELOPER/MAINTAINER: Magnificent Solution
 CLIENT PROFILE: UAE Laundry Service MSME
 INITIAL MARKET: Dubai
