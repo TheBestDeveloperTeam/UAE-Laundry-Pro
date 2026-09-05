@@ -1,0 +1,62 @@
+[
+  {
+    "name": "p3_storefront_catalog",
+    "tag": "Phase3",
+    "request": { "method": "GET", "path": "/storefront/catalog" },
+    "expected": { "status": 200, "success": true, "code": "STOREFRONT_CATALOG" }
+  },
+  {
+    "name": "p3_storefront_order_submit",
+    "tag": "Phase3",
+    "request": {
+      "method": "POST", "path": "/storefront/orders",
+      "body": {
+        "customer_name": "Online Customer",
+        "customer_phone": "+971501234567",
+        "notes": "Pickup Friday",
+        "items": [{ "service_id": 1, "qty": 2 }]
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "STOREFRONT_ORDER_CREATED" },
+    "capture": { "p3_storefront_order_id": "data.order.id" }
+  },
+  {
+    "name": "p3_storefront_orders_list",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": { "method": "GET", "path": "/storefront/orders", "headers": { "Authorization": "Bearer {{access_token}}" } },
+    "expected": { "status": 200, "success": true, "code": "STOREFRONT_ORDERS_LIST" }
+  },
+  {
+    "name": "p3_storefront_convert",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "requires": ["p3_storefront_order_id"],
+    "request": {
+      "method": "POST", "path": "/storefront/orders/{{p3_storefront_order_id}}/convert",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "STOREFRONT_CONVERTED" },
+    "capture": { "p3_portal_sales_order_id": "data.sales_order.id" }
+  },
+  {
+    "name": "p3_portal_token_create",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "requires": ["p3_portal_sales_order_id"],
+    "request": {
+      "method": "POST", "path": "/portal/tokens",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "sales_order_id": "{{p3_portal_sales_order_id}}" }
+    },
+    "expected": { "status": 201, "success": true, "code": "PORTAL_TOKEN_CREATED" },
+    "capture": { "p3_portal_token": "data.portal.access_token" }
+  },
+  {
+    "name": "p3_portal_order_status",
+    "tag": "Phase3",
+    "requires": ["p3_portal_token"],
+    "request": { "method": "GET", "path": "/portal/order?token={{p3_portal_token}}" },
+    "expected": { "status": 200, "success": true, "code": "PORTAL_ORDER_STATUS" }
+  }
+]

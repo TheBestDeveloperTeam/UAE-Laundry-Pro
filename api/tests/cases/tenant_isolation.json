@@ -1,0 +1,75 @@
+[
+  {
+    "name": "cloud_register_tenant_a",
+    "tag": "Sync",
+    "optional": true,
+    "request": {
+      "method": "POST",
+      "path": "http://localhost/cloud-api/public/api/v1/businesses/register",
+      "headers": { "Content-Type": "application/json" },
+      "body": { "name": "Tenant A", "license_key": "LIC-A-001" }
+    },
+    "expected": { "status": 200, "success": true, "code": "BUSINESS_REGISTERED" },
+    "capture": { "tenant_a_id": "data.business_owner_id", "tenant_a_token": "data.cloud_token" }
+  },
+  {
+    "name": "cloud_register_tenant_b",
+    "tag": "Sync",
+    "optional": true,
+    "request": {
+      "method": "POST",
+      "path": "http://localhost/cloud-api/public/api/v1/businesses/register",
+      "headers": { "Content-Type": "application/json" },
+      "body": { "name": "Tenant B", "license_key": "LIC-B-001" }
+    },
+    "expected": { "status": 200, "success": true, "code": "BUSINESS_REGISTERED" },
+    "capture": { "tenant_b_id": "data.business_owner_id", "tenant_b_token": "data.cloud_token" }
+  },
+  {
+    "name": "cloud_push_tenant_a",
+    "tag": "Sync",
+    "optional": true,
+    "requires": ["tenant_a_id", "tenant_a_token"],
+    "request": {
+      "method": "POST",
+      "path": "http://localhost/cloud-api/public/api/v1/sync/push",
+      "headers": {
+        "Authorization": "Bearer {{tenant_a_token}}",
+        "X-Business-Owner-Id": "{{tenant_a_id}}",
+        "Content-Type": "application/json"
+      },
+      "body": [{ "entity_type": "customer", "entity_local_id": 1, "operation": "create", "payload": { "name": "A Customer" } }]
+    },
+    "expected": { "status": 200, "success": true, "code": "SYNC_RECEIVED" }
+  },
+  {
+    "name": "cloud_pull_tenant_b_empty",
+    "tag": "Sync",
+    "optional": true,
+    "requires": ["tenant_b_id", "tenant_b_token"],
+    "request": {
+      "method": "GET",
+      "path": "http://localhost/cloud-api/public/api/v1/sync/pull",
+      "headers": {
+        "Authorization": "Bearer {{tenant_b_token}}",
+        "X-Business-Owner-Id": "{{tenant_b_id}}"
+      }
+    },
+    "expected": { "status": 200, "success": true, "code": "SYNC_PULL" }
+  },
+  {
+    "name": "cloud_invalid_token",
+    "tag": "Sync",
+    "optional": true,
+    "requires": ["tenant_a_id"],
+    "request": {
+      "method": "GET",
+      "path": "http://localhost/cloud-api/public/api/v1/sync/pull",
+      "headers": {
+        "Authorization": "Bearer invalid-token",
+        "X-Business-Owner-Id": "{{tenant_a_id}}"
+      }
+    },
+    "expected": { "status": 401, "success": false, "code": "INVALID_TOKEN" }
+  }
+]

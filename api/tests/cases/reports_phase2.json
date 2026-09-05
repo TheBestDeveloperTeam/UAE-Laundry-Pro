@@ -1,0 +1,68 @@
+[
+  {
+    "name": "report_inventory",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/inventory?from=2026-09-01&to=2026-09-30",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "INVENTORY_REPORT" }
+  },
+  {
+    "name": "report_payroll",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/payroll?from=2026-09-01&to=2026-09-30",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "PAYROLL_REPORT" }
+  },
+  {
+    "name": "report_expenses",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/expenses?from=2026-09-01&to=2026-09-30",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "EXPENSE_REPORT" }
+  },
+  {
+    "name": "report_production",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/production?from=2026-09-01&to=2026-09-30",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "PRODUCTION_REPORT" }
+  },
+  {
+    "name": "report_purchasing",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/purchasing?from=2026-09-01&to=2026-09-30",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "PURCHASING_REPORT" }
+  },
+  {
+    "name": "report_delivery",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/delivery?from=2026-09-01&to=2026-09-30",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "DELIVERY_REPORT" }
+  }
+]

@@ -1,0 +1,60 @@
+CREATE TABLE IF NOT EXISTS sales_orders (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  uuid CHAR(36) NOT NULL UNIQUE,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  local_id INT UNSIGNED NOT NULL,
+  order_no VARCHAR(50) NOT NULL,
+  customer_id INT UNSIGNED NULL,
+  status ENUM('draft', 'confirmed', 'received', 'processing', 'ready', 'delivered', 'closed', 'cancelled') NOT NULL DEFAULT 'draft',
+  payment_status ENUM('pending', 'partial', 'paid') NOT NULL DEFAULT 'pending',
+  subtotal DECIMAL(18,2) NOT NULL DEFAULT 0,
+  discount DECIMAL(18,2) NOT NULL DEFAULT 0,
+  tax DECIMAL(18,2) NOT NULL DEFAULT 0,
+  grand_total DECIMAL(18,2) NOT NULL DEFAULT 0,
+  amount_paid DECIMAL(18,2) NOT NULL DEFAULT 0,
+  balance_due DECIMAL(18,2) NOT NULL DEFAULT 0,
+  notes TEXT NULL,
+  created_by INT UNSIGNED NULL,
+  confirmed_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_order_local (business_owner_id, local_id),
+  UNIQUE KEY uq_order_no (business_owner_id, order_no),
+  INDEX idx_sales_customer (customer_id),
+  CONSTRAINT fk_sales_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+  CONSTRAINT fk_sales_created_by FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS sales_order_lines (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sales_order_id INT UNSIGNED NOT NULL,
+  line_no INT UNSIGNED NOT NULL,
+  item_type ENUM('service', 'product', 'group') NOT NULL,
+  item_id INT UNSIGNED NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  quantity DECIMAL(18,3) NOT NULL DEFAULT 1,
+  rate DECIMAL(18,2) NOT NULL DEFAULT 0,
+  discount DECIMAL(18,2) NOT NULL DEFAULT 0,
+  amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+  service_status ENUM('received', 'in_process', 'ready', 'delivered', 'cancelled') NOT NULL DEFAULT 'received',
+  modifiers JSON NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_order_line (sales_order_id, line_no),
+  CONSTRAINT fk_lines_order FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS payment_transactions (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  uuid CHAR(36) NOT NULL UNIQUE,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  sales_order_id INT UNSIGNED NOT NULL,
+  payment_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  amount DECIMAL(18,2) NOT NULL,
+  payment_method ENUM('cash', 'credit', 'debit', 'cheque', 'adjustment') NOT NULL DEFAULT 'cash',
+  reference_number VARCHAR(100) NULL,
+  received_by INT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_payment_order (sales_order_id),
+  CONSTRAINT fk_payment_order FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id),
+  CONSTRAINT fk_payment_user FOREIGN KEY (received_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

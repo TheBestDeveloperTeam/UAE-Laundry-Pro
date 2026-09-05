@@ -1,0 +1,25 @@
+[
+  {
+    "name": "backup_me_check",
+    "tag": "Backup",
+    "requires": ["access_token"],
+    "request": {
+      "method": "GET",
+      "path": "/auth/me",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "AUTH_ME_SUCCESS" }
+  },
+  {
+    "name": "backup_run",
+    "tag": "Backup",
+    "requires": ["access_token"],
+    "request": {
+      "method": "POST",
+      "path": "/backup/run",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "BACKUP_CREATED" },
+    "capture": { "backup_file": "data.file" }
+  }
+]

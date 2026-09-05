@@ -107,6 +107,27 @@ unlinked_spec.ds
 # Coverage
 coverage/
 
+# IDE / local tooling
+.idea/
+*.iml
+.metadata
+
+# Marketing large binaries (code-only repo)
+marketing/01-video/
+marketing/02-presentation/
+marketing/04-images/
+
+# PHP API
+api/.env
+api/storage/logs/*
+!api/storage/logs/.gitkeep
+api/storage/rate_limits/*
+!api/storage/rate_limits/.gitkeep
+api/storage/installed.lock
+api/storage/backups/*
+!api/storage/backups/.gitkeep
+api/tests/output/*
+
 # Symbols
 app.*.symbols
 

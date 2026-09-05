@@ -1,0 +1,113 @@
+[
+  {
+    "name": "p3_analytics_summary",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": { "method": "GET", "path": "/analytics/summary", "headers": { "Authorization": "Bearer {{access_token}}" } },
+    "expected": { "status": 200, "success": true, "code": "ANALYTICS_SUMMARY" }
+  },
+  {
+    "name": "p3_analytics_trends",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET", "path": "/analytics/trends?metric=sales_total&from=2026-08-01&to=2026-09-05",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "ANALYTICS_TRENDS" }
+  },
+  {
+    "name": "p3_analytics_refresh",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": { "method": "POST", "path": "/analytics/refresh", "headers": { "Authorization": "Bearer {{access_token}}" } },
+    "expected": { "status": 200, "success": true, "code": "ANALYTICS_REFRESHED" }
+  },
+  {
+    "name": "p3_localization_profiles",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": { "method": "GET", "path": "/localization/profiles", "headers": { "Authorization": "Bearer {{access_token}}" } },
+    "expected": { "status": 200, "success": true, "code": "LOCALIZATION_PROFILES" }
+  },
+  {
+    "name": "p3_localization_set_ksa",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "PUT", "path": "/localization/country",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "country_code": "SA" }
+    },
+    "expected": { "status": 200, "success": true, "code": "LOCALIZATION_UPDATED" }
+  },
+  {
+    "name": "p3_localization_set_uae",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "PUT", "path": "/localization/country",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "country_code": "AE" }
+    },
+    "expected": { "status": 200, "success": true, "code": "LOCALIZATION_UPDATED" }
+  },
+  {
+    "name": "p3_channel_create_sms",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST", "path": "/channels",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "channel_type": "sms", "provider": "stub", "config": { "from": "LaundryPro" } }
+    },
+    "expected": { "status": 201, "success": true, "code": "CHANNEL_CREATED" },
+    "capture": { "p3_channel_id": "data.channel.id" }
+  },
+  {
+    "name": "p3_channels_list",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": { "method": "GET", "path": "/channels", "headers": { "Authorization": "Bearer {{access_token}}" } },
+    "expected": { "status": 200, "success": true, "code": "CHANNELS_LIST" }
+  },
+  {
+    "name": "p3_channel_test",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "requires": ["p3_channel_id"],
+    "request": {
+      "method": "POST", "path": "/channels/{{p3_channel_id}}/test",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "recipient": "+971500000000" }
+    },
+    "expected": { "status": 200, "success": true, "code": "CHANNEL_TEST_SENT" }
+  },
+  {
+    "name": "p3_accounting_export",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST", "path": "/accounting/export",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "period_start": "2026-08-01", "period_end": "2026-09-05", "adapter": "csv" }
+    },
+    "expected": { "status": 201, "success": true, "code": "ACCOUNTING_EXPORT_CREATED" },
+    "capture": { "p3_accounting_batch_id": "data.batch.id" }
+  },
+  {
+    "name": "p3_accounting_batches_list",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "request": { "method": "GET", "path": "/accounting/batches", "headers": { "Authorization": "Bearer {{access_token}}" } },
+    "expected": { "status": 200, "success": true, "code": "ACCOUNTING_BATCHES_LIST" }
+  },
+  {
+    "name": "p3_accounting_batch_show",
+    "tag": "Phase3",
+    "setup": "login_as_admin",
+    "requires": ["p3_accounting_batch_id"],
+    "request": { "method": "GET", "path": "/accounting/batches/{{p3_accounting_batch_id}}", "headers": { "Authorization": "Bearer {{access_token}}" } },
+    "expected": { "status": 200, "success": true, "code": "ACCOUNTING_BATCH_DETAIL" }
+  }
+]

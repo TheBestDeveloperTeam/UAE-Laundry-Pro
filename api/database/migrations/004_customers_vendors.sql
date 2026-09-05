@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS customers (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  uuid CHAR(36) NOT NULL UNIQUE,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  local_id INT UNSIGNED NOT NULL,
+  customer_code VARCHAR(50) NULL,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(50) NULL,
+  email VARCHAR(150) NULL,
+  address_line1 VARCHAR(255) NULL,
+  city VARCHAR(100) NULL,
+  emirate VARCHAR(100) NULL,
+  customer_type ENUM('personal', 'professional', 'walk_in') NOT NULL DEFAULT 'personal',
+  credit_limit DECIMAL(18,2) NOT NULL DEFAULT 0,
+  outstanding_balance DECIMAL(18,2) NOT NULL DEFAULT 0,
+  notes TEXT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_customer_local (business_owner_id, local_id),
+  INDEX idx_customer_phone (phone),
+  INDEX idx_customer_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS vendors (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  uuid CHAR(36) NOT NULL UNIQUE,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  local_id INT UNSIGNED NOT NULL,
+  vendor_code VARCHAR(50) NULL,
+  name VARCHAR(255) NOT NULL,
+  contact_person VARCHAR(150) NULL,
+  phone VARCHAR(50) NULL,
+  email VARCHAR(150) NULL,
+  address_line1 VARCHAR(255) NULL,
+  city VARCHAR(100) NULL,
+  notes TEXT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_vendor_local (business_owner_id, local_id),
+  INDEX idx_vendor_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

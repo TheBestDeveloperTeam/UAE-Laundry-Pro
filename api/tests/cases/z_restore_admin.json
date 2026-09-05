@@ -1,0 +1,13 @@
+[
+  {
+    "name": "restore_admin_session",
+    "tag": "RBAC",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/auth/me",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "AUTH_ME_SUCCESS" }
+  }
+]

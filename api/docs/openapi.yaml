@@ -1,0 +1,87 @@
+openapi: 3.0.3
+info:
+  title: LaundryPro UAE API
+  version: 0.1.0
+  description: Plain PHP REST API for LaundryPro UAE local desktop deployment.
+servers:
+  - url: http://localhost/laundrypro-api/public/api/v1
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: API and database status
+  /auth/login:
+    post:
+      summary: Login with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: JWT token pair
+        '401':
+          description: Invalid credentials
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: New token pair
+  /auth/logout:
+    post:
+      summary: Logout and revoke refresh token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out
+  /auth/me:
+    get:
+      summary: Current authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+  /settings:
+    get:
+      summary: List settings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Settings map
+    put:
+      summary: Update settings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Updated settings
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

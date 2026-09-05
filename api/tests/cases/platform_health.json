@@ -1,0 +1,14 @@
+[
+  {
+    "name": "health_ok",
+    "tag": "Platform",
+    "request": { "method": "GET", "path": "/health" },
+    "expected": { "status": 200, "success": true, "code": "HEALTH_OK" }
+  },
+  {
+    "name": "openapi_json",
+    "tag": "Platform",
+    "request": { "method": "GET", "path": "/docs/openapi.json" },
+    "expected": { "status": 200 }
+  }
+]

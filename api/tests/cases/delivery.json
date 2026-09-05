@@ -1,0 +1,99 @@
+[
+  {
+    "name": "delivery_service_create",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "name": "Delivery Test Wash", "base_rate": 40.00 }
+    },
+    "expected": { "status": 201, "success": true, "code": "SERVICE_CREATED" },
+    "capture": { "delivery_service_id": "data.service.id" }
+  },
+  {
+    "name": "delivery_sale_draft",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": ["delivery_service_id"],
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "delivery_address": "Al Barsha, Dubai",
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": "{{delivery_service_id}}",
+            "description": "Delivery Test Wash",
+            "quantity": 1,
+            "rate": 40.00
+          }
+        ]
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "SALE_DRAFT_CREATED" },
+    "capture": { "delivery_order_id": "data.order.id" }
+  },
+  {
+    "name": "delivery_sale_confirm",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": ["delivery_order_id"],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{delivery_order_id}}/confirm",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_CONFIRMED" }
+  },
+  {
+    "name": "delivery_sale_ready",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": ["delivery_order_id"],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{delivery_order_id}}/status",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "status": "ready_for_collection" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_UPDATED" }
+  },
+  {
+    "name": "delivery_task_schedule",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": ["delivery_order_id"],
+    "request": {
+      "method": "POST",
+      "path": "/delivery-tasks",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "sales_order_id": "{{delivery_order_id}}",
+        "task_type": "delivery",
+        "scheduled_at": "2026-09-06T14:00:00",
+        "address": "Al Barsha, Dubai",
+        "notes": "Call before arrival"
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "DELIVERY_TASK_SCHEDULED" },
+    "capture": { "delivery_task_id": "data.task.id" }
+  },
+  {
+    "name": "delivery_task_complete",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": ["delivery_task_id"],
+    "request": {
+      "method": "POST",
+      "path": "/delivery-tasks/{{delivery_task_id}}/complete",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "notes": "Delivered to customer" }
+    },
+    "expected": { "status": 200, "success": true, "code": "DELIVERY_TASK_COMPLETED" },
+    "assert": { "data.task.status": "completed" }
+  }
+]

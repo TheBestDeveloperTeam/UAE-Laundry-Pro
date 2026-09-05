@@ -1,0 +1,73 @@
+[
+  {
+    "name": "payroll_employee_create",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/employees",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "employee_no": "EMP-PAY-2030-001",
+        "full_name": "Fatima Hassan",
+        "phone": "0500000300",
+        "job_title": "Cashier",
+        "base_salary": 3000.00
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "EMPLOYEE_CREATED" },
+    "capture": { "payroll_employee_id": "data.employee.id" }
+  },
+  {
+    "name": "payroll_salary_advance_create",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "requires": ["payroll_employee_id"],
+    "request": {
+      "method": "POST",
+      "path": "/salary-advances",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "employee_id": "{{payroll_employee_id}}",
+        "amount": 500.00,
+        "notes": "Emergency advance"
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "SALARY_ADVANCE_CREATED" },
+    "capture": { "payroll_advance_id": "data.advance.id" }
+  },
+  {
+    "name": "payroll_run_period",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "requires": ["payroll_employee_id"],
+    "request": {
+      "method": "POST",
+      "path": "/payroll/run",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "period_start": "2030-01-01",
+        "period_end": "2030-01-31",
+        "employee_ids": ["{{payroll_employee_id}}"]
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "PAYROLL_RUN_CREATED" },
+    "capture": { "payroll_run_id": "data.payroll_run.id" }
+  },
+  {
+    "name": "payroll_verify_advance_deduction",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "requires": ["payroll_run_id", "payroll_employee_id"],
+    "request": {
+      "method": "GET",
+      "path": "/payroll/runs/{{payroll_run_id}}",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "PAYROLL_RUN_DETAIL" },
+    "assert": {
+      "data.payroll_run.lines.0.advance_deduction": "500.00",
+      "data.payroll_run.lines.0.net_pay": "2500.00"
+    }
+  }
+]

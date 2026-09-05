@@ -1,0 +1,7 @@
+display_name: LaundryPro UAE
+publisher_display_name: Magnificent Solution
+identity_name: com.magnificentsolution.laundrypro.uae
+msix_version: 1.2.0.0
+logo_path: windows\runner\resources\app_icon.ico
+capabilities: internetClient, runFullTrust
+install_certificate: false

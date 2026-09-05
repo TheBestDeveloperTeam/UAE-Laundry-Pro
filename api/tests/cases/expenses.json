@@ -1,0 +1,47 @@
+[
+  {
+    "name": "expense_categories_list",
+    "tag": "Expenses",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/expense-categories",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "EXPENSE_CATEGORIES_LIST" },
+    "capture": { "expense_category_id": "data.categories.0.id" }
+  },
+  {
+    "name": "expense_create",
+    "tag": "Expenses",
+    "setup": "login_as_admin",
+    "requires": ["expense_category_id"],
+    "request": {
+      "method": "POST",
+      "path": "/expenses",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "category_id": "{{expense_category_id}}",
+        "expense_date": "2026-09-05",
+        "amount": 250.00,
+        "description": "Electricity bill August"
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "EXPENSE_CREATED" },
+    "capture": { "expense_id": "data.expense.id" }
+  },
+  {
+    "name": "expense_approve",
+    "tag": "Expenses",
+    "setup": "login_as_admin",
+    "requires": ["expense_id"],
+    "request": {
+      "method": "POST",
+      "path": "/expenses/{{expense_id}}/approve",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "notes": "Verified against invoice" }
+    },
+    "expected": { "status": 200, "success": true, "code": "EXPENSE_APPROVED" },
+    "assert": { "data.expense.status": "approved" }
+  }
+]

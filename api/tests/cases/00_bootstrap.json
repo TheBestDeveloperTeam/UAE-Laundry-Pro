@@ -1,0 +1,13 @@
+[
+  {
+    "name": "bootstrap_admin_login",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "body": { "username": "admin", "password": "admin123" }
+    },
+    "expected": { "status": 200, "success": true, "code": "AUTH_LOGIN_SUCCESS" },
+    "capture": { "access_token": "data.access_token", "admin_token": "data.access_token", "refresh_token": "data.refresh_token" }
+  }
+]

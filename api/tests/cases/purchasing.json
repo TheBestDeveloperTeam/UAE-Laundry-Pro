@@ -1,0 +1,97 @@
+[
+  {
+    "name": "purchasing_vendor_create",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/vendors",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "name": "Detergent Supplies LLC", "phone": "0500000100" }
+    },
+    "expected": { "status": 201, "success": true, "code": "VENDOR_CREATED" },
+    "capture": { "po_vendor_id": "data.vendor.id" }
+  },
+  {
+    "name": "purchasing_product_create",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/products",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "name": "Liquid Detergent 5L", "stock_quantity": 10, "base_rate": 45.00 }
+    },
+    "expected": { "status": 201, "success": true, "code": "PRODUCT_CREATED" },
+    "capture": { "po_product_id": "data.product.id" }
+  },
+  {
+    "name": "purchasing_stock_before",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": ["po_product_id"],
+    "request": {
+      "method": "GET",
+      "path": "/products/{{po_product_id}}",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "PRODUCT_DETAIL" },
+    "assert": { "data.product.stock_quantity": "10" }
+  },
+  {
+    "name": "purchasing_po_create",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": ["po_vendor_id", "po_product_id"],
+    "request": {
+      "method": "POST",
+      "path": "/purchase-orders",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "vendor_id": "{{po_vendor_id}}",
+        "order_date": "2026-09-05",
+        "expected_date": "2026-09-10",
+        "lines": [
+          {
+            "product_id": "{{po_product_id}}",
+            "quantity_ordered": 5,
+            "unit_cost": 42.00
+          }
+        ]
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "PURCHASE_ORDER_CREATED" },
+    "capture": { "po_id": "data.purchase_order.id" }
+  },
+  {
+    "name": "purchasing_po_receive",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": ["po_id", "po_product_id"],
+    "request": {
+      "method": "POST",
+      "path": "/purchase-orders/{{po_id}}/receive",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "lines": [
+          { "product_id": "{{po_product_id}}", "quantity": 5 }
+        ],
+        "notes": "Full receipt"
+      }
+    },
+    "expected": { "status": 200, "success": true, "code": "PURCHASE_ORDER_RECEIVED" }
+  },
+  {
+    "name": "purchasing_stock_after",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": ["po_product_id"],
+    "request": {
+      "method": "GET",
+      "path": "/products/{{po_product_id}}",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "PRODUCT_DETAIL" },
+    "assert": { "data.product.stock_quantity": "15" }
+  }
+]

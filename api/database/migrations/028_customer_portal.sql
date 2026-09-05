@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS customer_portal_tokens (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  uuid CHAR(36) NOT NULL UNIQUE,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  sales_order_id INT UNSIGNED NOT NULL,
+  access_token VARCHAR(128) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_cpt_order FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

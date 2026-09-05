@@ -1,0 +1,49 @@
+[
+  {
+    "name": "cashier_sales_draft_ok",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "lines": [{ "item_type": "service", "item_id": 1, "description": "Test", "quantity": 1, "rate": 10 }] }
+    },
+    "expected": { "status": 201, "success": true, "code": "SALE_DRAFT_CREATED" }
+  },
+  {
+    "name": "cashier_backup_forbidden",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "POST",
+      "path": "/backup/run",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {}
+    },
+    "expected": { "status": 403, "success": false, "code": "FORBIDDEN" }
+  },
+  {
+    "name": "cashier_settings_forbidden",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "PUT",
+      "path": "/settings",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "settings": { "business.name": "Hacked" } }
+    },
+    "expected": { "status": 403, "success": false, "code": "FORBIDDEN" }
+  },
+  {
+    "name": "cashier_customers_read_ok",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "GET",
+      "path": "/customers",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "CUSTOMERS_LIST" }
+  }
+]

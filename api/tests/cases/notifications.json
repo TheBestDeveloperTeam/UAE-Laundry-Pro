@@ -1,0 +1,57 @@
+[
+  {
+    "name": "notification_generate",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/notifications/generate",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "notification_type": "order_ready",
+        "title": "Order ready for collection",
+        "message": "Order #TEST-001 is ready for pickup",
+        "severity": "info",
+        "reference_type": "sales_order",
+        "reference_id": 1
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "NOTIFICATION_CREATED" },
+    "capture": { "notification_id": "data.notification.id" }
+  },
+  {
+    "name": "notifications_list",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/notifications?limit=20",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "NOTIFICATIONS_LIST" }
+  },
+  {
+    "name": "notification_mark_read",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "requires": ["notification_id"],
+    "request": {
+      "method": "POST",
+      "path": "/notifications/{{notification_id}}/read",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "NOTIFICATION_READ" },
+    "assert": { "data.notification.is_read": "1" }
+  },
+  {
+    "name": "notifications_list_unread",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/notifications?is_read=0",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "NOTIFICATIONS_LIST" }
+  }
+]

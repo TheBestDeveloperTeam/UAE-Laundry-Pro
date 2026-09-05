@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS storefront_tokens (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  uuid CHAR(36) NOT NULL UNIQUE,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  token_hash VARCHAR(128) NOT NULL UNIQUE,
+  label VARCHAR(100) NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS storefront_orders (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  uuid CHAR(36) NOT NULL UNIQUE,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  customer_name VARCHAR(150) NOT NULL,
+  customer_phone VARCHAR(50) NOT NULL,
+  notes TEXT NULL,
+  status ENUM('pending', 'converted', 'cancelled') NOT NULL DEFAULT 'pending',
+  sales_order_id INT UNSIGNED NULL,
+  payload_json JSON NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

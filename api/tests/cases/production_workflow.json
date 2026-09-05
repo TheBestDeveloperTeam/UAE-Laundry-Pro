@@ -1,0 +1,148 @@
+[
+  {
+    "name": "workflow_service_create",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "name": "Production Workflow Wash", "base_rate": 35.00 }
+    },
+    "expected": { "status": 201, "success": true, "code": "SERVICE_CREATED" },
+    "capture": { "workflow_service_id": "data.service.id" }
+  },
+  {
+    "name": "workflow_sale_draft",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_service_id"],
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": {
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": "{{workflow_service_id}}",
+            "description": "Production Workflow Wash",
+            "quantity": 1,
+            "rate": 35.00
+          }
+        ]
+      }
+    },
+    "expected": { "status": 201, "success": true, "code": "SALE_DRAFT_CREATED" },
+    "capture": { "workflow_order_id": "data.order.id" }
+  },
+  {
+    "name": "workflow_sale_confirm",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{workflow_order_id}}/confirm",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_CONFIRMED" },
+    "assert": { "data.order.status": "confirmed" }
+  },
+  {
+    "name": "workflow_status_received",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "status": "received" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_UPDATED" },
+    "assert": { "data.order.status": "received" }
+  },
+  {
+    "name": "workflow_status_sorting",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "status": "sorting" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_UPDATED" },
+    "assert": { "data.order.status": "sorting" }
+  },
+  {
+    "name": "workflow_status_processing",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "status": "processing" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_UPDATED" },
+    "assert": { "data.order.status": "processing" }
+  },
+  {
+    "name": "workflow_status_quality_check",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "status": "quality_check" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_UPDATED" },
+    "assert": { "data.order.status": "quality_check" }
+  },
+  {
+    "name": "workflow_status_packed",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "status": "packed" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_UPDATED" },
+    "assert": { "data.order.status": "packed" }
+  },
+  {
+    "name": "workflow_status_ready_for_collection",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "status": "ready_for_collection" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_UPDATED" },
+    "assert": { "data.order.status": "ready_for_collection" }
+  },
+  {
+    "name": "workflow_status_history",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": ["workflow_order_id"],
+    "request": {
+      "method": "GET",
+      "path": "/sales/{{workflow_order_id}}/status-history",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "SALE_STATUS_HISTORY" }
+  }
+]

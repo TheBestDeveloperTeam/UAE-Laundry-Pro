@@ -1,0 +1,31 @@
+name: laundrypro_uae
+description: LaundryPro UAE - Local Laundry Services Management System
+publish_to: 'none'
+version: 1.2.0+3
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  provider: ^6.1.2
+  go_router: ^14.6.2
+  http: ^1.2.2
+  intl: ^0.20.2
+  flutter_secure_storage: ^9.2.4
+  pdf: ^3.11.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  msix: ^3.16.8
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/lang/en.json
+    - assets/lang/ar.json

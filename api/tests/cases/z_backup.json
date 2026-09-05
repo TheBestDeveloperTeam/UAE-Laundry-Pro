@@ -1,0 +1,41 @@
+[
+  {
+    "name": "backup_history",
+    "tag": "Backup",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/backup/history",
+      "headers": { "Authorization": "Bearer {{access_token}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "BACKUP_HISTORY" }
+  },
+  {
+    "name": "backup_verify",
+    "tag": "Backup",
+    "setup": "login_as_admin",
+    "requires": ["backup_file"],
+    "request": {
+      "method": "POST",
+      "path": "/backup/verify",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "file": "{{backup_file}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "BACKUP_VERIFIED" },
+    "assert": { "data.verified": "1" }
+  },
+  {
+    "name": "backup_restore_validate",
+    "tag": "Backup",
+    "setup": "login_as_admin",
+    "requires": ["backup_file"],
+    "request": {
+      "method": "POST",
+      "path": "/backup/restore/validate",
+      "headers": { "Authorization": "Bearer {{access_token}}" },
+      "body": { "file": "{{backup_file}}" }
+    },
+    "expected": { "status": 200, "success": true, "code": "BACKUP_RESTORE_VALIDATED" },
+    "assert": { "data.dry_run": "1" }
+  }
+]
