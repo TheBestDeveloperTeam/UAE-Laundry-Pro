@@ -51,10 +51,10 @@
 
 ## Git closeout
 
-- [ ] Commit 1: `feat(peripherals): merge POS peripheral framework`
-- [ ] Commit 2: `chore: consolidate artifacts and sync v1.2.1 docs`
-- [ ] Quality gate green
-- [ ] `git push origin main`
+- [x] Commit 1: `feat(peripherals): merge POS peripheral framework`
+- [x] Commit 2: `chore: consolidate artifacts and sync v1.2.1 docs`
+- [x] Quality gate green
+- [x] `git push origin main` (`9a3eeb2`)
 
 ## Known optional skips (not blockers)
 
