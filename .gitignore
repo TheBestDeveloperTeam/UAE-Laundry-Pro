@@ -4,6 +4,7 @@
 *.log
 *.pyc
 *.swp
+*.zip
 .buildlog/
 .history
 
@@ -113,9 +114,7 @@ coverage/
 .metadata
 
 # Marketing large binaries (code-only repo)
-marketing/01-video/
-marketing/02-presentation/
-marketing/04-images/
+**/marketing/
 
 # PHP API
 api/.env
