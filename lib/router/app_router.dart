@@ -23,6 +23,7 @@ import 'package:laundrypro_uae/views/login_screen.dart';
 import 'package:laundrypro_uae/views/notifications_screen.dart';
 import 'package:laundrypro_uae/views/payroll_screen.dart';
 import 'package:laundrypro_uae/views/pending_invoices_screen.dart';
+import 'package:laundrypro_uae/views/peripherals_screen.dart';
 import 'package:laundrypro_uae/views/pos_screen.dart';
 import 'package:laundrypro_uae/views/production_screen.dart';
 import 'package:laundrypro_uae/views/purchasing_screen.dart';
@@ -103,6 +104,7 @@ class AppRouter {
             GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
             GoRoute(path: '/sync', builder: (context, state) => const SyncSettingsScreen()),
             GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+            GoRoute(path: '/settings/peripherals', builder: (context, state) => const PeripheralsScreen()),
             GoRoute(path: '/business', builder: (context, state) => const BusinessScreen()),
             GoRoute(path: '/admin/branches', builder: (context, state) => const BranchesScreen()),
             GoRoute(path: '/admin/terminals', builder: (context, state) => const TerminalsScreen()),

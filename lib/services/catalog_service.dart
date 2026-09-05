@@ -12,11 +12,20 @@ class CatalogService {
         .toList();
   }
 
-  Future<List<Map<String, dynamic>>> listProducts() async {
-    final res = await _api.get('/products');
+  Future<List<Map<String, dynamic>>> listProducts({String? barcode}) async {
+    final query = barcode != null && barcode.isNotEmpty
+        ? '/products?barcode=${Uri.encodeQueryComponent(barcode)}'
+        : '/products';
+    final res = await _api.get(query);
     return (res['data']?['products'] as List? ?? [])
         .map((e) => Map<String, dynamic>.from(e as Map))
         .toList();
+  }
+
+  Future<Map<String, dynamic>?> findProductByBarcode(String barcode) async {
+    final products = await listProducts(barcode: barcode);
+    if (products.isEmpty) return null;
+    return products.first;
   }
 
   Future<Map<String, dynamic>> createService(Map<String, dynamic> body) async {

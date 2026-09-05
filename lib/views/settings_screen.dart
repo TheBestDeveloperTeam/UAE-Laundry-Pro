@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/backup_service.dart';
 import 'package:laundrypro_uae/services/settings_service.dart';
@@ -90,6 +91,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 FilledButton(onPressed: _saveSettings, child: Text(l10n.t('save'))),
+                const Divider(height: 32),
+                Text(l10n.t('peripherals'), style: Theme.of(context).textTheme.titleMedium),
+                ListTile(
+                  leading: const Icon(Icons.devices),
+                  title: Text(l10n.t('peripherals')),
+                  subtitle: Text(l10n.t('peripherals_settings_hint')),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/peripherals'),
+                ),
                 const Divider(height: 32),
                 Text(l10n.t('backup'), style: Theme.of(context).textTheme.titleMedium),
                 if (_lastBackupResult != null) Text(_lastBackupResult!),

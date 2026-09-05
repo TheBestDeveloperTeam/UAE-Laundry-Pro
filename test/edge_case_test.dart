@@ -1,7 +1,9 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:laundrypro_uae/core/localization.dart';
+import 'peripherals_test_support.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/services/auth_service.dart';
 import 'package:laundrypro_uae/services/license_service.dart';
@@ -44,25 +46,37 @@ class FakeLicenseService extends LicenseService {
       };
 }
 
-Widget _wrap(Widget child) {
-  return MaterialApp(
-    locale: const Locale('en'),
-    localizationsDelegates: const [
-      AppLocalizationsDelegate(),
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-    ],
-    supportedLocales: const [Locale('en'), Locale('ar')],
-    home: child,
-  );
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  late ProviderContainer peripheralContainer;
+
+  setUpAll(() async {
+    peripheralContainer = await createTestPeripheralContainer();
+  });
+
+  tearDownAll(() {
+    peripheralContainer.dispose();
+  });
+
+  Widget wrapWidget(Widget child) {
+    return UncontrolledProviderScope(
+      container: peripheralContainer,
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          AppLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        home: child,
+      ),
+    );
+  }
 
   testWidgets('POS shows empty cart message and disabled confirm', (tester) async {
     await tester.pumpWidget(
-      _wrap(PosScreen(salesService: FakeSalesService())),
+      wrapWidget(PosScreen(salesService: FakeSalesService())),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
