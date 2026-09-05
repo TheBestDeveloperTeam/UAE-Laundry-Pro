@@ -50,7 +50,7 @@ if ($mysql) {
 }
 
 & $php (Join-Path $ApiRoot "database\migrate.php")
-& $php (Join-Path $ApiRoot "database\seeds\ensure_dev_admin.php") "admin123"
-& $php (Join-Path $ApiRoot "database\seeds\ensure_dev_cashier.php")
+# Greenfield: applies 001_baseline.sql only. Legacy incremental files live in database/migrations/archive/.
+& $php (Join-Path $ApiRoot "database\seeds\run_dev_seed.php") "admin123"
 
 Write-Host "Migration complete. Default admin: admin / admin123"

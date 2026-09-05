@@ -1,0 +1,1230 @@
+[
+  {
+    "name": "workflow_service_create",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Production Workflow Wash",
+        "base_rate": 35.0
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_CREATED"
+    },
+    "capture": {
+      "workflow_service_id": "data.service.id"
+    }
+  },
+  {
+    "name": "workflow_sale_draft",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_service_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": "{{workflow_service_id}}",
+            "description": "Production Workflow Wash",
+            "quantity": 1,
+            "rate": 35.0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SALE_DRAFT_CREATED"
+    },
+    "capture": {
+      "workflow_order_id": "data.order.id"
+    }
+  },
+  {
+    "name": "workflow_sale_confirm",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{workflow_order_id}}/confirm",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_CONFIRMED"
+    },
+    "assert": {
+      "data.order.status": "confirmed"
+    }
+  },
+  {
+    "name": "workflow_status_received",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "received"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    },
+    "assert": {
+      "data.order.status": "received"
+    }
+  },
+  {
+    "name": "workflow_status_sorting",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "sorting"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    },
+    "assert": {
+      "data.order.status": "sorting"
+    }
+  },
+  {
+    "name": "workflow_status_processing",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "processing"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    },
+    "assert": {
+      "data.order.status": "processing"
+    }
+  },
+  {
+    "name": "workflow_status_quality_check",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "quality_check"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    },
+    "assert": {
+      "data.order.status": "quality_check"
+    }
+  },
+  {
+    "name": "workflow_status_packed",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "packed"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    },
+    "assert": {
+      "data.order.status": "packed"
+    }
+  },
+  {
+    "name": "workflow_status_ready_for_collection",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{workflow_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "ready_for_collection"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    },
+    "assert": {
+      "data.order.status": "ready_for_collection"
+    }
+  },
+  {
+    "name": "workflow_status_history",
+    "tag": "Production",
+    "setup": "login_as_admin",
+    "requires": [
+      "workflow_order_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/sales/{{workflow_order_id}}/status-history",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_HISTORY"
+    }
+  },
+  {
+    "name": "delivery_service_create",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Delivery Test Wash",
+        "base_rate": 40.0
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_CREATED"
+    },
+    "capture": {
+      "delivery_service_id": "data.service.id"
+    }
+  },
+  {
+    "name": "delivery_sale_draft",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": [
+      "delivery_service_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "delivery_address": "Al Barsha, Dubai",
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": "{{delivery_service_id}}",
+            "description": "Delivery Test Wash",
+            "quantity": 1,
+            "rate": 40.0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SALE_DRAFT_CREATED"
+    },
+    "capture": {
+      "delivery_order_id": "data.order.id"
+    }
+  },
+  {
+    "name": "delivery_sale_confirm",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": [
+      "delivery_order_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{delivery_order_id}}/confirm",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_CONFIRMED"
+    }
+  },
+  {
+    "name": "delivery_sale_ready",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": [
+      "delivery_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{delivery_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "ready_for_collection"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    }
+  },
+  {
+    "name": "delivery_task_schedule",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": [
+      "delivery_order_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/delivery-tasks",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "sales_order_id": "{{delivery_order_id}}",
+        "task_type": "delivery",
+        "scheduled_at": "2026-09-06T14:00:00",
+        "address": "Al Barsha, Dubai",
+        "notes": "Call before arrival"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "DELIVERY_TASK_SCHEDULED"
+    },
+    "capture": {
+      "delivery_task_id": "data.task.id"
+    }
+  },
+  {
+    "name": "delivery_task_complete",
+    "tag": "Delivery",
+    "setup": "login_as_admin",
+    "requires": [
+      "delivery_task_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/delivery-tasks/{{delivery_task_id}}/complete",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "notes": "Delivered to customer"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "DELIVERY_TASK_COMPLETED"
+    },
+    "assert": {
+      "data.task.status": "completed"
+    }
+  },
+  {
+    "name": "challan_create_first",
+    "tag": "Challans",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/challans",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "challan_type": "delivery",
+        "notes": "First delivery challan",
+        "lines": [
+          {
+            "description": "Shirts",
+            "quantity": 3,
+            "unit": "pcs"
+          },
+          {
+            "description": "Trousers",
+            "quantity": 2,
+            "unit": "pcs"
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "CHALLAN_CREATED"
+    },
+    "capture": {
+      "challan_id_first": "data.challan.id",
+      "challan_no_first": "data.challan.challan_no",
+      "challan_seq_first": "data.challan.sequence_no"
+    }
+  },
+  {
+    "name": "challan_get_first",
+    "tag": "Challans",
+    "setup": "login_as_admin",
+    "requires": [
+      "challan_id_first"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/challans/{{challan_id_first}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "CHALLAN_DETAIL"
+    }
+  },
+  {
+    "name": "challan_create_second",
+    "tag": "Challans",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/challans",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "challan_type": "delivery",
+        "notes": "Second delivery challan",
+        "lines": [
+          {
+            "description": "Bed sheets",
+            "quantity": 4,
+            "unit": "pcs"
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "CHALLAN_CREATED"
+    },
+    "capture": {
+      "challan_id_second": "data.challan.id",
+      "challan_no_second": "data.challan.challan_no",
+      "challan_seq_second": "data.challan.sequence_no"
+    }
+  },
+  {
+    "name": "challan_get_second",
+    "tag": "Challans",
+    "setup": "login_as_admin",
+    "requires": [
+      "challan_id_second"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/challans/{{challan_id_second}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "CHALLAN_DETAIL"
+    }
+  },
+  {
+    "name": "challan_list_delivery_type",
+    "tag": "Challans",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/challans?challan_type=delivery",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "CHALLANS_LIST"
+    }
+  },
+  {
+    "name": "challan_verify_sequential_no",
+    "tag": "Challans",
+    "setup": "login_as_admin",
+    "requires": [
+      "challan_id_second",
+      "challan_no_first"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/challans/{{challan_id_second}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "CHALLAN_DETAIL"
+    }
+  },
+  {
+    "name": "purchasing_vendor_create",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/vendors",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Detergent Supplies LLC",
+        "phone": "0500000100"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "VENDOR_CREATED"
+    },
+    "capture": {
+      "po_vendor_id": "data.vendor.id"
+    }
+  },
+  {
+    "name": "purchasing_product_create",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/products",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Liquid Detergent 5L",
+        "stock_quantity": 10,
+        "base_rate": 45.0
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "PRODUCT_CREATED"
+    },
+    "capture": {
+      "po_product_id": "data.product.id"
+    }
+  },
+  {
+    "name": "purchasing_stock_before",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": [
+      "po_product_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/products/{{po_product_id}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PRODUCT_DETAIL"
+    },
+    "assert": {
+      "data.product.stock_quantity": "10"
+    }
+  },
+  {
+    "name": "purchasing_po_create",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": [
+      "po_vendor_id",
+      "po_product_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/purchase-orders",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "vendor_id": "{{po_vendor_id}}",
+        "order_date": "2026-09-05",
+        "expected_date": "2026-09-10",
+        "lines": [
+          {
+            "product_id": "{{po_product_id}}",
+            "quantity_ordered": 5,
+            "unit_cost": 42.0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "PURCHASE_ORDER_CREATED"
+    },
+    "capture": {
+      "po_id": "data.purchase_order.id"
+    }
+  },
+  {
+    "name": "purchasing_po_receive",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": [
+      "po_id",
+      "po_product_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/purchase-orders/{{po_id}}/receive",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "product_id": "{{po_product_id}}",
+            "quantity": 5
+          }
+        ],
+        "notes": "Full receipt"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PURCHASE_ORDER_RECEIVED"
+    }
+  },
+  {
+    "name": "purchasing_stock_after",
+    "tag": "Purchasing",
+    "setup": "login_as_admin",
+    "requires": [
+      "po_product_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/products/{{po_product_id}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PRODUCT_DETAIL"
+    },
+    "assert": {
+      "data.product.stock_quantity": "15"
+    }
+  },
+  {
+    "name": "hr_employee_create",
+    "tag": "HR",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/employees",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "employee_no": "EMP-TEST-001",
+        "full_name": "Ahmed Al Mansoori",
+        "phone": "0500000200",
+        "job_title": "Press Operator",
+        "base_salary": 3500.0
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "EMPLOYEE_CREATED"
+    },
+    "capture": {
+      "hr_employee_id": "data.employee.id"
+    }
+  },
+  {
+    "name": "hr_attendance_record",
+    "tag": "HR",
+    "setup": "login_as_admin",
+    "requires": [
+      "hr_employee_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/attendance",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "employee_id": "{{hr_employee_id}}",
+        "attendance_date": "2026-09-05",
+        "status": "present",
+        "check_in": "08:00:00",
+        "check_out": "17:00:00"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "ATTENDANCE_RECORDED"
+    }
+  },
+  {
+    "name": "hr_leave_types_list",
+    "tag": "HR",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/leave-types",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "LEAVE_TYPES_LIST"
+    },
+    "capture": {
+      "hr_leave_type_id": "data.leave_types.0.id"
+    }
+  },
+  {
+    "name": "hr_leave_request_create",
+    "tag": "HR",
+    "setup": "login_as_admin",
+    "requires": [
+      "hr_employee_id",
+      "hr_leave_type_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/leave-requests",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "employee_id": "{{hr_employee_id}}",
+        "leave_type_id": "{{hr_leave_type_id}}",
+        "start_date": "2026-09-15",
+        "end_date": "2026-09-16",
+        "reason": "Family event"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "LEAVE_REQUEST_CREATED"
+    },
+    "capture": {
+      "hr_leave_request_id": "data.leave_request.id"
+    }
+  },
+  {
+    "name": "hr_leave_request_approve",
+    "tag": "HR",
+    "setup": "login_as_admin",
+    "requires": [
+      "hr_leave_request_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/leave-requests/{{hr_leave_request_id}}/approve",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "notes": "Approved by admin"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "LEAVE_REQUEST_APPROVED"
+    },
+    "assert": {
+      "data.leave_request.status": "approved"
+    }
+  },
+  {
+    "name": "payroll_employee_create",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/employees",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "employee_no": "EMP-PAY-2030-001",
+        "full_name": "Fatima Hassan",
+        "phone": "0500000300",
+        "job_title": "Cashier",
+        "base_salary": 3000.0
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "EMPLOYEE_CREATED"
+    },
+    "capture": {
+      "payroll_employee_id": "data.employee.id"
+    }
+  },
+  {
+    "name": "payroll_salary_advance_create",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "requires": [
+      "payroll_employee_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/salary-advances",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "employee_id": "{{payroll_employee_id}}",
+        "amount": 500.0,
+        "notes": "Emergency advance"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SALARY_ADVANCE_CREATED"
+    },
+    "capture": {
+      "payroll_advance_id": "data.advance.id"
+    }
+  },
+  {
+    "name": "payroll_run_period",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "requires": [
+      "payroll_employee_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/payroll/run",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "period_start": "2030-01-01",
+        "period_end": "2030-01-31",
+        "employee_ids": [
+          "{{payroll_employee_id}}"
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "PAYROLL_RUN_CREATED"
+    },
+    "capture": {
+      "payroll_run_id": "data.payroll_run.id"
+    }
+  },
+  {
+    "name": "payroll_verify_advance_deduction",
+    "tag": "Payroll",
+    "setup": "login_as_admin",
+    "requires": [
+      "payroll_run_id",
+      "payroll_employee_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/payroll/runs/{{payroll_run_id}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PAYROLL_RUN_DETAIL"
+    },
+    "assert": {
+      "data.payroll_run.lines.0.advance_deduction": "500.00",
+      "data.payroll_run.lines.0.net_pay": "2500.00"
+    }
+  },
+  {
+    "name": "expense_categories_list",
+    "tag": "Expenses",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/expense-categories",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "EXPENSE_CATEGORIES_LIST"
+    },
+    "capture": {
+      "expense_category_id": "data.categories.0.id"
+    }
+  },
+  {
+    "name": "expense_create",
+    "tag": "Expenses",
+    "setup": "login_as_admin",
+    "requires": [
+      "expense_category_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/expenses",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "category_id": "{{expense_category_id}}",
+        "expense_date": "2026-09-05",
+        "amount": 250.0,
+        "description": "Electricity bill August"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "EXPENSE_CREATED"
+    },
+    "capture": {
+      "expense_id": "data.expense.id"
+    }
+  },
+  {
+    "name": "expense_approve",
+    "tag": "Expenses",
+    "setup": "login_as_admin",
+    "requires": [
+      "expense_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/expenses/{{expense_id}}/approve",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "notes": "Verified against invoice"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "EXPENSE_APPROVED"
+    },
+    "assert": {
+      "data.expense.status": "approved"
+    }
+  },
+  {
+    "name": "notification_generate",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/notifications/generate",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "notification_type": "order_ready",
+        "title": "Order ready for collection",
+        "message": "Order #TEST-001 is ready for pickup",
+        "severity": "info",
+        "reference_type": "sales_order",
+        "reference_id": 1
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "NOTIFICATION_CREATED"
+    },
+    "capture": {
+      "notification_id": "data.notification.id"
+    }
+  },
+  {
+    "name": "notifications_list",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/notifications?limit=20",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "NOTIFICATIONS_LIST"
+    }
+  },
+  {
+    "name": "notification_mark_read",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "requires": [
+      "notification_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/notifications/{{notification_id}}/read",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "NOTIFICATION_READ"
+    },
+    "assert": {
+      "data.notification.is_read": "1"
+    }
+  },
+  {
+    "name": "notifications_list_unread",
+    "tag": "Notifications",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/notifications?is_read=0",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "NOTIFICATIONS_LIST"
+    }
+  },
+  {
+    "name": "report_inventory",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/inventory?from=2026-09-01&to=2026-09-30",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "INVENTORY_REPORT"
+    }
+  },
+  {
+    "name": "report_payroll",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/payroll?from=2026-09-01&to=2026-09-30",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PAYROLL_REPORT"
+    }
+  },
+  {
+    "name": "report_expenses",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/expenses?from=2026-09-01&to=2026-09-30",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "EXPENSE_REPORT"
+    }
+  },
+  {
+    "name": "report_production",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/production?from=2026-09-01&to=2026-09-30",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PRODUCTION_REPORT"
+    }
+  },
+  {
+    "name": "report_purchasing",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/purchasing?from=2026-09-01&to=2026-09-30",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PURCHASING_REPORT"
+    }
+  },
+  {
+    "name": "report_delivery",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/delivery?from=2026-09-01&to=2026-09-30",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "DELIVERY_REPORT"
+    }
+  }
+]

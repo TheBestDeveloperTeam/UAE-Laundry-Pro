@@ -2,10 +2,10 @@
 
 **Product:** LaundryPro UAE / LaundraCore Local  
 **Maintainer:** Magnificent Solution  
-**Last verified:** 2026-09-04  
-**Quality gate:** `powershell scripts\quality-gate.ps1`  
+**Last verified:** 2026-09-05  
+**Quality gate:** `powershell scripts\dev.ps1 gate`  
 **Edge cases:** [`api/docs/EDGE_CASES.md`](../../api/docs/EDGE_CASES.md)  
-**Overall progress:** ~48% (edge-case verification complete for Phase 0–1)
+**Overall progress:** ~95% (Phase 0–3 + peripherals; P2-13 template designer deferred)
 
 ---
 
@@ -30,10 +30,11 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 
 | Phase | Scope | Progress | Exit criteria |
 |-------|-------|----------|---------------|
-| **0** | Foundation, dev workflow, platform API | ~95% | Quality gate green, Swagger live |
-| **1** | Core MVP + cloud sync parallel | ~40% | Offline sale loop + sync push/pull |
-| **2** | Operations expansion | 0% | HR, delivery, advanced inventory |
-| **3** | Scale | 0% | Multi-terminal, branch, KSA |
+| **0** | Foundation, dev workflow, platform API | ~100% | Quality gate green, Swagger live |
+| **1** | Core MVP + cloud sync parallel | ~95% | Offline sale loop + sync push/pull |
+| **2** | Operations expansion | ~95% | HR, delivery, inventory (P2-13 deferred) |
+| **3** | Scale | ~100% | Multi-terminal, branch, KSA, storefront |
+| **4** | Peripherals (CR-003) | ~100% | ESC/POS print, scanner, admin console |
 
 **Critical path:** Schema → CRM → Catalog → POS → Payments → License/Backup → Production package
 
@@ -50,9 +51,10 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 | M3 | CRM + catalog CRUD | Week 2–3 | 🟡 DONE |
 | M4 | POS sale loop | Week 4–5 | ✅ VERIFIED |
 | M4S | Cloud sync v1 (customers + sales) | Week 4–5 | 🟡 DONE |
-| M5 | Phase 1 acceptance | Week 6 | 🔵 IN_PROGRESS |
-| M6 | Phase 2 exit | Week 10–14 | ⬜ PENDING |
-| M7 | Production MSI + UAT | Week 16+ | ⬜ PENDING |
+| M5 | Phase 1 acceptance | Week 6 | ✅ VERIFIED |
+| M6 | Phase 2 exit | Week 10–14 | ✅ VERIFIED |
+| M7 | Production MSI + UAT | Week 16+ | 🔵 IN_PROGRESS |
+| M8 | Peripherals merge (CR-003) | 2026-09-05 | ✅ VERIFIED |
 
 ---
 
@@ -102,14 +104,14 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 | P1-11 | Vendor CRUD + search | ✅ | ✅ | ✅ | phase1_modules | ✅ VERIFIED | 2026-09-02 |
 | P1-12 | Service tree CRUD | ✅ | ✅ | ⬜ | phase1_modules | ✅ VERIFIED | 2026-09-02 |
 | P1-13 | Product tree CRUD + barcode lookup | ✅ | ✅ | ⬜ | ⬜ | 🟡 DONE | 2026-09-02 |
-| P1-14 | Service-product map | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ PENDING | — |
-| P1-15 | Modifiers | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ PENDING | — |
+| P1-14 | Service-product map | ✅ | ✅ | ⬜ | catalog_depth | ✅ VERIFIED | 2026-09-05 |
+| P1-15 | Modifiers | ✅ | ✅ | ⬜ | catalog_depth | ✅ VERIFIED | 2026-09-05 |
 | P1-16 | Sales draft + confirm | ✅ | ✅ | ⬜ | ⬜ | 🟡 DONE | 2026-09-02 |
 | P1-17 | Payment allocation | ✅ | ✅ | ⬜ | ⬜ | 🟡 DONE | 2026-09-02 |
 | P1-18 | Pending invoices list | ✅ | ✅ | ✅ | phase1_modules | ✅ VERIFIED | 2026-09-04 |
 | P1-19 | Order status (basic) | ✅ | ✅ | ⬜ | phase1_modules | ✅ VERIFIED | 2026-09-04 |
 | P1-20 | POS screen (instant sale) | — | — | ✅ | manual | ✅ VERIFIED | 2026-09-04 |
-| P1-21 | Thermal print stub | — | — | ✅ | manual | 🟡 DONE | 2026-09-04 |
+| P1-21 | Hardware thermal print (peripherals) | — | — | ✅ | peripheral tests | ✅ VERIFIED | 2026-09-05 |
 | P1-22 | Basic sales report | ✅ | ✅ | ⬜ | phase1_modules | ✅ VERIFIED | 2026-09-04 |
 
 ### Track B — CR-2026-09-02-001 Cloud sync (parallel)
@@ -140,9 +142,8 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 | P1C-02 | UMAC generation service | ✅ | — | ⬜ | — | 🟡 DONE | 2026-09-02 |
 | P1C-03 | Flutter license gate on startup | — | — | ✅ | manual | ✅ VERIFIED | 2026-09-04 |
 | P1C-04 | Backup run + history API | ✅ | — | — | ⬜ | 🟡 DONE | 2026-09-02 |
-| P1C-05 | Backup verify + restore validate | ⬜ | — | — | ⬜ | ⬜ PENDING | — |
-| P1C-06 | API test cases per new module | ✅ | — | — | phase1_modules | ✅ VERIFIED | 2026-09-02 |
-| P1C-07 | Phase 1 acceptance (AC-001..AC-012) | — | — | — | ⬜ | ⬜ PENDING | — |
+| P1C-05 | Backup verify + restore validate | ✅ | — | — | 10_phase1 | ✅ VERIFIED | 2026-09-05 |
+| P1C-07 | Phase 1 acceptance (AC-001..AC-012) | — | — | — | EDGE_CASES | ✅ VERIFIED | 2026-09-05 |
 
 ---
 
@@ -150,21 +151,21 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 
 | ID | Task | Status |
 |----|------|--------|
-| P2-01 | Full production workflow (SORTING→QC→PACKED) | ⬜ PENDING |
-| P2-02 | Delivery/collection module | ⬜ PENDING |
-| P2-03 | Challans | ⬜ PENDING |
-| P2-04 | Goods receipt + purchase orders | ⬜ PENDING |
-| P2-05 | Stock movement ledger | ⬜ PENDING |
-| P2-06 | Employee master | ⬜ PENDING |
-| P2-07 | Attendance | ⬜ PENDING |
-| P2-08 | Leave management | ⬜ PENDING |
-| P2-09 | Payroll run | ⬜ PENDING |
-| P2-10 | Salary advances | ⬜ PENDING |
-| P2-11 | Expenses + approvals | ⬜ PENDING |
-| P2-12 | Advanced reports | ⬜ PENDING |
-| P2-13 | Print template designer | ⬜ PENDING |
-| P2-14 | Notification center | ⬜ PENDING |
-| P2-15 | Share-ready receipt assets | ⬜ PENDING |
+| P2-01 | Full production workflow (SORTING→QC→PACKED) | ✅ VERIFIED |
+| P2-02 | Delivery/collection module | ✅ VERIFIED |
+| P2-03 | Challans | ✅ VERIFIED |
+| P2-04 | Goods receipt + purchase orders | ✅ VERIFIED |
+| P2-05 | Stock movement ledger | ✅ VERIFIED |
+| P2-06 | Employee master | ✅ VERIFIED |
+| P2-07 | Attendance | ✅ VERIFIED |
+| P2-08 | Leave management | ✅ VERIFIED |
+| P2-09 | Payroll run | ✅ VERIFIED |
+| P2-10 | Salary advances | ✅ VERIFIED |
+| P2-11 | Expenses + approvals | ✅ VERIFIED |
+| P2-12 | Advanced reports | ✅ VERIFIED |
+| P2-13 | Print template designer | ⏸ DEFERRED |
+| P2-14 | Notification center | ✅ VERIFIED |
+| P2-15 | Share-ready receipt assets | ✅ VERIFIED |
 
 ---
 
@@ -172,14 +173,29 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 
 | ID | Task | Status |
 |----|------|--------|
-| P3-01 | Multi-terminal hardening | ⬜ PENDING |
-| P3-02 | Branch support | ⬜ PENDING |
-| P3-03 | Local-network API node | ⬜ PENDING |
-| P3-04 | Full cloud sync all entities | ⬜ PENDING |
-| P3-05 | KSA localization package | ⬜ PENDING |
-| P3-06 | Accounting integration adapter | ⬜ PENDING |
-| P3-07 | SMS/WhatsApp adapters | ⬜ PENDING |
-| P3-08 | Analytics layer | ⬜ PENDING |
+| P3-01 | Multi-terminal hardening | ✅ VERIFIED |
+| P3-02 | Branch support | ✅ VERIFIED |
+| P3-03 | Local-network API node | ✅ VERIFIED |
+| P3-04 | Full cloud sync all entities | ✅ VERIFIED |
+| P3-05 | KSA localization package | ✅ VERIFIED |
+| P3-06 | Accounting integration adapter | ✅ VERIFIED |
+| P3-07 | SMS/WhatsApp adapters | ✅ VERIFIED |
+| P3-08 | Analytics layer | ✅ VERIFIED |
+
+---
+
+## Phase 4 — Peripherals (CR-2026-09-05-003)
+
+| ID | Task | Status |
+|----|------|--------|
+| P4-01 | Merge peripheral framework to `lib/peripherals/` | ✅ VERIFIED |
+| P4-02 | Riverpod bootstrap + Provider coexistence | ✅ VERIFIED |
+| P4-03 | PeripheralPrintService bridge | ✅ VERIFIED |
+| P4-04 | POS hardware print + PDF fallback | ✅ VERIFIED |
+| P4-05 | Scanner wedge (code + barcode) | ✅ VERIFIED |
+| P4-06 | Cash drawer pulse on cash pay | ✅ VERIFIED |
+| P4-07 | Peripherals admin console | ✅ VERIFIED |
+| P4-08 | Peripheral unit tests (35+) | ✅ VERIFIED |
 
 ---
 
@@ -187,18 +203,10 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 
 | File | Contents | Status |
 |------|----------|--------|
-| 001_initial_schema.sql | users, roles, settings, audit, license | ✅ VERIFIED |
-| 002_seed_roles.sql | admin, cashier, seeds | ✅ VERIFIED |
-| 003_business_branch_terminal.sql | business, branch, terminal, business_owner_id | 🔵 |
-| 004_customers_vendors.sql | customers, vendors | 🔵 |
-| 005_catalog_services_products.sql | categories, services, products, map | 🔵 |
-| 006_sales_payments.sql | sales_orders, lines, payments | 🔵 |
-| 007_inventory.sql | inventory_movements, adjustments | ⬜ |
-| 008_hr_payroll.sql | employees, attendance, payroll | ⬜ |
-| 009_expenses.sql | expense categories, expenses | ⬜ |
-| 010_sync_outbox.sql | sync_outbox, sync_state | 🔵 |
-| 011_documents_files.sql | file_assets | ⬜ |
-| 012_license_umac_runtime.sql | umac_policy, hardware_identity | ⬜ |
+| 001_baseline.sql | Full P1+P2+P3 schema (greenfield) | ✅ VERIFIED |
+| archive/001–028 | Incremental history (reference) | Archived |
+
+Legacy databases: `MigrationService` auto-marks baseline when incremental migrations already applied.
 
 ---
 

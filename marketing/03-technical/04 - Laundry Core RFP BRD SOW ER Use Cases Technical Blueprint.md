@@ -4913,4 +4913,29 @@ Version | Date | Change | Author | Approved By
 
 ---
 
+---
+
+# 109A. PERIPHERAL / POS USE CASES (CR-2026-09-05-003)
+
+## UC-POS-PRINT — Hardware receipt print
+
+**Actor:** Cashier  
+**Precondition:** Printer selected in Settings → Peripherals  
+**Flow:** Confirm sale → pay → receipt dialog → Print → ESC/POS via Windows spooler  
+**Fallback:** Save PDF to temp if no printer or print fails
+
+## UC-POS-SCAN — Barcode scanner wedge
+
+**Actor:** Cashier  
+**Flow:** Scan barcode on POS screen → match service `code` or product `barcode` → add to cart  
+**Alt:** Unknown code → snackbar, no cart change
+
+## UC-ADMIN-PERIPH — Peripherals diagnostic console
+
+**Actor:** Administrator  
+**Route:** `/settings/peripherals`  
+**Tabs:** Printer, queue, scanner, scale, cash drawer, machine ID, logs, remote SQL (trusted LAN only)
+
+---
+
 # END OF MASTER RFP / BRD / SOW / ER / USE-CASE / TECHNICAL BLUEPRINT

@@ -38,6 +38,7 @@ final class MigrationService
   /** @return array{applied: array<int, string>, pending: array<int, string>, executed: array<int, string>} */
   public function runPending(): array
   {
+    $this->ensureBaselineForLegacyInstalls();
     $status = $this->status();
 
     foreach ($this->migrationFiles() as $file) {
@@ -96,5 +97,32 @@ final class MigrationService
     sort($files);
 
     return $files;
+  }
+
+  /**
+   * Existing databases that applied incremental 001–028 migrations should not
+   * re-run the squashed baseline on upgrade.
+   */
+  private function ensureBaselineForLegacyInstalls(): void
+  {
+    $applied = $this->appliedMigrations();
+    if (in_array('001_baseline.sql', $applied, true)) {
+      return;
+    }
+
+    $hasLegacy = false;
+    foreach ($applied as $migration) {
+      if (preg_match('/^\d{3}_/', $migration) === 1 && $migration !== '001_baseline.sql') {
+        $hasLegacy = true;
+        break;
+      }
+    }
+
+    if (!$hasLegacy) {
+      return;
+    }
+
+    $insert = $this->pdo->prepare('INSERT INTO schema_migrations (migration) VALUES (:migration)');
+    $insert->execute(['migration' => '001_baseline.sql']);
   }
 }

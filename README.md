@@ -709,11 +709,21 @@ CREATE DATABASE laundrypro CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ### 11.2 Importing Schema
 
-```bash
-mysql -u root -p laundrypro < schema.sql
+Greenfield install (recommended):
+
+```powershell
+powershell scripts\dev.ps1 migrate
 ```
 
-Use migrations (e.g., Phinx or an equivalent PHP migration tool) for all subsequent schema changes — **never manually alter production schema without a recorded migration.** Maintain a `schema_version` value in the database.
+Applies `api/database/migrations/001_baseline.sql` and seeds via `run_dev_seed.php`. Incremental migration history is archived under `migrations/archive/`.
+
+Quality gate:
+
+```powershell
+powershell scripts\dev.ps1 gate
+```
+
+Use migrations for all schema changes — **never manually alter production schema without a recorded migration.**
 
 ### 11.3 Manual Backup
 
@@ -960,6 +970,8 @@ A duplicate confirmation request returns the original successful result rather t
 ---
 
 ## 13. Hardware Integration
+
+**v1.2.1:** Full peripheral framework in `lib/peripherals/` — admin console at Settings → Peripherals (`/settings/peripherals`). See [`docs/peripherals/README.md`](docs/peripherals/README.md).
 
 Hardware-specific implementation is isolated behind adapter interfaces — application code calls generic interfaces such as `scanService.read()`, `printerService.print(document)`, and `cashDrawerService.open()`, never manufacturer-specific SDK methods directly.
 

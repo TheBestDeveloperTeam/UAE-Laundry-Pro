@@ -25,10 +25,11 @@
    APP_BASE_PATH=/laundrypro-api
    ```
 
-4. Run migrations:
+4. Run migrations and seeds:
    ```powershell
-   powershell scripts\migrate.ps1
+   powershell scripts\dev.ps1 migrate
    ```
+   Greenfield installs apply `database/migrations/001_baseline.sql`. Incremental files are in `migrations/archive/`.
 
 5. Verify health (full path required):
    ```
@@ -57,7 +58,7 @@ Set `INSTALL_SECRET` in `.env`, then:
 
 ```powershell
 powershell scripts\api-test.ps1
-powershell scripts\quality-gate.ps1
+powershell scripts\dev.ps1 gate
 ```
 
 Declarative cases: `api/tests/cases/*.json`. See `api/docs/QUALITY_GATE.md`.

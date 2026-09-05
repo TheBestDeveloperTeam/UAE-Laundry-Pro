@@ -9,7 +9,7 @@ return [
     'debug' => Env::bool('APP_DEBUG', false),
     'url' => Env::get('APP_URL', 'http://localhost/laundrypro-api'),
     'base_path' => Env::get('APP_BASE_PATH', ''),
-    'version' => Env::get('APP_VERSION', '1.2.0'),
+    'version' => Env::get('APP_VERSION', '1.2.1'),
     'paths' => [
         'backup' => Env::get('BACKUP_PATH', 'C:/LaundryPro/backups/'),
         'invoice' => Env::get('INVOICE_PATH', 'C:/LaundryPro/invoices/'),

@@ -1,0 +1,1127 @@
+[
+  {
+    "name": "bootstrap_admin_login",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "body": {
+        "username": "admin",
+        "password": "admin123"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "AUTH_LOGIN_SUCCESS"
+    },
+    "capture": {
+      "access_token": "data.access_token",
+      "admin_token": "data.access_token",
+      "refresh_token": "data.refresh_token"
+    }
+  },
+  {
+    "name": "health_ok",
+    "tag": "Platform",
+    "request": {
+      "method": "GET",
+      "path": "/health"
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "HEALTH_OK"
+    }
+  },
+  {
+    "name": "openapi_json",
+    "tag": "Platform",
+    "request": {
+      "method": "GET",
+      "path": "/docs/openapi.json"
+    },
+    "expected": {
+      "status": 200
+    }
+  },
+  {
+    "name": "login_success",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "body": {
+        "username": "admin",
+        "password": "admin123"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "AUTH_LOGIN_SUCCESS"
+    },
+    "capture": {
+      "access_token": "data.access_token",
+      "refresh_token": "data.refresh_token"
+    }
+  },
+  {
+    "name": "login_invalid_credentials",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "body": {
+        "username": "admin",
+        "password": "wrong-password"
+      }
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "AUTH_INVALID_CREDENTIALS"
+    }
+  },
+  {
+    "name": "login_missing_password",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/login",
+      "body": {
+        "username": "admin"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "refresh_missing_token",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/refresh",
+      "body": {}
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "refresh_invalid_token",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/refresh",
+      "body": {
+        "refresh_token": "invalid.token.value"
+      }
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "AUTH_SESSION_EXPIRED"
+    }
+  },
+  {
+    "name": "me_unauthorized",
+    "tag": "Identity",
+    "request": {
+      "method": "GET",
+      "path": "/auth/me"
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "AUTH_SESSION_EXPIRED"
+    }
+  },
+  {
+    "name": "me_success",
+    "tag": "Identity",
+    "request": {
+      "method": "GET",
+      "path": "/auth/me",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "AUTH_ME_SUCCESS"
+    },
+    "requires": [
+      "access_token"
+    ]
+  },
+  {
+    "name": "logout_success",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/logout",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "refresh_token": "{{refresh_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "AUTH_LOGOUT_SUCCESS"
+    },
+    "requires": [
+      "access_token",
+      "refresh_token"
+    ]
+  },
+  {
+    "name": "install_status",
+    "tag": "Install",
+    "request": {
+      "method": "GET",
+      "path": "/install/status"
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "INSTALL_STATUS"
+    }
+  },
+  {
+    "name": "install_migrate_unauthorized",
+    "tag": "Install",
+    "skip_if_locked": true,
+    "request": {
+      "method": "POST",
+      "path": "/install/migrate",
+      "body": {}
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "INSTALL_UNAUTHORIZED"
+    }
+  },
+  {
+    "name": "install_seed_unauthorized",
+    "tag": "Install",
+    "skip_if_locked": true,
+    "request": {
+      "method": "POST",
+      "path": "/install/seed",
+      "body": {}
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "INSTALL_UNAUTHORIZED"
+    }
+  },
+  {
+    "name": "install_complete_unauthorized",
+    "tag": "Install",
+    "skip_if_locked": true,
+    "request": {
+      "method": "POST",
+      "path": "/install/complete",
+      "body": {}
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "INSTALL_UNAUTHORIZED"
+    }
+  },
+  {
+    "name": "install_migrate_authorized",
+    "tag": "Install",
+    "skip_if_locked": true,
+    "request": {
+      "method": "POST",
+      "path": "/install/migrate",
+      "headers": {
+        "X-Install-Token": "{{install_token}}"
+      },
+      "body": {}
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "INSTALL_MIGRATED"
+    }
+  },
+  {
+    "name": "install_seed_authorized",
+    "tag": "Install",
+    "skip_if_locked": true,
+    "request": {
+      "method": "POST",
+      "path": "/install/seed",
+      "headers": {
+        "X-Install-Token": "{{install_token}}"
+      },
+      "body": {
+        "admin_password": "admin123"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "INSTALL_SEEDED"
+    }
+  },
+  {
+    "name": "cashier_sales_draft_ok",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": 1,
+            "description": "Test",
+            "quantity": 1,
+            "rate": 10
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SALE_DRAFT_CREATED"
+    }
+  },
+  {
+    "name": "cashier_backup_forbidden",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "POST",
+      "path": "/backup/run",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {}
+    },
+    "expected": {
+      "status": 403,
+      "success": false,
+      "code": "FORBIDDEN"
+    }
+  },
+  {
+    "name": "cashier_settings_forbidden",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "PUT",
+      "path": "/settings",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "settings": {
+          "business.name": "Hacked"
+        }
+      }
+    },
+    "expected": {
+      "status": 403,
+      "success": false,
+      "code": "FORBIDDEN"
+    }
+  },
+  {
+    "name": "cashier_customers_read_ok",
+    "tag": "RBAC",
+    "setup": "login_as_cashier",
+    "request": {
+      "method": "GET",
+      "path": "/customers",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "CUSTOMERS_LIST"
+    }
+  },
+  {
+    "name": "settings_unauthorized",
+    "tag": "Configuration",
+    "request": {
+      "method": "GET",
+      "path": "/settings"
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "AUTH_SESSION_EXPIRED"
+    }
+  },
+  {
+    "name": "settings_list",
+    "tag": "Configuration",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/settings",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SETTINGS_LIST"
+    }
+  },
+  {
+    "name": "settings_update_invalid",
+    "tag": "Configuration",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "PUT",
+      "path": "/settings",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {}
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "settings_update_success",
+    "tag": "Configuration",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "PUT",
+      "path": "/settings",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "settings": {
+          "business.name": {
+            "value": "LaundryPro UAE",
+            "scope": "business"
+          }
+        }
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SETTINGS_UPDATED"
+    }
+  },
+  {
+    "name": "business_unauthorized",
+    "tag": "Configuration",
+    "request": {
+      "method": "GET",
+      "path": "/business"
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "AUTH_SESSION_EXPIRED"
+    }
+  },
+  {
+    "name": "business_update",
+    "tag": "Configuration",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "PUT",
+      "path": "/business",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "display_name": "LaundryPro UAE Test"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BUSINESS_UPDATED"
+    }
+  },
+  {
+    "name": "customer_create_missing_name",
+    "tag": "Customers",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/customers",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "phone": "0500000099"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "customer_get_not_found",
+    "tag": "Customers",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/customers/999999",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 404,
+      "success": false,
+      "code": "NOT_FOUND"
+    }
+  },
+  {
+    "name": "service_create_empty_name",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "",
+        "base_rate": 10
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "products_barcode_unknown",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/products?barcode=UNKNOWN-BARCODE-XYZ",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "PRODUCTS_LIST"
+    }
+  },
+  {
+    "name": "edge_service_create",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Edge Test Wash",
+        "base_rate": 50.0
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_CREATED"
+    },
+    "capture": {
+      "edge_service_id": "data.service.id"
+    }
+  },
+  {
+    "name": "edge_sales_draft",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_service_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": "{{edge_service_id}}",
+            "description": "Edge Test Wash",
+            "quantity": 1,
+            "rate": 50.0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SALE_DRAFT_CREATED"
+    },
+    "capture": {
+      "edge_draft_id": "data.order.id"
+    }
+  },
+  {
+    "name": "sales_payment_on_draft",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{edge_draft_id}}/payment",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "amount": 50.0,
+        "payment_method": "cash"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "sales_status_draft_to_ready",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{edge_draft_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "ready"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "edge_sales_confirm",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{edge_draft_id}}/confirm",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_CONFIRMED"
+    },
+    "assert": {
+      "data.order.grand_total": "50.00"
+    }
+  },
+  {
+    "name": "sales_confirm_already_confirmed",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{edge_draft_id}}/confirm",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "sales_payment_zero",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{edge_draft_id}}/payment",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "amount": 0,
+        "payment_method": "cash"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "sales_payment_partial",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{edge_draft_id}}/payment",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "amount": 20.0,
+        "payment_method": "cash"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_PAYMENT_POSTED"
+    },
+    "assert": {
+      "data.order.payment_status": "partial",
+      "data.order.balance_due": "30.00"
+    }
+  },
+  {
+    "name": "sales_payment_overpay_capped",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{edge_draft_id}}/payment",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "amount": 100.0,
+        "payment_method": "cash"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_PAYMENT_POSTED"
+    },
+    "assert": {
+      "data.order.payment_status": "paid",
+      "data.order.balance_due": "0.00"
+    }
+  },
+  {
+    "name": "sales_get_not_found",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/sales/999999",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 404,
+      "success": false,
+      "code": "NOT_FOUND"
+    }
+  },
+  {
+    "name": "sales_confirm_not_found",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/sales/999999/confirm",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "sales_status_invalid",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "edge_draft_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{edge_draft_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "not_a_status"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "sales_status_not_found",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/999999/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "ready"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "sales_list_partial",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/sales?payment_status=partial",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALES_LIST"
+    }
+  },
+  {
+    "name": "sales_summary_inverted_dates",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/sales/summary?from=2099-01-01&to=2099-01-01",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALES_SUMMARY"
+    },
+    "assert": {
+      "data.summary.order_count": "0"
+    }
+  },
+  {
+    "name": "license_activate_empty",
+    "tag": "License",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/license/activate",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "license_key": ""
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "VALIDATION_ERROR"
+    }
+  },
+  {
+    "name": "sync_pull",
+    "tag": "Sync",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/sync/pull?since=2026-01-01T00:00:00Z",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SYNC_PULLED"
+    }
+  },
+  {
+    "name": "sync_push",
+    "tag": "Sync",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/sync/push",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {}
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SYNC_PUSHED"
+    }
+  },
+  {
+    "name": "me_after_logout",
+    "tag": "Identity",
+    "reset_admin": true,
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/auth/logout",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "refresh_token": "{{refresh_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "AUTH_LOGOUT_SUCCESS"
+    }
+  },
+  {
+    "name": "refresh_after_logout",
+    "tag": "Identity",
+    "request": {
+      "method": "POST",
+      "path": "/auth/refresh",
+      "body": {
+        "refresh_token": "{{refresh_token}}"
+      }
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "AUTH_SESSION_EXPIRED"
+    }
+  },
+  {
+    "name": "install_migrate_when_locked",
+    "tag": "Install",
+    "only_if_locked": true,
+    "request": {
+      "method": "POST",
+      "path": "/install/migrate",
+      "headers": {
+        "X-Install-Token": "{{install_token}}"
+      },
+      "body": {}
+    },
+    "expected": {
+      "status": 403,
+      "success": false,
+      "code": "INSTALL_LOCKED"
+    }
+  },
+  {
+    "name": "cloud_register_tenant_a",
+    "tag": "Sync",
+    "optional": true,
+    "request": {
+      "method": "POST",
+      "path": "http://localhost/cloud-api/public/api/v1/businesses/register",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Tenant A",
+        "license_key": "LIC-A-001"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BUSINESS_REGISTERED"
+    },
+    "capture": {
+      "tenant_a_id": "data.business_owner_id",
+      "tenant_a_token": "data.cloud_token"
+    }
+  },
+  {
+    "name": "cloud_register_tenant_b",
+    "tag": "Sync",
+    "optional": true,
+    "request": {
+      "method": "POST",
+      "path": "http://localhost/cloud-api/public/api/v1/businesses/register",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Tenant B",
+        "license_key": "LIC-B-001"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BUSINESS_REGISTERED"
+    },
+    "capture": {
+      "tenant_b_id": "data.business_owner_id",
+      "tenant_b_token": "data.cloud_token"
+    }
+  },
+  {
+    "name": "cloud_push_tenant_a",
+    "tag": "Sync",
+    "optional": true,
+    "requires": [
+      "tenant_a_id",
+      "tenant_a_token"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "http://localhost/cloud-api/public/api/v1/sync/push",
+      "headers": {
+        "Authorization": "Bearer {{tenant_a_token}}",
+        "X-Business-Owner-Id": "{{tenant_a_id}}",
+        "Content-Type": "application/json"
+      },
+      "body": [
+        {
+          "entity_type": "customer",
+          "entity_local_id": 1,
+          "operation": "create",
+          "payload": {
+            "name": "A Customer"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SYNC_RECEIVED"
+    }
+  },
+  {
+    "name": "cloud_pull_tenant_b_empty",
+    "tag": "Sync",
+    "optional": true,
+    "requires": [
+      "tenant_b_id",
+      "tenant_b_token"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "http://localhost/cloud-api/public/api/v1/sync/pull",
+      "headers": {
+        "Authorization": "Bearer {{tenant_b_token}}",
+        "X-Business-Owner-Id": "{{tenant_b_id}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SYNC_PULL"
+    }
+  },
+  {
+    "name": "cloud_invalid_token",
+    "tag": "Sync",
+    "optional": true,
+    "requires": [
+      "tenant_a_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "http://localhost/cloud-api/public/api/v1/sync/pull",
+      "headers": {
+        "Authorization": "Bearer invalid-token",
+        "X-Business-Owner-Id": "{{tenant_a_id}}"
+      }
+    },
+    "expected": {
+      "status": 401,
+      "success": false,
+      "code": "INVALID_TOKEN"
+    }
+  }
+]

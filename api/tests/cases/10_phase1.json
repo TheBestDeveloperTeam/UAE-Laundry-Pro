@@ -1,0 +1,817 @@
+[
+  {
+    "name": "customers_list",
+    "tag": "Customers",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/customers",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "CUSTOMERS_LIST"
+    }
+  },
+  {
+    "name": "customer_create",
+    "tag": "Customers",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/customers",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Walk-In Test",
+        "phone": "0500000001"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "CUSTOMER_CREATED"
+    }
+  },
+  {
+    "name": "vendors_list",
+    "tag": "Vendors",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/vendors",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "VENDORS_LIST"
+    }
+  },
+  {
+    "name": "services_list",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SERVICES_LIST"
+    }
+  },
+  {
+    "name": "sync_status",
+    "tag": "Sync",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/sync/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SYNC_STATUS"
+    }
+  },
+  {
+    "name": "license_status",
+    "tag": "License",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/license/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "LICENSE_STATUS"
+    }
+  },
+  {
+    "name": "business_get",
+    "tag": "Configuration",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/business",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BUSINESS_PROFILE"
+    }
+  },
+  {
+    "name": "service_create_for_sale",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Wash & Fold Test",
+        "base_rate": 25.0
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_CREATED"
+    },
+    "capture": {
+      "test_service_id": "data.service.id"
+    }
+  },
+  {
+    "name": "sales_draft_create",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "test_service_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": "{{test_service_id}}",
+            "description": "Wash & Fold Test",
+            "quantity": 1,
+            "rate": 25.0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SALE_DRAFT_CREATED"
+    },
+    "capture": {
+      "test_order_id": "data.order.id"
+    }
+  },
+  {
+    "name": "sales_confirm",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "test_order_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{test_order_id}}/confirm",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_CONFIRMED"
+    }
+  },
+  {
+    "name": "sales_payment",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "test_order_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{test_order_id}}/payment",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "amount": 25.0,
+        "payment_method": "cash"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_PAYMENT_POSTED"
+    }
+  },
+  {
+    "name": "sales_list",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/sales?payment_status=paid",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALES_LIST"
+    }
+  },
+  {
+    "name": "sales_status_update",
+    "tag": "Sales",
+    "setup": "login_as_admin",
+    "requires": [
+      "test_order_id"
+    ],
+    "request": {
+      "method": "PATCH",
+      "path": "/sales/{{test_order_id}}/status",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "status": "ready"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALE_STATUS_UPDATED"
+    }
+  },
+  {
+    "name": "sales_summary",
+    "tag": "Reports",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/reports/sales/summary",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SALES_SUMMARY"
+    }
+  },
+  {
+    "name": "service_create_parent",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Wash Parent",
+        "base_rate": 10
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_CREATED"
+    },
+    "capture": {
+      "parent_service_id": "data.service.id"
+    }
+  },
+  {
+    "name": "service_create_child",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "requires": [
+      "parent_service_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Wash Child",
+        "parent_id": "{{parent_service_id}}",
+        "base_rate": 5
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_CREATED"
+    },
+    "capture": {
+      "child_service_id": "data.service.id"
+    }
+  },
+  {
+    "name": "service_cycle_rejected",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "requires": [
+      "parent_service_id",
+      "child_service_id"
+    ],
+    "request": {
+      "method": "PUT",
+      "path": "/services/{{parent_service_id}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "parent_id": "{{child_service_id}}"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "HIERARCHY_CYCLE"
+    }
+  },
+  {
+    "name": "product_create_for_map",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/products",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Detergent",
+        "stock_quantity": 100,
+        "base_rate": 2
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "PRODUCT_CREATED"
+    },
+    "capture": {
+      "map_product_id": "data.product.id"
+    }
+  },
+  {
+    "name": "service_product_attach",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "requires": [
+      "parent_service_id",
+      "map_product_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/services/{{parent_service_id}}/products",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "product_id": "{{map_product_id}}",
+        "default_qty": 2
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_PRODUCT_ATTACHED"
+    }
+  },
+  {
+    "name": "service_product_list",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "requires": [
+      "parent_service_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/services/{{parent_service_id}}/products",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SERVICE_PRODUCTS"
+    }
+  },
+  {
+    "name": "service_modifier_create",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "requires": [
+      "parent_service_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/services/{{parent_service_id}}/modifiers",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Starch",
+        "extra_rate": 3
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_MODIFIER_CREATED"
+    }
+  },
+  {
+    "name": "service_get_by_id",
+    "tag": "Catalog",
+    "setup": "login_as_admin",
+    "requires": [
+      "parent_service_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/services/{{parent_service_id}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "SERVICE_DETAIL"
+    }
+  },
+  {
+    "name": "vendor_get_by_id",
+    "tag": "Vendors",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/vendors",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Supply Co"
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "VENDOR_CREATED"
+    },
+    "capture": {
+      "vendor_id": "data.vendor.id"
+    }
+  },
+  {
+    "name": "vendor_show",
+    "tag": "Vendors",
+    "setup": "login_as_admin",
+    "requires": [
+      "vendor_id"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/vendors/{{vendor_id}}",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "VENDOR_DETAIL"
+    }
+  },
+  {
+    "name": "inventory_product_create",
+    "tag": "Inventory",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/products",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Stock Item",
+        "stock_quantity": 10,
+        "base_rate": 5
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "PRODUCT_CREATED"
+    },
+    "capture": {
+      "stock_product_id": "data.product.id"
+    }
+  },
+  {
+    "name": "inventory_receipt",
+    "tag": "Inventory",
+    "setup": "login_as_admin",
+    "requires": [
+      "stock_product_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/inventory/receipt",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "product_id": "{{stock_product_id}}",
+        "quantity": 5
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "INVENTORY_RECEIPT"
+    }
+  },
+  {
+    "name": "inventory_movements_list",
+    "tag": "Inventory",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/inventory/movements",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "INVENTORY_MOVEMENTS"
+    }
+  },
+  {
+    "name": "group_service_for_stock",
+    "tag": "Inventory",
+    "setup": "login_as_admin",
+    "requires": [
+      "stock_product_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/services",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "name": "Bundle Wash",
+        "is_group": true,
+        "base_rate": 20
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_CREATED"
+    },
+    "capture": {
+      "group_service_id": "data.service.id"
+    }
+  },
+  {
+    "name": "group_service_map_product",
+    "tag": "Inventory",
+    "setup": "login_as_admin",
+    "requires": [
+      "group_service_id",
+      "stock_product_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/services/{{group_service_id}}/products",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "product_id": "{{stock_product_id}}",
+        "default_qty": 100
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SERVICE_PRODUCT_ATTACHED"
+    }
+  },
+  {
+    "name": "stock_sale_insufficient",
+    "tag": "Inventory",
+    "setup": "login_as_admin",
+    "requires": [
+      "group_service_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/draft",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "item_type": "service",
+            "item_id": "{{group_service_id}}",
+            "description": "Bundle",
+            "quantity": 1,
+            "rate": 20
+          }
+        ]
+      }
+    },
+    "expected": {
+      "status": 201,
+      "success": true,
+      "code": "SALE_DRAFT_CREATED"
+    },
+    "capture": {
+      "stock_sale_id": "data.order.id"
+    }
+  },
+  {
+    "name": "stock_sale_confirm_blocked",
+    "tag": "Inventory",
+    "setup": "login_as_admin",
+    "requires": [
+      "stock_sale_id"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/sales/{{stock_sale_id}}/confirm",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 422,
+      "success": false,
+      "code": "INSUFFICIENT_STOCK"
+    }
+  },
+  {
+    "name": "backup_me_check",
+    "tag": "Backup",
+    "requires": [
+      "access_token"
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/auth/me",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "AUTH_ME_SUCCESS"
+    }
+  },
+  {
+    "name": "backup_run",
+    "tag": "Backup",
+    "requires": [
+      "access_token"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/backup/run",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BACKUP_CREATED"
+    },
+    "capture": {
+      "backup_file": "data.file"
+    }
+  },
+  {
+    "name": "backup_history",
+    "tag": "Backup",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/backup/history",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BACKUP_HISTORY"
+    }
+  },
+  {
+    "name": "backup_verify",
+    "tag": "Backup",
+    "setup": "login_as_admin",
+    "requires": [
+      "backup_file"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/backup/verify",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "file": "{{backup_file}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BACKUP_VERIFIED"
+    },
+    "assert": {
+      "data.verified": "1"
+    }
+  },
+  {
+    "name": "backup_restore_validate",
+    "tag": "Backup",
+    "setup": "login_as_admin",
+    "requires": [
+      "backup_file"
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/backup/restore/validate",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      },
+      "body": {
+        "file": "{{backup_file}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "BACKUP_RESTORE_VALIDATED"
+    },
+    "assert": {
+      "data.dry_run": "1"
+    }
+  },
+  {
+    "name": "restore_admin_session",
+    "tag": "RBAC",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/auth/me",
+      "headers": {
+        "Authorization": "Bearer {{access_token}}"
+      }
+    },
+    "expected": {
+      "status": 200,
+      "success": true,
+      "code": "AUTH_ME_SUCCESS"
+    }
+  }
+]
