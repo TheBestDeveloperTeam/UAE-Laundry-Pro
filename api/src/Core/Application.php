@@ -446,6 +446,7 @@ final class Application
     $resolved = RequestPathResolver::resolve(
       $request->getPath(),
       (string) ($this->appConfig['base_path'] ?? ''),
+      $_SERVER
     );
 
     return $request->withPath($resolved);

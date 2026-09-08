@@ -14,6 +14,10 @@ final class RequestPathResolver
     $server = $server !== [] ? $server : $_SERVER;
 
     $pathInfo = $server['PATH_INFO'] ?? '';
+    if (is_string($pathInfo) && $pathInfo !== '' && !str_starts_with($pathInfo, '/api/v1') && str_contains($path, '/api/v1')) {
+      // PHP built-in server or rewrite may strip /api/v1 into PATH_INFO
+      $pathInfo = '';
+    }
     if (is_string($pathInfo) && $pathInfo !== '') {
       return self::normalize($pathInfo);
     }
