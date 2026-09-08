@@ -57,7 +57,10 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   bool _processing = false;
   Map<String, dynamic>? _confirmedOrder;
   String? _businessName;
+  String _searchFilter = '';
+  final TextEditingController _searchController = TextEditingController();
   ProviderSubscription<AsyncValue<ScannerPacketModel>>? _scannerSub;
+
 
   @override
   void initState() {
@@ -78,10 +81,12 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _scannerSub?.close();
     _scannerFocus.dispose();
     super.dispose();
   }
+
 
   Future<void> _load() async {
     setState(() => _loading = true);
@@ -320,35 +325,104 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(l10n.t('pos_services'), style: Theme.of(context).textTheme.titleMedium),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: _services.isEmpty
-                                ? Center(child: Text(l10n.t('pos_no_services')))
-                                : GridView.builder(
-                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3,
-                                      childAspectRatio: 2.2,
-                                      crossAxisSpacing: 8,
-                                      mainAxisSpacing: 8,
-                                    ),
-                                    itemCount: _services.length,
-                                    itemBuilder: (context, i) {
-                                      final s = _services[i];
-                                      final rate = s['base_rate']?.toString() ?? '0';
-                                      return OutlinedButton(
-                                        onPressed: () => _addService(s),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(s['name']?.toString() ?? '', textAlign: TextAlign.center),
-                                            Text(rate, style: Theme.of(context).textTheme.bodySmall),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(l10n.t('pos_services'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                              Text(
+                                '${_services.length} items',
+                                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Search services...',
+                              prefixIcon: const Icon(Icons.search, size: 20),
+                              suffixIcon: _searchFilter.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, size: 18),
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchController.clear();
+                                          _searchFilter = '';
+                                        });
+                                      },
+                                    )
+                                  : null,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            ),
+                            onChanged: (val) {
+                              setState(() {
+                                _searchFilter = val.trim().toLowerCase();
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: Builder(
+                              builder: (context) {
+                                final filtered = _services.where((s) {
+                                  if (_searchFilter.isEmpty) return true;
+                                  final name = (s['name']?.toString() ?? '').toLowerCase();
+                                  final code = (s['code']?.toString() ?? '').toLowerCase();
+                                  return name.contains(_searchFilter) || code.contains(_searchFilter);
+                                }).toList();
+
+                                if (filtered.isEmpty) {
+                                  return Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.search_off_rounded, size: 40, color: Colors.grey.shade400),
+                                        const SizedBox(height: 8),
+                                        Text(l10n.t('pos_no_services')),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                return GridView.builder(
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 3,
+                                    childAspectRatio: 2.2,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                  ),
+                                  itemCount: filtered.length,
+                                  itemBuilder: (context, i) {
+                                    final s = filtered[i];
+                                    final rate = s['base_rate']?.toString() ?? '0';
+                                    return OutlinedButton(
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.all(8),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      onPressed: () => _addService(s),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            s['name']?.toString() ?? '',
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text('AED $rate', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+
                         ],
                       ),
                     ),

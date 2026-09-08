@@ -23,12 +23,24 @@ final class LicenseService
     $row = $stmt->fetch() ?: null;
     $currentUmac = $this->umac->generate();
 
+    // Query local DB counts for evaluation limits
+    $invCount = (int) ($this->pdo->query('SELECT COUNT(*) FROM sales_orders')->fetchColumn() ?: 0);
+    $custCount = (int) ($this->pdo->query('SELECT COUNT(*) FROM customers')->fetchColumn() ?: 0);
+
     if ($row === null) {
+      $trialValid = ($invCount <= 9 && $custCount <= 9);
       return [
         'active' => false,
+        'is_trial' => true,
+        'trial_valid' => $trialValid,
+        'trial_days_remaining' => 7,
+        'invoice_count' => $invCount,
+        'max_invoices' => 9,
+        'customer_count' => $custCount,
+        'max_customers' => 9,
         'expired' => false,
         'umac' => $currentUmac,
-        'message_key' => 'license.not_activated',
+        'message_key' => $trialValid ? 'license.trial_active' : 'license.trial_expired',
       ];
     }
 
@@ -37,13 +49,17 @@ final class LicenseService
 
     return [
       'active' => (bool) $row['is_active'] && !$expired && $umacMatch,
+      'is_trial' => false,
       'expired' => $expired,
       'umac_match' => $umacMatch,
       'umac' => $currentUmac,
+      'invoice_count' => $invCount,
+      'customer_count' => $custCount,
       'expires_at' => $row['expires_at'],
       'activated_at' => $row['activated_at'],
     ];
   }
+
 
   /** @return array<string, mixed> */
   public function activate(string $licenseKey): array

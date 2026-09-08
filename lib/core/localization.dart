@@ -16,7 +16,16 @@ class AppLocalization {
     return AppLocalization(locale, strings);
   }
 
-  String t(String key) => _strings[key] ?? key;
+  String t(String key, [Map<String, String>? params]) {
+    String text = _strings[key] ?? key;
+    if (params != null) {
+      params.forEach((paramKey, paramValue) {
+        text = text.replaceAll('{$paramKey}', paramValue);
+      });
+    }
+    return text;
+  }
+
 
   bool get isRtl => locale == 'ar';
 

@@ -1,0 +1,7 @@
+{
+    "cmake.sourceDirectory": "E:/Projects/Flutter/UAE-Laundry-Pro/windows",
+    "git.enabled": true,
+    "git.path": "C:\\Program Files\\Git\\cmd\\git.exe",
+    "git.autofetch": true,
+    "git.confirmSync": false
+}
