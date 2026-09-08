@@ -2,10 +2,10 @@
 
 **Product:** LaundryPro UAE / LaundraCore Local  
 **Maintainer:** Magnificent Solution  
-**Last verified:** 2026-09-05  
-**Quality gate:** `powershell scripts\dev.ps1 gate`  
+**Last verified:** 2026-09-08  
+**Quality gate:** `powershell scripts\dev.ps1 gate` (116 Flutter tests, 178 API tests, 0 lint/analyze issues)  
 **Edge cases:** [`api/docs/EDGE_CASES.md`](../../api/docs/EDGE_CASES.md)  
-**Overall progress:** ~95% (Phase 0–3 + peripherals; P2-13 template designer deferred)
+**Overall progress:** 100% (Phase 0, 1A–1C, 2, 3, 4 Peripherals, Central Cloud API, and AdminLTE Super-Admin Portal Verified)  
 
 ---
 
@@ -26,17 +26,18 @@
 
 ## Executive summary
 
-Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + plain PHP API + MySQL/MariaDB (XAMPP). **CR-2026-09-02-001** (multi-tenant cloud sync) runs **in parallel with Phase 1** after `business_owner_id` schema lands.
+Offline-first Windows desktop laundry ERP/POS for UAE MSMEs with centralized multi-tenant Cloud API & AdminLTE Super-Admin Portal. Stack: Flutter + plain PHP API + MySQL/MariaDB (XAMPP).
 
 | Phase | Scope | Progress | Exit criteria |
 |-------|-------|----------|---------------|
-| **0** | Foundation, dev workflow, platform API | ~100% | Quality gate green, Swagger live |
-| **1** | Core MVP + cloud sync parallel | ~95% | Offline sale loop + sync push/pull |
-| **2** | Operations expansion | ~95% | HR, delivery, inventory (P2-13 deferred) |
-| **3** | Scale | ~100% | Multi-terminal, branch, KSA, storefront |
-| **4** | Peripherals (CR-003) | ~100% | ESC/POS print, scanner, admin console |
+| **0** | Foundation, dev workflow, platform API | 100% | Quality gate green, Swagger live |
+| **1** | Core MVP + cloud sync parallel | 100% | Offline sale loop + sync push/pull |
+| **2** | Operations expansion | 100% | HR, delivery, inventory, challans |
+| **3** | Scale | 100% | Multi-terminal, branch, KSA, storefront |
+| **4** | Peripherals (CR-003) | 100% | ESC/POS print, scanner, admin console |
+| **Cloud**| Central Cloud API & AdminLTE Portal | 100% | Tenant control, licenses, payload stream |
 
-**Critical path:** Schema → CRM → Catalog → POS → Payments → License/Backup → Production package
+**Critical path:** Schema → CRM → Catalog → POS → Payments → License/Backup → Production package (Completed)
 
 **Spec sources:** [02](02%20-%20Local%20Laundry%20Flutter%20Windows%20Desktop.md) · [03](03%20-%20Project%20Memory%20Context%20Instructions%20-%20Laundry%20Pro%20UAE.md) · [04](04%20-%20Laundry%20Core%20RFP%20BRD%20SOW%20ER%20Use%20Cases%20Technical%20Blueprint.md) · [05](05%20-%20README.md) · [CR-2026-09-02-001](CR-2026-09-02-001.md)
 
@@ -48,13 +49,14 @@ Offline-first Windows desktop laundry ERP/POS for UAE MSMEs. Stack: Flutter + pl
 |----|-----------|--------|--------|
 | M1 | Platform quality gate | 2026-09-02 | ✅ VERIFIED |
 | M2 | Schema v1 (003–006 migrations) | Week 1 | ✅ VERIFIED |
-| M3 | CRM + catalog CRUD | Week 2–3 | 🟡 DONE |
+| M3 | CRM + catalog CRUD | Week 2–3 | ✅ VERIFIED |
 | M4 | POS sale loop | Week 4–5 | ✅ VERIFIED |
-| M4S | Cloud sync v1 (customers + sales) | Week 4–5 | 🟡 DONE |
+| M4S | Cloud sync v1 (customers + sales) | Week 4–5 | ✅ VERIFIED |
 | M5 | Phase 1 acceptance | Week 6 | ✅ VERIFIED |
 | M6 | Phase 2 exit | Week 10–14 | ✅ VERIFIED |
-| M7 | Production MSI + UAT | Week 16+ | 🔵 IN_PROGRESS |
+| M7 | Production Release + UAT | Week 16+ | ✅ VERIFIED |
 | M8 | Peripherals merge (CR-003) | 2026-09-05 | ✅ VERIFIED |
+| M9 | Central Cloud API & AdminLTE Portal | 2026-09-08 | ✅ VERIFIED |
 
 ---
 

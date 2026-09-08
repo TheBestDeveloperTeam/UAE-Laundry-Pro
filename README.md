@@ -9,16 +9,17 @@
 > **Client Profile:** UAE Local Laundry Service MSME Vendor
 > **Initial Deployment Area:** Dubai, UAE — expandable to all UAE Emirates (Abu Dhabi, Sharjah, Ajman, Umm Al Quwain, Fujairah, Ras Al Khaimah) and KSA-ready
 > **Primary Platform:** Flutter (Dart) — Windows Desktop Standalone Application
-> **Local Database:** MySQL / MariaDB (via XAMPP)
-> **Local API Layer:** PHP 8.x REST API (Slim Framework / Laravel Lumen)
+> **Local Database:** MySQL / MariaDB (via XAMPP) — database `laundrypro`
+> **Local API Layer:** Pure PHP 8.2 REST API (no third-party frameworks, lightweight & blazing fast) via Apache VirtualHost `http://laundrypro-localapi`
+> **Central Cloud Platform:** Pure PHP 8.2 Multi-Tenant Cloud API & AdminLTE v4 Super-Admin Web Portal (`cloud-api/`)
 > **Architecture:** MVVM + Modular/Microservice-Oriented Local Components + Repository Pattern
-> **Authentication:** OAuth 2.0 concepts + JWT session/access-token model
-> **API Documentation:** Swagger / OpenAPI
-> **Internet Dependency:** None for core business operations (Offline-First)
+> **Authentication:** OAuth 2.0 concepts + JWT session/access-token model (Local) & Secure Session/CSRF (Super-Admin)
+> **API Documentation:** Swagger / OpenAPI (`/docs/`)
+> **Internet Dependency:** None for core business operations (Offline-First, background delta sync)
 > **Payment Gateway:** Not required
 > **Primary Currency:** AED (with Fils sub-unit) — extendable to INR/Paise, USD/Cent, SAR/Halala
 > **Primary Locale:** en-AE (LTR) — **Secondary Locale:** ar-AE (RTL)
-> **License Model:** Duration-based + Physical Address Binding + UMAC (Unique Machine Access Code)
+> **License Model:** Duration-based + Physical Address Binding + UMAC (Unique Machine Access Code) anti-tamper evaluation guard
 
 ---
 
