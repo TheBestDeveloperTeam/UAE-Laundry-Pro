@@ -221,5 +221,8 @@
     "pos_payment_card":  "Card",
     "hr_employees":  "Employees (HR)",
     "hr_attendance":  "Attendance Tracker",
-    "hr_leave_requests":  "Leave Requests"
+    "hr_leave_requests":  "Leave Requests",
+    "salary_advances":  "Salary Advances",
+    "empty_data":  "No data found.",
+    "salary_advance_create":  "New Salary Advance"
 }

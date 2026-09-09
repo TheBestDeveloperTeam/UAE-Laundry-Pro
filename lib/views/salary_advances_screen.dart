@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/payroll_service.dart';
 
-class LeaveScreen extends StatefulWidget {
-  const LeaveScreen({super.key, this.payrollService});
+class SalaryAdvancesScreen extends StatefulWidget {
+  const SalaryAdvancesScreen({super.key, this.payrollService});
 
   final PayrollService? payrollService;
 
   @override
-  State<LeaveScreen> createState() => _LeaveScreenState();
+  State<SalaryAdvancesScreen> createState() => _SalaryAdvancesScreenState();
 }
 
-class _LeaveScreenState extends State<LeaveScreen> {
+class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
   late final PayrollService _payroll;
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
@@ -26,7 +26,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      _items = await _payroll.listLeave();
+      _items = await _payroll.listSalaryAdvances();
     } catch (_) {}
     setState(() => _loading = false);
   }
@@ -34,18 +34,16 @@ class _LeaveScreenState extends State<LeaveScreen> {
   Future<void> _create() async {
     final l10n = context.l10n;
     final employeeController = TextEditingController();
-    final startController = TextEditingController(text: DateTime.now().toIso8601String().split('T').first);
-    final endController = TextEditingController(text: DateTime.now().toIso8601String().split('T').first);
+    final amountController = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.t('leave_create')),
+        title: Text(l10n.t('salary_advance_create')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(controller: employeeController, decoration: InputDecoration(labelText: l10n.t('employee_id')), keyboardType: TextInputType.number),
-            TextField(controller: startController, decoration: InputDecoration(labelText: l10n.t('start_date'))),
-            TextField(controller: endController, decoration: InputDecoration(labelText: l10n.t('end_date'))),
+            TextField(controller: amountController, decoration: InputDecoration(labelText: l10n.t('amount')), keyboardType: TextInputType.number),
           ],
         ),
         actions: [
@@ -56,23 +54,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
     );
     if (ok != true) return;
     final employeeId = int.tryParse(employeeController.text.trim());
-    if (employeeId == null) return;
-    await _payroll.createLeave({
+    final amount = double.tryParse(amountController.text.trim());
+    if (employeeId == null || amount == null) return;
+    await _payroll.createSalaryAdvance({
       'employee_id': employeeId,
-      'start_date': startController.text.trim(),
-      'end_date': endController.text.trim(),
-      'leave_type_id': 1,
+      'amount': amount,
     });
-    await _load();
-  }
-
-  Future<void> _approve(int id) async {
-    await _payroll.approveLeave(id);
-    await _load();
-  }
-
-  Future<void> _reject(int id) async {
-    await _payroll.rejectLeave(id);
     await _load();
   }
 
@@ -81,30 +68,20 @@ class _LeaveScreenState extends State<LeaveScreen> {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.t('leave')),
+        title: Text(l10n.t('salary_advances')),
         actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
-              ? Center(child: Text(l10n.t('leave_empty')))
+              ? Center(child: Text(l10n.t('empty_data')))
               : ListView.builder(
                   itemCount: _items.length,
                   itemBuilder: (context, i) {
-                    final l = _items[i];
-                    final id = int.tryParse(l['id']?.toString() ?? '');
+                    final a = _items[i];
                     return ListTile(
-                      title: Text('${l10n.t('employee_id')}: ${l['employee_id']}'),
-                      subtitle: Text('${l['start_date']} to ${l['end_date']} - ${l['status']}'),
-                      trailing: l['status'] == 'pending' && id != null
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(icon: const Icon(Icons.check), onPressed: () => _approve(id)),
-                                IconButton(icon: const Icon(Icons.close), onPressed: () => _reject(id)),
-                              ],
-                            )
-                          : null,
+                      title: Text('${l10n.t('employee_id')}: ${a['employee_id']}'),
+                      subtitle: Text('Amount: ${a['amount']}'),
                     );
                   },
                 ),

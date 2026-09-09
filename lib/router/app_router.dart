@@ -29,6 +29,7 @@ import 'package:laundrypro_uae/views/production_screen.dart';
 import 'package:laundrypro_uae/views/purchasing_screen.dart';
 import 'package:laundrypro_uae/views/reports_screen.dart';
 import 'package:laundrypro_uae/views/role_editor_screen.dart';
+import 'package:laundrypro_uae/views/salary_advances_screen.dart';
 import 'package:laundrypro_uae/views/setup_wizard_screen.dart';
 import 'package:laundrypro_uae/views/settings_screen.dart';
 import 'package:laundrypro_uae/views/splash_screen.dart';
@@ -101,6 +102,7 @@ class AppRouter {
             GoRoute(path: '/hr/attendance', builder: (context, state) => const AttendanceScreen()),
             GoRoute(path: '/hr/leave', builder: (context, state) => const LeaveScreen()),
             GoRoute(path: '/hr/payroll', builder: (context, state) => const PayrollScreen()),
+            GoRoute(path: '/hr/salary-advances', builder: (context, state) => const SalaryAdvancesScreen()),
             GoRoute(path: '/expenses', builder: (context, state) => const ExpensesScreen()),
             GoRoute(path: '/reports', builder: (context, state) => const ReportsScreen()),
             GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),

@@ -51,4 +51,17 @@ class PayrollService {
     final res = await _api.post('/leave-requests/$id/reject');
     return Map<String, dynamic>.from(res['data']?['leave_request'] as Map? ?? {});
   }
+
+  Future<List<Map<String, dynamic>>> listSalaryAdvances({int? employeeId}) async {
+    final path = employeeId != null ? '/salary-advances?employee_id=$employeeId' : '/salary-advances';
+    final res = await _api.get(path);
+    return (res['data']?['salary_advances'] as List? ?? [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> createSalaryAdvance(Map<String, dynamic> body) async {
+    final res = await _api.post('/salary-advances', body: body);
+    return Map<String, dynamic>.from(res['data']?['salary_advance'] as Map? ?? {});
+  }
 }

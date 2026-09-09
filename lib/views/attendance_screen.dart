@@ -79,7 +79,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     final a = _items[i];
                     return ListTile(
                       title: Text('${l10n.t('employee_id')}: ${a['employee_id']}'),
-                      subtitle: Text('${a['attendance_date']} · ${a['status']}'),
+                      subtitle: Text('${a['attendance_date']} - ${a['status']}'),
                     );
                   },
                 ),

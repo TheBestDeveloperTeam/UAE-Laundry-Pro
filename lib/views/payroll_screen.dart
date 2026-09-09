@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/payroll_service.dart';
 
@@ -74,7 +75,14 @@ class _PayrollScreenState extends State<PayrollScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('payroll')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.money_off_csred_outlined),
+            tooltip: 'Salary Advances',
+            onPressed: () => context.push('/hr/salary-advances'),
+          ),
+          IconButton(onPressed: _load, icon: const Icon(Icons.refresh))
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -86,7 +94,7 @@ class _PayrollScreenState extends State<PayrollScreen> {
                     final p = _periods[i];
                     final id = int.tryParse(p['id']?.toString() ?? '');
                     return ListTile(
-                      title: Text('${p['period_start']} → ${p['period_end']}'),
+                      title: Text('${p['period_start']} to ${p['period_end']}'),
                       subtitle: Text('${l10n.t('status')}: ${p['status']}'),
                       trailing: id != null && p['status'] != 'closed'
                           ? FilledButton(
