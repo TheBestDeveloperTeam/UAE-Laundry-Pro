@@ -19,8 +19,9 @@
 | S03 | Schema & Migrations | ✅ Done | Consolidated 001_baseline.sql, performance indexes, UAE seeds |
 | S04 | App Shell & Setup Wizard | ✅ Done | 8-step setup wizard, app header bar, status bar, RTL language |
 | S05 | Customer & Vendor Master | ✅ Done | UAE phone normalization, duplicate detection, quick customer |
-| S06 | Catalog & Services | ⏳ In Progress | Service/Product hierarchy, composite items, modifiers |
-| S07 | Core Sales (POS) | ⏳ Pending | Drafts, order confirmation, cart, taxes |
+| S06 | Catalog & Services | ✅ Done | Service/Product hierarchy, bundles, modifiers modal, stock alerts |
+| S07 | Core Sales (POS) | ✅ Done | Customer selection, scanner auto-detect, UAE 5% VAT, modifiers |
+| S08 | Payment & Receipts | ⏳ In Progress | Thermal ESC/POS renderer, A4 PDF invoice, cash drawer pulse |
 
 ---
 
@@ -41,7 +42,18 @@
 1. Implemented `PhoneNormalizer` algorithm for UAE numbers (+971/05x) and Levenshtein duplicate detection.
 2. Built rich `CustomersScreen` supporting fast search, code lookup, balance tracking, address/notes, and duplicate warnings.
 
-### Next Sprint (S06) Priorities
-1. Service & Product hierarchy models.
-2. Catalog UI enhancements and modifier management.
-3. Composite bundle mapping and inventory tracking logic.
+### Sprint 06: Service & Product Catalog (Completed)
+1. Built N-level parent category/service hierarchy support with cycle prevention.
+2. Implemented Service/Product creation and update modals with code, base rate, cost, barcode, and description.
+3. Added support for Bundle / Package groups (`is_group`) and low-stock indicators.
+4. Added interactive Modifiers modal allowing dynamic attachment of fixed and percentage surcharges (e.g. Express, Fragrance, Delicate).
+
+### Sprint 07: Core Sales & POS Screen (Completed)
+1. Added Customer Selection quick-action chip and dialog supporting walk-ins or existing customer lookup.
+2. Integrated automatic barcode & QR scanner detection for services, products, and customer codes.
+3. Implemented real-time UAE 5% VAT computation, line item modifiers, and order-level discount handling.
+4. Wired order confirmation, payment processing, cash drawer kick pulse, and receipt dialogs.
+
+### Next Sprint (S08) Priorities
+1. Polish thermal and A4 PDF receipt templates with TRN and bilingual (EN/AR) VAT summaries.
+2. Verify ESC/POS drawer kick pulse and multi-copy printing.

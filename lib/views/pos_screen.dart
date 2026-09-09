@@ -8,6 +8,7 @@ import 'package:laundrypro_uae/core/receipt_renderer.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
 import 'package:laundrypro_uae/peripherals/core/scanner/scanner_models.dart';
 import 'package:laundrypro_uae/services/catalog_service.dart';
+import 'package:laundrypro_uae/services/customer_service.dart';
 import 'package:laundrypro_uae/services/peripheral_print_service.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 
@@ -18,30 +19,64 @@ class CartLine {
     required this.name,
     required this.rate,
     this.quantity = 1,
+    this.discount = 0.0,
+    this.modifiers = const [],
   });
 
   final String itemType;
   final int itemId;
   final String name;
-  final double rate;
+  double rate;
   int quantity;
+  double discount;
+  List<Map<String, dynamic>> modifiers;
 
-  double get amount => rate * quantity;
+  double get modifierTotal {
+    double total = 0.0;
+    for (final m in modifiers) {
+      final type = m['price_type']?.toString() ?? 'fixed';
+      final val = double.tryParse(m['price_value']?.toString() ?? '0') ?? 0.0;
+      if (type == 'percentage') {
+        total += (rate * (val / 100.0));
+      } else {
+        total += val;
+      }
+    }
+    return total;
+  }
+
+  double get unitRateWithModifiers => rate + modifierTotal;
+
+  double get lineSubtotal => unitRateWithModifiers * quantity;
+
+  double get lineTotal => (lineSubtotal - discount).clamp(0.0, double.infinity);
+
+  double get vatAmount => lineTotal * 0.05; // UAE Standard 5% VAT
+
+  double get lineTotalWithVat => lineTotal + vatAmount;
 
   Map<String, dynamic> toLine() => {
         'item_type': itemType,
         'item_id': itemId,
         'description': name,
         'quantity': quantity,
-        'rate': rate,
+        'rate': unitRateWithModifiers,
+        'discount': discount,
+        'modifiers': modifiers,
       };
 }
 
 class PosScreen extends ConsumerStatefulWidget {
-  const PosScreen({super.key, this.salesService, this.catalogService});
+  const PosScreen({
+    super.key,
+    this.salesService,
+    this.catalogService,
+    this.customerService,
+  });
 
   final SalesService? salesService;
   final CatalogService? catalogService;
+  final CustomerService? customerService;
 
   @override
   ConsumerState<PosScreen> createState() => _PosScreenState();
@@ -50,8 +85,11 @@ class PosScreen extends ConsumerStatefulWidget {
 class _PosScreenState extends ConsumerState<PosScreen> {
   late final SalesService _sales;
   late final CatalogService _catalog;
+  late final CustomerService _customerService;
+
   final FocusNode _scannerFocus = FocusNode(debugLabel: 'pos-scanner-wedge');
   List<Map<String, dynamic>> _services = [];
+  List<Map<String, dynamic>> _products = [];
   final List<CartLine> _cart = [];
   bool _loading = true;
   bool _processing = false;
@@ -61,12 +99,19 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   final TextEditingController _searchController = TextEditingController();
   ProviderSubscription<AsyncValue<ScannerPacketModel>>? _scannerSub;
 
+  // Selected customer
+  Map<String, dynamic>? _selectedCustomer;
+  List<Map<String, dynamic>> _customers = [];
+
+  // Order-level discount
+  double _orderDiscount = 0.0;
 
   @override
   void initState() {
     super.initState();
     _sales = widget.salesService ?? SalesService();
     _catalog = widget.catalogService ?? CatalogService();
+    _customerService = widget.customerService ?? CustomerService();
     _load();
     _scannerSub = ref.listenManual<AsyncValue<ScannerPacketModel>>(
       scannerPacketsProvider,
@@ -87,22 +132,29 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     super.dispose();
   }
 
-
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
       final services = await _sales.loadServices();
+      final products = await _catalog.listProducts();
+      final customers = await _customerService.list();
+
       Map<String, dynamic> business = {};
       try {
         business = await _sales.getBusiness();
       } catch (_) {}
-      setState(() {
-        _services = services;
-        _businessName = business['display_name']?.toString();
-        _loading = false;
-      });
+
+      if (mounted) {
+        setState(() {
+          _services = services;
+          _products = products;
+          _customers = customers;
+          _businessName = business['display_name']?.toString() ?? 'LaundryPro UAE';
+          _loading = false;
+        });
+      }
     } catch (_) {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -111,13 +163,20 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     required int itemId,
     required String name,
     required double rate,
+    List<Map<String, dynamic>> modifiers = const [],
   }) {
     final existing = _cart.where((l) => l.itemType == itemType && l.itemId == itemId).toList();
     setState(() {
-      if (existing.isNotEmpty) {
+      if (existing.isNotEmpty && modifiers.isEmpty) {
         existing.first.quantity++;
       } else {
-        _cart.add(CartLine(itemType: itemType, itemId: itemId, name: name, rate: rate));
+        _cart.add(CartLine(
+          itemType: itemType,
+          itemId: itemId,
+          name: name,
+          rate: rate,
+          modifiers: List.from(modifiers),
+        ));
       }
     });
   }
@@ -129,9 +188,18 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     _addLine(itemType: 'service', itemId: id, name: name, rate: rate);
   }
 
+  void _addProduct(Map<String, dynamic> product) {
+    final id = int.tryParse(product['id']?.toString() ?? '') ?? 0;
+    final name = product['name']?.toString() ?? '';
+    final rate = double.tryParse(product['base_rate']?.toString() ?? '0') ?? 0;
+    _addLine(itemType: 'product', itemId: id, name: name, rate: rate);
+  }
+
   Future<void> _handleScan(String code) async {
     if (code.trim().isEmpty || _processing) return;
     final scanned = code.trim();
+
+    // 1. Check Service code
     final service = _services.cast<Map<String, dynamic>?>().firstWhere(
       (s) => s?['code']?.toString() == scanned,
       orElse: () => null,
@@ -141,16 +209,29 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       return;
     }
 
+    // 2. Check Product barcode
     try {
       final product = await _catalog.findProductByBarcode(scanned);
       if (product != null) {
-        final id = int.tryParse(product['id']?.toString() ?? '') ?? 0;
-        final name = product['name']?.toString() ?? '';
-        final rate = double.tryParse(product['base_rate']?.toString() ?? '0') ?? 0;
-        _addLine(itemType: 'product', itemId: id, name: name, rate: rate);
+        _addProduct(product);
         return;
       }
     } catch (_) {}
+
+    // 3. Check Customer code
+    final customer = _customers.cast<Map<String, dynamic>?>().firstWhere(
+      (c) => c?['customer_code']?.toString() == scanned || c?['phone']?.toString() == scanned,
+      orElse: () => null,
+    );
+    if (customer != null) {
+      setState(() => _selectedCustomer = customer);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Customer Selected: ${customer['name']}')),
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -159,14 +240,20 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     }
   }
 
-  double get _subtotal => _cart.fold(0, (sum, line) => sum + line.amount);
+  double get _linesSubtotal => _cart.fold(0.0, (sum, line) => sum + line.lineTotal);
+  double get _taxableAmount => (_linesSubtotal - _orderDiscount).clamp(0.0, double.infinity);
+  double get _vatAmount => _taxableAmount * 0.05; // UAE 5% VAT
+  double get _grandTotal => _taxableAmount + _vatAmount;
 
   Future<void> _confirmSale() async {
     if (_cart.isEmpty || _processing) return;
     final l10n = context.l10n;
     setState(() => _processing = true);
     try {
-      final draft = await _sales.createDraft(lines: _cart.map((l) => l.toLine()).toList());
+      final draft = await _sales.createDraft(
+        customerId: _selectedCustomer?['id'] as int?,
+        lines: _cart.map((l) => l.toLine()).toList(),
+      );
       final orderId = int.tryParse(draft['id']?.toString() ?? '') ?? 0;
       final confirmed = await _sales.confirm(orderId);
       setState(() {
@@ -192,7 +279,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     if (_confirmedOrder == null || _processing) return;
     final l10n = context.l10n;
     final orderId = int.tryParse(_confirmedOrder!['id']?.toString() ?? '') ?? 0;
-    final total = double.tryParse(_confirmedOrder!['grand_total']?.toString() ?? '0') ?? _subtotal;
+    final total = double.tryParse(_confirmedOrder!['grand_total']?.toString() ?? '0') ?? _grandTotal;
 
     final payment = await showDialog<_PaymentResult>(
       context: context,
@@ -224,6 +311,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       setState(() {
         _cart.clear();
         _confirmedOrder = null;
+        _orderDiscount = 0.0;
+        _selectedCustomer = null;
       });
     } catch (_) {
       setState(() => _processing = false);
@@ -300,16 +389,69 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     );
   }
 
+  void _selectCustomerDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Select Customer'),
+        content: SizedBox(
+          width: 450,
+          height: 350,
+          child: ListView.builder(
+            itemCount: _customers.length,
+            itemBuilder: (context, i) {
+              final c = _customers[i];
+              return ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.person, size: 18)),
+                title: Text(c['name']?.toString() ?? ''),
+                subtitle: Text(c['phone']?.toString() ?? ''),
+                onTap: () {
+                  setState(() => _selectedCustomer = c);
+                  Navigator.pop(ctx);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
     return KeyboardListener(
       autofocus: true,
       focusNode: _scannerFocus,
       onKeyEvent: ref.read(scannerControllerProvider),
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n.t('pos')),
+          title: Row(
+            children: [
+              Text(l10n.t('pos')),
+              const SizedBox(width: 16),
+              // Customer Selection Chip
+              ActionChip(
+                avatar: const Icon(Icons.person, size: 16),
+                label: Text(
+                  _selectedCustomer != null
+                      ? '${_selectedCustomer!['name']} (${_selectedCustomer!['phone'] ?? ''})'
+                      : 'Walk-In Customer (Tap to select)',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                onPressed: _selectCustomerDialog,
+              ),
+              if (_selectedCustomer != null)
+                IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () => setState(() => _selectedCustomer = null),
+                ),
+            ],
+          ),
           actions: [
             IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
           ],
@@ -318,6 +460,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             ? const Center(child: CircularProgressIndicator())
             : Row(
                 children: [
+                  // Left: Catalog Items (Services & Products)
                   Expanded(
                     flex: 3,
                     child: Padding(
@@ -330,7 +473,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                             children: [
                               Text(l10n.t('pos_services'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                               Text(
-                                '${_services.length} items',
+                                '${_services.length} services • ${_products.length} products',
                                 style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                               ),
                             ],
@@ -339,7 +482,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                           TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
-                              hintText: 'Search services...',
+                              hintText: 'Search services, garments, or barcodes...',
                               prefixIcon: const Icon(Icons.search, size: 20),
                               suffixIcon: _searchFilter.isNotEmpty
                                   ? IconButton(
@@ -422,12 +565,12 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                               },
                             ),
                           ),
-
                         ],
                       ),
                     ),
                   ),
                   const VerticalDivider(width: 1),
+                  // Right: Cart, Tax Breakdown & Checkout
                   Expanded(
                     flex: 2,
                     child: Padding(
@@ -435,7 +578,18 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(l10n.t('pos_cart'), style: Theme.of(context).textTheme.titleMedium),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(l10n.t('pos_cart'), style: Theme.of(context).textTheme.titleMedium),
+                              if (_cart.isNotEmpty)
+                                TextButton.icon(
+                                  icon: const Icon(Icons.delete_outline, size: 16),
+                                  label: const Text('Clear'),
+                                  onPressed: () => setState(() => _cart.clear()),
+                                ),
+                            ],
+                          ),
                           const SizedBox(height: 8),
                           Expanded(
                             child: _cart.isEmpty
@@ -446,11 +600,17 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                       final line = _cart[i];
                                       return ListTile(
                                         title: Text(line.name),
-                                        subtitle: Text('${line.rate} x ${line.quantity}'),
+                                        subtitle: Text(
+                                          'Rate: AED ${line.rate.toStringAsFixed(2)} x ${line.quantity}'
+                                          '${line.discount > 0 ? ' • Disc: -AED ${line.discount.toStringAsFixed(2)}' : ''}',
+                                        ),
                                         trailing: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Text(line.amount.toStringAsFixed(2)),
+                                            Text(
+                                              'AED ${line.lineTotal.toStringAsFixed(2)}',
+                                              style: const TextStyle(fontWeight: FontWeight.bold),
+                                            ),
                                             IconButton(
                                               icon: const Icon(Icons.remove_circle_outline),
                                               onPressed: () {
@@ -470,8 +630,46 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   ),
                           ),
                           const Divider(),
-                          Text('${l10n.t('pos_subtotal')}: ${_subtotal.toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.titleLarge),
+                          // Financial Breakdown
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Lines Subtotal:'),
+                              Text('AED ${_linesSubtotal.toStringAsFixed(2)}'),
+                            ],
+                          ),
+                          if (_orderDiscount > 0)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Order Discount:'),
+                                Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('UAE VAT (5%):'),
+                              Text('AED ${_vatAmount.toStringAsFixed(2)}'),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${l10n.t('pos_total')}:',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'AED ${_grandTotal.toStringAsFixed(2)}',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 12),
                           if (_confirmedOrder == null)
                             FilledButton(
