@@ -112,6 +112,19 @@ function register_api_routes(Router $router): void
     'responses' => ['200' => 'SETTINGS_UPDATED', '401' => 'AUTH_SESSION_EXPIRED', '403' => 'FORBIDDEN', '422' => 'VALIDATION_ERROR'],
   ]);
 
+  $router->get('/api/v1/roles', [\LaundryPro\Api\Controllers\RoleController::class, 'index'], $auth, [
+    'tag' => 'Configuration', 'summary' => 'List roles and permissions', 'permission' => 'settings.read',
+    'responses' => ['200' => 'ROLES_FETCHED', '401' => 'AUTH_SESSION_EXPIRED'],
+  ]);
+  $router->post('/api/v1/roles', [\LaundryPro\Api\Controllers\RoleController::class, 'store'], $audit, [
+    'tag' => 'Configuration', 'summary' => 'Create role', 'permission' => 'settings.update',
+    'responses' => ['201' => 'ROLE_CREATED', '409' => 'DUPLICATE_ROLE', '422' => 'VALIDATION_ERROR'],
+  ]);
+  $router->put('/api/v1/roles/{id}', [\LaundryPro\Api\Controllers\RoleController::class, 'update'], $audit, [
+    'tag' => 'Configuration', 'summary' => 'Update role', 'permission' => 'settings.update',
+    'responses' => ['200' => 'ROLE_UPDATED', '404' => 'NOT_FOUND', '409' => 'DUPLICATE_ROLE', '422' => 'VALIDATION_ERROR'],
+  ]);
+
   $router->get('/api/v1/business', [BusinessController::class, 'show'], $auth, [
     'tag' => 'Configuration', 'summary' => 'Get business profile', 'permission' => 'settings.read',
     'responses' => ['200' => 'BUSINESS_PROFILE', '404' => 'NOT_FOUND'],

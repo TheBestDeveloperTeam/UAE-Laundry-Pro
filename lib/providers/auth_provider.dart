@@ -130,6 +130,8 @@ class AuthProvider extends ChangeNotifier {
     switch (exception.code) {
       case 'AUTH_INVALID_CREDENTIALS':
         return 'invalid_credentials';
+      case 'AUTH_ACCOUNT_LOCKED':
+        return 'account_locked';
       case 'AUTH_SESSION_EXPIRED':
         return 'session_expired';
       default:

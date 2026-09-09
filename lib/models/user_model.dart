@@ -32,6 +32,25 @@ class UserModel {
       permissions: permissions,
     );
   }
+
+  // ─── Permission Helpers ──────────────────────────────────────────────────
+
+  /// Returns true if this user holds [permission] in their JWT payload.
+  bool hasPermission(String permission) => permissions.contains(permission);
+
+  /// Returns true if the user has ANY of the given permissions.
+  bool hasAnyPermission(List<String> perms) =>
+      perms.any((p) => permissions.contains(p));
+
+  /// Convenience: can this user edit global config paths?
+  bool get canEditGlobalConfig => hasPermission('system.config.paths');
+
+  /// Convenience: can this user run/restore backups?
+  bool get canRunBackup    => hasPermission('backup.run');
+  bool get canRestoreBackup => hasPermission('backup.restore');
+
+  /// Convenience: is this user an admin or system administrator role?
+  bool get isAdmin => role == 'admin' || role == 'super_admin' || role == 'system_admin';
 }
 
 class AuthTokens {

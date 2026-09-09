@@ -45,7 +45,21 @@ final class UserRepository
 
   public function updateLastLogin(int $userId): void
   {
-    $stmt = $this->pdo->prepare('UPDATE users SET last_login_at = UTC_TIMESTAMP() WHERE id = :id');
+    $stmt = $this->pdo->prepare('UPDATE users SET last_login_at = UTC_TIMESTAMP(), failed_attempts = 0, locked_until = NULL WHERE id = :id');
     $stmt->execute(['id' => $userId]);
+  }
+
+  public function incrementFailedAttempts(int $userId, int $maxAttempts, int $lockoutMinutes): void
+  {
+    $stmt = $this->pdo->prepare(
+      'UPDATE users SET 
+        failed_attempts = failed_attempts + 1,
+        locked_until = CASE 
+          WHEN failed_attempts + 1 >= :max THEN DATE_ADD(UTC_TIMESTAMP(), INTERVAL :mins MINUTE)
+          ELSE locked_until 
+        END
+       WHERE id = :id'
+    );
+    $stmt->execute(['id' => $userId, 'max' => $maxAttempts, 'mins' => $lockoutMinutes]);
   }
 }

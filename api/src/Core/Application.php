@@ -229,6 +229,11 @@ final class Application
       API_ROOT . '/database/seeds',
       $c->get(PasswordHasher::class),
     ));
+    $this->container->singleton(\LaundryPro\Api\Repositories\RoleRepository::class, fn (Container $c) => new \LaundryPro\Api\Repositories\RoleRepository($c->pdo()));
+    $this->container->singleton(\LaundryPro\Api\Controllers\RoleController::class, fn (Container $c) => new \LaundryPro\Api\Controllers\RoleController(
+      $c->get(ApiResponse::class),
+      $c->get(\LaundryPro\Api\Repositories\RoleRepository::class),
+    ));
     $this->container->singleton(InstallService::class, fn () => new InstallService(
       API_ROOT . '/storage/installed.lock',
       (string) $this->securityConfig['install_secret'],

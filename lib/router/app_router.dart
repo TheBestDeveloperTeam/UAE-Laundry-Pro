@@ -28,6 +28,7 @@ import 'package:laundrypro_uae/views/pos_screen.dart';
 import 'package:laundrypro_uae/views/production_screen.dart';
 import 'package:laundrypro_uae/views/purchasing_screen.dart';
 import 'package:laundrypro_uae/views/reports_screen.dart';
+import 'package:laundrypro_uae/views/role_editor_screen.dart';
 import 'package:laundrypro_uae/views/setup_wizard_screen.dart';
 import 'package:laundrypro_uae/views/settings_screen.dart';
 import 'package:laundrypro_uae/views/splash_screen.dart';
@@ -35,6 +36,7 @@ import 'package:laundrypro_uae/views/storefront_screen.dart';
 import 'package:laundrypro_uae/views/terminals_screen.dart';
 import 'package:laundrypro_uae/views/sync_settings_screen.dart';
 import 'package:laundrypro_uae/views/vendors_screen.dart';
+import 'package:laundrypro_uae/views/global_config_screen.dart';
 
 class AppRouter {
   static GoRouter create(AuthProvider authProvider) {
@@ -114,6 +116,17 @@ class AppRouter {
             GoRoute(path: '/settings/localization', builder: (context, state) => const LocalizationScreen()),
             GoRoute(path: '/settings/storefront', builder: (context, state) => const StorefrontScreen()),
             GoRoute(path: '/customer', builder: (context, state) => const CustomerPortalScreen()),
+            GoRoute(
+              path: '/settings/roles',
+              builder: (context, state) => const RoleEditorScreen(),
+            ),
+            GoRoute(
+              path: '/settings/global-config',
+              builder: (context, state) {
+                final auth = authProvider;
+                return GlobalConfigScreen(user: auth.user);
+              },
+            ),
           ],
         ),
       ],

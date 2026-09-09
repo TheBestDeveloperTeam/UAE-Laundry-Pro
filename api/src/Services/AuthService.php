@@ -25,7 +25,16 @@ final class AuthService
   public function login(string $username, string $password): array
   {
     $user = $this->users->findByUsername($username);
-    if ($user === null || !$this->hasher->verify($password, $user['password_hash'])) {
+    if ($user === null) {
+      throw new \RuntimeException('AUTH_INVALID_CREDENTIALS');
+    }
+
+    if ($user['locked_until'] !== null && strtotime($user['locked_until']) > time()) {
+      throw new \RuntimeException('AUTH_ACCOUNT_LOCKED');
+    }
+
+    if (!$this->hasher->verify($password, $user['password_hash'])) {
+      $this->users->incrementFailedAttempts((int) $user['id'], 5, 15); // 5 attempts, 15 minutes
       throw new \RuntimeException('AUTH_INVALID_CREDENTIALS');
     }
 

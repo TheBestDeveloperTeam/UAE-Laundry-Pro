@@ -48,6 +48,10 @@ final class AuthController
         $this->response->error($request, $code, 'auth.invalid_credentials', 401);
         return;
       }
+      if ($code === 'AUTH_ACCOUNT_LOCKED') {
+        $this->response->error($request, $code, 'auth.account_locked', 403);
+        return;
+      }
 
       $this->response->error($request, 'AUTH_SESSION_EXPIRED', 'auth.session_expired', 401);
     }
