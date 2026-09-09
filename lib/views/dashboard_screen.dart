@@ -241,6 +241,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             const SizedBox(height: 32),
+            const SizedBox(height: 32),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'HR & Payroll',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: () => context.go('/hr/employees'),
+                          icon: const Icon(Icons.people_alt_outlined),
+                          label: Text(l10n.t('hr_employees')),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => context.go('/hr/attendance'),
+                          icon: const Icon(Icons.access_time_rounded),
+                          label: Text(l10n.t('hr_attendance')),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => context.go('/hr/leave'),
+                          icon: const Icon(Icons.event_note_outlined),
+                          label: Text(l10n.t('hr_leave_requests')),
+                        ),
+                        if (isAdmin)
+                          OutlinedButton.icon(
+                            onPressed: () => context.go('/hr/payroll'),
+                            icon: const Icon(Icons.monetization_on_outlined),
+                            label: Text(l10n.t('payroll')),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
