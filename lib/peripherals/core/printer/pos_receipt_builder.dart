@@ -106,6 +106,7 @@ class PosReceiptBuilder {
     lines.add('[L][BI]${shop.addressEn}|${shop.addressAr}[/BI][/L]');
     lines.add('[L][BI]${shop.phoneEn}|${shop.phoneAr}[/BI][/L]');
     lines.add('[L][BI]${shop.emailEn}|${shop.emailAr}[/BI][/L]');
+    lines.add('[L][BI]TRN: ${shop.trn}|الرقم الضريبي: ${shop.trn}[/BI][/L]');
 
     if (receiptNo != null) {
       lines.add('[L][BI]Receipt: $receiptNo|فاتورة: $receiptNo[/BI][/L]');
@@ -195,6 +196,11 @@ class PosReceiptBuilder {
       ReceiptPreviewLine(
         text: shop.emailEn,
         textAr: shop.emailAr,
+        align: ReceiptTextAlign.left,
+      ),
+      ReceiptPreviewLine(
+        text: 'TRN: ${shop.trn}',
+        textAr: 'الرقم الضريبي: ${shop.trn}',
         align: ReceiptTextAlign.left,
       ),
     ];

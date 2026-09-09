@@ -10,7 +10,7 @@ class FakeSalesService extends SalesService {
   final List<Map<String, dynamic>> orders;
 
   @override
-  Future<List<Map<String, dynamic>>> list({String? status, String? paymentStatus}) async => orders;
+  Future<List<Map<String, dynamic>>> list({String? status, String? paymentStatus, int? limit, int? offset}) async => orders;
 }
 
 class FakeDeliveryService extends DeliveryService {

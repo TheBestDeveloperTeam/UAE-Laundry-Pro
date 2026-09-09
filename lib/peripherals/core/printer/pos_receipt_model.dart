@@ -26,6 +26,7 @@ class PosShopProfile {
     this.phoneAr = 'هاتف: +971 4 123 4567',
     this.emailEn = 'info@shopname.com',
     this.emailAr = 'info@shopname.com',
+    this.trn = '100XXXXXXXXX003',
     this.vatPercent = 5.0,
     this.discountPercent = 2.0,
     this.verifyBaseUrl = 'https://receipt.verify',
@@ -41,6 +42,7 @@ class PosShopProfile {
   final String phoneAr;
   final String emailEn;
   final String emailAr;
+  final String trn;
   final double vatPercent;
   final double discountPercent;
 

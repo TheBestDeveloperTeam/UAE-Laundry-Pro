@@ -6,6 +6,8 @@ import 'package:laundrypro_uae/core/localization.dart';
 import 'peripherals_test_support.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/services/auth_service.dart';
+import 'package:laundrypro_uae/services/catalog_service.dart';
+import 'package:laundrypro_uae/services/customer_service.dart';
 import 'package:laundrypro_uae/services/license_service.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 import 'package:laundrypro_uae/views/pos_screen.dart';
@@ -32,6 +34,16 @@ class FakeSalesService extends SalesService {
 
   @override
   Future<Map<String, dynamic>> getBusiness() async => {'display_name': 'Test Laundry'};
+}
+
+class FakeCatalogService extends CatalogService {
+  @override
+  Future<List<Map<String, dynamic>>> listProducts({String? barcode, int? parentId}) async => [];
+}
+
+class FakeCustomerService extends CustomerService {
+  @override
+  Future<List<Map<String, dynamic>>> list({String? query}) async => [];
 }
 
 class FakeLicenseService extends LicenseService {
@@ -76,7 +88,13 @@ void main() {
 
   testWidgets('POS shows empty cart message and disabled confirm', (tester) async {
     await tester.pumpWidget(
-      wrapWidget(PosScreen(salesService: FakeSalesService())),
+      wrapWidget(
+        PosScreen(
+          salesService: FakeSalesService(),
+          catalogService: FakeCatalogService(),
+          customerService: FakeCustomerService(),
+        ),
+      ),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));

@@ -36,18 +36,23 @@ class SalesService {
     int orderId, {
     required double amount,
     String method = 'cash',
+    String? referenceNumber,
   }) async {
     final res = await _api.post('/sales/$orderId/payment', body: {
       'amount': amount,
       'payment_method': method,
+      if (referenceNumber != null && referenceNumber.isNotEmpty)
+        'reference_number': referenceNumber,
     });
     return Map<String, dynamic>.from(res['data']?['order'] as Map? ?? {});
   }
 
-  Future<List<Map<String, dynamic>>> list({String? status, String? paymentStatus}) async {
+  Future<List<Map<String, dynamic>>> list({String? status, String? paymentStatus, int? limit, int? offset}) async {
     final params = <String>[];
     if (status != null) params.add('status=$status');
     if (paymentStatus != null) params.add('payment_status=$paymentStatus');
+    if (limit != null) params.add('limit=$limit');
+    if (offset != null) params.add('offset=$offset');
     final q = params.isEmpty ? '' : '?${params.join('&')}';
     final res = await _api.get('/sales$q');
     final list = res['data']?['orders'] as List? ?? [];

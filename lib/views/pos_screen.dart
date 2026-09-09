@@ -634,7 +634,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Lines Subtotal:'),
+                              const Expanded(child: Text('Lines Subtotal:')),
                               Text('AED ${_linesSubtotal.toStringAsFixed(2)}'),
                             ],
                           ),
@@ -642,14 +642,14 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Order Discount:'),
+                                const Expanded(child: Text('Order Discount:')),
                                 Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
                               ],
                             ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('UAE VAT (5%):'),
+                              const Expanded(child: Text('UAE VAT (5%):')),
                               Text('AED ${_vatAmount.toStringAsFixed(2)}'),
                             ],
                           ),
@@ -657,13 +657,15 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                '${l10n.t('pos_total')}:',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                              Expanded(
+                                child: Text(
+                                  '${l10n.t('pos_total')}:',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                ),
                               ),
                               Text(
                                 'AED ${_grandTotal.toStringAsFixed(2)}',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: Theme.of(context).colorScheme.primary,
                                     ),
