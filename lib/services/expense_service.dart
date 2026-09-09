@@ -38,4 +38,9 @@ class ExpenseService {
     final res = await _api.post('/expenses/$id/reject');
     return Map<String, dynamic>.from(res['data']?['expense'] as Map? ?? {});
   }
+
+  Future<Map<String, dynamic>> uploadAttachment(int id, String filePath) async {
+    final res = await _api.postMultipart('/expenses/$id/attachments', filePath, fieldName: 'attachment');
+    return Map<String, dynamic>.from(res['data'] ?? {});
+  }
 }

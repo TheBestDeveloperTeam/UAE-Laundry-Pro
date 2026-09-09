@@ -53,6 +53,38 @@ class ApiClient {
     return _request('PATCH', path, body: body, auth: auth, customHeaders: customHeaders);
   }
 
+  Future<Map<String, dynamic>> postMultipart(
+    String path,
+    String filePath, {
+    String fieldName = 'file',
+    bool auth = true,
+    bool retried = false,
+  }) async {
+    final uri = Uri.parse('$_baseUrl$path');
+    final request = http.MultipartRequest('POST', uri);
+
+    if (auth) {
+      final token = await _tokenStorage.readAccessToken();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    request.files.add(await http.MultipartFile.fromPath(fieldName, filePath));
+
+    final streamedResponse = await _client.send(request);
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 401 && auth && !retried) {
+      final refreshed = await _tryRefreshToken();
+      if (refreshed) {
+        return postMultipart(path, filePath, fieldName: fieldName, auth: auth, retried: true);
+      }
+    }
+
+    return _decodeResponse(response);
+  }
+
   Future<Map<String, dynamic>> _request(
     String method,
     String path, {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/expense_service.dart';
 
@@ -44,6 +45,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final amountController = TextEditingController();
     final descController = TextEditingController();
     int? selectedCatId = _categories.isNotEmpty ? int.tryParse(_categories.first['id']?.toString() ?? '1') : 1;
+    String? attachmentPath;
+    String? attachmentName;
 
     final ok = await showDialog<bool>(
       context: context,
@@ -89,6 +92,35 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                       border: const OutlineInputBorder(),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: () async {
+                          final result = await FilePicker.platform.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                          );
+                          if (result != null && result.files.single.path != null) {
+                            setDialogState(() {
+                              attachmentPath = result.files.single.path;
+                              attachmentName = result.files.single.name;
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.attach_file),
+                        label: Text(attachmentName ?? 'Attach Receipt (Optional)'),
+                      ),
+                      if (attachmentPath != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: () => setDialogState(() {
+                            attachmentPath = null;
+                            attachmentName = null;
+                          }),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -103,11 +135,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     if (ok != true) return;
     final amount = double.tryParse(amountController.text.trim());
     if (amount == null || selectedCatId == null) return;
-    await _expenses.create({
+    final created = await _expenses.create({
       'amount': amount,
       'category_id': selectedCatId,
       if (descController.text.isNotEmpty) 'description': descController.text.trim(),
     });
+    
+    final expenseId = int.tryParse(created['id']?.toString() ?? '0') ?? 0;
+    if (expenseId > 0 && attachmentPath != null) {
+      try {
+        await _expenses.uploadAttachment(expenseId, attachmentPath!);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload attachment: $e')));
+        }
+      }
+    }
+    
     await _load();
   }
 
@@ -201,7 +245,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                               ),
                             ),
                             title: Text(e['description']?.toString() ?? l10n.t('expenses'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('Category #${e['category_id'] ?? ''} · Status: ${status.toUpperCase()}'),
+                            subtitle: Text('Category #${e['category_id'] ?? ''} - Status: ${status.toUpperCase()}'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

@@ -408,6 +408,11 @@ function register_api_routes(Router $router): void
     'responses' => ['200' => 'EXPENSE_REJECTED', '422' => 'VALIDATION_ERROR'],
   ]);
 
+  $router->post('/api/v1/expenses/{id}/attachments', [ExpenseController::class, 'uploadAttachment'], $audit, [
+    'tag' => 'Expenses', 'summary' => 'Upload expense attachment', 'permission' => 'expenses.write',
+    'responses' => ['200' => 'ATTACHMENT_UPLOADED', '422' => 'VALIDATION_ERROR'],
+  ]);
+
   $router->get('/api/v1/delivery-tasks', [DeliveryController::class, 'index'], $auth, [
     'tag' => 'Delivery', 'summary' => 'List delivery tasks', 'permission' => 'delivery.read',
     'responses' => ['200' => 'DELIVERY_TASKS'],

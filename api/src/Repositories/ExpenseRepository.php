@@ -117,6 +117,14 @@ final class ExpenseRepository
     return $this->setApprovalStatus($id, 'rejected', $userId);
   }
 
+  public function addAttachment(int $id, string $filePath): void
+  {
+    $stmt = $this->pdo->prepare(
+      'INSERT INTO expense_attachments (expense_id, file_path) VALUES (:id, :path)'
+    );
+    $stmt->execute(['id' => $id, 'path' => $filePath]);
+  }
+
   /** @return array{expense_count: int, total_amount: float, approved_amount: float, pending_amount: float} */
   public function summary(string $from, string $to): array
   {

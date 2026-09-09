@@ -25,6 +25,7 @@ dependencies:
   uuid: ^4.5.1
   crypto: ^3.0.7
   mysql1: ^0.20.0
+  file_picker: ^11.0.3
 
 dev_dependencies:
   flutter_test:

@@ -103,4 +103,31 @@ final class ExpenseController
     $this->audit->log($userId, 'expenses.reject', 'expense', $id, null);
     $this->response->success($request, ['expense' => $item], 'EXPENSE_REJECTED', 'expenses.rejected');
   }
+
+  public function uploadAttachment(Request $request, Container $container): void
+  {
+    $id = (int) $request->route('id', 0);
+    $userId = (int) $container->get('auth.user_id');
+
+    if (empty($_FILES['attachment']) || $_FILES['attachment']['error'] !== UPLOAD_ERR_OK) {
+      $this->response->error($request, 'VALIDATION_ERROR', 'expenses.attachment_missing', 422);
+      return;
+    }
+
+    $uploadDir = __DIR__ . '/../../../storage/uploads/';
+    if (!is_dir($uploadDir)) {
+      mkdir($uploadDir, 0777, true);
+    }
+
+    $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9.\-_]/', '', basename($_FILES['attachment']['name']));
+    $targetPath = $uploadDir . $filename;
+
+    if (move_uploaded_file($_FILES['attachment']['tmp_name'], $targetPath)) {
+      $this->expenses->addAttachment($id, 'uploads/' . $filename);
+      $this->audit->log($userId, 'expenses.attachment.upload', 'expense', $id, null);
+      $this->response->success($request, ['path' => 'uploads/' . $filename], 'ATTACHMENT_UPLOADED', 'expenses.attachment_success');
+    } else {
+      $this->response->error($request, 'UPLOAD_FAILED', 'expenses.upload_failed', 500);
+    }
+  }
 }
