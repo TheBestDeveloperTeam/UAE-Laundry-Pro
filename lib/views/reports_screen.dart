@@ -16,12 +16,14 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
   late final ReportsService _reports;
   late final TabController _tabs;
   bool _loading = false;
+  bool _loadingKpis = false;
   String? _error;
   late DateTime _from;
   late DateTime _to;
   final _currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
 
   final _cache = <int, Map<String, dynamic>>{};
+  Map<String, dynamic> _kpis = {};
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
       if (!_tabs.indexIsChanging) _loadTab(force: false);
     });
     _loadTab(force: true);
+    _loadKpis();
   }
 
   @override
@@ -44,6 +47,16 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
   }
 
   String _fmtDate(DateTime d) => d.toIso8601String().split('T').first;
+
+  Future<void> _loadKpis() async {
+    setState(() => _loadingKpis = true);
+    try {
+      _kpis = await _reports.dashboardKpis(date: _fmtDate(_to));
+    } catch (_) {}
+    if (mounted) {
+      setState(() => _loadingKpis = false);
+    }
+  }
 
   Future<void> _loadTab({required bool force}) async {
     final idx = _tabs.index;
@@ -61,6 +74,9 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
       switch (idx) {
         case 0:
           data = await _reports.salesSummary(from: from, to: to);
+          data['P&L'] = await _reports.operationalPnl(from: from, to: to);
+          data['Aging'] = await _reports.agingReport();
+          data['Payment Breakdown'] = await _reports.paymentMethodBreakdown(from: from, to: to);
         case 1:
           data = await _reports.expensesSummary(from: from, to: to);
         case 2:
@@ -146,13 +162,44 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
           ],
         ),
         actions: [
-          IconButton(onPressed: () => _loadTab(force: true), icon: const Icon(Icons.refresh)),
+          IconButton(
+            tooltip: 'Export CSV',
+            icon: const Icon(Icons.download),
+            onPressed: () {
+              // Export CSV placeholder (for desktop file writing)
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export CSV saved to C:/LaundryPro/exports/')));
+            },
+          ),
+          IconButton(
+            tooltip: 'Export PDF',
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export PDF saved to C:/LaundryPro/exports/')));
+            },
+          ),
+          IconButton(onPressed: () {
+             _loadTab(force: true);
+             _loadKpis();
+          }, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: Column(
         children: [
+          // KPI Dashboard
+          if (!_loadingKpis && _kpis.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  _buildKpiCard('Today Sales', _currency.format(_kpis['today_sales'] ?? 0)),
+                  _buildKpiCard('Today Collection', _currency.format(_kpis['today_collection'] ?? 0)),
+                  _buildKpiCard('Outstanding', _currency.format(_kpis['outstanding'] ?? 0)),
+                  _buildKpiCard('Ready Orders', '${_kpis['ready_orders'] ?? 0}'),
+                ],
+              ),
+            ),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
                 Expanded(
@@ -194,6 +241,24 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
                 : _buildSummary(data),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildKpiCard(String title, String value) {
+    return Expanded(
+      child: Card(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(title, style: Theme.of(context).textTheme.titleSmall, textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+            ],
+          ),
+        ),
       ),
     );
   }

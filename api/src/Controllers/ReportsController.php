@@ -34,7 +34,15 @@ final class ReportsController
     $fromStr = is_string($from) && $from !== '' ? $from : gmdate('Y-m-d');
     $toStr = is_string($to) && $to !== '' ? $to : gmdate('Y-m-d');
 
-    $summary = $this->sales->summary($fromStr, $toStr);
+    $branchId = $request->query('branch_id');
+    $userId = $request->query('user_id');
+    $customerId = $request->query('customer_id');
+
+    $branchId = is_numeric($branchId) ? (int)$branchId : null;
+    $userId = is_numeric($userId) ? (int)$userId : null;
+    $customerId = is_numeric($customerId) ? (int)$customerId : null;
+
+    $summary = $this->sales->summary($fromStr, $toStr, $branchId, $userId, $customerId);
     $this->response->success($request, [
       'summary' => $summary,
       'from' => $fromStr,
@@ -141,6 +149,43 @@ final class ReportsController
       'from' => $fromStr,
       'to' => $toStr,
     ], 'PURCHASING_REPORT', 'reports.purchasing');
+  }
+
+  public function dashboardKpis(Request $request, Container $container): void
+  {
+    $date = $request->query('date');
+    $dateStr = is_string($date) && $date !== '' ? $date : gmdate('Y-m-d');
+    
+    $kpis = $this->sales->dashboardKpis($dateStr);
+    $this->response->success($request, ['kpis' => $kpis, 'date' => $dateStr], 'DASHBOARD_KPIS', 'reports.dashboard_kpis_success');
+  }
+
+  public function operationalPnl(Request $request, Container $container): void
+  {
+    $from = $request->query('from');
+    $to = $request->query('to');
+    $fromStr = is_string($from) && $from !== '' ? $from : gmdate('Y-m-01');
+    $toStr = is_string($to) && $to !== '' ? $to : gmdate('Y-m-d');
+
+    $pnl = $this->sales->operationalPnl($fromStr, $toStr);
+    $this->response->success($request, ['pnl' => $pnl, 'from' => $fromStr, 'to' => $toStr], 'OPERATIONAL_PNL', 'reports.operational_pnl');
+  }
+
+  public function agingReport(Request $request, Container $container): void
+  {
+    $aging = $this->sales->agingReport();
+    $this->response->success($request, ['aging' => $aging], 'AGING_REPORT', 'reports.aging_report');
+  }
+
+  public function paymentMethodBreakdown(Request $request, Container $container): void
+  {
+    $from = $request->query('from');
+    $to = $request->query('to');
+    $fromStr = is_string($from) && $from !== '' ? $from : gmdate('Y-m-01');
+    $toStr = is_string($to) && $to !== '' ? $to : gmdate('Y-m-d');
+
+    $breakdown = $this->sales->paymentMethodBreakdown($fromStr, $toStr);
+    $this->response->success($request, ['breakdown' => $breakdown, 'from' => $fromStr, 'to' => $toStr], 'PAYMENT_BREAKDOWN', 'reports.payment_breakdown');
   }
 
   public function deliveryReport(Request $request, Container $container): void

@@ -492,6 +492,22 @@ function register_api_routes(Router $router): void
     'responses' => ['200' => 'NOTIFICATIONS_GENERATED'],
   ]);
 
+  $router->get('/api/v1/reports/dashboard-kpis', [ReportsController::class, 'dashboardKpis'], $auth, [
+    'tag' => 'Reports', 'summary' => 'Dashboard KPIs', 'permission' => 'reports.read',
+    'responses' => ['200' => 'DASHBOARD_KPIS', '401' => 'AUTH_SESSION_EXPIRED'],
+  ]);
+  $router->get('/api/v1/reports/operational-pnl', [ReportsController::class, 'operationalPnl'], $auth, [
+    'tag' => 'Reports', 'summary' => 'Operational P&L report', 'permission' => 'reports.read',
+    'responses' => ['200' => 'OPERATIONAL_PNL', '401' => 'AUTH_SESSION_EXPIRED'],
+  ]);
+  $router->get('/api/v1/reports/aging', [ReportsController::class, 'agingReport'], $auth, [
+    'tag' => 'Reports', 'summary' => 'Aging report', 'permission' => 'reports.read',
+    'responses' => ['200' => 'AGING_REPORT', '401' => 'AUTH_SESSION_EXPIRED'],
+  ]);
+  $router->get('/api/v1/reports/payment-breakdown', [ReportsController::class, 'paymentMethodBreakdown'], $auth, [
+    'tag' => 'Reports', 'summary' => 'Payment method breakdown', 'permission' => 'reports.read',
+    'responses' => ['200' => 'PAYMENT_BREAKDOWN', '401' => 'AUTH_SESSION_EXPIRED'],
+  ]);
   $router->get('/api/v1/reports/sales/summary', [ReportsController::class, 'salesSummary'], $auth, [
     'tag' => 'Reports', 'summary' => 'Sales summary report', 'permission' => 'reports.read',
     'responses' => ['200' => 'SALES_SUMMARY', '401' => 'AUTH_SESSION_EXPIRED'],

@@ -26,7 +26,7 @@ class FakeNotificationService extends NotificationService {
 
 class FakeReportsService extends ReportsService {
   @override
-  Future<Map<String, dynamic>> salesSummary({String? from, String? to}) async => {
+  Future<Map<String, dynamic>> salesSummary({String? from, String? to, int? branchId, int? userId, int? customerId}) async => {
         'summary': {'total_sales': 12000, 'order_count': 45},
         'from': '2026-08-01',
         'to': '2026-09-01',
@@ -51,6 +51,42 @@ class FakeReportsService extends ReportsService {
   Future<Map<String, dynamic>> productionThroughput({String? from, String? to}) async => {
         'throughput': {'orders_completed': 30},
       };
+
+  @override
+  Future<Map<String, dynamic>> dashboardKpis({String? date}) async => {
+        'today_sales': 1000,
+        'today_collection': 800,
+        'outstanding': 200,
+        'ready_orders': 5,
+      };
+
+  @override
+  Future<Map<String, dynamic>> operationalPnl({String? from, String? to}) async => {
+        'gross_sales': 10000,
+        'collections': 9000,
+        'expenses': 2000,
+        'net': 8000,
+      };
+
+  @override
+  Future<Map<String, dynamic>> agingReport() async => {
+        'days_30': 500,
+        'days_60': 100,
+        'days_90': 0,
+        'days_90_plus': 0,
+      };
+
+  @override
+  Future<Map<String, dynamic>> paymentMethodBreakdown({String? from, String? to}) async => {
+        'cash': 5000,
+        'card': 4000,
+      };
+
+  @override
+  Future<Map<String, dynamic>> purchasingReport({String? from, String? to}) async => {};
+
+  @override
+  Future<Map<String, dynamic>> deliveryReport({String? from, String? to}) async => {};
 }
 
 void main() {

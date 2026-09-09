@@ -175,24 +175,39 @@ final class SalesRepository
   }
 
   /** @return array{order_count: int, grand_total: float, amount_paid: float, balance_due: float} */
-  public function summary(string $from, string $to): array
+  public function summary(string $from, string $to, ?int $branchId = null, ?int $userId = null, ?int $customerId = null): array
   {
-    $stmt = $this->pdo->prepare(
-      'SELECT COUNT(*) AS order_count,
+    $sql = 'SELECT COUNT(*) AS order_count,
               COALESCE(SUM(grand_total), 0) AS grand_total,
               COALESCE(SUM(amount_paid), 0) AS amount_paid,
               COALESCE(SUM(balance_due), 0) AS balance_due
        FROM sales_orders
        WHERE business_owner_id = :owner
          AND status != :draft
-         AND DATE(created_at) BETWEEN :from AND :to'
-    );
-    $stmt->execute([
+         AND DATE(created_at) BETWEEN :from AND :to';
+         
+    $params = [
       'owner' => $this->businessOwnerId,
       'draft' => 'draft',
       'from' => $from,
       'to' => $to,
-    ]);
+    ];
+
+    if ($branchId !== null) {
+      $sql .= ' AND branch_id = :branch';
+      $params['branch'] = $branchId;
+    }
+    if ($userId !== null) {
+      $sql .= ' AND created_by = :user';
+      $params['user'] = $userId;
+    }
+    if ($customerId !== null) {
+      $sql .= ' AND customer_id = :customer';
+      $params['customer'] = $customerId;
+    }
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
     $row = $stmt->fetch() ?: [];
 
     return [
@@ -200,6 +215,100 @@ final class SalesRepository
       'grand_total' => round((float) ($row['grand_total'] ?? 0), 2),
       'amount_paid' => round((float) ($row['amount_paid'] ?? 0), 2),
       'balance_due' => round((float) ($row['balance_due'] ?? 0), 2),
+    ];
+  }
+
+  /** @return array{today_sales: float, today_collection: float, outstanding: float, ready_orders: int} */
+  public function dashboardKpis(string $date): array
+  {
+    $salesSql = 'SELECT COALESCE(SUM(grand_total), 0) FROM sales_orders WHERE business_owner_id = :owner AND status != :draft AND DATE(created_at) = :date';
+    $stmt = $this->pdo->prepare($salesSql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'draft' => 'draft', 'date' => $date]);
+    $todaySales = (float) $stmt->fetchColumn();
+
+    $collSql = 'SELECT COALESCE(SUM(amount), 0) FROM payment_transactions WHERE business_owner_id = :owner AND DATE(created_at) = :date';
+    $stmt = $this->pdo->prepare($collSql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'date' => $date]);
+    $todayCollection = (float) $stmt->fetchColumn();
+
+    $outSql = 'SELECT COALESCE(SUM(balance_due), 0) FROM sales_orders WHERE business_owner_id = :owner AND payment_status != :paid AND status != :draft';
+    $stmt = $this->pdo->prepare($outSql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'paid' => 'paid', 'draft' => 'draft']);
+    $outstanding = (float) $stmt->fetchColumn();
+
+    $readySql = 'SELECT COUNT(*) FROM sales_orders WHERE business_owner_id = :owner AND status = :status';
+    $stmt = $this->pdo->prepare($readySql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'status' => 'ready_for_collection']);
+    $readyOrders = (int) $stmt->fetchColumn();
+
+    return [
+      'today_sales' => round($todaySales, 2),
+      'today_collection' => round($todayCollection, 2),
+      'outstanding' => round($outstanding, 2),
+      'ready_orders' => $readyOrders,
+    ];
+  }
+
+  /** @return array<string, float> */
+  public function agingReport(): array
+  {
+    $sql = 'SELECT 
+              SUM(CASE WHEN DATEDIFF(UTC_TIMESTAMP(), created_at) <= 30 THEN balance_due ELSE 0 END) AS days_30,
+              SUM(CASE WHEN DATEDIFF(UTC_TIMESTAMP(), created_at) BETWEEN 31 AND 60 THEN balance_due ELSE 0 END) AS days_60,
+              SUM(CASE WHEN DATEDIFF(UTC_TIMESTAMP(), created_at) BETWEEN 61 AND 90 THEN balance_due ELSE 0 END) AS days_90,
+              SUM(CASE WHEN DATEDIFF(UTC_TIMESTAMP(), created_at) > 90 THEN balance_due ELSE 0 END) AS days_90_plus
+            FROM sales_orders 
+            WHERE business_owner_id = :owner AND balance_due > 0 AND status != :draft';
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'draft' => 'draft']);
+    $row = $stmt->fetch() ?: [];
+
+    return [
+      'days_30' => round((float)($row['days_30'] ?? 0), 2),
+      'days_60' => round((float)($row['days_60'] ?? 0), 2),
+      'days_90' => round((float)($row['days_90'] ?? 0), 2),
+      'days_90_plus' => round((float)($row['days_90_plus'] ?? 0), 2),
+    ];
+  }
+
+  /** @return array<string, float> */
+  public function paymentMethodBreakdown(string $from, string $to): array
+  {
+    $sql = 'SELECT payment_method, SUM(amount) AS total 
+            FROM payment_transactions 
+            WHERE business_owner_id = :owner AND DATE(created_at) BETWEEN :from AND :to 
+            GROUP BY payment_method';
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'from' => $from, 'to' => $to]);
+    
+    $breakdown = [];
+    foreach ($stmt->fetchAll() as $row) {
+      $breakdown[(string)$row['payment_method']] = round((float)$row['total'], 2);
+    }
+    return $breakdown;
+  }
+
+  /** @return array{gross_sales: float, collections: float, expenses: float, net: float} */
+  public function operationalPnl(string $from, string $to): array
+  {
+    $summary = $this->summary($from, $to);
+    $grossSales = $summary['grand_total'];
+    
+    $sql = 'SELECT COALESCE(SUM(amount), 0) FROM payment_transactions WHERE business_owner_id = :owner AND DATE(created_at) BETWEEN :from AND :to';
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'from' => $from, 'to' => $to]);
+    $collections = (float) $stmt->fetchColumn();
+
+    $expSql = 'SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE business_owner_id = :owner AND DATE(expense_date) BETWEEN :from AND :to AND status = :status';
+    $stmt = $this->pdo->prepare($expSql);
+    $stmt->execute(['owner' => $this->businessOwnerId, 'from' => $from, 'to' => $to, 'status' => 'paid']);
+    $expenses = (float) $stmt->fetchColumn();
+
+    return [
+      'gross_sales' => round($grossSales, 2),
+      'collections' => round($collections, 2),
+      'expenses' => round($expenses, 2),
+      'net' => round($grossSales - $expenses, 2),
     ];
   }
 

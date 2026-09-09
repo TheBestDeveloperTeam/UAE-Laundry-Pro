@@ -16,11 +16,17 @@ class ReportsService {
     return data;
   }
 
-  Future<Map<String, dynamic>> salesSummary({String? from, String? to}) async {
+  Future<Map<String, dynamic>> salesSummary({String? from, String? to, int? branchId, int? userId, int? customerId}) async {
     final now = DateTime.now().toUtc();
     final fromDate = from ?? now.subtract(const Duration(days: 30)).toIso8601String().split('T').first;
     final toDate = to ?? now.toIso8601String().split('T').first;
-    final res = await _api.get('/reports/sales/summary?from=$fromDate&to=$toDate');
+    
+    var url = '/reports/sales/summary?from=$fromDate&to=$toDate';
+    if (branchId != null) url += '&branch_id=$branchId';
+    if (userId != null) url += '&user_id=$userId';
+    if (customerId != null) url += '&customer_id=$customerId';
+    
+    final res = await _api.get(url);
     final data = Map<String, dynamic>.from(res['data'] as Map? ?? {});
     final summary = Map<String, dynamic>.from(data['summary'] as Map? ?? {});
     return {...summary, 'from': data['from'], 'to': data['to']};
@@ -74,5 +80,31 @@ class ReportsService {
     final q = fromDate.isNotEmpty ? '?from=$fromDate&to=$toDate' : '';
     final res = await _api.get('/reports/delivery$q');
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
+  }
+  Future<Map<String, dynamic>> dashboardKpis({String? date}) async {
+    final d = date ?? DateTime.now().toUtc().toIso8601String().split('T').first;
+    final res = await _api.get('/reports/dashboard-kpis?date=$d');
+    return _unwrap(res, nestedKey: 'kpis');
+  }
+
+  Future<Map<String, dynamic>> operationalPnl({String? from, String? to}) async {
+    final now = DateTime.now().toUtc();
+    final fromDate = from ?? DateTime(now.year, now.month, 1).toIso8601String().split('T').first;
+    final toDate = to ?? now.toIso8601String().split('T').first;
+    final res = await _api.get('/reports/operational-pnl?from=$fromDate&to=$toDate');
+    return _unwrap(res, nestedKey: 'pnl');
+  }
+
+  Future<Map<String, dynamic>> agingReport() async {
+    final res = await _api.get('/reports/aging');
+    return _unwrap(res, nestedKey: 'aging');
+  }
+
+  Future<Map<String, dynamic>> paymentMethodBreakdown({String? from, String? to}) async {
+    final now = DateTime.now().toUtc();
+    final fromDate = from ?? DateTime(now.year, now.month, 1).toIso8601String().split('T').first;
+    final toDate = to ?? now.toIso8601String().split('T').first;
+    final res = await _api.get('/reports/payment-breakdown?from=$fromDate&to=$toDate');
+    return _unwrap(res, nestedKey: 'breakdown');
   }
 }
