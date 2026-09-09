@@ -12,6 +12,7 @@ function Resolve-Php {
   if ($CustomPath -and (Test-Path $CustomPath)) { return $CustomPath }
   $candidates = @(
     "E:\xampp\php\php.exe",
+    "C:\xampp\php\php.exe",
     "php"
   )
   foreach ($candidate in $candidates) {
@@ -26,10 +27,16 @@ function Resolve-Php {
 function Resolve-Mysql {
   param([string]$CustomPath)
   if ($CustomPath -and (Test-Path $CustomPath)) { return $CustomPath }
-  $candidate = "E:\xampp\mysql\bin\mysql.exe"
-  if (Test-Path $candidate) { return $candidate }
-  if (Get-Command mysql -ErrorAction SilentlyContinue) {
-    return (Get-Command mysql).Source
+  $candidates = @(
+    "E:\xampp\mysql\bin\mysql.exe",
+    "C:\xampp\mysql\bin\mysql.exe",
+    "mysql"
+  )
+  foreach ($candidate in $candidates) {
+    if (Get-Command $candidate -ErrorAction SilentlyContinue) {
+      return (Get-Command $candidate).Source
+    }
+    if (Test-Path $candidate) { return $candidate }
   }
   return $null
 }

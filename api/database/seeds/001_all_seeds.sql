@@ -6,22 +6,44 @@ SELECT '00000000-0000-4000-8000-000000000001', 'administrator', JSON_ARRAY('*'),
 WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'administrator');
 
 INSERT INTO roles (uuid, name, permissions, is_active)
-SELECT '00000000-0000-4000-8000-000000000002', 'cashier', JSON_ARRAY('sales.create', 'sales.read', 'customers.read'), 1
+SELECT '00000000-0000-4000-8000-000000000002', 'cashier', JSON_ARRAY('sales.create', 'sales.read', 'customers.read', 'catalog.read', 'inventory.read'), 1
 WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'cashier');
 
 INSERT INTO roles (uuid, name, permissions, is_active)
-SELECT '00000000-0000-4000-8000-000000000003', 'hr_manager',
-  JSON_ARRAY('hr.read', 'hr.write', 'payroll.read', 'payroll.run', 'attendance.write', 'leave.approve'),
-  1
-WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'hr_manager');
+SELECT '00000000-0000-4000-8000-000000000003', 'manager', JSON_ARRAY('sales.*', 'inventory.*', 'customers.*', 'reports.sales'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'manager');
 
-UPDATE roles SET permissions = JSON_ARRAY(
-  'sales.create', 'sales.read', 'customers.read', 'catalog.read', 'inventory.read'
-) WHERE name = 'cashier';
+INSERT INTO roles (uuid, name, permissions, is_active)
+SELECT '00000000-0000-4000-8000-000000000004', 'storekeeper', JSON_ARRAY('inventory.*', 'purchase.receive'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'storekeeper');
+
+INSERT INTO roles (uuid, name, permissions, is_active)
+SELECT '00000000-0000-4000-8000-000000000005', 'hr', JSON_ARRAY('hr.*', 'reports.hr'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'hr');
+
+INSERT INTO roles (uuid, name, permissions, is_active)
+SELECT '00000000-0000-4000-8000-000000000006', 'auditor', JSON_ARRAY('reports.*'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'auditor');
 
 INSERT INTO settings (setting_key, setting_value, scope)
 SELECT 'business.name', JSON_QUOTE('LaundryPro UAE'), 'business'
 WHERE NOT EXISTS (SELECT 1 FROM settings WHERE setting_key = 'business.name' AND scope = 'business');
+
+INSERT INTO settings (setting_key, setting_value, scope)
+SELECT 'locale.default', JSON_QUOTE('en'), 'system'
+WHERE NOT EXISTS (SELECT 1 FROM settings WHERE setting_key = 'locale.default' AND scope = 'system');
+
+INSERT INTO settings (setting_key, setting_value, scope)
+SELECT 'currency.default', JSON_OBJECT('major', 'AED', 'minor', 'Fils', 'digits', 2), 'system'
+WHERE NOT EXISTS (SELECT 1 FROM settings WHERE setting_key = 'currency.default' AND scope = 'system');
+
+INSERT INTO settings (setting_key, setting_value, scope)
+SELECT 'tax.vat_rate', JSON_QUOTE('0.05'), 'business'
+WHERE NOT EXISTS (SELECT 1 FROM settings WHERE setting_key = 'tax.vat_rate' AND scope = 'business');
+
+INSERT INTO settings (setting_key, setting_value, scope)
+SELECT 'tax.trn', JSON_QUOTE('100000000000003'), 'business'
+WHERE NOT EXISTS (SELECT 1 FROM settings WHERE setting_key = 'tax.trn' AND scope = 'business');
 
 INSERT INTO users (uuid, role_id, username, password_hash, full_name, email, is_active)
 SELECT

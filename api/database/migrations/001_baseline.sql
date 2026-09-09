@@ -1038,3 +1038,49 @@ CREATE TABLE IF NOT EXISTS customer_portal_tokens (
   CONSTRAINT fk_cpt_order FOREIGN KEY (sales_order_id) REFERENCES sales_orders(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ===== 029_account_lockout.sql =====
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS failed_attempts INT UNSIGNED NOT NULL DEFAULT 0 AFTER is_active,
+  ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP NULL DEFAULT NULL AFTER failed_attempts;
+
+-- ===== 030_seed_roles.sql =====
+INSERT INTO roles (uuid, name, permissions, is_active)
+SELECT '00000000-0000-4000-8000-000000000003', 'manager', JSON_ARRAY('sales.*', 'inventory.*', 'customers.*', 'reports.sales'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'manager');
+
+INSERT INTO roles (uuid, name, permissions, is_active)
+SELECT '00000000-0000-4000-8000-000000000004', 'storekeeper', JSON_ARRAY('inventory.*', 'purchase.receive'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'storekeeper');
+
+INSERT INTO roles (uuid, name, permissions, is_active)
+SELECT '00000000-0000-4000-8000-000000000005', 'hr', JSON_ARRAY('hr.*', 'reports.hr'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'hr');
+
+INSERT INTO roles (uuid, name, permissions, is_active)
+SELECT '00000000-0000-4000-8000-000000000006', 'auditor', JSON_ARRAY('reports.*'), 1
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'auditor');
+
+-- ===== 031_performance_indexes.sql =====
+ALTER TABLE customers
+  ADD INDEX IF NOT EXISTS idx_customer_code (customer_code);
+
+ALTER TABLE vendors
+  ADD INDEX IF NOT EXISTS idx_vendor_code (vendor_code);
+
+ALTER TABLE services
+  ADD INDEX IF NOT EXISTS idx_svc_parent_active (parent_id, is_active);
+
+ALTER TABLE products
+  ADD INDEX IF NOT EXISTS idx_prod_parent_active_bc (parent_id, is_active, barcode);
+
+ALTER TABLE sales_orders
+  ADD INDEX IF NOT EXISTS idx_sales_cust_created (customer_id, created_at),
+  ADD INDEX IF NOT EXISTS idx_sales_status_promised (status, promised_date);
+
+ALTER TABLE inventory_movements
+  ADD INDEX IF NOT EXISTS idx_inv_prod_created (product_id, created_at);
+
+ALTER TABLE notifications
+  ADD INDEX IF NOT EXISTS idx_notif_created (created_at);
+
+

@@ -10,13 +10,21 @@ class InstallService {
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
   }
 
-  Future<Map<String, dynamic>> migrate() async {
-    final res = await _api.post('/install/migrate', auth: false);
+  Future<Map<String, dynamic>> migrate({String? installToken}) async {
+    final headers = installToken != null && installToken.isNotEmpty ? {'X-Install-Token': installToken} : null;
+    final res = await _api.post('/install/migrate', auth: false, customHeaders: headers);
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
   }
 
-  Future<Map<String, dynamic>> seed() async {
-    final res = await _api.post('/install/seed', auth: false);
+  Future<Map<String, dynamic>> seed({String? adminPassword, String? installToken}) async {
+    final headers = installToken != null && installToken.isNotEmpty ? {'X-Install-Token': installToken} : null;
+    final res = await _api.post('/install/seed', body: adminPassword != null ? {'admin_password': adminPassword} : null, auth: false, customHeaders: headers);
+    return Map<String, dynamic>.from(res['data'] as Map? ?? {});
+  }
+
+  Future<Map<String, dynamic>> complete({String? installToken}) async {
+    final headers = installToken != null && installToken.isNotEmpty ? {'X-Install-Token': installToken} : null;
+    final res = await _api.post('/install/complete', auth: false, customHeaders: headers);
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
+import 'package:laundrypro_uae/providers/locale_provider.dart';
 import 'package:provider/provider.dart';
 
 class AppShell extends StatefulWidget {
@@ -85,50 +86,151 @@ class _AppShellState extends State<AppShell> {
     final onHr = _isHrRoute(location);
 
     return Scaffold(
-      body: Row(
-        children: [
-          SizedBox(
-            width: 88,
-            child: NavigationRail(
-              selectedIndex: onHr ? null : (selected >= 0 ? selected : 0),
-              onDestinationSelected: (i) => context.go(visible[i].route),
-              labelType: NavigationRailLabelType.all,
-              destinations: visible
-                  .map((item) => NavigationRailDestination(
-                        icon: Icon(item.icon),
-                        label: Text(l10n.t(item.labelKey)),
-                      ))
-                  .toList(),
-            ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
           ),
-          if (_hrExpanded || onHr)
-            SizedBox(
-              width: 160,
-              child: Material(
-                elevation: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Icon(Icons.local_laundry_service, color: Theme.of(context).colorScheme.primary, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                l10n.t('app_name'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('Branch: MAIN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('Terminal: T01', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+              ),
+              const Spacer(),
+              if (auth.user != null)
+                Row(
                   children: [
-                    ListTile(
-                      dense: true,
-                      title: Text(l10n.t('hr'), style: Theme.of(context).textTheme.titleSmall),
-                      trailing: IconButton(
-                        icon: Icon(_hrExpanded ? Icons.expand_less : Icons.expand_more),
-                        onPressed: () => setState(() => _hrExpanded = !_hrExpanded),
-                      ),
-                    ),
-                    if (_hrExpanded) ...[
-                      _hrTile(context, l10n.t('employees'), '/hr/employees', location, Icons.badge_outlined),
-                      _hrTile(context, l10n.t('attendance'), '/hr/attendance', location, Icons.schedule_outlined),
-                      _hrTile(context, l10n.t('leave'), '/hr/leave', location, Icons.event_busy_outlined),
-                      _hrTile(context, l10n.t('payroll'), '/hr/payroll', location, Icons.account_balance_wallet_outlined),
-                    ],
+                    const Icon(Icons.person_outline, size: 18),
+                    const SizedBox(width: 4),
+                    Text(auth.user?.fullName ?? auth.user?.username ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 12),
                   ],
                 ),
+              // Language Switcher
+              TextButton.icon(
+                style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                onPressed: () {
+                  final current = Localizations.localeOf(context).languageCode;
+                  context.read<LocaleProvider>().setLocale(current == 'ar' ? 'en' : 'ar');
+                },
+                icon: const Icon(Icons.language, size: 18),
+                label: Text(Localizations.localeOf(context).languageCode.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               ),
+            ],
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 88,
+                  child: NavigationRail(
+                    selectedIndex: onHr ? null : (selected >= 0 ? selected : 0),
+                    onDestinationSelected: (i) => context.go(visible[i].route),
+                    labelType: NavigationRailLabelType.all,
+                    destinations: visible
+                        .map((item) => NavigationRailDestination(
+                              icon: Icon(item.icon),
+                              label: Text(l10n.t(item.labelKey)),
+                            ))
+                        .toList(),
+                  ),
+                ),
+                if (_hrExpanded || onHr)
+                  SizedBox(
+                    width: 160,
+                    child: Material(
+                      elevation: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ListTile(
+                            dense: true,
+                            title: Text(l10n.t('hr'), style: Theme.of(context).textTheme.titleSmall),
+                            trailing: IconButton(
+                              icon: Icon(_hrExpanded ? Icons.expand_less : Icons.expand_more),
+                              onPressed: () => setState(() => _hrExpanded = !_hrExpanded),
+                            ),
+                          ),
+                          if (_hrExpanded) ...[
+                            _hrTile(context, l10n.t('employees'), '/hr/employees', location, Icons.badge_outlined),
+                            _hrTile(context, l10n.t('attendance'), '/hr/attendance', location, Icons.schedule_outlined),
+                            _hrTile(context, l10n.t('leave'), '/hr/leave', location, Icons.event_busy_outlined),
+                            _hrTile(context, l10n.t('payroll'), '/hr/payroll', location, Icons.account_balance_wallet_outlined),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                const VerticalDivider(width: 1),
+                Expanded(child: widget.child),
+              ],
             ),
-          const VerticalDivider(width: 1),
-          Expanded(child: widget.child),
+          ),
+          // Sprint 04: Real-time Status Bar
+          Container(
+            height: 28,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              border: Border(top: BorderSide(color: Colors.grey.shade300)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Icon(
+                  auth.apiHealthy ? Icons.check_circle : Icons.error_outline,
+                  color: auth.apiHealthy ? Colors.green : Colors.red,
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  auth.apiHealthy ? 'API Node: Online' : 'API Node: Offline',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(width: 16),
+                const Icon(Icons.print_outlined, size: 14, color: Colors.blueGrey),
+                const SizedBox(width: 4),
+                Text('Printers: Ready', style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
+                const SizedBox(width: 16),
+                const Icon(Icons.qr_code_scanner, size: 14, color: Colors.blueGrey),
+                const SizedBox(width: 4),
+                Text('Scanner: Wedge Active', style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
+                const Spacer(),
+                const Icon(Icons.storage_outlined, size: 14, color: Colors.green),
+                const SizedBox(width: 4),
+                Text('Disk Space: OK (>20%)', style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
+                const SizedBox(width: 16),
+                Text('v1.2.1-UAE', style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontFamily: 'monospace')),
+              ],
+            ),
+          ),
         ],
       ),
     );

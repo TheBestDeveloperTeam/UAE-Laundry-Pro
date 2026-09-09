@@ -21,32 +21,36 @@ class ApiClient {
   Future<Map<String, dynamic>> get(
     String path, {
     bool auth = true,
+    Map<String, String>? customHeaders,
   }) {
-    return _request('GET', path, auth: auth);
+    return _request('GET', path, auth: auth, customHeaders: customHeaders);
   }
 
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? body,
     bool auth = true,
+    Map<String, String>? customHeaders,
   }) {
-    return _request('POST', path, body: body, auth: auth);
+    return _request('POST', path, body: body, auth: auth, customHeaders: customHeaders);
   }
 
   Future<Map<String, dynamic>> put(
     String path, {
     Map<String, dynamic>? body,
     bool auth = true,
+    Map<String, String>? customHeaders,
   }) {
-    return _request('PUT', path, body: body, auth: auth);
+    return _request('PUT', path, body: body, auth: auth, customHeaders: customHeaders);
   }
 
   Future<Map<String, dynamic>> patch(
     String path, {
     Map<String, dynamic>? body,
     bool auth = true,
+    Map<String, String>? customHeaders,
   }) {
-    return _request('PATCH', path, body: body, auth: auth);
+    return _request('PATCH', path, body: body, auth: auth, customHeaders: customHeaders);
   }
 
   Future<Map<String, dynamic>> _request(
@@ -55,6 +59,7 @@ class ApiClient {
     Map<String, dynamic>? body,
     bool auth = true,
     bool retried = false,
+    Map<String, String>? customHeaders,
   }) async {
     final uri = Uri.parse('$_baseUrl$path');
     final headers = <String, String>{
@@ -67,6 +72,10 @@ class ApiClient {
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
       }
+    }
+
+    if (customHeaders != null) {
+      headers.addAll(customHeaders);
     }
 
     late http.Response response;
