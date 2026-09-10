@@ -569,13 +569,13 @@ final class SalesRepository
   /** @return array{subtotal: float, discount: float, tax: float, grand_total: float} */
   private function calculateTotals(array $lines): array
   {
-    $subtotal = 0.0;
-    $discount = 0.0;
+    $subtotal = '0.00';
+    $discount = '0.00';
     foreach ($lines as $line) {
-      $qty = (float) ($line['quantity'] ?? 1);
-      $rate = (float) ($line['rate'] ?? 0);
-      $lineDiscount = (float) ($line['discount'] ?? 0);
-      $modifierExtra = 0.0;
+      $qty = (string) ($line['quantity'] ?? '1');
+      $rate = (string) ($line['rate'] ?? '0.00');
+      $lineDiscount = (string) ($line['discount'] ?? '0.00');
+      $modifierExtra = '0.00';
       $mods = $line['modifiers'] ?? null;
       if (is_string($mods)) {
         $mods = json_decode($mods, true);
@@ -583,21 +583,25 @@ final class SalesRepository
       if (is_array($mods)) {
         foreach ($mods as $mod) {
           if (is_array($mod)) {
-            $modifierExtra += (float) ($mod['extra_rate'] ?? 0);
+            $modRate = (string) ($mod['extra_rate'] ?? '0.00');
+            $modifierExtra = bcadd($modifierExtra, $modRate, 2);
           }
         }
       }
-      $subtotal += $qty * ($rate + $modifierExtra);
-      $discount += $lineDiscount;
+      $effectiveRate = bcadd($rate, $modifierExtra, 2);
+      $lineTotal = bcmul($qty, $effectiveRate, 2);
+      $subtotal = bcadd($subtotal, $lineTotal, 2);
+      $discount = bcadd($discount, $lineDiscount, 2);
     }
-    $tax = 0.0;
-    $grand = round($subtotal - $discount + $tax, 2);
+    $tax = '0.00';
+    $afterDiscount = bcsub($subtotal, $discount, 2);
+    $grand = bcadd($afterDiscount, $tax, 2);
 
     return [
-      'subtotal' => round($subtotal, 2),
-      'discount' => round($discount, 2),
-      'tax' => $tax,
-      'grand_total' => $grand,
+      'subtotal' => (float) $subtotal,
+      'discount' => (float) $discount,
+      'tax' => (float) $tax,
+      'grand_total' => (float) $grand,
     ];
   }
 
