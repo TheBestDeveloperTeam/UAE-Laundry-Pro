@@ -57,6 +57,17 @@ final class InventoryController
     }
   }
 
+  public function transfer(Request $request, Container $container): void
+  {
+    try {
+      $userId = (int) $container->get('auth.user_id');
+      $movements = $this->inventory->transfer($request->all(), $userId);
+      $this->response->success($request, ['movements' => $movements], 'INVENTORY_TRANSFERRED', 'inventory.transferred');
+    } catch (RuntimeException $e) {
+      $this->response->error($request, 'VALIDATION_ERROR', $e->getMessage(), 422);
+    }
+  }
+
   public function stock(Request $request, Container $container): void
   {
     $productId = $request->query('product_id');

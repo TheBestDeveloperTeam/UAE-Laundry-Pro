@@ -600,6 +600,10 @@ function register_api_routes(Router $router): void
     'tag' => 'Inventory', 'summary' => 'Stock adjustment', 'permission' => 'inventory.update',
     'responses' => ['200' => 'INVENTORY_ADJUSTED', '422' => 'VALIDATION_ERROR'],
   ]);
+  $router->post('/api/v1/inventory/transfer', [InventoryController::class, 'transfer'], $audit, [
+    'tag' => 'Inventory', 'summary' => 'Inter-branch stock transfer', 'permission' => 'inventory.transfer',
+    'responses' => ['200' => 'INVENTORY_TRANSFERRED', '422' => 'VALIDATION_ERROR'],
+  ]);
   $router->get('/api/v1/inventory/stock', [InventoryController::class, 'stock'], $auth, [
     'tag' => 'Inventory', 'summary' => 'Current stock levels from movements', 'permission' => 'inventory.read',
     'responses' => ['200' => 'INVENTORY_STOCK'],

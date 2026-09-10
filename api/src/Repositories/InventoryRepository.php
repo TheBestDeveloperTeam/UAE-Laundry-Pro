@@ -199,6 +199,75 @@ final class InventoryRepository
     return $stmt->fetch() ?: null;
   }
 
+  public function transfer(array $data, int $userId): array
+  {
+    $productId = (int) ($data['product_id'] ?? 0);
+    $fromBranch = (int) ($data['from_branch_id'] ?? 0);
+    $toBranch = (int) ($data['to_branch_id'] ?? 0);
+    $quantity = (float) ($data['quantity'] ?? 0);
+
+    if ($productId <= 0 || $fromBranch <= 0 || $toBranch <= 0 || $quantity <= 0 || $fromBranch === $toBranch) {
+      throw new RuntimeException('VALIDATION_ERROR');
+    }
+
+    $product = $this->pdo->prepare('SELECT id, stock_quantity FROM products WHERE id = :id AND business_owner_id = :owner FOR UPDATE');
+    $product->execute(['id' => $productId, 'owner' => $this->businessOwnerId]);
+    $p = $product->fetch();
+
+    if (!$p) {
+      throw new RuntimeException('NOT_FOUND');
+    }
+
+    $this->pdo->beginTransaction();
+    try {
+      // Record out movement
+      $stmt = $this->pdo->prepare(
+        'INSERT INTO inventory_movements (uuid, business_owner_id, branch_id, product_id, user_id, type, 
+quantity_change, quantity_after, unit_cost, reference_type, reference_id, created_at)
+         VALUES (:uuid, :owner, :branch, :product, :user, :type, :change, :after, :cost, :ref_type, :ref_id, UTC_TIMESTAMP())'
+      );
+
+      $qtyAfterFrom = (float)$p['stock_quantity'] - $quantity;
+      $stmt->execute([
+        'uuid' => $this->uuid(),
+        'owner' => $this->businessOwnerId,
+        'branch' => $fromBranch,
+        'product' => $productId,
+        'user' => $userId,
+        'type' => 'transfer_out',
+        'change' => -$quantity,
+        'after' => $qtyAfterFrom,
+        'cost' => 0,
+        'ref_type' => 'branch',
+        'ref_id' => $toBranch,
+      ]);
+      $outId = (int) $this->pdo->lastInsertId();
+
+      // Record in movement
+      $qtyAfterTo = $qtyAfterFrom + $quantity; // Logic: total stock remains unchanged globally
+      $stmt->execute([
+        'uuid' => $this->uuid(),
+        'owner' => $this->businessOwnerId,
+        'branch' => $toBranch,
+        'product' => $productId,
+        'user' => $userId,
+        'type' => 'transfer_in',
+        'change' => $quantity,
+        'after' => $qtyAfterTo,
+        'cost' => 0,
+        'ref_type' => 'branch',
+        'ref_id' => $fromBranch,
+      ]);
+      $inId = (int) $this->pdo->lastInsertId();
+
+      $this->pdo->commit();
+      return [$outId, $inId];
+    } catch (\Throwable $e) {
+      $this->pdo->rollBack();
+      throw $e;
+    }
+  }
+
   /** @return array<int, array<string, mixed>> */
   public function stock(?int $productId = null): array
   {
