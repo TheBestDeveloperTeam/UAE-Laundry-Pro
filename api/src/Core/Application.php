@@ -405,7 +405,7 @@ final class Application
       $c->get(ApiResponse::class), $c->get(LicenseService::class),
     ));
     $this->container->singleton(BackupController::class, fn (Container $c) => new BackupController(
-      $c->get(ApiResponse::class), $c->get(BackupService::class),
+      $c->get(ApiResponse::class), $c->get(AuditLogRepository::class),
     ));
     $this->container->singleton(PermissionChecker::class, fn () => new PermissionChecker());
     $this->container->singleton(AuthMiddleware::class, fn () => new AuthMiddleware());
