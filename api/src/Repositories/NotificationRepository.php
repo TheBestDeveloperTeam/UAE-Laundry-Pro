@@ -92,8 +92,46 @@ final class NotificationRepository
     $created = array_merge($created, $this->alertPendingPayments());
     $created = array_merge($created, $this->alertOpenPayrollPeriods());
     $created = array_merge($created, $this->alertPendingExpenses());
+    $created = array_merge($created, $this->alertLicenseExpiry());
 
     return $created;
+  }
+
+  private function alertLicenseExpiry(): array
+  {
+    $stmt = $this->pdo->prepare('SELECT value FROM settings WHERE setting_key = "license.expiry" AND business_owner_id = :owner');
+    $stmt->execute(['owner' => $this->businessOwnerId]);
+    $expiryStr = $stmt->fetchColumn();
+
+    if (!$expiryStr) return [];
+    
+    $expiry = strtotime($expiryStr);
+    $now = time();
+    $daysLeft = round(($expiry - $now) / 86400);
+
+    if ($daysLeft <= 7 && $daysLeft >= 0) {
+      if (!$this->alertExists('license_expiry', null, null)) {
+        return [$this->create([
+          'notification_type' => 'license_expiry',
+          'title' => 'License Expiring Soon',
+          'message' => 'Your license expires in ' . $daysLeft . ' days.',
+          'severity' => 'critical',
+          'reference_type' => null,
+          'reference_id' => null,
+        ])];
+      }
+    }
+    return [];
+  }
+
+  public function logBackupFailure(string $reason): void
+  {
+    $this->create([
+      'notification_type' => 'backup_failure',
+      'title' => 'Backup Failed',
+      'message' => 'Automatic backup failed: ' . substr($reason, 0, 150),
+      'severity' => 'critical',
+    ]);
   }
 
   /** @param array<string, mixed> $data */

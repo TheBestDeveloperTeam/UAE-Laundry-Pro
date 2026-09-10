@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
+import 'package:laundrypro_uae/services/notification_service.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
 import 'package:provider/provider.dart';
 
@@ -17,11 +18,13 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late final ReportsService _reports;
+  final NotificationService _notifications = NotificationService();
   Map<String, dynamic> _today = {};
   Map<String, dynamic> _period = {};
   Map<String, dynamic> _inventory = {};
   bool _loading = true;
   String? _error;
+  int _unreadCount = 0;
 
   final _currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
 
@@ -38,18 +41,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _error = null;
     });
     try {
+      await _notifications.generateAlerts();
+      final notifs = await _notifications.list(unreadOnly: true);
+
       final results = await Future.wait([
         _reports.todaySalesSummary(),
         _reports.salesSummary(),
         _reports.inventoryValuation(),
       ]);
-      _today = results[0];
-      _period = results[1];
-      _inventory = results[2];
+      if (mounted) {
+        setState(() {
+          _today = results[0];
+          _period = results[1];
+          _inventory = results[2];
+          _unreadCount = notifs.length;
+          _loading = false;
+        });
+      }
     } catch (_) {
-      _error = 'load_failed';
+      if (mounted) {
+        setState(() {
+          _error = 'failed';
+          _loading = false;
+        });
+      }
     }
-    setState(() => _loading = false);
   }
 
   String _money(dynamic v) => _currency.format(double.tryParse(v?.toString() ?? '0') ?? 0);
@@ -66,6 +82,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Text(l10n.t('dashboard')),
         actions: [
           IconButton(onPressed: _loadSummary, icon: const Icon(Icons.refresh)),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () => context.go('/notifications'),
+              ),
+              if (_unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text('$_unreadCount', style: const TextStyle(color: Colors.white, fontSize: 10), textAlign: TextAlign.center),
+                  ),
+                ),
+            ],
+          ),
           if (isAdmin)
             IconButton(
               tooltip: l10n.t('settings'),

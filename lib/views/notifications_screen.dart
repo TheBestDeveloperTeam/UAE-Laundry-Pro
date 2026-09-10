@@ -1,47 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/notification_service.dart';
+import 'package:intl/intl.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key, this.notificationService});
-
-  final NotificationService? notificationService;
+  const NotificationsScreen({super.key});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  late final NotificationService _notifications;
-  List<Map<String, dynamic>> _items = [];
+  final _svc = NotificationService();
   bool _loading = true;
-  bool _unreadOnly = false;
+  List<Map<String, dynamic>> _items = [];
 
   @override
   void initState() {
     super.initState();
-    _notifications = widget.notificationService ?? NotificationService();
     _load();
   }
 
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      _items = await _notifications.list(unreadOnly: _unreadOnly);
-    } catch (_) {}
-    setState(() => _loading = false);
+      await _svc.generateAlerts(); // Generate fresh alerts
+      final res = await _svc.list();
+      if (mounted) setState(() => _items = res);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
-  Future<void> _markRead(Map<String, dynamic> item) async {
-    final id = int.tryParse(item['id']?.toString() ?? '');
-    if (id == null) return;
-    await _notifications.markRead(id);
-    await _load();
+  Future<void> _markRead(int id) async {
+    try {
+      await _svc.markRead(id);
+      await _load();
+    } catch (_) {}
   }
 
   Future<void> _markAllRead() async {
-    await _notifications.markAllRead();
-    await _load();
+    try {
+      await _svc.markAllRead();
+      await _load();
+    } catch (_) {}
   }
 
   @override
@@ -51,32 +53,43 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         title: Text(l10n.t('notifications')),
         actions: [
-          IconButton(
-            icon: Icon(_unreadOnly ? Icons.filter_alt : Icons.filter_alt_outlined),
-            tooltip: l10n.t('notifications_unread_only'),
-            onPressed: () {
-              _unreadOnly = !_unreadOnly;
-              _load();
-            },
+          TextButton.icon(
+            onPressed: _markAllRead,
+            icon: const Icon(Icons.done_all),
+            label: Text(l10n.t('mark_all_read')),
           ),
-          IconButton(onPressed: _markAllRead, icon: const Icon(Icons.done_all), tooltip: l10n.t('notifications_mark_all')),
           IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
-              ? Center(child: Text(l10n.t('notifications_empty')))
-              : ListView.builder(
+              ? Center(child: Text(l10n.t('notifications_empty') ?? 'No notifications'))
+              : ListView.separated(
                   itemCount: _items.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, i) {
-                    final n = _items[i];
-                    final isRead = n['is_read'] == true || n['is_read'] == 1;
+                    final e = _items[i];
+                    final id = int.tryParse(e['id']?.toString() ?? '0') ?? 0;
+                    final read = e['is_read'] == 1 || e['is_read'] == true;
+                    final dt = DateTime.tryParse(e['created_at']?.toString() ?? '') ?? DateTime.now();
+
                     return ListTile(
-                      leading: Icon(isRead ? Icons.notifications_none : Icons.notifications_active, color: isRead ? null : Theme.of(context).colorScheme.primary),
-                      title: Text(n['title']?.toString() ?? ''),
-                      subtitle: Text(n['message']?.toString() ?? ''),
-                      onTap: () => _markRead(n),
+                      tileColor: read ? null : Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.2),
+                      leading: Icon(
+                        e['severity'] == 'critical' ? Icons.error : (e['severity'] == 'warning' ? Icons.warning : Icons.info),
+                        color: e['severity'] == 'critical' ? Colors.red : (e['severity'] == 'warning' ? Colors.amber : Colors.blue),
+                      ),
+                      title: Text(e['title'] ?? '', style: TextStyle(fontWeight: read ? FontWeight.normal : FontWeight.bold)),
+                      subtitle: Text('\\n\'),
+                      isThreeLine: true,
+                      trailing: read
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.check),
+                              tooltip: 'Mark as read',
+                              onPressed: () => _markRead(id),
+                            ),
                     );
                   },
                 ),

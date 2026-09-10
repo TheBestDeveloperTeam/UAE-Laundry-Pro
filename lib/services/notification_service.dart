@@ -6,20 +6,23 @@ class NotificationService {
   final ApiClient _api;
 
   Future<List<Map<String, dynamic>>> list({bool unreadOnly = false}) async {
-    final path = unreadOnly ? '/notifications?unread=1' : '/notifications';
-    final res = await _api.get(path);
+    final res = await _api.get('/notifications?unread=\');
     return (res['data']?['notifications'] as List? ?? [])
         .map((e) => Map<String, dynamic>.from(e as Map))
         .toList();
   }
 
   Future<Map<String, dynamic>> markRead(int id) async {
-    final res = await _api.post('/notifications/$id/read');
+    final res = await _api.post('/notifications/\/read');
     return Map<String, dynamic>.from(res['data']?['notification'] as Map? ?? {});
   }
 
   Future<int> markAllRead() async {
     final res = await _api.post('/notifications/read-all');
-    return (res['data']?['marked_count'] as num?)?.toInt() ?? 0;
+    return res['data']?['marked_count'] as int? ?? 0;
+  }
+
+  Future<void> generateAlerts() async {
+    await _api.post('/notifications/generate');
   }
 }
