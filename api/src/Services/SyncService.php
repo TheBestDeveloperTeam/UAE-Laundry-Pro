@@ -61,18 +61,28 @@ final class SyncService
       ];
     }
 
+    $success = true;
     if ($cloudUrl !== null && $cloudToken !== null && $records !== []) {
-      $this->httpPost($cloudUrl . '/sync/push', $records, $cloudToken);
+      try {
+        $response = $this->httpPost($cloudUrl . '/sync/push', $records, $cloudToken);
+        if (empty($response) || isset($response['error'])) {
+           $success = false;
+        }
+      } catch (\Exception $e) {
+        $success = false;
+      }
     }
 
-    foreach ($pending as $row) {
-      $this->outbox->markSynced((int) $row['id']);
-      $pushed[] = [
-        'id' => (int) $row['id'],
-        'entity_type' => $row['entity_type'],
-        'entity_local_id' => (int) $row['entity_local_id'],
-        'operation' => $row['operation'],
-      ];
+    if ($success) {
+      foreach ($pending as $row) {
+        $this->outbox->markSynced((int) $row['id']);
+        $pushed[] = [
+          'id' => (int) $row['id'],
+          'entity_type' => $row['entity_type'],
+          'entity_local_id' => (int) $row['entity_local_id'],
+          'operation' => $row['operation'],
+        ];
+      }
     }
 
     $stmt = $this->pdo->prepare(

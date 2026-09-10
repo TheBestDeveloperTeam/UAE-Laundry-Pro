@@ -6,6 +6,7 @@ namespace LaundryPro\Api\Repositories;
 
 use PDO;
 use RuntimeException;
+use LaundryPro\Api\Repositories\SyncOutboxRepository;
 
 final class SalesRepository
 {
@@ -13,6 +14,7 @@ final class SalesRepository
     private readonly PDO $pdo,
     private readonly CatalogRepository $catalog,
     private readonly InventoryRepository $inventory,
+    private readonly SyncOutboxRepository $outbox,
     private readonly int $businessOwnerId = 1,
   ) {
   }
@@ -349,6 +351,15 @@ final class SalesRepository
     ]);
 
     $orderId = (int) $this->pdo->lastInsertId();
+
+    $this->outbox->enqueue($this->businessOwnerId, 'sales_order', $orderId, 'create', [
+      'local_id' => $localId,
+      'order_no' => $orderNo,
+      'customer_id' => $data['customer_id'] ?? null,
+      'status' => 'draft',
+      'payment_status' => 'pending',
+    ]);
+
     $lines = $data['lines'] ?? [];
     if (is_array($lines)) {
       $this->replaceLines($orderId, $lines);
