@@ -1,8 +1,8 @@
-# LaundryPro UAE
+﻿# LaundryPro UAE
 
 > **Professional Laundry Management Platform for the UAE Market**
 
-LaundryPro UAE is a full-stack, offline-capable point-of-sale and business management platform built for laundry operations across the UAE. It combines a Flutter desktop application with a self-hosted PHP REST API backend, delivering real-time POS, multi-branch synchronisation, HR, delivery tracking, financial reporting, and storefront management — all running on-premise via XAMPP.
+LaundryPro UAE is a full-stack, offline-capable point-of-sale and business management platform built for laundry operations across the UAE. It combines a Flutter desktop application with a self-hosted PHP REST API backend, delivering real-time POS, multi-branch synchronisation, HR, delivery tracking, financial reporting, and storefront management â€” all running on-premise via XAMPP.
 
 ---
 
@@ -42,7 +42,7 @@ LaundryPro UAE is a full-stack, offline-capable point-of-sale and business manag
 
 | Layer | Technology | Version / Notes |
 |---|---|---|
-| **Frontend** | Flutter (Windows desktop) | SDK ≥ 3.3.0 < 4.0.0 |
+| **Frontend** | Flutter (Windows desktop) | SDK â‰¥ 3.3.0 < 4.0.0 |
 | **State Management** | Provider + Riverpod | `^6.1.2` / `^2.6.1` |
 | **Routing** | go_router | `^14.6.2` |
 | **HTTP Client** | http | `^1.2.2` |
@@ -64,7 +64,7 @@ LaundryPro UAE is a full-stack, offline-capable point-of-sale and business manag
 
 ## Architecture
 
-LaundryPro follows **Clean Architecture** principles. The Flutter client enforces strict separation between Views, Services (use-case layer), and the remote API. The PHP backend mirrors this with a Controller → Repository pattern backed by a custom DI container.
+LaundryPro follows **Clean Architecture** principles. The Flutter client enforces strict separation between Views, Services (use-case layer), and the remote API. The PHP backend mirrors this with a Controller â†’ Repository pattern backed by a custom DI container.
 
 ```mermaid
 flowchart TD
@@ -82,10 +82,10 @@ flowchart TD
 
     subgraph API["PHP Backend  /laundrypro-api/public"]
         RT["Router"]
-        MW["Middleware Chain\nCORS → RateLimit → Auth"]
+        MW["Middleware Chain\nCORS â†’ RateLimit â†’ Auth"]
         CTRL["Controllers"]
         REPO["Repositories"]
-        PSVC["PHP Services\nLicense · Sync · Backup · Auth"]
+        PSVC["PHP Services\nLicense Â· Sync Â· Backup Â· Auth"]
         RT --> MW --> CTRL --> REPO
         CTRL --> PSVC
     end
@@ -201,8 +201,8 @@ Reusable UI components live in `lib/widgets/` and are used across all screens.
 
 | Requirement | Version | Notes |
 |---|---|---|
-| Flutter | ≥ 3.3.0 | Run `flutter doctor` to verify setup |
-| Dart | Bundled with Flutter | — |
+| Flutter | â‰¥ 3.3.0 | Run `flutter doctor` to verify setup |
+| Dart | Bundled with Flutter | â€” |
 | XAMPP | 8.2.x | PHP 8.2 + MariaDB + Apache |
 | Windows | 10 / 11 (64-bit) | Desktop target only |
 | Visual Studio Build Tools | 2022 | Required for Flutter Windows build |
@@ -249,35 +249,35 @@ flutter run -d windows
 Create a `.env` file at the project root. The following keys are recognised:
 
 ```dotenv
-# ── API ─────────────────────────────────────────────────────────────
+# â”€â”€ API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 API_BASE_URL=http://localhost/laundrypro-api/public
 API_VERSION=v1
 
-# ── Database (PHP backend reads these) ──────────────────────────────
+# â”€â”€ Database (PHP backend reads these) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=laundrypro
 DB_USER=root
 DB_PASSWORD=
 
-# ── JWT ─────────────────────────────────────────────────────────────
+# â”€â”€ JWT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 JWT_SECRET=change_me_to_a_long_random_string
 JWT_ACCESS_TTL=900          # seconds (15 min)
 JWT_REFRESH_TTL=604800      # seconds (7 days)
 
-# ── File System ─────────────────────────────────────────────────────
+# â”€â”€ File System â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 BACKUP_PATH=C:/LaundryPro/backups/
 INVOICE_PATH=C:/LaundryPro/invoices/
 LOG_PATH=C:/LaundryPro/logs/
 
-# ── Rate Limiting ────────────────────────────────────────────────────
+# â”€â”€ Rate Limiting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 RATE_LIMIT_ATTEMPTS=5
 RATE_LIMIT_WINDOW=60        # seconds
 
-# ── Licensing ───────────────────────────────────────────────────────
+# â”€â”€ Licensing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 LICENSE_SERVER_URL=https://licenses.laundrypro.ae
 
-# ── SMS (optional) ──────────────────────────────────────────────────
+# â”€â”€ SMS (optional) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_FROM_NUMBER=
@@ -470,7 +470,7 @@ Invoke-RestMethod `
 
 1. **Branch naming**: `feature/<ticket>-short-description`, `fix/<ticket>-short-description`
 2. **Commits**: Follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`)
-3. **Code style**: Dart — `flutter_lints ^4.0.0` enforced; PHP — PSR-12 coding standard
+3. **Code style**: Dart â€” `flutter_lints ^4.0.0` enforced; PHP â€” PSR-12 coding standard
 4. **Pull requests**: All PRs require at least one review; include a description of testing performed
 5. **Financial code**: Any change touching monetary calculation **must** use `bcmath` (PHP) or equivalent fixed-point handling (Dart); floating-point arithmetic is strictly prohibited in financial paths
 6. **Secrets**: Never commit `.env`, API keys, or credentials; they are `.gitignore`d
@@ -479,4 +479,5 @@ Invoke-RestMethod `
 
 ---
 
-*LaundryPro UAE — version 1.2.1 · Built with Flutter 3 & PHP 8.2*
+*LaundryPro UAE â€” version 1.2.1 Â· Built with Flutter 3 & PHP 8.2*
+
