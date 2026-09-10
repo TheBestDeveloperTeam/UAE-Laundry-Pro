@@ -125,6 +125,7 @@ final class Application
     try {
       $globalMiddleware = [
         new CorsMiddleware($this->appConfig['cors_allowed_origins']),
+        new \LaundryPro\Api\Middleware\RateLimitMiddleware(5, 1),
       ];
 
       $this->runMiddlewareChain($globalMiddleware, $request, function (Request $req) use ($originalPath) {

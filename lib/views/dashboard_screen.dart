@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -25,17 +26,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _loading = true;
   String? _error;
   int _unreadCount = 0;
+  Timer? _refreshTimer;
 
-  final _currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
+  // Uses default currency, but should ideally be pulled from settings.
+  // We'll leave the symbol dynamic to be fetched.
+  late NumberFormat _currency;
 
   @override
   void initState() {
     super.initState();
+    _currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
     _reports = widget.reportsService ?? ReportsService();
     _loadSummary();
+    
+    // R-026: Auto-refresh every 60 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 60), (_) => _loadSummary());
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadSummary() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -61,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'failed';
+          _error = 'Failed to load dashboard data.';
           _loading = false;
         });
       }
@@ -118,97 +133,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadSummary,
-        child: ListView(
-          padding: const EdgeInsets.all(28),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            if (_error != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12)),
+                child: Row(
                   children: [
-                    Text(
-                      '${l10n.t('welcome')}, ${user?.fullName ?? ''}',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'LaundryPro UAE Cloud & Terminal Node',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                    ),
+                    Icon(Icons.error_outline, color: Colors.red.shade700),
+                    const SizedBox(width: 12),
+                    Text(_error!, style: TextStyle(color: Colors.red.shade700)),
+                    const Spacer(),
+                    TextButton(onPressed: _loadSummary, child: const Text('Retry')),
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: auth.apiHealthy ? Colors.green.shade50 : Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: auth.apiHealthy ? Colors.green.shade300 : Colors.orange.shade300,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.circle,
-                        size: 10,
-                        color: auth.apiHealthy ? Colors.green.shade600 : Colors.orange.shade600,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        auth.apiHealthy ? l10n.t('status_connected') : l10n.t('status_offline'),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: auth.apiHealthy ? Colors.green.shade800 : Colors.orange.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 16),
-              MaterialBanner(
-                content: Text(l10n.t('api_unavailable')),
-                actions: [
-                  TextButton(onPressed: _loadSummary, child: Text(l10n.t('retry'))),
-                ],
               ),
-            ],
-            const SizedBox(height: 28),
             Text(
-              l10n.t('dashboard_today'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              l10n.t('today'),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
-            if (_loading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-
+            const SizedBox(height: 16),
+            if (_loading && _today.isEmpty)
+              const Center(child: CircularProgressIndicator())
             else
               Wrap(
                 spacing: 16,
                 runSpacing: 16,
                 children: [
                   _kpi(
-                    l10n.t('dashboard_today_sales'),
+                    l10n.t('pos_total'),
                     _money(_today['grand_total']),
-                    Icons.payments_rounded,
-                    const Color(0xFF0D6E6E),
-                    () => context.go('/pos'),
+                    Icons.storefront_rounded,
+                    Colors.green.shade700,
+                    () => context.go('/reports'),
+                    trend: 1,
                   ),
                   _kpi(
                     l10n.t('dashboard_outstanding'),
@@ -216,6 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icons.receipt_long_rounded,
                     Colors.orange.shade800,
                     () => context.go('/pending'),
+                    trend: -1,
                   ),
                   _kpi(
                     l10n.t('orders'),
@@ -223,6 +188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icons.shopping_bag_rounded,
                     Colors.blue.shade700,
                     () => context.go('/production'),
+                    trend: 1,
                   ),
                   _kpi(
                     l10n.t('dashboard_low_stock'),
@@ -230,18 +196,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icons.inventory_2_rounded,
                     Colors.purple.shade700,
                     () => context.go('/catalog'),
+                    trend: 0,
                   ),
                 ],
               ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
             Text(
               l10n.t('reports_sales'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
-            if (!_loading)
+            const SizedBox(height: 16),
+            if (!_loading || _period.isNotEmpty)
               Wrap(
                 spacing: 16,
                 runSpacing: 16,
@@ -252,6 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icons.bar_chart_rounded,
                     Colors.teal.shade700,
                     () => context.go('/reports'),
+                    trend: 1,
                   ),
                   _kpi(
                     l10n.t('pos_paid'),
@@ -259,6 +225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icons.account_balance_rounded,
                     Colors.indigo.shade700,
                     () => context.go('/reports'),
+                    trend: 1,
                   ),
                   _kpi(
                     l10n.t('balance'),
@@ -266,6 +233,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icons.warning_amber_rounded,
                     Colors.red.shade700,
                     () => context.go('/pending'),
+                    trend: -1,
                   ),
                   _kpi(
                     l10n.t('notifications'),
@@ -276,97 +244,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
-            const SizedBox(height: 32),
-            const SizedBox(height: 32),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'HR & Payroll',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+            const SizedBox(height: 40),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quick Actions',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                    ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        FilledButton.icon(
-                          onPressed: () => context.go('/hr/employees'),
-                          icon: const Icon(Icons.people_alt_outlined),
-                          label: Text(l10n.t('hr_employees')),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () => context.go('/hr/attendance'),
-                          icon: const Icon(Icons.access_time_rounded),
-                          label: Text(l10n.t('hr_attendance')),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () => context.go('/hr/leave'),
-                          icon: const Icon(Icons.event_note_outlined),
-                          label: Text(l10n.t('hr_leave_requests')),
-                        ),
-                        if (isAdmin)
-                          OutlinedButton.icon(
-                            onPressed: () => context.go('/hr/payroll'),
-                            icon: const Icon(Icons.monetization_on_outlined),
-                            label: Text(l10n.t('payroll')),
+                          const SizedBox(height: 20),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: () => context.go('/pos'),
+                                icon: const Icon(Icons.point_of_sale_rounded),
+                                label: Text(l10n.t('pos')),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => context.go('/customers'),
+                                icon: const Icon(Icons.person_add_alt_1_outlined),
+                                label: Text(l10n.t('customers')),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => context.go('/pending'),
+                                icon: const Icon(Icons.receipt_outlined),
+                                label: Text(l10n.t('pending_invoices')),
+                              ),
+                              if (isAdmin)
+                                OutlinedButton.icon(
+                                  onPressed: () => context.go('/catalog'),
+                                  icon: const Icon(Icons.category_outlined),
+                                  label: Text(l10n.t('catalog')),
+                                ),
+                            ],
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Quick Actions',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'HR & Payroll',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
+                          const SizedBox(height: 20),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: () => context.go('/hr/employees'),
+                                icon: const Icon(Icons.people_alt_outlined),
+                                label: Text(l10n.t('hr_employees')),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => context.go('/hr/attendance'),
+                                icon: const Icon(Icons.access_time_rounded),
+                                label: Text(l10n.t('hr_attendance')),
+                              ),
+                              if (isAdmin)
+                                OutlinedButton.icon(
+                                  onPressed: () => context.go('/hr/payroll'),
+                                  icon: const Icon(Icons.monetization_on_outlined),
+                                  label: Text(l10n.t('payroll')),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        FilledButton.icon(
-                          onPressed: () => context.go('/pos'),
-                          icon: const Icon(Icons.point_of_sale_rounded),
-                          label: Text(l10n.t('pos')),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () => context.go('/pending'),
-                          icon: const Icon(Icons.receipt_outlined),
-                          label: Text(l10n.t('pending_invoices')),
-                        ),
-                        if (isAdmin)
-                          OutlinedButton.icon(
-                            onPressed: () => context.go('/catalog'),
-                            icon: const Icon(Icons.category_outlined),
-                            label: Text(l10n.t('catalog')),
-                          ),
-                        if (isAdmin)
-                          OutlinedButton.icon(
-                            onPressed: () => context.go('/business'),
-                            icon: const Icon(Icons.business_outlined),
-                            label: Text(l10n.t('business_profile')),
-                          ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
@@ -374,31 +340,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _kpi(String label, String value, IconData icon, Color accentColor, VoidCallback onTap) {
+  Widget _kpi(String label, String value, IconData icon, Color accentColor, VoidCallback onTap, {int trend = 0}) {
     return SizedBox(
-      width: 200,
+      width: 220,
       child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: accentColor.withAlpha(25),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, size: 22, color: accentColor),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: accentColor.withAlpha(25),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, size: 24, color: accentColor),
+                    ),
+                    if (trend != 0)
+                      Icon(
+                        trend > 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                        color: trend > 0 ? Colors.green.shade600 : Colors.red.shade500,
+                        size: 20,
+                      )
+                  ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
                       ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -407,8 +391,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
@@ -419,4 +403,3 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
-

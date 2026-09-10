@@ -83,6 +83,10 @@ final class SyncService
           'operation' => $row['operation'],
         ];
       }
+    } else {
+      foreach ($pending as $row) {
+        $this->outbox->markFailed((int) $row['id'], (int) ($row['attempts'] ?? 0));
+      }
     }
 
     $stmt = $this->pdo->prepare(

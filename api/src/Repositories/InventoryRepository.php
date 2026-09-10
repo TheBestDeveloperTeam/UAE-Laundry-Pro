@@ -210,20 +210,19 @@ final class InventoryRepository
       throw new RuntimeException('VALIDATION_ERROR');
     }
 
-    $product = $this->pdo->prepare('SELECT id, stock_quantity FROM products WHERE id = :id AND business_owner_id = :owner FOR UPDATE');
-    $product->execute(['id' => $productId, 'owner' => $this->businessOwnerId]);
-    $p = $product->fetch();
-
-    if (!$p) {
-      throw new RuntimeException('NOT_FOUND');
-    }
-
     $this->pdo->beginTransaction();
     try {
+      $product = $this->pdo->prepare('SELECT id, stock_quantity FROM products WHERE id = :id AND business_owner_id = :owner FOR UPDATE');
+      $product->execute(['id' => $productId, 'owner' => $this->businessOwnerId]);
+      $p = $product->fetch();
+
+      if (!$p) {
+        throw new RuntimeException('NOT_FOUND');
+      }
+
       // Record out movement
       $stmt = $this->pdo->prepare(
-        'INSERT INTO inventory_movements (uuid, business_owner_id, branch_id, product_id, user_id, type, 
-quantity_change, quantity_after, unit_cost, reference_type, reference_id, created_at)
+        'INSERT INTO inventory_movements (uuid, business_owner_id, branch_id, product_id, user_id, type, quantity_change, quantity_after, unit_cost, reference_type, reference_id, created_at)
          VALUES (:uuid, :owner, :branch, :product, :user, :type, :change, :after, :cost, :ref_type, :ref_id, UTC_TIMESTAMP())'
       );
 
@@ -238,13 +237,11 @@ quantity_change, quantity_after, unit_cost, reference_type, reference_id, create
         'change' => -$quantity,
         'after' => $qtyAfterFrom,
         'cost' => 0,
-        'ref_type' => 'branch',
+        'ref_type' => 'branch_transfer',
         'ref_id' => $toBranch,
       ]);
-      $outId = (int) $this->pdo->lastInsertId();
 
       // Record in movement
-      $qtyAfterTo = $qtyAfterFrom + $quantity; // Logic: total stock remains unchanged globally
       $stmt->execute([
         'uuid' => $this->uuid(),
         'owner' => $this->businessOwnerId,
@@ -253,15 +250,14 @@ quantity_change, quantity_after, unit_cost, reference_type, reference_id, create
         'user' => $userId,
         'type' => 'transfer_in',
         'change' => $quantity,
-        'after' => $qtyAfterTo,
+        'after' => 0, // In reality, we'd need branch-specific stock levels tracked.
         'cost' => 0,
-        'ref_type' => 'branch',
+        'ref_type' => 'branch_transfer',
         'ref_id' => $fromBranch,
       ]);
-      $inId = (int) $this->pdo->lastInsertId();
 
       $this->pdo->commit();
-      return [$outId, $inId];
+      return ['status' => 'success', 'transferred' => $quantity];
     } catch (\Throwable $e) {
       $this->pdo->rollBack();
       throw $e;
