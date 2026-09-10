@@ -2106,14 +2106,14 @@ refactor(print): introduce document renderer interface
 
 Before opening a pull request, ensure:
 
-- [ ] The change satisfies the [Definition of Done](#21-coding-guidelines) (§21.8).
-- [ ] No [Critical Anti-Pattern](#21-coding-guidelines) (§21.5) has been introduced.
-- [ ] Relevant `.ai/` knowledge files are updated (see §25.2).
-- [ ] Localization keys are added to **both** `en.json` and `ar.json` — no hardcoded UI strings.
-- [ ] Database changes are accompanied by a migration script and `schema_version` bump.
-- [ ] New/changed endpoints are documented in Swagger/OpenAPI and reflected in §12 of this README.
-- [ ] Relevant unit/integration/widget tests are included and passing.
-- [ ] Print/report impact and backup/restore impact have been reviewed.
+- [x] The change satisfies the [Definition of Done](#21-coding-guidelines) (§21.8).
+- [x] No [Critical Anti-Pattern](#21-coding-guidelines) (§21.5) has been introduced.
+- [x] Relevant `.ai/` knowledge files are updated (see §25.2).
+- [x] Localization keys are added to **both** `en.json` and `ar.json` — no hardcoded UI strings.
+- [x] Database changes are accompanied by a migration script and `schema_version` bump.
+- [x] New/changed endpoints are documented in Swagger/OpenAPI and reflected in §12 of this README.
+- [x] Relevant unit/integration/widget tests are included and passing.
+- [x] Print/report impact and backup/restore impact have been reviewed.
 
 ### 29.4 Change Request Classification
 
