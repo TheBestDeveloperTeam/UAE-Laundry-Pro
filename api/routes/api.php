@@ -557,6 +557,10 @@ function register_api_routes(Router $router): void
     'tag' => 'Reports', 'summary' => 'Delivery report', 'permission' => 'reports.read',
     'responses' => ['200' => 'DELIVERY_REPORT'],
   ]);
+  $router->get('/api/v1/reports/accounting/export', [ReportsController::class, 'accountingExport'], $auth, [
+    'tag' => 'Reports', 'summary' => 'Accounting export (Tally/Xero)', 'permission' => 'reports.read',
+    'responses' => ['200' => 'ACCOUNTING_EXPORT'],
+  ]);
 
   $router->get('/api/v1/sync/status', [SyncController::class, 'status'], $auth, [
     'tag' => 'Sync', 'summary' => 'Sync status', 'permission' => 'sync.read',

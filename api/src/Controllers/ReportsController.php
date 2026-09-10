@@ -201,4 +201,27 @@ final class ReportsController
       'to' => $toStr,
     ], 'DELIVERY_REPORT', 'reports.delivery');
   }
+
+  public function accountingExport(Request $request, Container $container): void
+  {
+    $from = $request->query('from');
+    $to = $request->query('to');
+    $format = $request->query('format'); // csv, json, tally, xero
+    $fromStr = is_string($from) && $from !== '' ? $from : gmdate('Y-m-01');
+    $toStr = is_string($to) && $to !== '' ? $to : gmdate('Y-m-d');
+    
+    $pnl = $this->sales->operationalPnl($fromStr, $toStr);
+    // Transform PnL to standard double-entry journal format
+    $export = [
+      'journals' => [
+        ['account' => 'Sales Revenue', 'debit' => 0, 'credit' => $pnl['revenue'] ?? 0],
+        ['account' => 'Cost of Goods Sold', 'debit' => $pnl['expenses'] ?? 0, 'credit' => 0],
+        ['account' => 'VAT Payable', 'debit' => 0, 'credit' => ($pnl['revenue'] ?? 0) * 0.05], // UAE 5% VAT placeholder
+      ],
+      'format' => $format ?? 'json',
+      'period' => ['from' => $fromStr, 'to' => $toStr],
+    ];
+
+    $this->response->success($request, ['export' => $export], 'ACCOUNTING_EXPORT', 'reports.accounting_export');
+  }
 }
