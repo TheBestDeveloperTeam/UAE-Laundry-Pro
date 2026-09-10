@@ -21,6 +21,7 @@ class CartLine {
     this.quantity = 1,
     this.discount = 0.0,
     this.modifiers = const [],
+    this.vatRate = 0.05,
   });
 
   final String itemType;
@@ -30,6 +31,7 @@ class CartLine {
   int quantity;
   double discount;
   List<Map<String, dynamic>> modifiers;
+  double vatRate;
 
   double get modifierTotal {
     double total = 0.0;
@@ -51,7 +53,7 @@ class CartLine {
 
   double get lineTotal => (lineSubtotal - discount).clamp(0.0, double.infinity);
 
-  double get vatAmount => lineTotal * 0.05; // UAE Standard 5% VAT
+  double get vatAmount => lineTotal * vatRate;
 
   double get lineTotalWithVat => lineTotal + vatAmount;
 
