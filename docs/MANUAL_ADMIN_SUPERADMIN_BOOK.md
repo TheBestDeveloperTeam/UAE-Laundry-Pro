@@ -1,4 +1,4 @@
-# LaundryPro UAE â€” Super-Admin & Cloud Portal Guide
+﻿# LaundryPro UAE — Super-Admin & Cloud Portal Guide
 
 **Document Version:** 2.0 (Production Release)  
 **Target Audience:** Magnificent Solution System Administrators, Cloud Operators, Franchise IT Heads  
@@ -16,6 +16,11 @@
 8. [Real-time Sync Payload Stream Inspector](#8-real-time-sync-payload-stream-inspector)
 9. [System Audit Trail & Security Logs](#9-system-audit-trail--security-logs)
 10. [Database Backup & Maintenance](#10-database-backup--maintenance)
+11. [Backup & Restore Procedures](#11-backup--restore-procedures)
+12. [Rate Limiting & Security Monitoring](#12-rate-limiting--security-monitoring)
+13. [Sync Engine Monitoring](#13-sync-engine-monitoring)
+14. [RBAC Role Management](#14-rbac-role-management)
+15. [Financial Precision Notes (bcmath)](#15-financial-precision-notes-bcmath)
 
 ---
 
@@ -125,3 +130,62 @@ The cloud database laundrypro_cloud should be backed up using mysqldump:
 `ash
 mysqldump -u root -p laundrypro_cloud > laundrypro_cloud_backup_.sql
 `
+
+---
+
+## 11. Backup & Restore Procedures
+
+All system backups are executed via the local PHP API to ensure consistency.
+
+1. **Creating a Backup:** 
+   - A cron job or manual trigger calls POST /api/v1/backup/run.
+   - The system executes mysqldump, packages the .sql file into a .zip, and generates a SHA-256 cryptographic manifest.
+2. **Restoring a Backup:**
+   - Call POST /api/v1/backup/restore.
+   - The system unpacks the .zip, validates the SHA-256 signature against the manifest to prevent payload tampering, and overwrites the active database.
+   - **Never manually restore a raw SQL dump** in a production environment as it bypasses the audit and integrity checks.
+
+---
+
+## 12. Rate Limiting & Security Monitoring
+
+The RateLimitMiddleware protects all /auth/* endpoints against brute-force attacks using an IP-based sliding window throttle.
+
+- **Rule:** Maximum 5 attempts per 1-minute window per IP.
+- **Enforcement:** If exceeded, the API returns 429 Too Many Requests.
+- **Monitoring:** Check the system_settings table for keys prefixed with ate_limit:. These keys store the hit count and expiry timestamp. Admins can manually clear these rows if a legitimate terminal is locked out.
+
+---
+
+## 13. Sync Engine Monitoring
+
+The offline-first sync engine relies on the sync_outbox table and the SyncService background daemon.
+
+- **Monitoring:** Call GET /api/v1/sync/status to check the outbox depth.
+- **Outbox States:**
+  - pending: Record is queued for the next push cycle.
+  - synced: Record successfully received by the cloud.
+  - ailed: Push failed. The engine applies an exponential backoff (up to 10 attempts) before parking the record.
+- **Alerts:** Set up a monitoring threshold. If pending records exceed 500, or if any record is stuck in ailed for more than 24 hours, an alert should be dispatched to the IT team.
+
+---
+
+## 14. RBAC Role Management
+
+The system uses granular Role-Based Access Control (RBAC). Roles are strictly defined in the oles and ole_permissions tables.
+
+- **Creating Roles:** Use the **Role Editor Screen** in the Flutter UI or POST /api/v1/roles to create custom roles (e.g., "Junior Cashier", "Inventory Manager").
+- **Granular Permissions:** Permissions follow the esource.action convention (e.g., sales.read, sales.write, catalog.write, users.manage).
+- **Enforcement:** All permissions are validated server-side by the PHP controllers using the JWT payload claims.
+
+---
+
+## 15. Financial Precision Notes (bcmath)
+
+**CRITICAL:** LaundryPro UAE entirely forbids the use of native PHP floating-point numbers (loat / double) for monetary calculations.
+
+- **Why?** Native floats introduce precision loss (e.g.,  .1 + 0.2 = 0.30000000000000004), which compounds into massive discrepancies over thousands of sales and tax calculations.
+- **The Standard:** All monetary values are strictly cast to DECIMAL(18,2) in MariaDB and transported as **strings** in JSON payloads.
+- **PHP Calculations:** Whenever the API must perform math (e.g., tax calculation, discounts), it strictly uses the cmath extension (cadd, csub, cmul, cdiv) with a scale of 2.
+- **Admin Action:** Ensure extension=bcmath is enabled in php.ini on all edge terminals. If disabled, the API will crash on any financial mutation.
+
