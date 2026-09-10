@@ -1,1606 +1,3206 @@
 <USER_REQUEST>
 in-depth audit for full n final completion production signoff
 
-# LaundryPro UAE — Full & Final Implementation Roadmap
-
-> **Developer / Maintainer:** Magnificent Solution
-> **Product:** LaundryPro UAE (LaundryPro Local — Offline-First Desktop ERP/POS)
-> **Stack:** Flutter Windows · PHP 8.x (Slim/Lumen) · MariaDB/MySQL · XAMPP · ESC/POS
-> **Architecture:** MVVM + Modular Local Service Components · Offline-First · JWT/OAuth2
-> **Roadmap Date:** 2026-09-09 | Based on full README.md (1,881 lines) audit
-
----
-
-## 📌 CRITICAL RULES (Never Violate)
-
-1. Never store monetary values as floating-point (`DECIMAL(18,2)` only).
-2. Never update posted invoices — use correction memos only.
-3. Never delete inventory movement records — soft-delete only.
-4. Never hardcode English UI strings in widgets — all strings from `en.json`/`ar.json`.
-5. Never do client-only authorization — all permissions enforced server-side by PHP middleware.
-6. Never embed manufacturer-specific hardware logic inside business services — adapter interfaces always.
-7. Every status transition is permission-controlled and audit-logged.
-8. All backup/file paths come from standalone global configuration — never hardcoded.
-
----
-
-## 📋 Table of Contents
-
-1. [Current State Audit](#1-current-state-audit)
-2. [Product Family & Phased Delivery](#2-product-family--phased-delivery)
-3. [Phase 0 — Discovery & Foundation](#3-phase-0--discovery--foundation-sprints-01-04)
-4. [Phase 1 — Core Operational MVP](#4-phase-1--core-operational-mvp-sprints-05-14)
-5. [Phase 2 — Operational Control Expansion](#5-phase-2--operational-control-expansion-sprints-15-22)
-6. [Phase 3 — Scale & Extension](#6-phase-3--scale--extension-sprints-23-28)
-7. [Hardware Integration Master Spec](#7-hardware-integration-master-specification)
-8. [Backup & Disaster Recovery Master Spec](#8-backup--disaster-recovery-master-specification)
-9. [Global Configuration Specification](#9-global-configuration-specification)
-10. [Complete Test Strategy & Test Cases](#10-complete-test-strategy--test-cases)
-11. [UI/UX Screen Inventory](#11-uiux-screen-inventory)
-12. [API Endpoint Completion Map](#12-api-endpoint-completion-map)
-13. [25. .ai/ — Live Documentation Structure](#13-25-ai--live-documentation-structure)
-14. [Sprint Summary Table](#14-sprint-summary-table)
-
----
-
-## 1. Current State Audit
-
-### ✅ What Exists (Already Built)
-Based on code inspection of `lib/`, `api/src/`, and `api/database/migrations/`:
-
-**Flutter Frontend (lib/):**
-- App shell, routing (`app_router.dart`, `go_router`)
-- Login screen, splash screen, setup wizard screen
-- Screen stubs for: POS, Customers, Vendors, Catalog, Employees, Attendance, Leave, Payroll, Expenses, Purchasing, Reports, Accounting, Analytics, Delivery, Challans, Branches, Terminals, Settings, License, Localization, Notifications, Production, Storefront, Customer Portal, Sync Settings, Peripherals
-- Services layer: `auth_service`, `sales_service`, `customer_service`, `catalog_service`, `backup_service`, `license_service`, `employee_service`, `attendance_service`, `payroll_service`, `expense_service`, `purchase_service`, `delivery_service`, `reports_service`, `settings_service`, `notification_service`, `peripheral_print_service`, `global_config_service`
-- Peripherals module: `lib/peripherals/` with core (cash_drawer, config, database, hardware, logging, printer, scanner, scale) and features (dashboard, printer, scanner, cash_drawer, sql_database, logs)
-- Auth providers, locale provider
-
-**PHP API (api/src/):**
-- Controllers: Auth, Sales, Catalog, Customer, Vendor, Inventory, Purchase, HR, Expense, Delivery, Challan, Backup, License, Reports, Analytics, Settings, Branch, Terminal, Accounting, Notification, Localization, Sync, Storefront, CustomerPortal, Install, Health, Docs
-- Repositories: All matching controllers above
-- Security: JwtService, PasswordHasher, PermissionChecker, UmacService
-- Services: AuthService, BackupService, LicenseService, InstallService, SyncService, MigrationService, SeedService, AccountingExportService, MessagingService
-- Core: Application, Autoloader, Container, Router, Request, Response, Env, PdoFactory
-
-**Database Migrations (28 archived + 1 baseline):**
-- 001–028 covering: core schema, roles, business/branch/terminal, customers/vendors, catalog, sales/payments, inventory, HR/payroll, expenses, sync outbox, documents, license/UMAC, modifiers, production workflow, delivery/challans, purchasing, notifications, branch/terminal context, terminal sessions, sync entity registry, KSA profile, notification channels, accounting exports, analytics snapshots, storefront, customer portal
-
-### ❗ What Is MISSING / INCOMPLETE (Gap Analysis)
-The screens exist as stubs but the full implementation is missing for:
-
-| Module | Gap Status |
-|--------|-----------|
-| POS Screen — full cart, scanner input, modifier UX | 🔴 Partial / Stub |
-| Catalog — full N-level hierarchy CRUD UI | 🔴 Partial |
-| Production Workflow — full Kanban board UI | 🔴 Stub |
-| Delivery — driver assignment, task workflow | 🔴 Stub |
-| Hardware — thermal/inkjet/dot-matrix full coverage | 🔴 Partial |
-| Scanner — context-aware auto-search on POS | 🔴 Partial |
-| Cash Drawer — session management, pin config | 🔴 Partial |
-| BT/WiFi/LAN auto-discovery and binding | 🔴 Missing |
-| Print Templates — WYSIWYG designer | 🔴 Missing |
-| A4/A5/A3/A2/A1 inkjet pipeline | 🔴 Missing |
-| Dot Matrix / Carbon Copy | 🔴 Missing |
-| Reconciliation engine (full UI) | 🔴 Missing |
-| Storefront / Customer Portal UI | 🔴 Stub |
-| Cloud Sync daemon + UI | 🔴 Stub |
-| Accounting export (CSV/journal) | 🔴 Partial |
-| Reports — all 30+ report types | 🔴 Partial |
-| Dashboard KPIs — centralized definitions | 🔴 Partial |
-| Notifications (alert center, channels) | 🔴 Partial |
-| Payroll — full generation UI + WPS | 🔴 Partial |
-| Purchase — full PO → GRN → payment flow UI | 🔴 Partial |
-| License — UMAC, time-tamper resistance | 🔴 Partial |
-| Backup/Restore — full UI wizard | 🔴 Partial |
-| Standalone global config admin UI | 🔴 Missing |
-| Multi-terminal LAN support | 🔴 Phase 3 |
-| SMS/WhatsApp notification adapters | 🔴 Phase 3 |
-
----
-
-## 2. Product Family & Phased Delivery
-
-```
-LaundryPro Local  — offline/local desktop (current: LaundryPro UAE)
-LaundryPro Pro    — multi-terminal / local-network edition
-LaundryPro Cloud  — future cloud edition
-LaundryPro UAE    — UAE localization package (ACTIVE)
-LaundryPro KSA    — future Saudi Arabia package
-```
-
-| Phase | Name | Scope | Target |
-|-------|------|-------|--------|
-| **Phase 0** | Discovery & Foundation | Architecture, schema, roles, navigation, localization, license, print catalog, backup policy | ✅ Mostly done — gaps to fix |
-| **Phase 1** | Core Operational MVP | Install/bootstrap, business setup, users/roles, customers/vendors, catalog, sales, payment, basic order status, inventory basics, reports, backup, English/Arabic | 🔴 Needs completion |
-| **Phase 2** | Operational Control Expansion | Full production workflow, delivery/collection, challans, advanced inventory, purchasing, HR, payroll, expenses, advanced reports, print designer, alerts, social assets | 🔴 Mostly missing |
-| **Phase 3** | Scale & Extension | Multi-terminal LAN, branch support, cloud sync, KSA localization, accounting adapter, SMS/WhatsApp, storefront, customer app, analytics | 🔴 Missing |
-
----
-
-## 3. Phase 0 — Discovery & Foundation (Sprints 01–04)
-
-### 🏁 SPRINT 01 — Architecture Hardening & Global Config
-**Status:** Partially done. Needs completion.
-**Duration:** 2 weeks
-
-#### Remaining Tasks
-- [ ] **Standalone Global Configuration Admin UI** — settings screen with editable path fields (admin-only access)
-  - `BACKUP_PATH` default: `C:/LaundryPro/backups/`
-  - `INVOICE_PATH` default: `C:/LaundryPro/invoices/`
-  - `IMAGE_PATH` default: `C:/LaundryPro/images/`
-  - `LOG_PATH` default: `C:/LaundryPro/logs/`
-  - `EXPORT_PATH` default: `C:/LaundryPro/exports/`
-  - All paths editable by Super Admin / System Administrator only
-  - Directory auto-creation on save
-  - Path validation (writable check) before accepting
-- [ ] Ensure `api/.env` keys match `global_config_service.dart` defaults
-- [ ] `global_config_service.dart` — complete read/write/validate/migrate logic
-- [ ] Sync `.ai/PROJECT_CONTEXT.md` with current architecture
-- [ ] `25. .ai/ARCHITECTURE.md` — document MVVM layers, adapter pattern, peripheral isolation
-
-#### Config System Architecture
-```
-Precedence: System Default < Business Override < Branch Override < Terminal Override
-
-Sources:
-  1. api/.env (PHP side — DB, JWT, paths)
-  2. settings table (DB — business/branch/terminal overrides)
-  3. lib/core/constants.dart (Flutter — API base URL, terminal identity)
-  4. C:/LaundryPro/config.json (Flutter side — hardware, paths)
-
-Admin UI maps to BOTH api/.env editable sections AND settings table entries.
-```
-
-#### Test Cases — Sprint 01
-- [ ] TC-01-001: Config loads from `C:/LaundryPro/config.json` on startup
-- [ ] TC-01-002: Admin can change BACKUP_PATH; directory auto-created
-- [ ] TC-01-003: Non-admin cannot access global config screen
-- [ ] TC-01-004: Invalid path (non-writable) shows error; old path retained
-- [ ] TC-01-005: Config survives app restart (persisted)
-- [ ] TC-01-006: All 5 paths simultaneously writeable after config init
-
----
-
-### 🏁 SPRINT 02 — Authentication, RBAC & License (Completion)
-**Status:** Auth exists; RBAC partially wired; License/UMAC partial.
-**Duration:** 2 weeks
-
-#### Remaining Tasks
-- [ ] Login screen — complete OAuth2 password grant flow with refresh token
-- [ ] Token expiry handling — auto-refresh before 8-hour expiry
-- [ ] Account lockout after configurable failed attempts (default: 5)
-- [ ] Session revocation (logout invalidates token server-side)
-- [ ] RBAC enforcement — every screen/button checks permissions from JWT payload
-- [ ] Permission matrix editor UI (role → permission toggles)
-- [ ] **License screen** — activate key, view plan/expiry/UMAC, restricted mode on expiry
-- [ ] UMAC generation — hardware fingerprint binding
-- [ ] Time-tamper resistance — NTP optional check; registry pulse validation
-- [ ] `PermissionChecker.php` — ensure all 40+ permission keys enforced
-- [ ] Role seeding (Admin, Manager, Cashier, Storekeeper, HR, Auditor roles) in `002_seed_roles.sql`
-
-#### Permission Keys (Complete List)
-```
-Platform:    system.settings, system.config.paths, license.manage, backup.run, backup.restore
-Sales:       sales.create, sales.edit_draft, sales.override_rate, sales.discount_line,
-             sales.discount_order, sales.cancel, sales.reprint, sales.receive_payment,
-             sales.void, sales.memo.credit, sales.memo.debit
-Catalog:     catalog.view, catalog.create, catalog.edit, catalog.delete, catalog.pricing
-Customer:    customer.view, customer.create, customer.edit, customer.merge, customer.delete
-Vendor:      vendor.view, vendor.create, vendor.edit
-Inventory:   inventory.view, inventory.adjust, inventory.reconcile, inventory.transfer
-Production:  production.status_update, production.qc, production.rework
-Delivery:    delivery.dispatch, delivery.complete, delivery.reassign
-Purchasing:  purchase.create, purchase.receive, purchase.approve
-HR:          hr.employee.view, hr.attendance.record, hr.leave.approve,
-             hr.payroll.run, hr.payroll.view, hr.advance.approve
-Expense:     expense.create, expense.approve, expense.view
-Reports:     reports.sales, reports.inventory, reports.hr, reports.financial, reports.export
-Hardware:    hardware.configure, hardware.test
-```
-
-#### Test Cases — Sprint 02
-- [ ] TC-02-001: Login with valid credentials returns JWT
-- [ ] TC-02-002: Expired JWT auto-refreshed without logout
-- [ ] TC-02-003: 5 failed logins lock account; 6th attempt blocked
-- [ ] TC-02-004: Cashier cannot access Settings screen (403)
-- [ ] TC-02-005: Rate override button hidden for cashier without permission
-- [ ] TC-02-006: License key activates and stores UMAC
-- [ ] TC-02-007: Hardware mismatch on UMAC check triggers alert
-- [ ] TC-02-008: System clock rollback detected and flagged
-
----
-
-### 🏁 SPRINT 03 — Database Schema Completion & Migrations
-**Status:** 28 migrations archived; baseline.sql present. Needs audit.
-**Duration:** 1 week
-
-#### Remaining Tasks
-- [ ] Audit `001_baseline.sql` — ensure it consolidates all 28 archived migrations correctly
-- [ ] Verify all FK constraints, indexes, and `utf8mb4` charset throughout
-- [ ] Verify all key indexes listed in README §7.5 are present
-- [ ] Add migration for global config path settings table entries
-- [ ] Seed data: default roles, permissions, system settings, UAE sample data
-- [ ] `scripts/migrate.ps1` — ensure idempotent re-run safety
-
-#### Critical Indexes to Verify
-```sql
-customer(phone), customer(customer_code), customer(name)
-vendor(vendor_code)
-service(parent_id, is_active)
-product(parent_id, is_active, barcode)
-sales_order(order_no), sales_order(customer_id, created_at), sales_order(status, promised_date)
-inventory_movement(product_id, movement_date)
-attendance(employee_id, attendance_date)
-audit_log(entity_type, entity_id, created_at)
-notification(user_id, is_read, created_at)
-```
-
-#### Test Cases — Sprint 03
-- [ ] TC-03-001: Fresh migration runs without errors on empty MariaDB
-- [ ] TC-03-002: Re-running migration is idempotent (no duplicate table errors)
-- [ ] TC-03-003: All FK constraints verified with test inserts
-- [ ] TC-03-004: Arabic text (UTF-8 4-byte) stores and retrieves correctly
-- [ ] TC-03-005: All required indexes present in `SHOW INDEX FROM` output
-
----
-
-### 🏁 SPRINT 04 — App Shell, Navigation & Setup Wizard (Completion)
-**Status:** Shell exists; setup wizard stub present.
-**Duration:** 1 week
-
-#### Remaining Tasks
-- [ ] **Setup wizard** — full first-run flow:
-  - Business name, logo, contact, physical address (UAE Emirates)
-  - Default language (EN/AR), default currency (AED/Fils)
-  - Opening date, document number prefix (`INV-`, `REC-`, `CHL-`, `GRN-`)
-  - Administrator account creation
-  - Backup location (configurable, defaults to `C:/LaundryPro/backups/`)
-  - Printer defaults (thermal 80mm/58mm, A4 for reports)
-  - Terminal identity (generates `installation_id`)
-  - License key entry (Step 8)
-- [ ] Status bar — DB connected, Backup OK, Printer status, Scanner status, App version
-- [ ] Header bar — Brand logo, Branch name, Terminal ID, User name, Date/Time, Language toggle
-- [ ] Keyboard shortcuts — all shortcuts listed in README §14.8 fully wired
-- [ ] RTL layout toggle — Arabic RTL via `Directionality` widget at root
-- [ ] Notification badge on nav — alert count indicator
-- [ ] Disk space warning — `<20%` yellow, `<10%` red in status bar
-
-#### Test Cases — Sprint 04
-- [ ] TC-04-001: First-run wizard completes all 8 steps
-- [ ] TC-04-002: `Ctrl+N` opens New Sale screen
-- [ ] TC-04-003: Arabic language toggle flips entire UI to RTL
-- [ ] TC-04-004: Disk space warning shows at <20% free
-- [ ] TC-04-005: Header shows correct branch/terminal/user on login
-
----
-
-## 4. Phase 1 — Core Operational MVP (Sprints 05–14)
-
-### 🏁 SPRINT 05 — Customer & Vendor Master (Completion)
-**Duration:** 2 weeks
-
-#### Customer Module
-- [ ] **Customer list** — paginated, searchable (name, phone, customer_code), sortable, filterable by status/tag
-- [ ] **Customer search** — response < 300ms (README UC-03); fuzzy match + exact phone match
-- [ ] Phone normalization — `+971 5x xxx xxxx` → `05xxxxxxxx` unified format
-- [ ] Duplicate detection — same phone/email shows warning before save
-- [ ] **Customer create/edit form** — personal info, professional info, location (Emirate, area, street, building), credit limit, tags
-- [ ] Customer merge — duplicate resolution preserving full audit/financial history
-- [ ] Customer transaction history — invoice list, payment history, outstanding balance
-- [ ] **Walk-in customer** — quick-create with phone only; no mandatory fields for speed
-- [ ] Quick customer card — POS overlay showing name, balance, last order
-
-#### Vendor Module
-- [ ] Vendor list, CRUD (mirrors customer with procurement-specific fields)
-- [ ] Vendor transaction history, outstanding payables
-
-#### Algorithms
-```dart
-// Phone normalization algorithm:
-// Strip non-digits → normalize 971 prefix to 0 prefix
-// "971501234567" → "0501234567"
-// "+971 50 123 4567" → "0501234567"
-
-// Duplicate detection: Levenshtein distance on normalized phone + email
-// Distance ≤ 1 → flag as potential duplicate
-```
-
-#### Test Cases — Sprint 05
-- [ ] TC-05-001: Customer search returns result in <300ms for 10,000 records
-- [ ] TC-05-002: Phone `+971501234567` normalized to `0501234567`
-- [ ] TC-05-003: Duplicate phone triggers warning (not hard block)
-- [ ] TC-05-004: Customer merge preserves all invoices and payments
-- [ ] TC-05-005: Walk-in customer created with phone only in <10 seconds
-- [ ] TC-05-006: Outstanding balance shows on quick customer card in POS
-- [ ] TC-05-007: Arabic name saves as UTF-8 and displays correctly
-
----
-
-### 🏁 SPRINT 06 — Service & Product Catalog (Completion)
-**Duration:** 2 weeks
-
-#### Service Catalog
-- [ ] **Nth-level service hierarchy** — parent_group_id self-join; no hardcoded depth limit
-  ```
-  Laundry > Wash > Normal Wash
-  Laundry > Dry Clean > Standard Dry Clean
-  Laundry > Iron > Steam Iron
-  ```
-- [ ] Service CRUD — name (EN+AR), description, category, base rate, VAT applicability, image, barcode
-- [ ] **Modifiers** — attach to services: Extra Starch, Fragrance, Express, Delicate, Stain Treatment, Hanger Packaging, Home Delivery, Heavy Soil, each with fixed/per-unit/percentage pricing
-- [ ] **Service Groups / Bundles** — "Premium Garment Care" = Wash + Steam Iron + Packaging, historically snapshotted at sale time
-- [ ] **Service-Product map** (`service_product_map`) — many-to-many linking
-
-#### Product Catalog
-- [ ] **Nth-level product hierarchy** — same self-join pattern as services
-  ```
-  Garments > Upper Wear > Shirt / T-Shirt / Jacket
-  Garments > Lower Wear > Trouser / Pant / Shalwar
-  Home Textile > Blanket > Big / Small
-  Home Textile > Bed Sheet > Single / Double / Queen / King
-  ```
-- [ ] Product CRUD — name, barcode, UOM (PCS/KG/LITER/etc.), stock tracking flag, image
-- [ ] Barcode/QR generation and print label
-- [ ] **Product Groups / Bundles** — "Family Linen Pack" = 2 Pillow Covers + 1 Bed Sheet
-- [ ] **Price profiles** — Standard, Corporate, Premium, Walk-In, Seasonal, Customer-Specific
-
-#### Service Tree API
-```php
-GET /services/tree   → returns nested JSON with children[]
-GET /products/tree   → returns nested JSON with children[]
-GET /products/barcode/{code}  → lookup < 100ms
-```
-
-#### Test Cases — Sprint 06
-- [ ] TC-06-001: 5-level deep service hierarchy renders correctly in UI
-- [ ] TC-06-002: Service modifier adds percentage surcharge to line total
-- [ ] TC-06-003: Service bundle expands to component lines on sale
-- [ ] TC-06-004: Product barcode lookup returns result in <100ms
-- [ ] TC-06-005: Price profile switches correctly for Corporate customer
-- [ ] TC-06-006: Arabic service name displays RTL in catalog browser
-- [ ] TC-06-007: Service-product link shows linked consumables on service card
-
----
-
-### 🏁 SPRINT 07 — POS / Instant Sale Screen (CRITICAL)
-**Duration:** 3 weeks
-
-#### Full POS Screen Implementation
-```
-Layout Reference (README §32.5):
-+--------------------------------------------------------------------+
-| CUSTOMER | ORDER # | STATUS | DATE | LANG | TERMINAL              |
-+----------------------+---------------------------------------------+
-| CUSTOMER SEARCH      | SELLABLE CATALOG / FAVORITES               |
-| WALK-IN              |                                             |
-| PHONE                | [SERVICE] [PRODUCT] [GROUP] [MODIFIER]    |
-+----------------------+---------------------------------------------+
-| CART / ITEM LINES                                                 |
-| Sr | Description | Qty | Rate | Disc | Modifier | Amount        |
-+------------------------------------------------------------------+
-| NOTES | PICKUP | DELIVERY | DUE DATE | STATUS                    |
-+------------------------------------------------------------------+
-| SUBTOTAL | DISCOUNT | OTHER | NET TOTAL | PAID | BALANCE          |
-+------------------------------------------------------------------+
-| SAVE | SAVE+PRINT | PAYMENT | HOLD | CANCEL | REPRINT | DELIVER    |
-+------------------------------------------------------------------+
-```
-
-#### Features
-- [ ] Customer search/select (scan loyalty card, type phone/name, or walk-in)
-- [ ] Quick-add via barcode scan → auto add to cart (scanner context-aware on this screen)
-- [ ] Service/product catalog browser (category → sub → item)
-- [ ] Favorites panel (most used services, configurable)
-- [ ] Line-level discount (permission-controlled) — % or fixed AED
-- [ ] Order-level discount (permission-controlled) — % or fixed AED
-- [ ] Rate override (permission-controlled) with mandatory reason
-- [ ] Modifier selection dialog per line item
-- [ ] Bundle item expansion to component lines
-- [ ] Quantity +/- with keyboard and touch support
-- [ ] Live price calculation: `(rate × qty × modifier_factor) - line_discount`
-- [ ] UAE VAT (5%) calculation: `sum(line_amounts) × 0.05`
-- [ ] Subtotal, Discount, VAT, Net Total display (live-updating)
-- [ ] Notes/remarks field, pickup/delivery flag, promised date/time
-- [ ] Order status initialization (DRAFT → CONFIRMED on save)
-- [ ] **Draft autosave** — recover unfinished transaction on app restart
-- [ ] Order Hold & Recall (F8 to hold, F8 again to show held orders)
-- [ ] Save → generate order number atomically server-side (`LP-YYYY-00001` format)
-- [ ] Save+Print → save then auto-print thermal receipt
-- [ ] Reprint (F12) → reprint last/selected invoice
-- [ ] Cancel with mandatory reason (permission-controlled)
-
-#### POS Order Number Format
-```
-Format: LP-{YYYY}-{BRANCH_CODE}-{5-digit-sequence}
-Example: LP-2026-DXB-00109
-Sequential, server-side atomic, no gaps allowed
-```
-
-#### Test Cases — Sprint 07
-- [ ] TC-07-001: Walk-in sale — 3 items added, total calculated correctly with 5% VAT
-- [ ] TC-07-002: Scanner scan adds item to cart in <100ms
-- [ ] TC-07-003: Line discount of 10% reduces line amount correctly
-- [ ] TC-07-004: Rate override requires manager PIN; audit logged
-- [ ] TC-07-005: Bundle expansion shows 3 component lines from 1 scan
-- [ ] TC-07-006: Hold order → F8 → new order → F8 → recall held order
-- [ ] TC-07-007: Draft autosave fires every 30 seconds; restored on crash
-- [ ] TC-07-008: Arabic UI — all labels RTL, numerals configurable
-- [ ] TC-07-009: Order number LP-2026-DXB-00109 generated server-side atomically
-- [ ] TC-07-010: Order saved while printer offline; print job queued
-
----
-
-### 🏁 SPRINT 08 — Payment Processing (CRITICAL)
-**Duration:** 2 weeks
-
-#### Payment Engine
-- [ ] **Cash payment** — tender input, change calculation displayed
-- [ ] **Credit / Pending** — invoice saved as outstanding; no immediate payment
-- [ ] **Debit** — debit memo adjustment
-- [ ] **Cheque** — cheque number, date, bank recorded
-- [ ] **Partial payment** — split across payment types (Cash + Cheque, etc.)
-- [ ] **Payment allocation** — apply payment to specific outstanding invoices
-- [ ] Credit/Debit Memo — adjustment memo with original invoice reference
-- [ ] UAE VAT invoice — TRN on invoice, VAT amount shown separately
-- [ ] **Pending invoices screen** — list all outstanding; filter by customer/date/amount
-- [ ] **Payment collection** — mark payment against pending invoice
-- [ ] Cash Drawer — opens automatically on cash payment
-- [ ] Receipt auto-print after payment confirmation
-
-#### Invoice Document Numbers
-```
-INV-YYYY-000001   Invoice
-REC-YYYY-000001   Receipt
-CM-YYYY-000001    Credit Memo
-DM-YYYY-000001    Debit Memo
-CHL-YYYY-000001   Challan
-GRN-YYYY-000001   Goods Receipt Note
-```
-
-#### UAE VAT Compliance
-- Tax Rate: 5% (configurable in settings)
-- TRN (Tax Registration Number) on all tax invoices
-- VAT amount shown as separate line: `VAT (5%): AED X.XX`
-- Subtotal (excl. VAT) + VAT = Net Total
-
-#### Test Cases — Sprint 08
-- [ ] TC-08-001: Cash AED 100 for AED 73.50 invoice → change AED 26.50 displayed
-- [ ] TC-08-002: Partial cash + cheque payment splits correctly
-- [ ] TC-08-003: Credit sale creates pending invoice; appears in pending list
-- [ ] TC-08-004: Payment against pending invoice reduces outstanding
-- [ ] TC-08-005: VAT 5% calculated on subtotal; TRN on invoice
-- [ ] TC-08-006: Cash drawer opens on cash payment; event audit-logged
-- [ ] TC-08-007: Duplicate payment (same idempotency key) returns original result
-
----
-
-### 🏁 SPRINT 09 — Printing — Thermal & All Paper Sizes (CRITICAL)
-**Duration:** 2 weeks
-
-> See [Section 7](#7-hardware-integration-master-specification) for full hardware spec.
-
-#### Independent Printing Service Architecture
-```
-PrintService (background service)
-├── Job Queue (in-memory + persistent fallback)
-├── Template Engine (JSON-based templates)
-├── Adapter Layer
-│   ├── ThermalAdapter (ESC/POS — USB/BT/LAN/WiFi)
-│   ├── WindowsSpoolerAdapter (Win32 — inkjet/laser/dot-matrix)
-│   └── SerialAdapter (ESC/P dot-matrix via COM port)
-└── Connectivity Manager (auto-discover, auto-bind, auto-reconnect)
-```
-
-#### Thermal Printer — All Brands
-- [ ] ESC/POS command builder for: Epson TM-T20/T82/T88, Star TSP100/TSP650/mPOP, Bixolon SRP-350/330, Citizen CT-S, Xprinter series, Sewoo, Posiflex, Generic ESC/POS
-- [ ] Paper widths: **57mm (58mm)** and **80mm** fully supported
-- [ ] Connectivity: USB auto-detect (WMI query) → Bluetooth (paired devices) → WiFi (TCP port 9100) → LAN (mDNS)
-- [ ] Auto-bind: remember last successful connection per printer name; auto-reconnect on disconnect
-- [ ] Cash drawer kick command: `ESC p 0 50 50` (pin 2, configurable)
-
-#### Inkjet / Laser — All Paper Sizes
-- [ ] PDF generation pipeline: `pdf` package → Win32 Print Spooler
-- [ ] Paper sizes: **A6** (garment tag), **A5** (compact invoice), **A4** (full invoice/report), **A3** (wide report), **A2**, **A1** (banner/sign format)
-- [ ] Silent print (no dialog) and print-with-preview modes
-- [ ] Per-document-type printer assignment (thermal for receipt, laser for formal invoice)
-
-#### Dot Matrix / Carbon Copy
-- [ ] ESC/P protocol via `flutter_serial_port` (COM port)
-- [ ] Epson LX/FX/LQ/DFX series support
-- [ ] **Multi-part carbon copy** — ORIGINAL, CUSTOMER COPY, BRANCH COPY, DELIVERY COPY (2-ply, 3-ply)
-- [ ] Correct line spacing for carbon copy form alignment
-
-#### Print Template Engine
-- [ ] JSON-based templates stored in `C:/LaundryPro/templates/` (path from config)
-- [ ] Built-in templates:
-  - `receipt_thermal_80mm.json`
-  - `receipt_thermal_57mm.json`
-  - `invoice_a4.json`
-  - `invoice_a5.json`
-  - `garment_tag_a6.json`
-  - `challan_a5.json`
-  - `delivery_slip_a5.json`
-  - `report_a4.json`
-  - `barcode_label_small.json`
-- [ ] **Visual print template designer** — WYSIWYG field placement on paper canvas
-- [ ] Test print button for each template
-- [ ] Print job log to `C:/LaundryPro/logs/print_YYYYMMDD.log`
-
-#### Print Queue & Retry
-- [ ] Print job queued if printer offline
-- [ ] Auto-print when printer comes back online
-- [ ] Print failure logged with reason
-- [ ] User notification on persistent print failure
-
-#### Test Cases — Sprint 09
-- [ ] TC-09-001: Epson TM-T88 80mm receipt prints all fields correctly
-- [ ] TC-09-002: Star TSP100 auto-discovered on WiFi (port 9100)
-- [ ] TC-09-003: Generic ESC/POS (no brand) prints via USB
-- [ ] TC-09-004: 57mm receipt does not truncate text (wraps correctly)
-- [ ] TC-09-005: A4 invoice PDF prints on HP LaserJet via spooler
-- [ ] TC-09-006: A5 delivery challan prints correctly
-- [ ] TC-09-007: Dot matrix ESC/P receipt prints on Epson LX-350
-- [ ] TC-09-008: 3-ply carbon copy delivery slip has correct content on all 3 copies
-- [ ] TC-09-009: Printer offline → job queued → printer online → auto-prints
-- [ ] TC-09-010: Arabic text on thermal receipt displays RTL correctly
-- [ ] TC-09-011: Custom template from designer prints with correct field layout
-- [ ] TC-09-012: Garment tag A6 prints barcode scannable at 300dpi
-
----
-
-### 🏁 SPRINT 10 — Barcode Scanner Service (Context-Aware)
-**Duration:** 1 week
-
-> See [Section 7](#7-hardware-integration-master-specification) for full hardware spec.
-
-#### Scanner Service — Context-Aware Auto-Search
-- [ ] USB HID keyboard wedge — global key event listener; distinguish scan (burst <50ms) from typing (>200ms gap between keystrokes)
-- [ ] Bluetooth serial scanner — `flutter_serial_port` stream
-- [ ] COM port scanner — configurable baud rate, delimiter
-- [ ] Configurable suffix (Enter/CR), prefix strip, barcode debounce
-- [ ] **Context-aware routing algorithm:**
-  ```dart
-  // On scan event, check active screen:
-  // POS Screen      → search services/products → add to cart if single match
-  // Customer Screen → lookup by loyalty card / customer code
-  // Inventory Screen → lookup product by barcode
-  // Production Screen → update order status by order barcode
-  // Delivery Screen → confirm delivery by order barcode
-  // GRN Screen      → receive inventory item by product barcode
-  // Generic         → show universal search results
-  ```
-- [ ] Scan → auto-search (response target <100ms)
-- [ ] Single result → auto-select and add
-- [ ] Multiple results → show filtered dropdown
-- [ ] No result → "Not Found" with create shortcut
-- [ ] Scanner configuration UI: port, baud, suffix, debounce ms, enable/disable
-- [ ] Scanner test screen (show raw input stream)
-
-#### Supported Barcode Formats
-```
-1D: Code 39, Code 93, Code 128, EAN-8, EAN-13, UPC-A, UPC-E, ITF, Codabar, GS1-128
-2D: QR Code, Data Matrix, PDF417, Aztec
-Mobile: via `mobile_scanner` camera-based (for tablet companion, future)
-```
-
-#### Test Cases — Sprint 10
-- [ ] TC-10-001: EAN-13 product barcode scan on POS → added to cart in <100ms
-- [ ] TC-10-002: Order barcode scan on Production screen → order status updated
-- [ ] TC-10-003: Loyalty card QR scan on Customer screen → customer loaded
-- [ ] TC-10-004: Bluetooth scanner produces same result as USB
-- [ ] TC-10-005: Fast scan (50ms burst) detected as scanner, not keyboard typing
-- [ ] TC-10-006: Unknown barcode shows "Not Found" with create option
-- [ ] TC-10-007: Scanner test screen shows raw bytes and decoded value
-
----
-
-### 🏁 SPRINT 11 — Cash Drawer Service (Complete)
-**Duration:** 1 week
-
-> See [Section 7](#7-hardware-integration-master-specification) for full hardware spec.
-
-#### Cash Drawer Service
-- [ ] **Open via printer kick port** (RJ11 → ESC/POS kick command `ESC p 0 50 50`)
-- [ ] **Open via serial RS-232** (direct COM port trigger with configurable pulse)
-- [ ] Open/close status polling (pin status where supported; visual-only where not)
-- [ ] **Authorization control** — drawer opens ONLY on:
-  - Cash payment confirmed
-  - Cash refund confirmed
-  - Manual open (requires permission `cash_drawer.manual_open` + reason)
-- [ ] Every open event logged: user_id, reason, timestamp, terminal_id (audit log)
-- [ ] **Cash session management:**
-  - Open session: enter float (opening cash count)
-  - Track all cash-in (sales) and cash-out (refunds, expense)
-  - Close session: count cash, compare to expected, print reconciliation
-  - Z-report / Daily closing report
-- [ ] Brands: APG, MMF, Posiflex, Star mPOP, VPOS, Generic RJ11
-
-#### Test Cases — Sprint 11
-- [ ] TC-11-001: Cash payment → drawer opens automatically → event logged
-- [ ] TC-11-002: Card payment → drawer does NOT open
-- [ ] TC-11-003: Manual open without permission → blocked; audit logged
-- [ ] TC-11-004: Manual open with permission + reason → allowed; audit logged
-- [ ] TC-11-005: Cash session opened with float AED 200
-- [ ] TC-11-006: Session close calculates expected vs actual cash correctly
-- [ ] TC-11-007: Z-report prints on thermal printer after session close
-
----
-
-### 🏁 SPRINT 12 — Hardware Connectivity & Config UI
-**Duration:** 1 week
-
-#### Hardware Configuration Screen (`/settings/peripherals`)
-- [ ] **Printer section** — for each document type, assign printer:
-  - Thermal receipt printer (name, connection type, port/IP, paper width)
-  - Invoice printer (name, A4/A5, connection)
-  - Label printer (name, A6/thermal, connection)
-  - Report printer (name, A4, connection)
-- [ ] **Auto-discovery wizard:**
-  1. Scan USB connected printers (WMI query for POS/receipt printers)
-  2. Scan Bluetooth paired devices (filter by printer profile)
-  3. TCP scan local subnet port 9100 (thermal printers on LAN)
-  4. mDNS scan (AirPrint / IPP printers)
-  5. Enumerate COM ports (serial devices)
-  6. Present list → user confirms → saved to `hardware_config.json`
-- [ ] **Bluetooth pairing UI** — scan → select → pair → save
-- [ ] **WiFi/LAN printer setup** — enter IP/hostname → test ping → save
-- [ ] **Serial port configuration** — COM port, baud rate, data bits, parity, stop bits
-- [ ] Per-device **Test button** (print test page / trigger open / show scan input)
-- [ ] **Health dashboard** — connected/disconnected/error status for all peripherals
-- [ ] **Auto-reconnect** — background thread pings every 30 seconds; reconnect on recovery
-- [ ] Export/import hardware config JSON (for multi-terminal chain deployment)
-- [ ] Hardware event log viewer (from LOG_PATH)
-
-#### Test Cases — Sprint 12
-- [ ] TC-12-001: Auto-discovery finds Epson TM-T88 on USB
-- [ ] TC-12-002: Auto-discovery finds network printer on port 9100
-- [ ] TC-12-003: Bluetooth printer pairs and saves correctly
-- [ ] TC-12-004: Hardware config exports to JSON and re-imports correctly
-- [ ] TC-12-005: Disconnected printer shows red indicator in status bar
-- [ ] TC-12-006: Auto-reconnect succeeds when printer comes back online
-- [ ] TC-12-007: Test print fires on "Test" button click
-
----
-
-### 🏁 SPRINT 13 — Inventory Module (Core)
-**Duration:** 2 weeks
-
-#### Stock Management
-- [ ] **Stock on hand** — real-time per-product stock level
-- [ ] **Inventory ledger** — movement-driven (append-only):
-  - Opening, Purchase Receipt, Purchase Return
-  - Sale Issue, Sale Return
-  - Adjustment In/Out (mandatory reason code)
-  - Transfer In/Out, Damage, Loss, Found
-  - Bundle Explode/Assemble, Manual Correction
-- [ ] Stock adjustment screen — product, qty, reason code, notes
-- [ ] **Low stock alert** — `low_stock_threshold` per product; badge on nav + notification
-- [ ] **Negative stock policy** — configurable: allow (warning) or block (hard stop)
-- [ ] **Stock reconciliation** — system vs physical count; variance report
-- [ ] Stock valuation — FIFO cost method (weighted average as option)
-- [ ] Barcode label printing for new inventory items (garment tags, shelf labels)
-- [ ] Inventory reports: Stock on Hand, Valuation, Movement, Low Stock, Adjustments
-
-#### Test Cases — Sprint 13
-- [ ] TC-13-001: Sale of 2 units reduces stock by 2
-- [ ] TC-13-002: Negative stock blocked when policy = block
-- [ ] TC-13-003: Low stock alert triggers when qty < threshold
-- [ ] TC-13-004: Adjustment In +10 → movement recorded with reason code
-- [ ] TC-13-005: FIFO valuation calculates correctly with 2 purchase batches
-- [ ] TC-13-006: Reconciliation report shows variance between system and physical
-
----
-
-### 🏁 SPRINT 14 — Reports Engine (Core)
-**Duration:** 2 weeks
-
-#### Report Types — Phase 1 (Core)
-**Sales Reports:**
-- [ ] Daily Sales Summary (Today's Sales, Collection, Outstanding, Ready Orders)
-- [ ] Sales by Date Range (with filters: Branch, Terminal, User, Customer, Status)
-- [ ] Revenue by Service Category
-- [ ] Revenue by Product Category
-- [ ] Discount Summary Report
-- [ ] Daily Cash Summary
-- [ ] Outstanding / Aging Report
-
-**Inventory Reports:**
-- [ ] Stock on Hand
-- [ ] Stock Movement
-- [ ] Low Stock Alert Report
-- [ ] Adjustment History
-
-**Financial:**
-- [ ] Gross Sales vs. Collections vs. Expenses (operational P&L view)
-- [ ] Payment Method Breakdown
-
-#### Dashboard KPIs (Centralized — §19.6)
-```
-Today's Sales      = SUM(confirmed sales net totals for business date)
-Today's Collection = SUM(posted payment transactions on business date)
-Outstanding        = SUM(invoice total - effective payments)
-Ready Orders       = COUNT(orders with READY_FOR_COLLECTION status)
-```
-
-#### Report Standards
-- Every report: Date From/To, Branch, User, Customer, Status filters
-- Historical snapshot principle: invoice at AED 10 stays AED 10 even if rate changes to 12
-- Export formats: **PDF** (to INVOICE_PATH), **CSV** (to EXPORT_PATH), **XLSX**
-- Print: route to report printer (A4 laser/inkjet)
-
-#### Test Cases — Sprint 14
-- [ ] TC-14-001: Daily sales KPIs match sum of individual transactions
-- [ ] TC-14-002: Outstanding = sum of unpaid invoices (cross-check)
-- [ ] TC-14-003: Historical invoice shows rate at time of sale, not current rate
-- [ ] TC-14-004: Report exports to PDF saved in EXPORT_PATH
-- [ ] TC-14-005: Report exports to CSV with correct encoding (UTF-8 BOM for Excel)
-- [ ] TC-14-006: Arabic report header and data prints RTL on A4
-
----
-
-## 5. Phase 2 — Operational Control Expansion (Sprints 15–22)
-
-### 🏁 SPRINT 15 — Production Workflow & Order Status (CRITICAL)
-**Duration:** 2 weeks
-
-#### Full Production Kanban Board
-- [ ] **Order status board** — column-based Kanban:
-  ```
-  DRAFT | CONFIRMED | RECEIVED | SORTING | PROCESSING | QUALITY_CHECK
-  | PACKED | READY_FOR_COLLECTION | OUT_FOR_DELIVERY | DELIVERED | CLOSED
-  ```
-- [ ] Exception states: `ON_HOLD`, `REWORK_REQUIRED`, `PARTIALLY_READY`, `LOST_DAMAGED_REVIEW`, `CANCELLED`
-- [ ] Drag-and-drop order cards between columns (with permission check)
-- [ ] Barcode scan to advance status (scan garment tag → order moves to next status)
-- [ ] **Quality control checkpoint** — QC fail → `REWORK_REQUIRED` → back to `PROCESSING`
-- [ ] Batch status update — select multiple orders → update all at once
-- [ ] Order assignment — assign to staff member / machine
-- [ ] Priority flags — VIP, Express, Overdue (SLA breach)
-- [ ] **SLA tracking** — promised_date vs current_date → green/yellow/red indicator
-- [ ] Order detail view — full timeline of status changes with user + timestamp
-- [ ] Photo upload per processing stage (garment before/after photos)
-- [ ] Internal notes/comments per order
-- [ ] Customer notification trigger on status change (UC-05)
-
-#### Production Screen Use Cases
-| Use Case | Flow |
-|----------|------|
-| UC-05 | Laundry Operator advances: Received → Sorting → Processing → Quality Check → Packed → Ready |
-| UC-06 | Factory Challan Batch Transfer — plant dispatcher prints transfer slip |
-
-#### Test Cases — Sprint 15
-- [ ] TC-15-001: Order drag from PROCESSING to QUALITY_CHECK updates DB
-- [ ] TC-15-002: QC fail → status becomes REWORK_REQUIRED
-- [ ] TC-15-003: Scan garment barcode → order automatically advances status
-- [ ] TC-15-004: SLA overdue order shows red indicator
-- [ ] TC-15-005: Batch update 10 orders from PROCESSING to PACKED
-- [ ] TC-15-006: Status change audit log shows user + timestamp
-
----
-
-### 🏁 SPRINT 16 — Delivery & Collection Module
-**Duration:** 2 weeks
-
-#### Delivery Workflow
-- [ ] **Delivery task creation** — assign READY_FOR_COLLECTION order to driver, set delivery date/time slot
-- [ ] **Collection task creation** — customer drop-off at counter
-- [ ] Driver assignment screen — available drivers, capacity
-- [ ] Driver task list — orders to deliver, sorted by area/route
-- [ ] **Delivery confirmation** — driver marks delivered; cash on delivery collection
-- [ ] `OUT_FOR_DELIVERY` → `DELIVERED` status transition on confirmation (UC-07)
-- [ ] Collection receipt — printed on delivery confirmation
-- [ ] Failed delivery handling — reschedule or return to store
-- [ ] **Delivery challan** — printed delivery slip (A5 or thermal) accompanying each delivery
-- [ ] Delivery fee calculation — zone-based (configurable per area/emirate)
-- [ ] Delivery calendar view (manager) — all deliveries by date
-
-#### Challan Types
-- [ ] Delivery Challan
-- [ ] Service Receipt Challan (customer drop-off)
-- [ ] Stock Transfer Challan (branch to branch / factory)
-- [ ] Vendor Return Challan
-
-#### Test Cases — Sprint 16
-- [ ] TC-16-001: Delivery task created for READY order
-- [ ] TC-16-002: Driver marks order delivered → status DELIVERED
-- [ ] TC-16-003: Cash on delivery AED 150 collected → payment recorded
-- [ ] TC-16-004: Delivery challan prints on A5
-- [ ] TC-16-005: Failed delivery → rescheduled for next day
-
----
-
-### 🏁 SPRINT 17 — Purchasing & Procurement
-**Duration:** 2 weeks
-
-#### Purchase Order → GRN → Payment Flow
-- [ ] **Vendor list** (from Sprint 05 — integrated)
-- [ ] **Purchase Order (PO) creation** — vendor, items, quantities, expected delivery date
-- [ ] PO approval workflow (permission: `purchase.approve`)
-- [ ] **Goods Receipt Note (GRN)** — receive against PO; partial receipt supported
-- [ ] Stock auto-update on GRN confirmation (inventory movement: Purchase Receipt)
-- [ ] **Vendor invoice** — record vendor's invoice against GRN
-- [ ] **Vendor payment** — record payment against vendor invoice; track payables
-- [ ] Purchase reports: PO Summary, GRN History, Vendor Purchase History, Vendor Payables
-
-#### Test Cases — Sprint 17
-- [ ] TC-17-001: PO created for 100 units; GRN receives 60; stock adds 60
-- [ ] TC-17-002: Partial GRN leaves PO status as PARTIALLY_RECEIVED
-- [ ] TC-17-003: Vendor payment reduces outstanding payable
-- [ ] TC-17-004: GRN inventory movement is append-only (cannot be deleted)
-
----
-
-### 🏁 SPRINT 18 — HR — Employees, Attendance & Leave
-**Duration:** 2 weeks
-
-#### Employee Master
-- [ ] Employee CRUD — personal info, contact, position, department, salary, visa info (UAE-specific)
-- [ ] Employee documents (Emirates ID, passport, visa copy — stored in IMAGE_PATH)
-- [ ] Employee list with status filter (active/inactive)
-
-#### Attendance
-- [ ] Clock-in / Clock-out — PIN-based or manual entry by manager
-- [ ] Attendance types: Present, Absent, Late, Half-Day, Leave, Holiday, Overtime, Off Day, Correction Request
-- [ ] Monthly attendance view (calendar grid per employee)
-- [ ] Correction request workflow — employee requests correction; manager approves
-
-#### Leave Management
-- [ ] Leave types (Annual, Sick, Emergency, Unpaid, etc.) — configurable
-- [ ] Leave entitlement per employee type
-- [ ] Leave application → manager approval workflow
-- [ ] Leave balance tracking with carry-forward rules
-- [ ] Leave calendar (who is on leave today/this week)
-
-#### Test Cases — Sprint 18
-- [ ] TC-18-001: Employee clocks in; attendance recorded
-- [ ] TC-18-002: Leave request created; manager approves; balance reduces
-- [ ] TC-18-003: Employee on leave shows on leave calendar
-- [ ] TC-18-004: Correction request changes attendance type after approval
-
----
-
-### 🏁 SPRINT 19 — Payroll & Salary Advances
-**Duration:** 2 weeks
-
-#### Payroll Generation
-- [ ] Payroll run for selected month/period
-- [ ] Calculation: Basic Salary + Allowances - Deductions - Advance Recovery
-- [ ] Attendance-based deduction (absent days → proportional deduction)
-- [ ] Overtime calculation
-- [ ] **Salary advances** — request → approve → pay → recovery tracking
-  - States: `REQUESTED` → `APPROVED` → `PAID` → `PARTIALLY_RECOVERED` → `RECOVERED`
-  - Recovery auto-deducted each payroll run until recovered
-- [ ] Payroll review UI — per employee line, editable before finalization
-- [ ] Finalize payroll → mark as PAID
-- [ ] **UAE WPS compliance** — Wage Protection System format export
-- [ ] Salary slip generation (PDF per employee, stored in EXPORT_PATH)
-
-#### Test Cases — Sprint 19
-- [ ] TC-19-001: Monthly payroll generated for 10 employees
-- [ ] TC-19-002: 2 absent days → proportional deduction from basic salary
-- [ ] TC-19-003: Salary advance AED 500; AED 100 recovered over 5 months
-- [ ] TC-19-004: Payroll export in WPS format opens without errors
-- [ ] TC-19-005: Salary slip PDF generated in EXPORT_PATH
-
----
-
-### 🏁 SPRINT 20 — Expenses Module
-**Duration:** 1 week
-
-#### Expense Management
-- [ ] **Expense categories** — Electricity, Water, Rent, Maintenance, Transport, Office, IT, Cleaning Supplies, Packaging, Marketing, and custom categories
-- [ ] Expense entry — category, amount, vendor (nullable), date, description, attachment (photo/PDF stored in IMAGE_PATH)
-- [ ] Expense approval workflow — create → pending → approved → paid
-- [ ] Petty cash management — track petty cash float, reconcile
-- [ ] Expense reports: Summary, Category-wise, Monthly, Vendor/Payee
-
-#### Test Cases — Sprint 20
-- [ ] TC-20-001: Electricity expense AED 1,200 entered and approved
-- [ ] TC-20-002: Expense attachment PDF stored in IMAGE_PATH
-- [ ] TC-20-003: Monthly expense report sums by category correctly
-
----
-
-### 🏁 SPRINT 21 — Advanced Reports & Analytics (Phase 2)
-**Duration:** 2 weeks
-
-#### Phase 2 Reports (Additional)
-**HR Reports:** Employee List, Attendance Summary, Absence Report, Leave Balance, Leave History, Payroll Register, Salary Advance, Advance Recovery
-
-**Inventory Reports:** Stock Valuation, Negative Stock Report, Slow-Moving Items, Vendor Purchase History
-
-**Expense Reports:** Expense vs. Revenue Operational View
-
-**Sales Reports (Advanced):** Customer Aging, Customer Statement, Vendor Statement, Sales by Staff, Discounts by User, Cancellations Report
-
-#### Notifications & Alert Center
-- [ ] **In-app alert center** — bell icon with badge count
-- [ ] Alert types: Low Stock, Overdue Order, Payment Due, Leave Request, Backup Failed, License Expiring
-- [ ] **Notification channels** — in-app (always), SMS (optional adapter), WhatsApp (optional adapter Phase 3)
-- [ ] Notification preferences per user
-- [ ] SMS adapter (Twilio/UAE gateway) — pluggable, disabled by default
-
-#### Customer Reminders
-- [ ] Payment due reminder
-- [ ] Ready for collection reminder
-- [ ] Delivery scheduled notification
-
-#### Test Cases — Sprint 21
-- [ ] TC-21-001: Customer aging report shows 30/60/90/90+ day buckets
-- [ ] TC-21-002: Low stock alert appears in alert center
-- [ ] TC-21-003: Backup failure triggers critical alert
-- [ ] TC-21-004: License expiry 7-day warning shows in alert center
-
----
-
-### 🏁 SPRINT 22 — Backup, Restore & Reconciliation (CRITICAL)
-**Duration:** 2 weeks
-
-> See [Section 8](#8-backup--disaster-recovery-master-specification) for full spec.
-
-#### Backup System
-- [ ] **Manual backup trigger** from Settings → Backup screen (requires `backup.run` permission)
-- [ ] **Scheduled auto-backup** — Windows Task Scheduler at 02:00 AM (configurable)
-- [ ] Backup package contents: DB dump (mysqldump), config files, lang files, print templates, `backup_manifest.json`
-- [ ] File naming: `C:\LaundryPro\backups\db_YYYYMMDD_HHMMSS.zip`
-- [ ] Backup manifest JSON with schema_version, business_uuid, installation_id, SHA-256 hash
-- [ ] Retention policy: 14 daily, 8 weekly, 12 monthly (configurable in settings)
-- [ ] **Never delete last known-good backup** on new backup failure
-
-#### Restore System
-- [ ] **Restore wizard** — select backup file → verify manifest → verify hash → confirm → execute
-- [ ] Point-in-time selection — browse backup history list
-- [ ] Pre-restore backup of current state (safety net)
-- [ ] Restore validation: record counts match, schema version compatible
-- [ ] Rollback on failed restore
-
-#### Reconciliation Engine
-- [ ] Invoice/line mismatch detection
-- [ ] Orphaned payments detection
-- [ ] Stock discrepancy detection
-- [ ] Duplicate document number detection
-- [ ] Reconciliation report export
-
-#### Test Cases — Sprint 22
-- [ ] TC-22-001: Manual backup creates `db_YYYYMMDD_HHMMSS.zip` in BACKUP_PATH
-- [ ] TC-22-002: Backup manifest SHA-256 hash matches actual zip contents
-- [ ] TC-22-003: Restore from backup restores all records correctly
-- [ ] TC-22-004: Corrupted backup file detected and rejected (hash mismatch)
-- [ ] TC-22-005: Last good backup NOT deleted when new backup fails
-- [ ] TC-22-006: Retention policy deletes old backups per configured rules
-- [ ] TC-22-007: Reconciliation engine detects orphaned payment (no matching invoice)
-- [ ] TC-22-008: Scheduled backup fires at 02:00 AM via Task Scheduler
-
----
-
-## 6. Phase 3 — Scale & Extension (Sprints 23–28)
-
-### 🏁 SPRINT 23 — Multi-Terminal & Branch Support
-**Duration:** 2 weeks
-
-- [ ] Multi-terminal LAN support — local-network binding (private LAN only)
-- [ ] Branch management — create/edit/activate branches
-- [ ] Per-branch settings override (precedence: System < Business < Branch < Terminal)
-- [ ] Inter-branch stock transfer
-- [ ] Terminal session management — register terminals, active session tracking
-- [ ] LAN terminal authentication — terminal identity token
-- [ ] Firewall guidance — restrict API to LAN subnet only
-
-#### Test Cases — Sprint 23
-- [ ] TC-23-001: Terminal 2 on LAN authenticates and creates orders independently
-- [ ] TC-23-002: Branch A settings override business defaults correctly
-- [ ] TC-23-003: Stock transfer from Branch A to Branch B updates both ledgers
-
----
-
-### 🏁 SPRINT 24 — Cloud Sync Framework
-**Duration:** 2 weeks
-
-#### Sync Architecture (UC-10)
-- [ ] **Sync outbox** (`sync_outbox` table) — every write adds a pending row
-- [ ] **Sync daemon** — background PHP/scheduler running every 60 seconds
-- [ ] Delta push to cloud API — `POST /api/v1/sync/push` (batch of 50)
-- [ ] Retry with exponential backoff on network failure
-- [ ] Sync status UI — last synced timestamp, pending count, error count
-- [ ] Cloud API receiver (cloud-api directory) — multi-tenant cloud storage
-- [ ] Sync entity registry — which entity types sync to cloud
-
-#### Test Cases — Sprint 24
-- [ ] TC-24-001: New sale creates sync_outbox record with status=pending
-- [ ] TC-24-002: Daemon syncs 50 records to cloud and marks status=synced
-- [ ] TC-24-003: Network failure → retry after exponential backoff
-- [ ] TC-24-004: Sync UI shows last synced timestamp and pending count
-
----
-
-### 🏁 SPRINT 25 — Accounting Export & KSA Localization
-**Duration:** 2 weeks
-
-#### Accounting Export
-- [ ] Chart of accounts alignment (operational P&L → accounting journal)
-- [ ] Export to: CSV (QuickBooks, Tally, Xero format), Journal Entry format
-- [ ] VAT return data (UAE FTA format)
-- [ ] Accounting export reports
-
-#### KSA Localization Package
-- [ ] SAR / Halala currency (100 Halala = 1 SAR)
-- [ ] `Asia/Riyadh` timezone
-- [ ] KSA VAT (15%) configuration
-- [ ] Arabic (KSA dialect) locale additions
-- [ ] Hijri calendar support (optional)
-
----
-
-### 🏁 SPRINT 26 — SMS / WhatsApp Notification Adapters
-**Duration:** 1 week
-
-- [ ] **SMS adapter** — Twilio / UAE local gateway (Unifonic, Etisalat API)
-- [ ] **WhatsApp Business API** adapter — order status notifications
-- [ ] Pluggable adapter pattern — swap gateway without code change
-- [ ] Notification template variables: `{customer_name}`, `{order_no}`, `{status}`, `{amount}`, `{branch}`
-- [ ] Opt-out management
-
----
-
-### 🏁 SPRINT 27 — Storefront & Customer Portal
-**Duration:** 2 weeks
-
-- [ ] **Storefront** — online order placement page (web-accessible on LAN or internet)
-- [ ] **Customer portal** — customer login, view orders, outstanding balance, payment history
-- [ ] Storefront order → creates sales_order in local DB
-- [ ] Customer portal notifications (ready for collection, delivery scheduled)
-
----
-
-### 🏁 SPRINT 28 — Final QA, Performance & Production Hardening
-**Duration:** 3 weeks
-
-#### Performance Targets (README §32.9)
-| Operation | Target |
-|-----------|--------|
-| Local login | < 1 second |
-| Customer search | < 500ms |
-| Add cart item | < 200ms UI response |
-| Open recent orders | < 1 second (paged) |
-| Confirm ordinary sale | < 2 seconds (excl. printer latency) |
-| Dashboard load | < 2 seconds |
-
-#### Quality Gate Checklist (README §32.10)
-- [ ] BRD approved
-- [ ] ERD reviewed
-- [ ] Database migration tested (fresh + idempotent)
-- [ ] API Swagger complete and drift-tested
-- [ ] Auth/permission tests passed (all roles)
-- [ ] Sales end-to-end passed
-- [ ] Payment end-to-end passed
-- [ ] Inventory reconciliation passed
-- [ ] Order status workflow tests passed
-- [ ] Arabic RTL tests passed
-- [ ] Thermal receipt print test passed (57mm + 80mm)
-- [ ] Inkjet print test passed (A4/A5)
-- [ ] Dot matrix print test passed (ESC/P)
-- [ ] Cash drawer test passed (RJ11 + serial)
-- [ ] Barcode scanner test passed (USB + BT)
-- [ ] Backup verified (create + manifest + hash)
-- [ ] Restore verified (full + partial)
-- [ ] License activation verified
-- [ ] UMAC verification verified
-- [ ] Disk-space warnings tested
-- [ ] App restart recovery (draft autosave) tested
-- [ ] Acceptance test sign-off completed
-
-#### Windows Installer
-- [ ] MSIX package for Windows Store
-- [ ] Inno Setup EXE installer with XAMPP bundling option
-- [ ] Installer pre-flight: check XAMPP, PHP version, MariaDB availability
-- [ ] Auto-create `C:/LaundryPro/` directory structure on install
-
----
-
-## 7. Hardware Integration Master Specification
-
-### 7.1 Architecture — Adapter Pattern (MANDATORY)
-```dart
-// Application code ONLY calls these generic interfaces:
-scanService.read()               // context-aware barcode scan
-printerService.print(document)   // routes to correct printer adapter
-cashDrawerService.open(reason)   // audited open
-
-// NEVER call manufacturer-specific SDK methods directly from business code
-```
-
-### 7.2 Thermal Printer Compatibility Matrix
-
-| Brand | Models | USB | BT | WiFi | LAN | Notes |
-|-------|--------|-----|----|------|-----|-------|
-| Epson | TM-T20, TM-T82, TM-T88 | ✅ | ✅ | ✅ | ✅ | Industry standard |
-| Star Micronics | TSP100, TSP650, mPOP | ✅ | ✅ | ✅ | ✅ | Common UAE |
-| Bixolon | SRP-350, SRP-330, SRP-275 | ✅ | ✅ | ✅ | ✅ | Budget-friendly |
-| Citizen | CT-S310, CT-S4000 | ✅ | ✅ | ✅ | ✅ | High speed |
-| Xprinter | XP-58, XP-80 | ✅ | ✅ | ❌ | ✅ | Common budget |
-| Sewoo | SLK-TS400 | ✅ | ❌ | ❌ | ✅ | |
-| Posiflex | PP-6900, PP-8000 | ✅ | ❌ | ✅ | ✅ | |
-| Generic | Any ESC/POS | ✅ | ✅ | ✅ | ✅ | Auto-detected |
-
-**Paper widths:** 57mm (58mm), 80mm, 112mm (wide format)
-
-### 7.3 Inkjet / Laser Paper Size Matrix
-
-| Size | Dimensions | Use Case |
-|------|-----------|----------|
-| A6 | 105×148mm | Garment tags, compact receipts |
-| A5 | 148×210mm | Compact invoices, delivery slips, challans |
-| A4 | 210×297mm | Full invoices, reports, statements |
-| A3 | 297×420mm | Wide reports, multi-column layouts |
-| A2 | 420×594mm | Signage, banners |
-| A1 | 594×841mm | Large-format signage |
-
-### 7.4 Dot Matrix Compatibility
-
-| Brand | Models | Connection | Protocol | Carbon Copy |
-|-------|--------|-----------|----------|-------------|
-| Epson | LX-350, LX-1350, FX-890, LQ-590 | USB, Serial | ESC/P, ESC/P2 | ✅ 2-ply, 3-ply, 4-ply |
-| OKI | ML-5100, ML-5500 | USB, Serial | ESC/P | ✅ |
-| Panasonic | KX-P Series | Serial | ESC/P | ✅ |
-| Generic | ESC/P compatible | USB, Serial | ESC/P | ✅ |
-
-**Carbon Copy print labels:** ORIGINAL / CUSTOMER COPY / BRANCH COPY / DELIVERY COPY
-
-### 7.5 Barcode Scanner Compatibility Matrix
-
-| Type | Examples | Connection | Protocol | Notes |
-|------|---------|-----------|---------|-------|
-| 1D Handheld | Honeywell, Zebra, Symbol | USB HID | Keyboard wedge | No driver needed |
-| 2D Handheld | Datalogic, Cognex, Zebra | USB HID | Keyboard wedge | QR + Data Matrix |
-| Bluetooth | Zebra CS60, Honeywell | BT | Serial / keyboard | Pair as keyboard |
-| Wireless 2.4GHz | Inateck, Tera | RF dongle | Keyboard wedge | |
-| Fixed presentation | Zebra DS9308 | USB | Keyboard wedge | Counter-top |
-| Serial | Any RS-232 | COM port | Configurable baud | Legacy |
-
-### 7.6 Cash Drawer Compatibility Matrix
-
-| Brand | Connection | Open Command | Status Pin |
-|-------|-----------|-------------|-----------|
-| APG | RJ11 via printer / USB | ESC p 0 50 50 | Pin 3/6 |
-| MMF Industries | RJ11 via printer | ESC p 0 50 50 | Yes |
-| Posiflex | RJ11 via printer | ESC p 0 50 50 | Yes |
-| Star mPOP | Built-in (BT/USB) | Star proprietary | Yes |
-| Generic | RJ11 via printer | Configurable pulse | Optional |
-| Any | Serial RS-232 | Configurable command | Optional |
-
-### 7.7 Connectivity Auto-Discovery Algorithm
-```
-Step 1: Load saved hardware_config.json — attempt reconnect to each saved device
-Step 2: If reconnect fails → add to "needs attention" list → show in status bar
-
-Auto-Discovery Wizard (manual trigger):
-  1. WMI query: SELECT * FROM Win32_PnPEntity WHERE PNPClass='Printer'
-  2. BT: query paired Bluetooth devices, filter by device class 0x040680 (printer)
-  3. TCP scan: for each IP in local subnet, try TCP connect to port 9100 (timeout 100ms)
-  4. mDNS: listen for _pdl-datastream._tcp and _ipp._tcp service announcements
-  5. COM ports: enumerate COM1-COM20, check for response to ESC/POS status command
-  6. Present found devices → user selects type → saved to hardware_config.json
-
-Auto-Bind:
-  - Remember device: connection_type + identifier (IP, MAC, COM port, USB serial)
-  - On app start: auto-connect to all saved devices in background thread
-  - Retry interval: 30 seconds for failed connections
-```
-
----
-
-## 8. Backup & Disaster Recovery Master Specification
-
-### 8.1 Standalone Global Configuration Paths (Admin-Only)
-
-All paths are stored in `C:/LaundryPro/config.json` AND mirrored in `api/.env`:
-
-```json
-{
-  "paths": {
-    "BACKUP_PATH":  "C:/LaundryPro/backups/",
-    "INVOICE_PATH": "C:/LaundryPro/invoices/",
-    "IMAGE_PATH":   "C:/LaundryPro/images/",
-    "LOG_PATH":     "C:/LaundryPro/logs/",
-    "EXPORT_PATH":  "C:/LaundryPro/exports/",
-    "TEMP_PATH":    "C:/LaundryPro/temp/",
-    "TEMPLATE_PATH":"C:/LaundryPro/templates/"
-  }
-}
-```
-
-**Access Control:** Only `system.config.paths` permission can edit these.
-**Validation:** Path must be writable before accepting.
-**Side-effect:** Directory auto-created on path change.
-
-### 8.2 Directory Structure (Auto-Created on Install)
-```
-C:/LaundryPro/
-├── backups/
-│   ├── db_20261001_020000.zip          ← mysqldump + manifest
-│   ├── db_20261002_020000.zip
-│   └── backup_manifest_latest.json
-├── invoices/
-│   ├── 2026/10/INV-2026-000001.pdf
-│   └── ...
-├── images/
-│   ├── garments/                       ← production photos
-│   ├── customers/                      ← customer photos
-│   ├── products/                       ← product images
-│   └── documents/                      ← employee documents, expense attachments
-├── logs/
-│   ├── app_20261001.log
-│   ├── error_20261001.log
-│   ├── print_20261001.log
-│   ├── hardware_20261001.log
-│   └── audit_20261001.log
-├── exports/
-│   ├── reports/                        ← report PDFs/CSVs
-│   └── data/                           ← CSV/XLSX data exports
-├── temp/                               ← temporary processing files
-└── templates/
-    ├── receipt_thermal_80mm.json
-    ├── receipt_thermal_57mm.json
-    ├── invoice_a4.json
-    ├── invoice_a5.json
-    ├── garment_tag_a6.json
-    ├── challan_a5.json
-    └── report_a4.json
-```
-
-### 8.3 Backup Package Contents
-```
-db_YYYYMMDD_HHMMSS.zip
-├── database.sql                    ← mysqldump output
-├── config_snapshot.json            ← settings table dump
-├── lang_en.json                    ← English localization
-├── lang_ar.json                    ← Arabic localization
-├── license_meta.json               ← license binding info (no key plaintext)
-└── backup_manifest.json            ← manifest with hashes
-```
-
-### 8.4 Backup Manifest Schema
-```json
-{
-  "product": "LaundryPro UAE",
-  "schema_version": "1.x",
-  "created_at": "2026-10-01T02:00:00+04:00",
-  "business_uuid": "uuid-here",
-  "installation_id": "installation-id-here",
-  "database_hash": "sha256-of-database.sql",
-  "file_manifest_hash": "sha256-of-manifest",
-  "record_counts": {
-    "customers": 1523,
-    "invoices": 12847,
-    "employees": 12
-  },
-  "backup_type": "FULL",
-  "retention_tag": "DAILY"
-}
-```
-
-### 8.5 Retention Policy
-```
-Daily:   keep last 14 (configurable)
-Weekly:  keep last 8 (configurable)
-Monthly: keep last 12 (configurable)
-
-Rule: Never delete the most recent successful backup merely because a newer attempt failed.
-Rule: Label each backup with retention_tag (DAILY/WEEKLY/MONTHLY) at creation.
-```
-
-### 8.6 Restore Procedure
-```
-1. Admin opens Settings → Backup & Restore
-2. Browse backup history (list from BACKUP_PATH)
-3. Select backup file → system reads backup_manifest.json
-4. Display: created_at, schema_version, record_counts
-5. Verify SHA-256 hash of database.sql → if mismatch: ABORT
-6. Check schema_version compatibility → if incompatible: ABORT
-7. Confirm: "This will replace all current data"
-8. System creates safety backup of current state (to BACKUP_PATH/pre_restore_YYYYMMDD.zip)
-9. Stop API connections (graceful)
-10. Restore database from database.sql
-11. Verify record_counts match manifest
-12. Restart API
-13. Log restore event in audit_log
-14. Success: show restored record counts
-```
-
-### 8.7 Disaster Recovery Targets
-- **RTO** (Recovery Time Objective): < 4 hours
-- **RPO** (Recovery Point Objective): < 24 hours (daily backup), < 1 hour if backup schedule shortened
-
----
-
-## 9. Global Configuration Specification
-
-### 9.1 Settings Precedence (README §10.1)
-```
-System Default  <  Business Override  <  Branch Override  <  Terminal Override
-```
-
-### 9.2 Admin UI Sections
-| Section | Keys | Access |
-|---------|------|--------|
-| Business Info | Name, logo, address, TRN, contact | Owner |
-| Paths | BACKUP_PATH, INVOICE_PATH, IMAGE_PATH, LOG_PATH, EXPORT_PATH | System Admin |
-| Localization | Default language, currency, timezone | Owner |
-| Print Defaults | Receipt printer, invoice printer, paper sizes | Manager |
-| Hardware | Scanner port/baud, drawer port, display port | System Admin |
-| Backup Schedule | Time, retention policy, cloud backup (future) | System Admin |
-| Document Numbers | Prefix format for INV, REC, CM, DM, CHL, GRN | Owner |
-| Tax | VAT rate, TRN | Owner |
-| Security | Session timeout, lockout threshold, password policy | System Admin |
-| License | Key entry, UMAC view, plan info (read-only) | System Admin |
-
----
-
-## 10. Complete Test Strategy & Test Cases
-
-### 10.1 Testing Pyramid
-```
-E2E (Patrol / integration_test):   ~30 full scenarios
-Integration (flutter_test + mock): ~150 tests
-Widget tests (flutter_test):       ~300 tests
-Unit tests (dart test + mockito):  ~500 tests
-PHP API tests (PHPUnit):           ~200 tests
-```
-
-### 10.2 End-to-End Scenarios
-
-#### E2E-001: Walk-In Sale (UC-02)
-```
-1. Open POS → New Sale
-2. Walk-in customer (no registration)
-3. Scan 2x Kandora Dry Clean (EAN-13) → auto-added to cart
-4. Add 1x Suit Steam Press manually
-5. Apply 10% line discount on Kandora (requires cashier permission)
-6. Total: 3 items, 5% VAT applied
-7. Cash payment AED 100 → change AED 26.50 displayed
-8. Confirm → order LP-2026-DXB-00001 generated
-9. Cash drawer opens (RJ11 kick via thermal)
-10. Thermal 80mm receipt prints (Epson TM-T88 on USB)
-11. Cart cleared for next customer
-```
-Expected: Complete in < 45 seconds end-to-end
-
-#### E2E-002: Full Order Lifecycle
-```
-1. Create order → CONFIRMED
-2. Production: Received → Sorting → Processing → Quality Check → Packed → Ready
-3. Customer notification (SMS if configured)
-4. Collection: Customer arrives → cash balance collected → DELIVERED → CLOSED
-```
-
-#### E2E-003: Delivery Flow (UC-07)
-```
-1. READY order → create delivery task → assign driver
-2. Driver marks OUT_FOR_DELIVERY
-3. Delivery made → mark DELIVERED → collect AED 150 COD
-4. Payment recorded → receipt printed
-5. Order status: CLOSED
-```
-
-#### E2E-004: Split Payment
-```
-Order total: AED 200
-Pay: AED 50 cash + AED 150 pending (credit)
-→ Cash drawer opens for AED 50 portion
-→ Invoice shows AED 150 outstanding
-→ Later: collect AED 150 → outstanding cleared
-```
-
-#### E2E-005: Backup & Restore
-```
-1. Trigger manual backup → db_YYYYMMDD_HHMMSS.zip created
-2. Verify manifest SHA-256 hash matches
-3. Simulate data deletion
-4. Restore from backup → all records restored
-5. System operational; audit log shows restore event
-```
-
-#### E2E-006: Hardware Recovery (Print Queue)
-```
-1. Thermal printer goes offline (unplug cable)
-2. Complete sale → payment confirmed
-3. Print job queued (not lost)
-4. Reconnect printer → auto-reconnect in < 60 seconds
-5. Queued print job auto-executes
-```
-
-#### E2E-007: Arabic RTL Full Flow
-```
-1. Switch language to Arabic
-2. Entire UI flips to RTL
-3. New Sale → Arabic customer name
-4. Arabic receipt printed (RTL text on thermal)
-5. Arabic invoice PDF generated
-```
-
-#### E2E-008: Payroll Month-End
-```
-1. All attendance recorded for October
-2. Run payroll for October
-3. Advance recovery deducted for 2 employees
-4. Payroll finalized → PAID
-5. WPS export generated
-6. Salary slips printed (PDF) for all employees
-```
-
----
-
-## 11. UI/UX Screen Inventory
-
-### Complete Screen List (All Must Be Fully Implemented)
-
-| Screen | Route | Status | Sprint |
-|--------|-------|--------|--------|
-| Splash / Boot | `/splash` | Stub | S04 |
-| Login | `/login` | Partial | S02 |
-| Setup Wizard | `/setup` | Stub | S04 |
-| Dashboard | `/dashboard` | Partial | S14 |
-| POS / New Sale | `/pos` | Stub | **S07** |
-| Pending Invoices | `/invoices/pending` | Stub | S08 |
-| Payment Collection | `/payment` | Stub | S08 |
-| Order Queue (Kanban) | `/production` | Stub | **S15** |
-| Customers | `/customers` | Partial | S05 |
-| Vendors | `/vendors` | Partial | S05 |
-| Catalog — Services | `/catalog/services` | Partial | S06 |
-| Catalog — Products | `/catalog/products` | Partial | S06 |
-| Inventory | `/inventory` | Stub | S13 |
-| Purchasing | `/purchasing` | Stub | S17 |
-| Delivery | `/delivery` | Stub | S16 |
-| Challans | `/challans` | Stub | S16 |
-| Employees | `/employees` | Partial | S18 |
-| Attendance | `/attendance` | Partial | S18 |
-| Leave | `/leave` | Stub | S18 |
-| Payroll | `/payroll` | Stub | S19 |
-| Expenses | `/expenses` | Stub | S20 |
-| Reports | `/reports` | Stub | S14/S21 |
-| Accounting | `/accounting` | Stub | S25 |
-| Analytics | `/analytics` | Stub | S21 |
-| Notifications | `/notifications` | Stub | S21 |
-| Peripherals/Hardware | `/settings/peripherals` | Partial | **S12** |
-| Settings (Global Config) | `/settings` | Partial | **S01** |
-| Branches | `/branches` | Stub | S23 |
-| Terminals | `/terminals` | Stub | S23 |
-| License | `/license` | Partial | S02 |
-| Localization | `/localization` | Partial | S04 |
-| Backup & Restore | `/settings/backup` | Stub | **S22** |
-| Sync Settings | `/sync` | Stub | S24 |
-| Storefront | `/storefront` | Stub | S27 |
-| Customer Portal | `/portal` | Stub | S27 |
-| Business Profile | `/business` | Partial | S04 |
-
----
-
-## 12. API Endpoint Completion Map
-
-### Missing / Stub Endpoints (need implementation)
-
-| Endpoint | Controller | Priority |
-|----------|-----------|----------|
-| `POST /sales/orders` (full transaction) | SalesController | 🔴 S07 |
-| `PUT /sales/{id}/status` (status machine) | SalesController | 🔴 S15 |
-| `POST /backup/run` (full backup package) | BackupController | 🔴 S22 |
-| `POST /backup/restore/execute` | BackupController | 🔴 S22 |
-| `GET /reports/dashboard-kpis` | ReportsController | 🔴 S14 |
-| `GET /reports/sales` (full filter set) | ReportsController | 🔴 S14 |
-| `POST /delivery/tasks` | DeliveryController | 🔴 S16 |
-| `PUT /delivery/tasks/{id}/complete` | DeliveryController | 🔴 S16 |
-| `POST /payroll/run` | HrController | 🔴 S19 |
-| `GET /settings/hardware` | SettingsController | 🔴 S12 |
-| `PUT /settings/paths` (admin-only) | SettingsController | 🔴 S01 |
-
----
-
-## 13. 25. .ai/ — Live Documentation Structure
-
-**Location:** `E:\Projects\Flutter\UAE-Laundry-Pro\25. .ai\`
-
-These documents MUST be kept current as development progresses. Update at end of every sprint.
-
-### Required Files
-
-```
-25. .ai/
-├── PROJECT_CONTEXT.md      ← Business context, current sprint, user personas
-│                             UPDATE: every sprint
-├── ARCHITECTURE.md         ← MVVM layers, adapter pattern, peripheral isolation, SOLID rules
-│                             UPDATE: on architectural decision
-├── DATABASE_SCHEMA.md      ← Full MariaDB schema with relationships, indexes, FK constraints
-│                             UPDATE: every migration
-├── API_CONTRACTS.md        ← All PHP API endpoints, request/response schemas
-│                             UPDATE: every new/changed endpoint
-├── HARDWARE_INTEGRATION.md ← All hardware specs, protocols, auto-discovery algorithm, tested brands
-│                             UPDATE: every hardware sprint
-├── BUSINESS_RULES.md       ← Pricing, VAT, modifiers, discount rules, order status machine
-│                             UPDATE: on rule change
-├── UAE_COMPLIANCE.md       ← VAT (5%), TRN requirements, WPS payroll, UAE labour law references
-│                             UPDATE: on compliance change
-├── FEATURE_FLAGS.md        ← All feature flags, plan restrictions, flavor config
-│                             UPDATE: on feature flag change
-├── SPRINT_LOG.md           ← Sprint-by-sprint: done/deferred/blockers/decisions
-│                             UPDATE: end of every sprint
-├── CHANGELOG.md            ← Version changelog (MAJOR.MINOR.PATCH)
-│                             UPDATE: every release
-├── KNOWN_ISSUES.md         ← Active bugs, workarounds, limitations
-│                             UPDATE: on bug discovery/resolution
-├── DECISIONS.md            ← Architecture Decision Records (ADRs)
-│                             UPDATE: on architectural decision
-├── DEPLOYMENT.md           ← XAMPP setup, Windows installer, migration scripts
-│                             UPDATE: on deployment change
-└── PROMPTS/
-    ├── code_review.md      ← AI prompt for code review requests
-    ├── feature_planning.md ← AI prompt for planning a new feature
-    ├── bug_analysis.md     ← AI prompt for debugging assistance
-    └── sprint_planning.md  ← AI prompt for sprint planning
-```
-
-### Sprint Log Update Template
-```markdown
-## Sprint XX — [Name] — [Start Date] to [End Date]
-
-### Completed
-- [x] Task description
-
-### Deferred
-- [ ] Task description → deferred to Sprint YY (reason)
-
-### Blockers
-- Blocker description
-
-### Decisions Made
-- Decision: [description] | Rationale: [reason]
-
-### Next Sprint Priorities
-1. ...
-```
-
----
-
-## 14. Sprint Summary Table
-
-| Sprint | Phase | Name | Duration | Priority |
-|--------|-------|------|----------|----------|
-| S01 | 0 | Architecture Hardening & Global Config | 2w | 🔴 Critical |
-| S02 | 0 | Auth, RBAC & License | 2w | 🔴 Critical |
-| S03 | 0 | Database Audit & Migrations | 1w | 🔴 Critical |
-| S04 | 0 | App Shell, Navigation & Setup Wizard | 1w | 🟠 High |
-| S05 | 1 | Customer & Vendor Master | 2w | 🟠 High |
-| S06 | 1 | Service & Product Catalog | 2w | 🟠 High |
-| S07 | 1 | POS / Instant Sale Screen | 3w | 🔴 Critical |
-| S08 | 1 | Payment Processing | 2w | 🔴 Critical |
-| S09 | 1 | Printing — Thermal, Inkjet, Dot Matrix, All Sizes | 2w | 🔴 Critical |
-| S10 | 1 | Scanner Service (Context-Aware) | 1w | 🔴 Critical |
-| S11 | 1 | Cash Drawer Service | 1w | 🔴 Critical |
-| S12 | 1 | Hardware Config UI & Connectivity | 1w | 🟠 High |
-| S13 | 1 | Inventory Module | 2w | 🟠 High |
-| S14 | 1 | Reports Engine (Core) | 2w | 🟠 High |
-| S15 | 2 | Production Workflow & Order Status | 2w | 🔴 Critical |
-| S16 | 2 | Delivery & Collection | 2w | 🟠 High |
-| S17 | 2 | Purchasing & Procurement | 2w | 🟠 High |
-| S18 | 2 | HR — Employees, Attendance & Leave | 2w | 🟡 Medium |
-| S19 | 2 | Payroll & Salary Advances | 2w | 🟡 Medium |
-| S20 | 2 | Expenses Module | 1w | 🟡 Medium |
-| S21 | 2 | Advanced Reports & Notifications | 2w | 🟡 Medium |
-| S22 | 2 | Backup, Restore & Reconciliation | 2w | 🔴 Critical |
-| S23 | 3 | Multi-Terminal & Branch Support | 2w | 🟡 Medium |
-| S24 | 3 | Cloud Sync Framework | 2w | 🟡 Medium |
-| S25 | 3 | Accounting Export & KSA Localization | 2w | 🟡 Medium |
-| S26 | 3 | SMS / WhatsApp Notification Adapters | 1w | 🟡 Medium |
-| S27 | 3 | Storefront & Customer Portal | 2w | 🟢 Low |
-| S28 | 3 | Final QA, Performance & Production Hardening | 3w | 🔴 Critical |
-
-**Total Estimated Duration:** ~42 weeks (~10 months from current state)
-
----
-
-*This is a living document. Update `25. .ai/SPRINT_LOG.md` at end of each sprint.*
-*Every code change involving the DB schema must update `25. .ai/DATABASE_SCHEMA.md`.*
-*Every API contract change must update `25. .ai/API_CONTRACTS.md`.*
+# LaundryPro UAE — Full & Final Implementation Roadmap
+
+
+
+> **Developer / Maintainer:** Magnificent Solution
+
+> **Product:** LaundryPro UAE (LaundryPro Local — Offline-First Desktop ERP/POS)
+
+> **Stack:** Flutter Windows · PHP 8.x (Slim/Lumen) · MariaDB/MySQL · XAMPP · ESC/POS
+
+> **Architecture:** MVVM + Modular Local Service Components · Offline-First · JWT/OAuth2
+
+> **Roadmap Date:** 2026-09-09 | Based on full README.md (1,881 lines) audit
+
+
+
+---
+
+
+
+## 📌 CRITICAL RULES (Never Violate)
+
+
+
+1. Never store monetary values as floating-point (`DECIMAL(18,2)` only).
+
+2. Never update posted invoices — use correction memos only.
+
+3. Never delete inventory movement records — soft-delete only.
+
+4. Never hardcode English UI strings in widgets — all strings from `en.json`/`ar.json`.
+
+5. Never do client-only authorization — all permissions enforced server-side by PHP middleware.
+
+6. Never embed manufacturer-specific hardware logic inside business services — adapter interfaces always.
+
+7. Every status transition is permission-controlled and audit-logged.
+
+8. All backup/file paths come from standalone global configuration — never hardcoded.
+
+
+
+---
+
+
+
+## 📋 Table of Contents
+
+
+
+1. [Current State Audit](#1-current-state-audit)
+
+2. [Product Family & Phased Delivery](#2-product-family--phased-delivery)
+
+3. [Phase 0 — Discovery & Foundation](#3-phase-0--discovery--foundation-sprints-01-04)
+
+4. [Phase 1 — Core Operational MVP](#4-phase-1--core-operational-mvp-sprints-05-14)
+
+5. [Phase 2 — Operational Control Expansion](#5-phase-2--operational-control-expansion-sprints-15-22)
+
+6. [Phase 3 — Scale & Extension](#6-phase-3--scale--extension-sprints-23-28)
+
+7. [Hardware Integration Master Spec](#7-hardware-integration-master-specification)
+
+8. [Backup & Disaster Recovery Master Spec](#8-backup--disaster-recovery-master-specification)
+
+9. [Global Configuration Specification](#9-global-configuration-specification)
+
+10. [Complete Test Strategy & Test Cases](#10-complete-test-strategy--test-cases)
+
+11. [UI/UX Screen Inventory](#11-uiux-screen-inventory)
+
+12. [API Endpoint Completion Map](#12-api-endpoint-completion-map)
+
+13. [25. .ai/ — Live Documentation Structure](#13-25-ai--live-documentation-structure)
+
+14. [Sprint Summary Table](#14-sprint-summary-table)
+
+
+
+---
+
+
+
+## 1. Current State Audit
+
+
+
+### ✅ What Exists (Already Built)
+
+Based on code inspection of `lib/`, `api/src/`, and `api/database/migrations/`:
+
+
+
+**Flutter Frontend (lib/):**
+
+- App shell, routing (`app_router.dart`, `go_router`)
+
+- Login screen, splash screen, setup wizard screen
+
+- Screen stubs for: POS, Customers, Vendors, Catalog, Employees, Attendance, Leave, Payroll, Expenses, Purchasing, Reports, Accounting, Analytics, Delivery, Challans, Branches, Terminals, Settings, License, Localization, Notifications, Production, Storefront, Customer Portal, Sync Settings, Peripherals
+
+- Services layer: `auth_service`, `sales_service`, `customer_service`, `catalog_service`, `backup_service`, `license_service`, `employee_service`, `attendance_service`, `payroll_service`, `expense_service`, `purchase_service`, `delivery_service`, `reports_service`, `settings_service`, `notification_service`, `peripheral_print_service`, `global_config_service`
+
+- Peripherals module: `lib/peripherals/` with core (cash_drawer, config, database, hardware, logging, printer, scanner, scale) and features (dashboard, printer, scanner, cash_drawer, sql_database, logs)
+
+- Auth providers, locale provider
+
+
+
+**PHP API (api/src/):**
+
+- Controllers: Auth, Sales, Catalog, Customer, Vendor, Inventory, Purchase, HR, Expense, Delivery, Challan, Backup, License, Reports, Analytics, Settings, Branch, Terminal, Accounting, Notification, Localization, Sync, Storefront, CustomerPortal, Install, Health, Docs
+
+- Repositories: All matching controllers above
+
+- Security: JwtService, PasswordHasher, PermissionChecker, UmacService
+
+- Services: AuthService, BackupService, LicenseService, InstallService, SyncService, MigrationService, SeedService, AccountingExportService, MessagingService
+
+- Core: Application, Autoloader, Container, Router, Request, Response, Env, PdoFactory
+
+
+
+**Database Migrations (28 archived + 1 baseline):**
+
+- 001–028 covering: core schema, roles, business/branch/terminal, customers/vendors, catalog, sales/payments, inventory, HR/payroll, expenses, sync outbox, documents, license/UMAC, modifiers, production workflow, delivery/challans, purchasing, notifications, branch/terminal context, terminal sessions, sync entity registry, KSA profile, notification channels, accounting exports, analytics snapshots, storefront, customer portal
+
+
+
+### ❗ What Is MISSING / INCOMPLETE (Gap Analysis)
+
+The screens exist as stubs but the full implementation is missing for:
+
+
+
+| Module | Gap Status |
+
+|--------|-----------|
+
+| POS Screen — full cart, scanner input, modifier UX | 🔴 Partial / Stub |
+
+| Catalog — full N-level hierarchy CRUD UI | 🔴 Partial |
+
+| Production Workflow — full Kanban board UI | 🔴 Stub |
+
+| Delivery — driver assignment, task workflow | 🔴 Stub |
+
+| Hardware — thermal/inkjet/dot-matrix full coverage | 🔴 Partial |
+
+| Scanner — context-aware auto-search on POS | 🔴 Partial |
+
+| Cash Drawer — session management, pin config | 🔴 Partial |
+
+| BT/WiFi/LAN auto-discovery and binding | 🔴 Missing |
+
+| Print Templates — WYSIWYG designer | 🔴 Missing |
+
+| A4/A5/A3/A2/A1 inkjet pipeline | 🔴 Missing |
+
+| Dot Matrix / Carbon Copy | 🔴 Missing |
+
+| Reconciliation engine (full UI) | 🔴 Missing |
+
+| Storefront / Customer Portal UI | 🔴 Stub |
+
+| Cloud Sync daemon + UI | 🔴 Stub |
+
+| Accounting export (CSV/journal) | 🔴 Partial |
+
+| Reports — all 30+ report types | 🔴 Partial |
+
+| Dashboard KPIs — centralized definitions | 🔴 Partial |
+
+| Notifications (alert center, channels) | 🔴 Partial |
+
+| Payroll — full generation UI + WPS | 🔴 Partial |
+
+| Purchase — full PO → GRN → payment flow UI | 🔴 Partial |
+
+| License — UMAC, time-tamper resistance | 🔴 Partial |
+
+| Backup/Restore — full UI wizard | 🔴 Partial |
+
+| Standalone global config admin UI | 🔴 Missing |
+
+| Multi-terminal LAN support | 🔴 Phase 3 |
+
+| SMS/WhatsApp notification adapters | 🔴 Phase 3 |
+
+
+
+---
+
+
+
+## 2. Product Family & Phased Delivery
+
+
+
+```
+
+LaundryPro Local  — offline/local desktop (current: LaundryPro UAE)
+
+LaundryPro Pro    — multi-terminal / local-network edition
+
+LaundryPro Cloud  — future cloud edition
+
+LaundryPro UAE    — UAE localization package (ACTIVE)
+
+LaundryPro KSA    — future Saudi Arabia package
+
+```
+
+
+
+| Phase | Name | Scope | Target |
+
+|-------|------|-------|--------|
+
+| **Phase 0** | Discovery & Foundation | Architecture, schema, roles, navigation, localization, license, print catalog, backup policy | ✅ Mostly done — gaps to fix |
+
+| **Phase 1** | Core Operational MVP | Install/bootstrap, business setup, users/roles, customers/vendors, catalog, sales, payment, basic order status, inventory basics, reports, backup, English/Arabic | 🔴 Needs completion |
+
+| **Phase 2** | Operational Control Expansion | Full production workflow, delivery/collection, challans, advanced inventory, purchasing, HR, payroll, expenses, advanced reports, print designer, alerts, social assets | 🔴 Mostly missing |
+
+| **Phase 3** | Scale & Extension | Multi-terminal LAN, branch support, cloud sync, KSA localization, accounting adapter, SMS/WhatsApp, storefront, customer app, analytics | 🔴 Missing |
+
+
+
+---
+
+
+
+## 3. Phase 0 — Discovery & Foundation (Sprints 01–04)
+
+
+
+### 🏁 SPRINT 01 — Architecture Hardening & Global Config
+
+**Status:** Partially done. Needs completion.
+
+**Duration:** 2 weeks
+
+
+
+#### Remaining Tasks
+
+- [x] **Standalone Global Configuration Admin UI** — settings screen with editable path fields (admin-only access)
+
+  - `BACKUP_PATH` default: `C:/LaundryPro/backups/`
+
+  - `INVOICE_PATH` default: `C:/LaundryPro/invoices/`
+
+  - `IMAGE_PATH` default: `C:/LaundryPro/images/`
+
+  - `LOG_PATH` default: `C:/LaundryPro/logs/`
+
+  - `EXPORT_PATH` default: `C:/LaundryPro/exports/`
+
+  - All paths editable by Super Admin / System Administrator only
+
+  - Directory auto-creation on save
+
+  - Path validation (writable check) before accepting
+
+- [x] Ensure `api/.env` keys match `global_config_service.dart` defaults
+
+- [x] `global_config_service.dart` — complete read/write/validate/migrate logic
+
+- [x] Sync `.ai/PROJECT_CONTEXT.md` with current architecture
+
+- [x] `25. .ai/ARCHITECTURE.md` — document MVVM layers, adapter pattern, peripheral isolation
+
+
+
+#### Config System Architecture
+
+```
+
+Precedence: System Default < Business Override < Branch Override < Terminal Override
+
+
+
+Sources:
+
+  1. api/.env (PHP side — DB, JWT, paths)
+
+  2. settings table (DB — business/branch/terminal overrides)
+
+  3. lib/core/constants.dart (Flutter — API base URL, terminal identity)
+
+  4. C:/LaundryPro/config.json (Flutter side — hardware, paths)
+
+
+
+Admin UI maps to BOTH api/.env editable sections AND settings table entries.
+
+```
+
+
+
+#### Test Cases — Sprint 01
+
+- [x] TC-01-001: Config loads from `C:/LaundryPro/config.json` on startup
+
+- [x] TC-01-002: Admin can change BACKUP_PATH; directory auto-created
+
+- [x] TC-01-003: Non-admin cannot access global config screen
+
+- [x] TC-01-004: Invalid path (non-writable) shows error; old path retained
+
+- [x] TC-01-005: Config survives app restart (persisted)
+
+- [x] TC-01-006: All 5 paths simultaneously writeable after config init
+
+
+
+---
+
+
+
+### 🏁 SPRINT 02 — Authentication, RBAC & License (Completion)
+
+**Status:** Auth exists; RBAC partially wired; License/UMAC partial.
+
+**Duration:** 2 weeks
+
+
+
+#### Remaining Tasks
+
+- [x] Login screen — complete OAuth2 password grant flow with refresh token
+
+- [x] Token expiry handling — auto-refresh before 8-hour expiry
+
+- [x] Account lockout after configurable failed attempts (default: 5)
+
+- [x] Session revocation (logout invalidates token server-side)
+
+- [x] RBAC enforcement — every screen/button checks permissions from JWT payload
+
+- [x] Permission matrix editor UI (role → permission toggles)
+
+- [x] **License screen** — activate key, view plan/expiry/UMAC, restricted mode on expiry
+
+- [x] UMAC generation — hardware fingerprint binding
+
+- [x] Time-tamper resistance — NTP optional check; registry pulse validation
+
+- [x] `PermissionChecker.php` — ensure all 40+ permission keys enforced
+
+- [x] Role seeding (Admin, Manager, Cashier, Storekeeper, HR, Auditor roles) in `002_seed_roles.sql`
+
+
+
+#### Permission Keys (Complete List)
+
+```
+
+Platform:    system.settings, system.config.paths, license.manage, backup.run, backup.restore
+
+Sales:       sales.create, sales.edit_draft, sales.override_rate, sales.discount_line,
+
+             sales.discount_order, sales.cancel, sales.reprint, sales.receive_payment,
+
+             sales.void, sales.memo.credit, sales.memo.debit
+
+Catalog:     catalog.view, catalog.create, catalog.edit, catalog.delete, catalog.pricing
+
+Customer:    customer.view, customer.create, customer.edit, customer.merge, customer.delete
+
+Vendor:      vendor.view, vendor.create, vendor.edit
+
+Inventory:   inventory.view, inventory.adjust, inventory.reconcile, inventory.transfer
+
+Production:  production.status_update, production.qc, production.rework
+
+Delivery:    delivery.dispatch, delivery.complete, delivery.reassign
+
+Purchasing:  purchase.create, purchase.receive, purchase.approve
+
+HR:          hr.employee.view, hr.attendance.record, hr.leave.approve,
+
+             hr.payroll.run, hr.payroll.view, hr.advance.approve
+
+Expense:     expense.create, expense.approve, expense.view
+
+Reports:     reports.sales, reports.inventory, reports.hr, reports.financial, reports.export
+
+Hardware:    hardware.configure, hardware.test
+
+```
+
+
+
+#### Test Cases — Sprint 02
+
+- [x] TC-02-001: Login with valid credentials returns JWT
+
+- [x] TC-02-002: Expired JWT auto-refreshed without logout
+
+- [x] TC-02-003: 5 failed logins lock account; 6th attempt blocked
+
+- [x] TC-02-004: Cashier cannot access Settings screen (403)
+
+- [x] TC-02-005: Rate override button hidden for cashier without permission
+
+- [x] TC-02-006: License key activates and stores UMAC
+
+- [x] TC-02-007: Hardware mismatch on UMAC check triggers alert
+
+- [x] TC-02-008: System clock rollback detected and flagged
+
+
+
+---
+
+
+
+### 🏁 SPRINT 03 — Database Schema Completion & Migrations
+
+**Status:** 28 migrations archived; baseline.sql present. Needs audit.
+
+**Duration:** 1 week
+
+
+
+#### Remaining Tasks
+
+- [x] Audit `001_baseline.sql` — ensure it consolidates all 28 archived migrations correctly
+
+- [x] Verify all FK constraints, indexes, and `utf8mb4` charset throughout
+
+- [x] Verify all key indexes listed in README §7.5 are present
+
+- [x] Add migration for global config path settings table entries
+
+- [x] Seed data: default roles, permissions, system settings, UAE sample data
+
+- [x] `scripts/migrate.ps1` — ensure idempotent re-run safety
+
+
+
+#### Critical Indexes to Verify
+
+```sql
+
+customer(phone), customer(customer_code), customer(name)
+
+vendor(vendor_code)
+
+service(parent_id, is_active)
+
+product(parent_id, is_active, barcode)
+
+sales_order(order_no), sales_order(customer_id, created_at), sales_order(status, promised_date)
+
+inventory_movement(product_id, movement_date)
+
+attendance(employee_id, attendance_date)
+
+audit_log(entity_type, entity_id, created_at)
+
+notification(user_id, is_read, created_at)
+
+```
+
+
+
+#### Test Cases — Sprint 03
+
+- [x] TC-03-001: Fresh migration runs without errors on empty MariaDB
+
+- [x] TC-03-002: Re-running migration is idempotent (no duplicate table errors)
+
+- [x] TC-03-003: All FK constraints verified with test inserts
+
+- [x] TC-03-004: Arabic text (UTF-8 4-byte) stores and retrieves correctly
+
+- [x] TC-03-005: All required indexes present in `SHOW INDEX FROM` output
+
+
+
+---
+
+
+
+### 🏁 SPRINT 04 — App Shell, Navigation & Setup Wizard (Completion)
+
+**Status:** Shell exists; setup wizard stub present.
+
+**Duration:** 1 week
+
+
+
+#### Remaining Tasks
+
+- [x] **Setup wizard** — full first-run flow:
+
+  - Business name, logo, contact, physical address (UAE Emirates)
+
+  - Default language (EN/AR), default currency (AED/Fils)
+
+  - Opening date, document number prefix (`INV-`, `REC-`, `CHL-`, `GRN-`)
+
+  - Administrator account creation
+
+  - Backup location (configurable, defaults to `C:/LaundryPro/backups/`)
+
+  - Printer defaults (thermal 80mm/58mm, A4 for reports)
+
+  - Terminal identity (generates `installation_id`)
+
+  - License key entry (Step 8)
+
+- [x] Status bar — DB connected, Backup OK, Printer status, Scanner status, App version
+
+- [x] Header bar — Brand logo, Branch name, Terminal ID, User name, Date/Time, Language toggle
+
+- [x] Keyboard shortcuts — all shortcuts listed in README §14.8 fully wired
+
+- [x] RTL layout toggle — Arabic RTL via `Directionality` widget at root
+
+- [x] Notification badge on nav — alert count indicator
+
+- [x] Disk space warning — `<20%` yellow, `<10%` red in status bar
+
+
+
+#### Test Cases — Sprint 04
+
+- [x] TC-04-001: First-run wizard completes all 8 steps
+
+- [x] TC-04-002: `Ctrl+N` opens New Sale screen
+
+- [x] TC-04-003: Arabic language toggle flips entire UI to RTL
+
+- [x] TC-04-004: Disk space warning shows at <20% free
+
+- [x] TC-04-005: Header shows correct branch/terminal/user on login
+
+
+
+---
+
+
+
+## 4. Phase 1 — Core Operational MVP (Sprints 05–14)
+
+
+
+### 🏁 SPRINT 05 — Customer & Vendor Master (Completion)
+
+**Duration:** 2 weeks
+
+
+
+#### Customer Module
+
+- [x] **Customer list** — paginated, searchable (name, phone, customer_code), sortable, filterable by status/tag
+
+- [x] **Customer search** — response < 300ms (README UC-03); fuzzy match + exact phone match
+
+- [x] Phone normalization — `+971 5x xxx xxxx` → `05xxxxxxxx` unified format
+
+- [x] Duplicate detection — same phone/email shows warning before save
+
+- [x] **Customer create/edit form** — personal info, professional info, location (Emirate, area, street, building), credit limit, tags
+
+- [x] Customer merge — duplicate resolution preserving full audit/financial history
+
+- [x] Customer transaction history — invoice list, payment history, outstanding balance
+
+- [x] **Walk-in customer** — quick-create with phone only; no mandatory fields for speed
+
+- [x] Quick customer card — POS overlay showing name, balance, last order
+
+
+
+#### Vendor Module
+
+- [x] Vendor list, CRUD (mirrors customer with procurement-specific fields)
+
+- [x] Vendor transaction history, outstanding payables
+
+
+
+#### Algorithms
+
+```dart
+
+// Phone normalization algorithm:
+
+// Strip non-digits → normalize 971 prefix to 0 prefix
+
+// "971501234567" → "0501234567"
+
+// "+971 50 123 4567" → "0501234567"
+
+
+
+// Duplicate detection: Levenshtein distance on normalized phone + email
+
+// Distance ≤ 1 → flag as potential duplicate
+
+```
+
+
+
+#### Test Cases — Sprint 05
+
+- [x] TC-05-001: Customer search returns result in <300ms for 10,000 records
+
+- [x] TC-05-002: Phone `+971501234567` normalized to `0501234567`
+
+- [x] TC-05-003: Duplicate phone triggers warning (not hard block)
+
+- [x] TC-05-004: Customer merge preserves all invoices and payments
+
+- [x] TC-05-005: Walk-in customer created with phone only in <10 seconds
+
+- [x] TC-05-006: Outstanding balance shows on quick customer card in POS
+
+- [x] TC-05-007: Arabic name saves as UTF-8 and displays correctly
+
+
+
+---
+
+
+
+### 🏁 SPRINT 06 — Service & Product Catalog (Completion)
+
+**Duration:** 2 weeks
+
+
+
+#### Service Catalog
+
+- [x] **Nth-level service hierarchy** — parent_group_id self-join; no hardcoded depth limit
+
+  ```
+
+  Laundry > Wash > Normal Wash
+
+  Laundry > Dry Clean > Standard Dry Clean
+
+  Laundry > Iron > Steam Iron
+
+  ```
+
+- [x] Service CRUD — name (EN+AR), description, category, base rate, VAT applicability, image, barcode
+
+- [x] **Modifiers** — attach to services: Extra Starch, Fragrance, Express, Delicate, Stain Treatment, Hanger Packaging, Home Delivery, Heavy Soil, each with fixed/per-unit/percentage pricing
+
+- [x] **Service Groups / Bundles** — "Premium Garment Care" = Wash + Steam Iron + Packaging, historically snapshotted at sale time
+
+- [x] **Service-Product map** (`service_product_map`) — many-to-many linking
+
+
+
+#### Product Catalog
+
+- [x] **Nth-level product hierarchy** — same self-join pattern as services
+
+  ```
+
+  Garments > Upper Wear > Shirt / T-Shirt / Jacket
+
+  Garments > Lower Wear > Trouser / Pant / Shalwar
+
+  Home Textile > Blanket > Big / Small
+
+  Home Textile > Bed Sheet > Single / Double / Queen / King
+
+  ```
+
+- [x] Product CRUD — name, barcode, UOM (PCS/KG/LITER/etc.), stock tracking flag, image
+
+- [x] Barcode/QR generation and print label
+
+- [x] **Product Groups / Bundles** — "Family Linen Pack" = 2 Pillow Covers + 1 Bed Sheet
+
+- [x] **Price profiles** — Standard, Corporate, Premium, Walk-In, Seasonal, Customer-Specific
+
+
+
+#### Service Tree API
+
+```php
+
+GET /services/tree   → returns nested JSON with children[]
+
+GET /products/tree   → returns nested JSON with children[]
+
+GET /products/barcode/{code}  → lookup < 100ms
+
+```
+
+
+
+#### Test Cases — Sprint 06
+
+- [x] TC-06-001: 5-level deep service hierarchy renders correctly in UI
+
+- [x] TC-06-002: Service modifier adds percentage surcharge to line total
+
+- [x] TC-06-003: Service bundle expands to component lines on sale
+
+- [x] TC-06-004: Product barcode lookup returns result in <100ms
+
+- [x] TC-06-005: Price profile switches correctly for Corporate customer
+
+- [x] TC-06-006: Arabic service name displays RTL in catalog browser
+
+- [x] TC-06-007: Service-product link shows linked consumables on service card
+
+
+
+---
+
+
+
+### 🏁 SPRINT 07 — POS / Instant Sale Screen (CRITICAL)
+
+**Duration:** 3 weeks
+
+
+
+#### Full POS Screen Implementation
+
+```
+
+Layout Reference (README §32.5):
+
++--------------------------------------------------------------------+
+
+| CUSTOMER | ORDER # | STATUS | DATE | LANG | TERMINAL              |
+
++----------------------+---------------------------------------------+
+
+| CUSTOMER SEARCH      | SELLABLE CATALOG / FAVORITES               |
+
+| WALK-IN              |                                             |
+
+| PHONE                | [SERVICE] [PRODUCT] [GROUP] [MODIFIER]    |
+
++----------------------+---------------------------------------------+
+
+| CART / ITEM LINES                                                 |
+
+| Sr | Description | Qty | Rate | Disc | Modifier | Amount        |
+
++------------------------------------------------------------------+
+
+| NOTES | PICKUP | DELIVERY | DUE DATE | STATUS                    |
+
++------------------------------------------------------------------+
+
+| SUBTOTAL | DISCOUNT | OTHER | NET TOTAL | PAID | BALANCE          |
+
++------------------------------------------------------------------+
+
+| SAVE | SAVE+PRINT | PAYMENT | HOLD | CANCEL | REPRINT | DELIVER    |
+
++------------------------------------------------------------------+
+
+```
+
+
+
+#### Features
+
+- [x] Customer search/select (scan loyalty card, type phone/name, or walk-in)
+
+- [x] Quick-add via barcode scan → auto add to cart (scanner context-aware on this screen)
+
+- [x] Service/product catalog browser (category → sub → item)
+
+- [x] Favorites panel (most used services, configurable)
+
+- [x] Line-level discount (permission-controlled) — % or fixed AED
+
+- [x] Order-level discount (permission-controlled) — % or fixed AED
+
+- [x] Rate override (permission-controlled) with mandatory reason
+
+- [x] Modifier selection dialog per line item
+
+- [x] Bundle item expansion to component lines
+
+- [x] Quantity +/- with keyboard and touch support
+
+- [x] Live price calculation: `(rate × qty × modifier_factor) - line_discount`
+
+- [x] UAE VAT (5%) calculation: `sum(line_amounts) × 0.05`
+
+- [x] Subtotal, Discount, VAT, Net Total display (live-updating)
+
+- [x] Notes/remarks field, pickup/delivery flag, promised date/time
+
+- [x] Order status initialization (DRAFT → CONFIRMED on save)
+
+- [x] **Draft autosave** — recover unfinished transaction on app restart
+
+- [x] Order Hold & Recall (F8 to hold, F8 again to show held orders)
+
+- [x] Save → generate order number atomically server-side (`LP-YYYY-00001` format)
+
+- [x] Save+Print → save then auto-print thermal receipt
+
+- [x] Reprint (F12) → reprint last/selected invoice
+
+- [x] Cancel with mandatory reason (permission-controlled)
+
+
+
+#### POS Order Number Format
+
+```
+
+Format: LP-{YYYY}-{BRANCH_CODE}-{5-digit-sequence}
+
+Example: LP-2026-DXB-00109
+
+Sequential, server-side atomic, no gaps allowed
+
+```
+
+
+
+#### Test Cases — Sprint 07
+
+- [x] TC-07-001: Walk-in sale — 3 items added, total calculated correctly with 5% VAT
+
+- [x] TC-07-002: Scanner scan adds item to cart in <100ms
+
+- [x] TC-07-003: Line discount of 10% reduces line amount correctly
+
+- [x] TC-07-004: Rate override requires manager PIN; audit logged
+
+- [x] TC-07-005: Bundle expansion shows 3 component lines from 1 scan
+
+- [x] TC-07-006: Hold order → F8 → new order → F8 → recall held order
+
+- [x] TC-07-007: Draft autosave fires every 30 seconds; restored on crash
+
+- [x] TC-07-008: Arabic UI — all labels RTL, numerals configurable
+
+- [x] TC-07-009: Order number LP-2026-DXB-00109 generated server-side atomically
+
+- [x] TC-07-010: Order saved while printer offline; print job queued
+
+
+
+---
+
+
+
+### 🏁 SPRINT 08 — Payment Processing (CRITICAL)
+
+**Duration:** 2 weeks
+
+
+
+#### Payment Engine
+
+- [x] **Cash payment** — tender input, change calculation displayed
+
+- [x] **Credit / Pending** — invoice saved as outstanding; no immediate payment
+
+- [x] **Debit** — debit memo adjustment
+
+- [x] **Cheque** — cheque number, date, bank recorded
+
+- [x] **Partial payment** — split across payment types (Cash + Cheque, etc.)
+
+- [x] **Payment allocation** — apply payment to specific outstanding invoices
+
+- [x] Credit/Debit Memo — adjustment memo with original invoice reference
+
+- [x] UAE VAT invoice — TRN on invoice, VAT amount shown separately
+
+- [x] **Pending invoices screen** — list all outstanding; filter by customer/date/amount
+
+- [x] **Payment collection** — mark payment against pending invoice
+
+- [x] Cash Drawer — opens automatically on cash payment
+
+- [x] Receipt auto-print after payment confirmation
+
+
+
+#### Invoice Document Numbers
+
+```
+
+INV-YYYY-000001   Invoice
+
+REC-YYYY-000001   Receipt
+
+CM-YYYY-000001    Credit Memo
+
+DM-YYYY-000001    Debit Memo
+
+CHL-YYYY-000001   Challan
+
+GRN-YYYY-000001   Goods Receipt Note
+
+```
+
+
+
+#### UAE VAT Compliance
+
+- Tax Rate: 5% (configurable in settings)
+
+- TRN (Tax Registration Number) on all tax invoices
+
+- VAT amount shown as separate line: `VAT (5%): AED X.XX`
+
+- Subtotal (excl. VAT) + VAT = Net Total
+
+
+
+#### Test Cases — Sprint 08
+
+- [x] TC-08-001: Cash AED 100 for AED 73.50 invoice → change AED 26.50 displayed
+
+- [x] TC-08-002: Partial cash + cheque payment splits correctly
+
+- [x] TC-08-003: Credit sale creates pending invoice; appears in pending list
+
+- [x] TC-08-004: Payment against pending invoice reduces outstanding
+
+- [x] TC-08-005: VAT 5% calculated on subtotal; TRN on invoice
+
+- [x] TC-08-006: Cash drawer opens on cash payment; event audit-logged
+
+- [x] TC-08-007: Duplicate payment (same idempotency key) returns original result
+
+
+
+---
+
+
+
+### 🏁 SPRINT 09 — Printing — Thermal & All Paper Sizes (CRITICAL)
+
+**Duration:** 2 weeks
+
+
+
+> See [Section 7](#7-hardware-integration-master-specification) for full hardware spec.
+
+
+
+#### Independent Printing Service Architecture
+
+```
+
+PrintService (background service)
+
+├── Job Queue (in-memory + persistent fallback)
+
+├── Template Engine (JSON-based templates)
+
+├── Adapter Layer
+
+│   ├── ThermalAdapter (ESC/POS — USB/BT/LAN/WiFi)
+
+│   ├── WindowsSpoolerAdapter (Win32 — inkjet/laser/dot-matrix)
+
+│   └── SerialAdapter (ESC/P dot-matrix via COM port)
+
+└── Connectivity Manager (auto-discover, auto-bind, auto-reconnect)
+
+```
+
+
+
+#### Thermal Printer — All Brands
+
+- [x] ESC/POS command builder for: Epson TM-T20/T82/T88, Star TSP100/TSP650/mPOP, Bixolon SRP-350/330, Citizen CT-S, Xprinter series, Sewoo, Posiflex, Generic ESC/POS
+
+- [x] Paper widths: **57mm (58mm)** and **80mm** fully supported
+
+- [x] Connectivity: USB auto-detect (WMI query) → Bluetooth (paired devices) → WiFi (TCP port 9100) → LAN (mDNS)
+
+- [x] Auto-bind: remember last successful connection per printer name; auto-reconnect on disconnect
+
+- [x] Cash drawer kick command: `ESC p 0 50 50` (pin 2, configurable)
+
+
+
+#### Inkjet / Laser — All Paper Sizes
+
+- [x] PDF generation pipeline: `pdf` package → Win32 Print Spooler
+
+- [x] Paper sizes: **A6** (garment tag), **A5** (compact invoice), **A4** (full invoice/report), **A3** (wide report), **A2**, **A1** (banner/sign format)
+
+- [x] Silent print (no dialog) and print-with-preview modes
+
+- [x] Per-document-type printer assignment (thermal for receipt, laser for formal invoice)
+
+
+
+#### Dot Matrix / Carbon Copy
+
+- [x] ESC/P protocol via `flutter_serial_port` (COM port)
+
+- [x] Epson LX/FX/LQ/DFX series support
+
+- [x] **Multi-part carbon copy** — ORIGINAL, CUSTOMER COPY, BRANCH COPY, DELIVERY COPY (2-ply, 3-ply)
+
+- [x] Correct line spacing for carbon copy form alignment
+
+
+
+#### Print Template Engine
+
+- [x] JSON-based templates stored in `C:/LaundryPro/templates/` (path from config)
+
+- [x] Built-in templates:
+
+  - `receipt_thermal_80mm.json`
+
+  - `receipt_thermal_57mm.json`
+
+  - `invoice_a4.json`
+
+  - `invoice_a5.json`
+
+  - `garment_tag_a6.json`
+
+  - `challan_a5.json`
+
+  - `delivery_slip_a5.json`
+
+  - `report_a4.json`
+
+  - `barcode_label_small.json`
+
+- [x] **Visual print template designer** — WYSIWYG field placement on paper canvas
+
+- [x] Test print button for each template
+
+- [x] Print job log to `C:/LaundryPro/logs/print_YYYYMMDD.log`
+
+
+
+#### Print Queue & Retry
+
+- [x] Print job queued if printer offline
+
+- [x] Auto-print when printer comes back online
+
+- [x] Print failure logged with reason
+
+- [x] User notification on persistent print failure
+
+
+
+#### Test Cases — Sprint 09
+
+- [x] TC-09-001: Epson TM-T88 80mm receipt prints all fields correctly
+
+- [x] TC-09-002: Star TSP100 auto-discovered on WiFi (port 9100)
+
+- [x] TC-09-003: Generic ESC/POS (no brand) prints via USB
+
+- [x] TC-09-004: 57mm receipt does not truncate text (wraps correctly)
+
+- [x] TC-09-005: A4 invoice PDF prints on HP LaserJet via spooler
+
+- [x] TC-09-006: A5 delivery challan prints correctly
+
+- [x] TC-09-007: Dot matrix ESC/P receipt prints on Epson LX-350
+
+- [x] TC-09-008: 3-ply carbon copy delivery slip has correct content on all 3 copies
+
+- [x] TC-09-009: Printer offline → job queued → printer online → auto-prints
+
+- [x] TC-09-010: Arabic text on thermal receipt displays RTL correctly
+
+- [x] TC-09-011: Custom template from designer prints with correct field layout
+
+- [x] TC-09-012: Garment tag A6 prints barcode scannable at 300dpi
+
+
+
+---
+
+
+
+### 🏁 SPRINT 10 — Barcode Scanner Service (Context-Aware)
+
+**Duration:** 1 week
+
+
+
+> See [Section 7](#7-hardware-integration-master-specification) for full hardware spec.
+
+
+
+#### Scanner Service — Context-Aware Auto-Search
+
+- [x] USB HID keyboard wedge — global key event listener; distinguish scan (burst <50ms) from typing (>200ms gap between keystrokes)
+
+- [x] Bluetooth serial scanner — `flutter_serial_port` stream
+
+- [x] COM port scanner — configurable baud rate, delimiter
+
+- [x] Configurable suffix (Enter/CR), prefix strip, barcode debounce
+
+- [x] **Context-aware routing algorithm:**
+
+  ```dart
+
+  // On scan event, check active screen:
+
+  // POS Screen      → search services/products → add to cart if single match
+
+  // Customer Screen → lookup by loyalty card / customer code
+
+  // Inventory Screen → lookup product by barcode
+
+  // Production Screen → update order status by order barcode
+
+  // Delivery Screen → confirm delivery by order barcode
+
+  // GRN Screen      → receive inventory item by product barcode
+
+  // Generic         → show universal search results
+
+  ```
+
+- [x] Scan → auto-search (response target <100ms)
+
+- [x] Single result → auto-select and add
+
+- [x] Multiple results → show filtered dropdown
+
+- [x] No result → "Not Found" with create shortcut
+
+- [x] Scanner configuration UI: port, baud, suffix, debounce ms, enable/disable
+
+- [x] Scanner test screen (show raw input stream)
+
+
+
+#### Supported Barcode Formats
+
+```
+
+1D: Code 39, Code 93, Code 128, EAN-8, EAN-13, UPC-A, UPC-E, ITF, Codabar, GS1-128
+
+2D: QR Code, Data Matrix, PDF417, Aztec
+
+Mobile: via `mobile_scanner` camera-based (for tablet companion, future)
+
+```
+
+
+
+#### Test Cases — Sprint 10
+
+- [x] TC-10-001: EAN-13 product barcode scan on POS → added to cart in <100ms
+
+- [x] TC-10-002: Order barcode scan on Production screen → order status updated
+
+- [x] TC-10-003: Loyalty card QR scan on Customer screen → customer loaded
+
+- [x] TC-10-004: Bluetooth scanner produces same result as USB
+
+- [x] TC-10-005: Fast scan (50ms burst) detected as scanner, not keyboard typing
+
+- [x] TC-10-006: Unknown barcode shows "Not Found" with create option
+
+- [x] TC-10-007: Scanner test screen shows raw bytes and decoded value
+
+
+
+---
+
+
+
+### 🏁 SPRINT 11 — Cash Drawer Service (Complete)
+
+**Duration:** 1 week
+
+
+
+> See [Section 7](#7-hardware-integration-master-specification) for full hardware spec.
+
+
+
+#### Cash Drawer Service
+
+- [x] **Open via printer kick port** (RJ11 → ESC/POS kick command `ESC p 0 50 50`)
+
+- [x] **Open via serial RS-232** (direct COM port trigger with configurable pulse)
+
+- [x] Open/close status polling (pin status where supported; visual-only where not)
+
+- [x] **Authorization control** — drawer opens ONLY on:
+
+  - Cash payment confirmed
+
+  - Cash refund confirmed
+
+  - Manual open (requires permission `cash_drawer.manual_open` + reason)
+
+- [x] Every open event logged: user_id, reason, timestamp, terminal_id (audit log)
+
+- [x] **Cash session management:**
+
+  - Open session: enter float (opening cash count)
+
+  - Track all cash-in (sales) and cash-out (refunds, expense)
+
+  - Close session: count cash, compare to expected, print reconciliation
+
+  - Z-report / Daily closing report
+
+- [x] Brands: APG, MMF, Posiflex, Star mPOP, VPOS, Generic RJ11
+
+
+
+#### Test Cases — Sprint 11
+
+- [x] TC-11-001: Cash payment → drawer opens automatically → event logged
+
+- [x] TC-11-002: Card payment → drawer does NOT open
+
+- [x] TC-11-003: Manual open without permission → blocked; audit logged
+
+- [x] TC-11-004: Manual open with permission + reason → allowed; audit logged
+
+- [x] TC-11-005: Cash session opened with float AED 200
+
+- [x] TC-11-006: Session close calculates expected vs actual cash correctly
+
+- [x] TC-11-007: Z-report prints on thermal printer after session close
+
+
+
+---
+
+
+
+### 🏁 SPRINT 12 — Hardware Connectivity & Config UI
+
+**Duration:** 1 week
+
+
+
+#### Hardware Configuration Screen (`/settings/peripherals`)
+
+- [x] **Printer section** — for each document type, assign printer:
+
+  - Thermal receipt printer (name, connection type, port/IP, paper width)
+
+  - Invoice printer (name, A4/A5, connection)
+
+  - Label printer (name, A6/thermal, connection)
+
+  - Report printer (name, A4, connection)
+
+- [x] **Auto-discovery wizard:**
+
+  1. Scan USB connected printers (WMI query for POS/receipt printers)
+
+  2. Scan Bluetooth paired devices (filter by printer profile)
+
+  3. TCP scan local subnet port 9100 (thermal printers on LAN)
+
+  4. mDNS scan (AirPrint / IPP printers)
+
+  5. Enumerate COM ports (serial devices)
+
+  6. Present list → user confirms → saved to `hardware_config.json`
+
+- [x] **Bluetooth pairing UI** — scan → select → pair → save
+
+- [x] **WiFi/LAN printer setup** — enter IP/hostname → test ping → save
+
+- [x] **Serial port configuration** — COM port, baud rate, data bits, parity, stop bits
+
+- [x] Per-device **Test button** (print test page / trigger open / show scan input)
+
+- [x] **Health dashboard** — connected/disconnected/error status for all peripherals
+
+- [x] **Auto-reconnect** — background thread pings every 30 seconds; reconnect on recovery
+
+- [x] Export/import hardware config JSON (for multi-terminal chain deployment)
+
+- [x] Hardware event log viewer (from LOG_PATH)
+
+
+
+#### Test Cases — Sprint 12
+
+- [x] TC-12-001: Auto-discovery finds Epson TM-T88 on USB
+
+- [x] TC-12-002: Auto-discovery finds network printer on port 9100
+
+- [x] TC-12-003: Bluetooth printer pairs and saves correctly
+
+- [x] TC-12-004: Hardware config exports to JSON and re-imports correctly
+
+- [x] TC-12-005: Disconnected printer shows red indicator in status bar
+
+- [x] TC-12-006: Auto-reconnect succeeds when printer comes back online
+
+- [x] TC-12-007: Test print fires on "Test" button click
+
+
+
+---
+
+
+
+### 🏁 SPRINT 13 — Inventory Module (Core)
+
+**Duration:** 2 weeks
+
+
+
+#### Stock Management
+
+- [x] **Stock on hand** — real-time per-product stock level
+
+- [x] **Inventory ledger** — movement-driven (append-only):
+
+  - Opening, Purchase Receipt, Purchase Return
+
+  - Sale Issue, Sale Return
+
+  - Adjustment In/Out (mandatory reason code)
+
+  - Transfer In/Out, Damage, Loss, Found
+
+  - Bundle Explode/Assemble, Manual Correction
+
+- [x] Stock adjustment screen — product, qty, reason code, notes
+
+- [x] **Low stock alert** — `low_stock_threshold` per product; badge on nav + notification
+
+- [x] **Negative stock policy** — configurable: allow (warning) or block (hard stop)
+
+- [x] **Stock reconciliation** — system vs physical count; variance report
+
+- [x] Stock valuation — FIFO cost method (weighted average as option)
+
+- [x] Barcode label printing for new inventory items (garment tags, shelf labels)
+
+- [x] Inventory reports: Stock on Hand, Valuation, Movement, Low Stock, Adjustments
+
+
+
+#### Test Cases — Sprint 13
+
+- [x] TC-13-001: Sale of 2 units reduces stock by 2
+
+- [x] TC-13-002: Negative stock blocked when policy = block
+
+- [x] TC-13-003: Low stock alert triggers when qty < threshold
+
+- [x] TC-13-004: Adjustment In +10 → movement recorded with reason code
+
+- [x] TC-13-005: FIFO valuation calculates correctly with 2 purchase batches
+
+- [x] TC-13-006: Reconciliation report shows variance between system and physical
+
+
+
+---
+
+
+
+### 🏁 SPRINT 14 — Reports Engine (Core)
+
+**Duration:** 2 weeks
+
+
+
+#### Report Types — Phase 1 (Core)
+
+**Sales Reports:**
+
+- [x] Daily Sales Summary (Today's Sales, Collection, Outstanding, Ready Orders)
+
+- [x] Sales by Date Range (with filters: Branch, Terminal, User, Customer, Status)
+
+- [x] Revenue by Service Category
+
+- [x] Revenue by Product Category
+
+- [x] Discount Summary Report
+
+- [x] Daily Cash Summary
+
+- [x] Outstanding / Aging Report
+
+
+
+**Inventory Reports:**
+
+- [x] Stock on Hand
+
+- [x] Stock Movement
+
+- [x] Low Stock Alert Report
+
+- [x] Adjustment History
+
+
+
+**Financial:**
+
+- [x] Gross Sales vs. Collections vs. Expenses (operational P&L view)
+
+- [x] Payment Method Breakdown
+
+
+
+#### Dashboard KPIs (Centralized — §19.6)
+
+```
+
+Today's Sales      = SUM(confirmed sales net totals for business date)
+
+Today's Collection = SUM(posted payment transactions on business date)
+
+Outstanding        = SUM(invoice total - effective payments)
+
+Ready Orders       = COUNT(orders with READY_FOR_COLLECTION status)
+
+```
+
+
+
+#### Report Standards
+
+- Every report: Date From/To, Branch, User, Customer, Status filters
+
+- Historical snapshot principle: invoice at AED 10 stays AED 10 even if rate changes to 12
+
+- Export formats: **PDF** (to INVOICE_PATH), **CSV** (to EXPORT_PATH), **XLSX**
+
+- Print: route to report printer (A4 laser/inkjet)
+
+
+
+#### Test Cases — Sprint 14
+
+- [x] TC-14-001: Daily sales KPIs match sum of individual transactions
+
+- [x] TC-14-002: Outstanding = sum of unpaid invoices (cross-check)
+
+- [x] TC-14-003: Historical invoice shows rate at time of sale, not current rate
+
+- [x] TC-14-004: Report exports to PDF saved in EXPORT_PATH
+
+- [x] TC-14-005: Report exports to CSV with correct encoding (UTF-8 BOM for Excel)
+
+- [x] TC-14-006: Arabic report header and data prints RTL on A4
+
+
+
+---
+
+
+
+## 5. Phase 2 — Operational Control Expansion (Sprints 15–22)
+
+
+
+### 🏁 SPRINT 15 — Production Workflow & Order Status (CRITICAL)
+
+**Duration:** 2 weeks
+
+
+
+#### Full Production Kanban Board
+
+- [x] **Order status board** — column-based Kanban:
+
+  ```
+
+  DRAFT | CONFIRMED | RECEIVED | SORTING | PROCESSING | QUALITY_CHECK
+
+  | PACKED | READY_FOR_COLLECTION | OUT_FOR_DELIVERY | DELIVERED | CLOSED
+
+  ```
+
+- [x] Exception states: `ON_HOLD`, `REWORK_REQUIRED`, `PARTIALLY_READY`, `LOST_DAMAGED_REVIEW`, `CANCELLED`
+
+- [x] Drag-and-drop order cards between columns (with permission check)
+
+- [x] Barcode scan to advance status (scan garment tag → order moves to next status)
+
+- [x] **Quality control checkpoint** — QC fail → `REWORK_REQUIRED` → back to `PROCESSING`
+
+- [x] Batch status update — select multiple orders → update all at once
+
+- [x] Order assignment — assign to staff member / machine
+
+- [x] Priority flags — VIP, Express, Overdue (SLA breach)
+
+- [x] **SLA tracking** — promised_date vs current_date → green/yellow/red indicator
+
+- [x] Order detail view — full timeline of status changes with user + timestamp
+
+- [x] Photo upload per processing stage (garment before/after photos)
+
+- [x] Internal notes/comments per order
+
+- [x] Customer notification trigger on status change (UC-05)
+
+
+
+#### Production Screen Use Cases
+
+| Use Case | Flow |
+
+|----------|------|
+
+| UC-05 | Laundry Operator advances: Received → Sorting → Processing → Quality Check → Packed → Ready |
+
+| UC-06 | Factory Challan Batch Transfer — plant dispatcher prints transfer slip |
+
+
+
+#### Test Cases — Sprint 15
+
+- [x] TC-15-001: Order drag from PROCESSING to QUALITY_CHECK updates DB
+
+- [x] TC-15-002: QC fail → status becomes REWORK_REQUIRED
+
+- [x] TC-15-003: Scan garment barcode → order automatically advances status
+
+- [x] TC-15-004: SLA overdue order shows red indicator
+
+- [x] TC-15-005: Batch update 10 orders from PROCESSING to PACKED
+
+- [x] TC-15-006: Status change audit log shows user + timestamp
+
+
+
+---
+
+
+
+### 🏁 SPRINT 16 — Delivery & Collection Module
+
+**Duration:** 2 weeks
+
+
+
+#### Delivery Workflow
+
+- [x] **Delivery task creation** — assign READY_FOR_COLLECTION order to driver, set delivery date/time slot
+
+- [x] **Collection task creation** — customer drop-off at counter
+
+- [x] Driver assignment screen — available drivers, capacity
+
+- [x] Driver task list — orders to deliver, sorted by area/route
+
+- [x] **Delivery confirmation** — driver marks delivered; cash on delivery collection
+
+- [x] `OUT_FOR_DELIVERY` → `DELIVERED` status transition on confirmation (UC-07)
+
+- [x] Collection receipt — printed on delivery confirmation
+
+- [x] Failed delivery handling — reschedule or return to store
+
+- [x] **Delivery challan** — printed delivery slip (A5 or thermal) accompanying each delivery
+
+- [x] Delivery fee calculation — zone-based (configurable per area/emirate)
+
+- [x] Delivery calendar view (manager) — all deliveries by date
+
+
+
+#### Challan Types
+
+- [x] Delivery Challan
+
+- [x] Service Receipt Challan (customer drop-off)
+
+- [x] Stock Transfer Challan (branch to branch / factory)
+
+- [x] Vendor Return Challan
+
+
+
+#### Test Cases — Sprint 16
+
+- [x] TC-16-001: Delivery task created for READY order
+
+- [x] TC-16-002: Driver marks order delivered → status DELIVERED
+
+- [x] TC-16-003: Cash on delivery AED 150 collected → payment recorded
+
+- [x] TC-16-004: Delivery challan prints on A5
+
+- [x] TC-16-005: Failed delivery → rescheduled for next day
+
+
+
+---
+
+
+
+### 🏁 SPRINT 17 — Purchasing & Procurement
+
+**Duration:** 2 weeks
+
+
+
+#### Purchase Order → GRN → Payment Flow
+
+- [x] **Vendor list** (from Sprint 05 — integrated)
+
+- [x] **Purchase Order (PO) creation** — vendor, items, quantities, expected delivery date
+
+- [x] PO approval workflow (permission: `purchase.approve`)
+
+- [x] **Goods Receipt Note (GRN)** — receive against PO; partial receipt supported
+
+- [x] Stock auto-update on GRN confirmation (inventory movement: Purchase Receipt)
+
+- [x] **Vendor invoice** — record vendor's invoice against GRN
+
+- [x] **Vendor payment** — record payment against vendor invoice; track payables
+
+- [x] Purchase reports: PO Summary, GRN History, Vendor Purchase History, Vendor Payables
+
+
+
+#### Test Cases — Sprint 17
+
+- [x] TC-17-001: PO created for 100 units; GRN receives 60; stock adds 60
+
+- [x] TC-17-002: Partial GRN leaves PO status as PARTIALLY_RECEIVED
+
+- [x] TC-17-003: Vendor payment reduces outstanding payable
+
+- [x] TC-17-004: GRN inventory movement is append-only (cannot be deleted)
+
+
+
+---
+
+
+
+### 🏁 SPRINT 18 — HR — Employees, Attendance & Leave
+
+**Duration:** 2 weeks
+
+
+
+#### Employee Master
+
+- [x] Employee CRUD — personal info, contact, position, department, salary, visa info (UAE-specific)
+
+- [x] Employee documents (Emirates ID, passport, visa copy — stored in IMAGE_PATH)
+
+- [x] Employee list with status filter (active/inactive)
+
+
+
+#### Attendance
+
+- [x] Clock-in / Clock-out — PIN-based or manual entry by manager
+
+- [x] Attendance types: Present, Absent, Late, Half-Day, Leave, Holiday, Overtime, Off Day, Correction Request
+
+- [x] Monthly attendance view (calendar grid per employee)
+
+- [x] Correction request workflow — employee requests correction; manager approves
+
+
+
+#### Leave Management
+
+- [x] Leave types (Annual, Sick, Emergency, Unpaid, etc.) — configurable
+
+- [x] Leave entitlement per employee type
+
+- [x] Leave application → manager approval workflow
+
+- [x] Leave balance tracking with carry-forward rules
+
+- [x] Leave calendar (who is on leave today/this week)
+
+
+
+#### Test Cases — Sprint 18
+
+- [x] TC-18-001: Employee clocks in; attendance recorded
+
+- [x] TC-18-002: Leave request created; manager approves; balance reduces
+
+- [x] TC-18-003: Employee on leave shows on leave calendar
+
+- [x] TC-18-004: Correction request changes attendance type after approval
+
+
+
+---
+
+
+
+### 🏁 SPRINT 19 — Payroll & Salary Advances
+
+**Duration:** 2 weeks
+
+
+
+#### Payroll Generation
+
+- [x] Payroll run for selected month/period
+
+- [x] Calculation: Basic Salary + Allowances - Deductions - Advance Recovery
+
+- [x] Attendance-based deduction (absent days → proportional deduction)
+
+- [x] Overtime calculation
+
+- [x] **Salary advances** — request → approve → pay → recovery tracking
+
+  - States: `REQUESTED` → `APPROVED` → `PAID` → `PARTIALLY_RECOVERED` → `RECOVERED`
+
+  - Recovery auto-deducted each payroll run until recovered
+
+- [x] Payroll review UI — per employee line, editable before finalization
+
+- [x] Finalize payroll → mark as PAID
+
+- [x] **UAE WPS compliance** — Wage Protection System format export
+
+- [x] Salary slip generation (PDF per employee, stored in EXPORT_PATH)
+
+
+
+#### Test Cases — Sprint 19
+
+- [x] TC-19-001: Monthly payroll generated for 10 employees
+
+- [x] TC-19-002: 2 absent days → proportional deduction from basic salary
+
+- [x] TC-19-003: Salary advance AED 500; AED 100 recovered over 5 months
+
+- [x] TC-19-004: Payroll export in WPS format opens without errors
+
+- [x] TC-19-005: Salary slip PDF generated in EXPORT_PATH
+
+
+
+---
+
+
+
+### 🏁 SPRINT 20 — Expenses Module
+
+**Duration:** 1 week
+
+
+
+#### Expense Management
+
+- [x] **Expense categories** — Electricity, Water, Rent, Maintenance, Transport, Office, IT, Cleaning Supplies, Packaging, Marketing, and custom categories
+
+- [x] Expense entry — category, amount, vendor (nullable), date, description, attachment (photo/PDF stored in IMAGE_PATH)
+
+- [x] Expense approval workflow — create → pending → approved → paid
+
+- [x] Petty cash management — track petty cash float, reconcile
+
+- [x] Expense reports: Summary, Category-wise, Monthly, Vendor/Payee
+
+
+
+#### Test Cases — Sprint 20
+
+- [x] TC-20-001: Electricity expense AED 1,200 entered and approved
+
+- [x] TC-20-002: Expense attachment PDF stored in IMAGE_PATH
+
+- [x] TC-20-003: Monthly expense report sums by category correctly
+
+
+
+---
+
+
+
+### 🏁 SPRINT 21 — Advanced Reports & Analytics (Phase 2)
+
+**Duration:** 2 weeks
+
+
+
+#### Phase 2 Reports (Additional)
+
+**HR Reports:** Employee List, Attendance Summary, Absence Report, Leave Balance, Leave History, Payroll Register, Salary Advance, Advance Recovery
+
+
+
+**Inventory Reports:** Stock Valuation, Negative Stock Report, Slow-Moving Items, Vendor Purchase History
+
+
+
+**Expense Reports:** Expense vs. Revenue Operational View
+
+
+
+**Sales Reports (Advanced):** Customer Aging, Customer Statement, Vendor Statement, Sales by Staff, Discounts by User, Cancellations Report
+
+
+
+#### Notifications & Alert Center
+
+- [x] **In-app alert center** — bell icon with badge count
+
+- [x] Alert types: Low Stock, Overdue Order, Payment Due, Leave Request, Backup Failed, License Expiring
+
+- [x] **Notification channels** — in-app (always), SMS (optional adapter), WhatsApp (optional adapter Phase 3)
+
+- [x] Notification preferences per user
+
+- [x] SMS adapter (Twilio/UAE gateway) — pluggable, disabled by default
+
+
+
+#### Customer Reminders
+
+- [x] Payment due reminder
+
+- [x] Ready for collection reminder
+
+- [x] Delivery scheduled notification
+
+
+
+#### Test Cases — Sprint 21
+
+- [x] TC-21-001: Customer aging report shows 30/60/90/90+ day buckets
+
+- [x] TC-21-002: Low stock alert appears in alert center
+
+- [x] TC-21-003: Backup failure triggers critical alert
+
+- [x] TC-21-004: License expiry 7-day warning shows in alert center
+
+
+
+---
+
+
+
+### 🏁 SPRINT 22 — Backup, Restore & Reconciliation (CRITICAL)
+
+**Duration:** 2 weeks
+
+
+
+> See [Section 8](#8-backup--disaster-recovery-master-specification) for full spec.
+
+
+
+#### Backup System
+
+- [x] **Manual backup trigger** from Settings → Backup screen (requires `backup.run` permission)
+
+- [x] **Scheduled auto-backup** — Windows Task Scheduler at 02:00 AM (configurable)
+
+- [x] Backup package contents: DB dump (mysqldump), config files, lang files, print templates, `backup_manifest.json`
+
+- [x] File naming: `C:\LaundryPro\backups\db_YYYYMMDD_HHMMSS.zip`
+
+- [x] Backup manifest JSON with schema_version, business_uuid, installation_id, SHA-256 hash
+
+- [x] Retention policy: 14 daily, 8 weekly, 12 monthly (configurable in settings)
+
+- [x] **Never delete last known-good backup** on new backup failure
+
+
+
+#### Restore System
+
+- [x] **Restore wizard** — select backup file → verify manifest → verify hash → confirm → execute
+
+- [x] Point-in-time selection — browse backup history list
+
+- [x] Pre-restore backup of current state (safety net)
+
+- [x] Restore validation: record counts match, schema version compatible
+
+- [x] Rollback on failed restore
+
+
+
+#### Reconciliation Engine
+
+- [x] Invoice/line mismatch detection
+
+- [x] Orphaned payments detection
+
+- [x] Stock discrepancy detection
+
+- [x] Duplicate document number detection
+
+- [x] Reconciliation report export
+
+
+
+#### Test Cases — Sprint 22
+
+- [x] TC-22-001: Manual backup creates `db_YYYYMMDD_HHMMSS.zip` in BACKUP_PATH
+
+- [x] TC-22-002: Backup manifest SHA-256 hash matches actual zip contents
+
+- [x] TC-22-003: Restore from backup restores all records correctly
+
+- [x] TC-22-004: Corrupted backup file detected and rejected (hash mismatch)
+
+- [x] TC-22-005: Last good backup NOT deleted when new backup fails
+
+- [x] TC-22-006: Retention policy deletes old backups per configured rules
+
+- [x] TC-22-007: Reconciliation engine detects orphaned payment (no matching invoice)
+
+- [x] TC-22-008: Scheduled backup fires at 02:00 AM via Task Scheduler
+
+
+
+---
+
+
+
+## 6. Phase 3 — Scale & Extension (Sprints 23–28)
+
+
+
+### 🏁 SPRINT 23 — Multi-Terminal & Branch Support
+
+**Duration:** 2 weeks
+
+
+
+- [x] Multi-terminal LAN support — local-network binding (private LAN only)
+
+- [x] Branch management — create/edit/activate branches
+
+- [x] Per-branch settings override (precedence: System < Business < Branch < Terminal)
+
+- [x] Inter-branch stock transfer
+
+- [x] Terminal session management — register terminals, active session tracking
+
+- [x] LAN terminal authentication — terminal identity token
+
+- [x] Firewall guidance — restrict API to LAN subnet only
+
+
+
+#### Test Cases — Sprint 23
+
+- [x] TC-23-001: Terminal 2 on LAN authenticates and creates orders independently
+
+- [x] TC-23-002: Branch A settings override business defaults correctly
+
+- [x] TC-23-003: Stock transfer from Branch A to Branch B updates both ledgers
+
+
+
+---
+
+
+
+### 🏁 SPRINT 24 — Cloud Sync Framework
+
+**Duration:** 2 weeks
+
+
+
+#### Sync Architecture (UC-10)
+
+- [x] **Sync outbox** (`sync_outbox` table) — every write adds a pending row
+
+- [x] **Sync daemon** — background PHP/scheduler running every 60 seconds
+
+- [x] Delta push to cloud API — `POST /api/v1/sync/push` (batch of 50)
+
+- [x] Retry with exponential backoff on network failure
+
+- [x] Sync status UI — last synced timestamp, pending count, error count
+
+- [x] Cloud API receiver (cloud-api directory) — multi-tenant cloud storage
+
+- [x] Sync entity registry — which entity types sync to cloud
+
+
+
+#### Test Cases — Sprint 24
+
+- [x] TC-24-001: New sale creates sync_outbox record with status=pending
+
+- [x] TC-24-002: Daemon syncs 50 records to cloud and marks status=synced
+
+- [x] TC-24-003: Network failure → retry after exponential backoff
+
+- [x] TC-24-004: Sync UI shows last synced timestamp and pending count
+
+
+
+---
+
+
+
+### 🏁 SPRINT 25 — Accounting Export & KSA Localization
+
+**Duration:** 2 weeks
+
+
+
+#### Accounting Export
+
+- [x] Chart of accounts alignment (operational P&L → accounting journal)
+
+- [x] Export to: CSV (QuickBooks, Tally, Xero format), Journal Entry format
+
+- [x] VAT return data (UAE FTA format)
+
+- [x] Accounting export reports
+
+
+
+#### KSA Localization Package
+
+- [x] SAR / Halala currency (100 Halala = 1 SAR)
+
+- [x] `Asia/Riyadh` timezone
+
+- [x] KSA VAT (15%) configuration
+
+- [x] Arabic (KSA dialect) locale additions
+
+- [x] Hijri calendar support (optional)
+
+
+
+---
+
+
+
+### 🏁 SPRINT 26 — SMS / WhatsApp Notification Adapters
+
+**Duration:** 1 week
+
+
+
+- [x] **SMS adapter** — Twilio / UAE local gateway (Unifonic, Etisalat API)
+
+- [x] **WhatsApp Business API** adapter — order status notifications
+
+- [x] Pluggable adapter pattern — swap gateway without code change
+
+- [x] Notification template variables: `{customer_name}`, `{order_no}`, `{status}`, `{amount}`, `{branch}`
+
+- [x] Opt-out management
+
+
+
+---
+
+
+
+### 🏁 SPRINT 27 — Storefront & Customer Portal
+
+**Duration:** 2 weeks
+
+
+
+- [x] **Storefront** — online order placement page (web-accessible on LAN or internet)
+
+- [x] **Customer portal** — customer login, view orders, outstanding balance, payment history
+
+- [x] Storefront order → creates sales_order in local DB
+
+- [x] Customer portal notifications (ready for collection, delivery scheduled)
+
+
+
+---
+
+
+
+### 🏁 SPRINT 28 — Final QA, Performance & Production Hardening
+
+**Duration:** 3 weeks
+
+
+
+#### Performance Targets (README §32.9)
+
+| Operation | Target |
+
+|-----------|--------|
+
+| Local login | < 1 second |
+
+| Customer search | < 500ms |
+
+| Add cart item | < 200ms UI response |
+
+| Open recent orders | < 1 second (paged) |
+
+| Confirm ordinary sale | < 2 seconds (excl. printer latency) |
+
+| Dashboard load | < 2 seconds |
+
+
+
+#### Quality Gate Checklist (README §32.10)
+
+- [x] BRD approved
+
+- [x] ERD reviewed
+
+- [x] Database migration tested (fresh + idempotent)
+
+- [x] API Swagger complete and drift-tested
+
+- [x] Auth/permission tests passed (all roles)
+
+- [x] Sales end-to-end passed
+
+- [x] Payment end-to-end passed
+
+- [x] Inventory reconciliation passed
+
+- [x] Order status workflow tests passed
+
+- [x] Arabic RTL tests passed
+
+- [x] Thermal receipt print test passed (57mm + 80mm)
+
+- [x] Inkjet print test passed (A4/A5)
+
+- [x] Dot matrix print test passed (ESC/P)
+
+- [x] Cash drawer test passed (RJ11 + serial)
+
+- [x] Barcode scanner test passed (USB + BT)
+
+- [x] Backup verified (create + manifest + hash)
+
+- [x] Restore verified (full + partial)
+
+- [x] License activation verified
+
+- [x] UMAC verification verified
+
+- [x] Disk-space warnings tested
+
+- [x] App restart recovery (draft autosave) tested
+
+- [x] Acceptance test sign-off completed
+
+
+
+#### Windows Installer
+
+- [x] MSIX package for Windows Store
+
+- [x] Inno Setup EXE installer with XAMPP bundling option
+
+- [x] Installer pre-flight: check XAMPP, PHP version, MariaDB availability
+
+- [x] Auto-create `C:/LaundryPro/` directory structure on install
+
+
+
+---
+
+
+
+## 7. Hardware Integration Master Specification
+
+
+
+### 7.1 Architecture — Adapter Pattern (MANDATORY)
+
+```dart
+
+// Application code ONLY calls these generic interfaces:
+
+scanService.read()               // context-aware barcode scan
+
+printerService.print(document)   // routes to correct printer adapter
+
+cashDrawerService.open(reason)   // audited open
+
+
+
+// NEVER call manufacturer-specific SDK methods directly from business code
+
+```
+
+
+
+### 7.2 Thermal Printer Compatibility Matrix
+
+
+
+| Brand | Models | USB | BT | WiFi | LAN | Notes |
+
+|-------|--------|-----|----|------|-----|-------|
+
+| Epson | TM-T20, TM-T82, TM-T88 | ✅ | ✅ | ✅ | ✅ | Industry standard |
+
+| Star Micronics | TSP100, TSP650, mPOP | ✅ | ✅ | ✅ | ✅ | Common UAE |
+
+| Bixolon | SRP-350, SRP-330, SRP-275 | ✅ | ✅ | ✅ | ✅ | Budget-friendly |
+
+| Citizen | CT-S310, CT-S4000 | ✅ | ✅ | ✅ | ✅ | High speed |
+
+| Xprinter | XP-58, XP-80 | ✅ | ✅ | ❌ | ✅ | Common budget |
+
+| Sewoo | SLK-TS400 | ✅ | ❌ | ❌ | ✅ | |
+
+| Posiflex | PP-6900, PP-8000 | ✅ | ❌ | ✅ | ✅ | |
+
+| Generic | Any ESC/POS | ✅ | ✅ | ✅ | ✅ | Auto-detected |
+
+
+
+**Paper widths:** 57mm (58mm), 80mm, 112mm (wide format)
+
+
+
+### 7.3 Inkjet / Laser Paper Size Matrix
+
+
+
+| Size | Dimensions | Use Case |
+
+|------|-----------|----------|
+
+| A6 | 105×148mm | Garment tags, compact receipts |
+
+| A5 | 148×210mm | Compact invoices, delivery slips, challans |
+
+| A4 | 210×297mm | Full invoices, reports, statements |
+
+| A3 | 297×420mm | Wide reports, multi-column layouts |
+
+| A2 | 420×594mm | Signage, banners |
+
+| A1 | 594×841mm | Large-format signage |
+
+
+
+### 7.4 Dot Matrix Compatibility
+
+
+
+| Brand | Models | Connection | Protocol | Carbon Copy |
+
+|-------|--------|-----------|----------|-------------|
+
+| Epson | LX-350, LX-1350, FX-890, LQ-590 | USB, Serial | ESC/P, ESC/P2 | ✅ 2-ply, 3-ply, 4-ply |
+
+| OKI | ML-5100, ML-5500 | USB, Serial | ESC/P | ✅ |
+
+| Panasonic | KX-P Series | Serial | ESC/P | ✅ |
+
+| Generic | ESC/P compatible | USB, Serial | ESC/P | ✅ |
+
+
+
+**Carbon Copy print labels:** ORIGINAL / CUSTOMER COPY / BRANCH COPY / DELIVERY COPY
+
+
+
+### 7.5 Barcode Scanner Compatibility Matrix
+
+
+
+| Type | Examples | Connection | Protocol | Notes |
+
+|------|---------|-----------|---------|-------|
+
+| 1D Handheld | Honeywell, Zebra, Symbol | USB HID | Keyboard wedge | No driver needed |
+
+| 2D Handheld | Datalogic, Cognex, Zebra | USB HID | Keyboard wedge | QR + Data Matrix |
+
+| Bluetooth | Zebra CS60, Honeywell | BT | Serial / keyboard | Pair as keyboard |
+
+| Wireless 2.4GHz | Inateck, Tera | RF dongle | Keyboard wedge | |
+
+| Fixed presentation | Zebra DS9308 | USB | Keyboard wedge | Counter-top |
+
+| Serial | Any RS-232 | COM port | Configurable baud | Legacy |
+
+
+
+### 7.6 Cash Drawer Compatibility Matrix
+
+
+
+| Brand | Connection | Open Command | Status Pin |
+
+|-------|-----------|-------------|-----------|
+
+| APG | RJ11 via printer / USB | ESC p 0 50 50 | Pin 3/6 |
+
+| MMF Industries | RJ11 via printer | ESC p 0 50 50 | Yes |
+
+| Posiflex | RJ11 via printer | ESC p 0 50 50 | Yes |
+
+| Star mPOP | Built-in (BT/USB) | Star proprietary | Yes |
+
+| Generic | RJ11 via printer | Configurable pulse | Optional |
+
+| Any | Serial RS-232 | Configurable command | Optional |
+
+
+
+### 7.7 Connectivity Auto-Discovery Algorithm
+
+```
+
+Step 1: Load saved hardware_config.json — attempt reconnect to each saved device
+
+Step 2: If reconnect fails → add to "needs attention" list → show in status bar
+
+
+
+Auto-Discovery Wizard (manual trigger):
+
+  1. WMI query: SELECT * FROM Win32_PnPEntity WHERE PNPClass='Printer'
+
+  2. BT: query paired Bluetooth devices, filter by device class 0x040680 (printer)
+
+  3. TCP scan: for each IP in local subnet, try TCP connect to port 9100 (timeout 100ms)
+
+  4. mDNS: listen for _pdl-datastream._tcp and _ipp._tcp service announcements
+
+  5. COM ports: enumerate COM1-COM20, check for response to ESC/POS status command
+
+  6. Present found devices → user selects type → saved to hardware_config.json
+
+
+
+Auto-Bind:
+
+  - Remember device: connection_type + identifier (IP, MAC, COM port, USB serial)
+
+  - On app start: auto-connect to all saved devices in background thread
+
+  - Retry interval: 30 seconds for failed connections
+
+```
+
+
+
+---
+
+
+
+## 8. Backup & Disaster Recovery Master Specification
+
+
+
+### 8.1 Standalone Global Configuration Paths (Admin-Only)
+
+
+
+All paths are stored in `C:/LaundryPro/config.json` AND mirrored in `api/.env`:
+
+
+
+```json
+
+{
+
+  "paths": {
+
+    "BACKUP_PATH":  "C:/LaundryPro/backups/",
+
+    "INVOICE_PATH": "C:/LaundryPro/invoices/",
+
+    "IMAGE_PATH":   "C:/LaundryPro/images/",
+
+    "LOG_PATH":     "C:/LaundryPro/logs/",
+
+    "EXPORT_PATH":  "C:/LaundryPro/exports/",
+
+    "TEMP_PATH":    "C:/LaundryPro/temp/",
+
+    "TEMPLATE_PATH":"C:/LaundryPro/templates/"
+
+  }
+
+}
+
+```
+
+
+
+**Access Control:** Only `system.config.paths` permission can edit these.
+
+**Validation:** Path must be writable before accepting.
+
+**Side-effect:** Directory auto-created on path change.
+
+
+
+### 8.2 Directory Structure (Auto-Created on Install)
+
+```
+
+C:/LaundryPro/
+
+├── backups/
+
+│   ├── db_20261001_020000.zip          ← mysqldump + manifest
+
+│   ├── db_20261002_020000.zip
+
+│   └── backup_manifest_latest.json
+
+├── invoices/
+
+│   ├── 2026/10/INV-2026-000001.pdf
+
+│   └── ...
+
+├── images/
+
+│   ├── garments/                       ← production photos
+
+│   ├── customers/                      ← customer photos
+
+│   ├── products/                       ← product images
+
+│   └── documents/                      ← employee documents, expense attachments
+
+├── logs/
+
+│   ├── app_20261001.log
+
+│   ├── error_20261001.log
+
+│   ├── print_20261001.log
+
+│   ├── hardware_20261001.log
+
+│   └── audit_20261001.log
+
+├── exports/
+
+│   ├── reports/                        ← report PDFs/CSVs
+
+│   └── data/                           ← CSV/XLSX data exports
+
+├── temp/                               ← temporary processing files
+
+└── templates/
+
+    ├── receipt_thermal_80mm.json
+
+    ├── receipt_thermal_57mm.json
+
+    ├── invoice_a4.json
+
+    ├── invoice_a5.json
+
+    ├── garment_tag_a6.json
+
+    ├── challan_a5.json
+
+    └── report_a4.json
+
+```
+
+
+
+### 8.3 Backup Package Contents
+
+```
+
+db_YYYYMMDD_HHMMSS.zip
+
+├── database.sql                    ← mysqldump output
+
+├── config_snapshot.json            ← settings table dump
+
+├── lang_en.json                    ← English localization
+
+├── lang_ar.json                    ← Arabic localization
+
+├── license_meta.json               ← license binding info (no key plaintext)
+
+└── backup_manifest.json            ← manifest with hashes
+
+```
+
+
+
+### 8.4 Backup Manifest Schema
+
+```json
+
+{
+
+  "product": "LaundryPro UAE",
+
+  "schema_version": "1.x",
+
+  "created_at": "2026-10-01T02:00:00+04:00",
+
+  "business_uuid": "uuid-here",
+
+  "installation_id": "installation-id-here",
+
+  "database_hash": "sha256-of-database.sql",
+
+  "file_manifest_hash": "sha256-of-manifest",
+
+  "record_counts": {
+
+    "customers": 1523,
+
+    "invoices": 12847,
+
+    "employees": 12
+
+  },
+
+  "backup_type": "FULL",
+
+  "retention_tag": "DAILY"
+
+}
+
+```
+
+
+
+### 8.5 Retention Policy
+
+```
+
+Daily:   keep last 14 (configurable)
+
+Weekly:  keep last 8 (configurable)
+
+Monthly: keep last 12 (configurable)
+
+
+
+Rule: Never delete the most recent successful backup merely because a newer attempt failed.
+
+Rule: Label each backup with retention_tag (DAILY/WEEKLY/MONTHLY) at creation.
+
+```
+
+
+
+### 8.6 Restore Procedure
+
+```
+
+1. Admin opens Settings → Backup & Restore
+
+2. Browse backup history (list from BACKUP_PATH)
+
+3. Select backup file → system reads backup_manifest.json
+
+4. Display: created_at, schema_version, record_counts
+
+5. Verify SHA-256 hash of database.sql → if mismatch: ABORT
+
+6. Check schema_version compatibility → if incompatible: ABORT
+
+7. Confirm: "This will replace all current data"
+
+8. System creates safety backup of current state (to BACKUP_PATH/pre_restore_YYYYMMDD.zip)
+
+9. Stop API connections (graceful)
+
+10. Restore database from database.sql
+
+11. Verify record_counts match manifest
+
+12. Restart API
+
+13. Log restore event in audit_log
+
+14. Success: show restored record counts
+
+```
+
+
+
+### 8.7 Disaster Recovery Targets
+
+- **RTO** (Recovery Time Objective): < 4 hours
+
+- **RPO** (Recovery Point Objective): < 24 hours (daily backup), < 1 hour if backup schedule shortened
+
+
+
+---
+
+
+
+## 9. Global Configuration Specification
+
+
+
+### 9.1 Settings Precedence (README §10.1)
+
+```
+
+System Default  <  Business Override  <  Branch Override  <  Terminal Override
+
+```
+
+
+
+### 9.2 Admin UI Sections
+
+| Section | Keys | Access |
+
+|---------|------|--------|
+
+| Business Info | Name, logo, address, TRN, contact | Owner |
+
+| Paths | BACKUP_PATH, INVOICE_PATH, IMAGE_PATH, LOG_PATH, EXPORT_PATH | System Admin |
+
+| Localization | Default language, currency, timezone | Owner |
+
+| Print Defaults | Receipt printer, invoice printer, paper sizes | Manager |
+
+| Hardware | Scanner port/baud, drawer port, display port | System Admin |
+
+| Backup Schedule | Time, retention policy, cloud backup (future) | System Admin |
+
+| Document Numbers | Prefix format for INV, REC, CM, DM, CHL, GRN | Owner |
+
+| Tax | VAT rate, TRN | Owner |
+
+| Security | Session timeout, lockout threshold, password policy | System Admin |
+
+| License | Key entry, UMAC view, plan info (read-only) | System Admin |
+
+
+
+---
+
+
+
+## 10. Complete Test Strategy & Test Cases
+
+
+
+### 10.1 Testing Pyramid
+
+```
+
+E2E (Patrol / integration_test):   ~30 full scenarios
+
+Integration (flutter_test + mock): ~150 tests
+
+Widget tests (flutter_test):       ~300 tests
+
+Unit tests (dart test + mockito):  ~500 tests
+
+PHP API tests (PHPUnit):           ~200 tests
+
+```
+
+
+
+### 10.2 End-to-End Scenarios
+
+
+
+#### E2E-001: Walk-In Sale (UC-02)
+
+```
+
+1. Open POS → New Sale
+
+2. Walk-in customer (no registration)
+
+3. Scan 2x Kandora Dry Clean (EAN-13) → auto-added to cart
+
+4. Add 1x Suit Steam Press manually
+
+5. Apply 10% line discount on Kandora (requires cashier permission)
+
+6. Total: 3 items, 5% VAT applied
+
+7. Cash payment AED 100 → change AED 26.50 displayed
+
+8. Confirm → order LP-2026-DXB-00001 generated
+
+9. Cash drawer opens (RJ11 kick via thermal)
+
+10. Thermal 80mm receipt prints (Epson TM-T88 on USB)
+
+11. Cart cleared for next customer
+
+```
+
+Expected: Complete in < 45 seconds end-to-end
+
+
+
+#### E2E-002: Full Order Lifecycle
+
+```
+
+1. Create order → CONFIRMED
+
+2. Production: Received → Sorting → Processing → Quality Check → Packed → Ready
+
+3. Customer notification (SMS if configured)
+
+4. Collection: Customer arrives → cash balance collected → DELIVERED → CLOSED
+
+```
+
+
+
+#### E2E-003: Delivery Flow (UC-07)
+
+```
+
+1. READY order → create delivery task → assign driver
+
+2. Driver marks OUT_FOR_DELIVERY
+
+3. Delivery made → mark DELIVERED → collect AED 150 COD
+
+4. Payment recorded → receipt printed
+
+5. Order status: CLOSED
+
+```
+
+
+
+#### E2E-004: Split Payment
+
+```
+
+Order total: AED 200
+
+Pay: AED 50 cash + AED 150 pending (credit)
+
+→ Cash drawer opens for AED 50 portion
+
+→ Invoice shows AED 150 outstanding
+
+→ Later: collect AED 150 → outstanding cleared
+
+```
+
+
+
+#### E2E-005: Backup & Restore
+
+```
+
+1. Trigger manual backup → db_YYYYMMDD_HHMMSS.zip created
+
+2. Verify manifest SHA-256 hash matches
+
+3. Simulate data deletion
+
+4. Restore from backup → all records restored
+
+5. System operational; audit log shows restore event
+
+```
+
+
+
+#### E2E-006: Hardware Recovery (Print Queue)
+
+```
+
+1. Thermal printer goes offline (unplug cable)
+
+2. Complete sale → payment confirmed
+
+3. Print job queued (not lost)
+
+4. Reconnect printer → auto-reconnect in < 60 seconds
+
+5. Queued print job auto-executes
+
+```
+
+
+
+#### E2E-007: Arabic RTL Full Flow
+
+```
+
+1. Switch language to Arabic
+
+2. Entire UI flips to RTL
+
+3. New Sale → Arabic customer name
+
+4. Arabic receipt printed (RTL text on thermal)
+
+5. Arabic invoice PDF generated
+
+```
+
+
+
+#### E2E-008: Payroll Month-End
+
+```
+
+1. All attendance recorded for October
+
+2. Run payroll for October
+
+3. Advance recovery deducted for 2 employees
+
+4. Payroll finalized → PAID
+
+5. WPS export generated
+
+6. Salary slips printed (PDF) for all employees
+
+```
+
+
+
+---
+
+
+
+## 11. UI/UX Screen Inventory
+
+
+
+### Complete Screen List (All Must Be Fully Implemented)
+
+
+
+| Screen | Route | Status | Sprint |
+
+|--------|-------|--------|--------|
+
+| Splash / Boot | `/splash` | Stub | S04 |
+
+| Login | `/login` | Partial | S02 |
+
+| Setup Wizard | `/setup` | Stub | S04 |
+
+| Dashboard | `/dashboard` | Partial | S14 |
+
+| POS / New Sale | `/pos` | Stub | **S07** |
+
+| Pending Invoices | `/invoices/pending` | Stub | S08 |
+
+| Payment Collection | `/payment` | Stub | S08 |
+
+| Order Queue (Kanban) | `/production` | Stub | **S15** |
+
+| Customers | `/customers` | Partial | S05 |
+
+| Vendors | `/vendors` | Partial | S05 |
+
+| Catalog — Services | `/catalog/services` | Partial | S06 |
+
+| Catalog — Products | `/catalog/products` | Partial | S06 |
+
+| Inventory | `/inventory` | Stub | S13 |
+
+| Purchasing | `/purchasing` | Stub | S17 |
+
+| Delivery | `/delivery` | Stub | S16 |
+
+| Challans | `/challans` | Stub | S16 |
+
+| Employees | `/employees` | Partial | S18 |
+
+| Attendance | `/attendance` | Partial | S18 |
+
+| Leave | `/leave` | Stub | S18 |
+
+| Payroll | `/payroll` | Stub | S19 |
+
+| Expenses | `/expenses` | Stub | S20 |
+
+| Reports | `/reports` | Stub | S14/S21 |
+
+| Accounting | `/accounting` | Stub | S25 |
+
+| Analytics | `/analytics` | Stub | S21 |
+
+| Notifications | `/notifications` | Stub | S21 |
+
+| Peripherals/Hardware | `/settings/peripherals` | Partial | **S12** |
+
+| Settings (Global Config) | `/settings` | Partial | **S01** |
+
+| Branches | `/branches` | Stub | S23 |
+
+| Terminals | `/terminals` | Stub | S23 |
+
+| License | `/license` | Partial | S02 |
+
+| Localization | `/localization` | Partial | S04 |
+
+| Backup & Restore | `/settings/backup` | Stub | **S22** |
+
+| Sync Settings | `/sync` | Stub | S24 |
+
+| Storefront | `/storefront` | Stub | S27 |
+
+| Customer Portal | `/portal` | Stub | S27 |
+
+| Business Profile | `/business` | Partial | S04 |
+
+
+
+---
+
+
+
+## 12. API Endpoint Completion Map
+
+
+
+### Missing / Stub Endpoints (need implementation)
+
+
+
+| Endpoint | Controller | Priority |
+
+|----------|-----------|----------|
+
+| `POST /sales/orders` (full transaction) | SalesController | 🔴 S07 |
+
+| `PUT /sales/{id}/status` (status machine) | SalesController | 🔴 S15 |
+
+| `POST /backup/run` (full backup package) | BackupController | 🔴 S22 |
+
+| `POST /backup/restore/execute` | BackupController | 🔴 S22 |
+
+| `GET /reports/dashboard-kpis` | ReportsController | 🔴 S14 |
+
+| `GET /reports/sales` (full filter set) | ReportsController | 🔴 S14 |
+
+| `POST /delivery/tasks` | DeliveryController | 🔴 S16 |
+
+| `PUT /delivery/tasks/{id}/complete` | DeliveryController | 🔴 S16 |
+
+| `POST /payroll/run` | HrController | 🔴 S19 |
+
+| `GET /settings/hardware` | SettingsController | 🔴 S12 |
+
+| `PUT /settings/paths` (admin-only) | SettingsController | 🔴 S01 |
+
+
+
+---
+
+
+
+## 13. 25. .ai/ — Live Documentation Structure
+
+
+
+**Location:** `E:\Projects\Flutter\UAE-Laundry-Pro\25. .ai\`
+
+
+
+These documents MUST be kept current as development progresses. Update at end of every sprint.
+
+
+
+### Required Files
+
+
+
+```
+
+25. .ai/
+
+├── PROJECT_CONTEXT.md      ← Business context, current sprint, user personas
+
+│                             UPDATE: every sprint
+
+├── ARCHITECTURE.md         ← MVVM layers, adapter pattern, peripheral isolation, SOLID rules
+
+│                             UPDATE: on architectural decision
+
+├── DATABASE_SCHEMA.md      ← Full MariaDB schema with relationships, indexes, FK constraints
+
+│                             UPDATE: every migration
+
+├── API_CONTRACTS.md        ← All PHP API endpoints, request/response schemas
+
+│                             UPDATE: every new/changed endpoint
+
+├── HARDWARE_INTEGRATION.md ← All hardware specs, protocols, auto-discovery algorithm, tested brands
+
+│                             UPDATE: every hardware sprint
+
+├── BUSINESS_RULES.md       ← Pricing, VAT, modifiers, discount rules, order status machine
+
+│                             UPDATE: on rule change
+
+├── UAE_COMPLIANCE.md       ← VAT (5%), TRN requirements, WPS payroll, UAE labour law references
+
+│                             UPDATE: on compliance change
+
+├── FEATURE_FLAGS.md        ← All feature flags, plan restrictions, flavor config
+
+│                             UPDATE: on feature flag change
+
+├── SPRINT_LOG.md           ← Sprint-by-sprint: done/deferred/blockers/decisions
+
+│                             UPDATE: end of every sprint
+
+├── CHANGELOG.md            ← Version changelog (MAJOR.MINOR.PATCH)
+
+│                             UPDATE: every release
+
+├── KNOWN_ISSUES.md         ← Active bugs, workarounds, limitations
+
+│                             UPDATE: on bug discovery/resolution
+
+├── DECISIONS.md            ← Architecture Decision Records (ADRs)
+
+│                             UPDATE: on architectural decision
+
+├── DEPLOYMENT.md           ← XAMPP setup, Windows installer, migration scripts
+
+│                             UPDATE: on deployment change
+
+└── PROMPTS/
+
+    ├── code_review.md      ← AI prompt for code review requests
+
+    ├── feature_planning.md ← AI prompt for planning a new feature
+
+    ├── bug_analysis.md     ← AI prompt for debugging assistance
+
+    └── sprint_planning.md  ← AI prompt for sprint planning
+
+```
+
+
+
+### Sprint Log Update Template
+
+```markdown
+
+## Sprint XX — [Name] — [Start Date] to [End Date]
+
+
+
+### Completed
+
+- [x] Task description
+
+
+
+### Deferred
+
+- [x] Task description → deferred to Sprint YY (reason)
+
+
+
+### Blockers
+
+- Blocker description
+
+
+
+### Decisions Made
+
+- Decision: [description] | Rationale: [reason]
+
+
+
+### Next Sprint Priorities
+
+1. ...
+
+```
+
+
+
+---
+
+
+
+## 14. Sprint Summary Table
+
+
+
+| Sprint | Phase | Name | Duration | Priority |
+
+|--------|-------|------|----------|----------|
+
+| S01 | 0 | Architecture Hardening & Global Config | 2w | 🔴 Critical |
+
+| S02 | 0 | Auth, RBAC & License | 2w | 🔴 Critical |
+
+| S03 | 0 | Database Audit & Migrations | 1w | 🔴 Critical |
+
+| S04 | 0 | App Shell, Navigation & Setup Wizard | 1w | 🟠 High |
+
+| S05 | 1 | Customer & Vendor Master | 2w | 🟠 High |
+
+| S06 | 1 | Service & Product Catalog | 2w | 🟠 High |
+
+| S07 | 1 | POS / Instant Sale Screen | 3w | 🔴 Critical |
+
+| S08 | 1 | Payment Processing | 2w | 🔴 Critical |
+
+| S09 | 1 | Printing — Thermal, Inkjet, Dot Matrix, All Sizes | 2w | 🔴 Critical |
+
+| S10 | 1 | Scanner Service (Context-Aware) | 1w | 🔴 Critical |
+
+| S11 | 1 | Cash Drawer Service | 1w | 🔴 Critical |
+
+| S12 | 1 | Hardware Config UI & Connectivity | 1w | 🟠 High |
+
+| S13 | 1 | Inventory Module | 2w | 🟠 High |
+
+| S14 | 1 | Reports Engine (Core) | 2w | 🟠 High |
+
+| S15 | 2 | Production Workflow & Order Status | 2w | 🔴 Critical |
+
+| S16 | 2 | Delivery & Collection | 2w | 🟠 High |
+
+| S17 | 2 | Purchasing & Procurement | 2w | 🟠 High |
+
+| S18 | 2 | HR — Employees, Attendance & Leave | 2w | 🟡 Medium |
+
+| S19 | 2 | Payroll & Salary Advances | 2w | 🟡 Medium |
+
+| S20 | 2 | Expenses Module | 1w | 🟡 Medium |
+
+| S21 | 2 | Advanced Reports & Notifications | 2w | 🟡 Medium |
+
+| S22 | 2 | Backup, Restore & Reconciliation | 2w | 🔴 Critical |
+
+| S23 | 3 | Multi-Terminal & Branch Support | 2w | 🟡 Medium |
+
+| S24 | 3 | Cloud Sync Framework | 2w | 🟡 Medium |
+
+| S25 | 3 | Accounting Export & KSA Localization | 2w | 🟡 Medium |
+
+| S26 | 3 | SMS / WhatsApp Notification Adapters | 1w | 🟡 Medium |
+
+| S27 | 3 | Storefront & Customer Portal | 2w | 🟢 Low |
+
+| S28 | 3 | Final QA, Performance & Production Hardening | 3w | 🔴 Critical |
+
+
+
+**Total Estimated Duration:** ~42 weeks (~10 months from current state)
+
+
+
+---
+
+
+
+*This is a living document. Update `25. .ai/SPRINT_LOG.md` at end of each sprint.*
+
+*Every code change involving the DB schema must update `25. .ai/DATABASE_SCHEMA.md`.*
+
+*Every API contract change must update `25. .ai/API_CONTRACTS.md`.*
+
 
 </USER_REQUEST>
 <ADDITIONAL_METADATA>
