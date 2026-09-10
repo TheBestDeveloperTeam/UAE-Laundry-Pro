@@ -1,33 +1,63 @@
-# LaundryPro UAE
+# LaundryPro UAE - Enterprise POS & ERP System
 
-A fully integrated Point-of-Sale (POS) and Enterprise Resource Planning (ERP) application engineered specifically for the commercial laundry sector in the UAE.
+A fully integrated, offline-first Point-of-Sale (POS) and Enterprise Resource Planning (ERP) application engineered specifically for the commercial laundry sector in the United Arab Emirates.
 
 ## Architecture
-- **Frontend:** Flutter (Windows Desktop App)
-- **Backend:** Custom PHP 8.2 Micro-Framework
-- **Database:** MariaDB (via XAMPP)
-- **Offline-First:** Stores all data locally and synchronizes with a central cloud via an Outbox pattern.
 
-## Prerequisites
-- Flutter SDK (3.x+)
-- PHP 8.2+
-- MariaDB / MySQL
-- Composer (for PHP dependencies)
+This project adheres to **Clean Architecture** principles, enforcing strict separation of concerns across the stack.
 
-## Installation & Setup
+### Frontend: Flutter (Windows Desktop)
+- **Framework:** Flutter (Material 3 Design System).
+- **State Management:** Provider for global state (Auth, Locale), Riverpod for complex peripheral integrations (Hardware Wedges, Sockets).
+- **Routing:** GoRouter for declarative, path-based navigation.
+- **UI System:** A unified, bespoke widget library (`AppFormDialog`, `AppDataTable`, `StatusBadge`) replacing all inline widget sprawl, ensuring 100% UI/UX consistency and RTL (Arabic) compliance.
 
-1. **Clone the repository:**
-   `git clone https://github.com/TheBestDeveloperTeam/UAE-Laundry-Pro.git`
-2. **Setup Backend:**
-   - Navigate to `/api` and run `composer install`.
-   - Setup a MySQL database and run the migrations found in `/api/migrations/`.
-   - Copy `.env.example` to `.env` and configure your database credentials.
-3. **Setup Frontend:**
-   - Run `flutter pub get` from the root directory.
-   - Run `flutter run -d windows` to launch the POS application.
+### Backend: PHP 8.2 Micro-Framework
+- **Structure:** Custom lightweight MVC architecture optimized for raw speed and minimal memory footprint on edge terminals.
+- **Controllers:** Handle HTTP requests and response formatting (`ApiResponse`).
+- **Services:** Encapsulate pure business logic (e.g., `SyncService`, `AuthService`).
+- **Repositories:** Dedicated data access layers (DAL) with robust `PDO` transaction boundary management.
+- **Middleware:** Request interception for Authentication (`JwtService`), CORS, and Rate Limiting.
 
-## Packaging for Release
-Run `.\build_windows.ps1` to compile the Flutter Windows executable and package it alongside the PHP API for deployment on terminal machines.
+### Database: MariaDB (XAMPP Environment)
+- **Transactions:** High-concurrency operations (like `InventoryRepository::transfer`) use `SELECT ... FOR UPDATE` to lock rows and prevent race conditions.
+- **Data Integrity:** Float values are strictly prohibited for monetary transactions; all financials use `DECIMAL(18,2)`.
+- **Audit Trails:** All destructive actions and financial alterations are soft-deleted and written to an immutable `audit_logs` table.
 
-## License
-Proprietary - Internal Use Only.
+## Offline-First Synchronization
+LaundryPro UAE is designed to survive extended network outages. 
+- All data is written to the local MariaDB instance first.
+- Background jobs push mutated records to the `sync_outbox`.
+- `SyncService` attempts to flush the outbox to the central cloud using an exponential backoff algorithm on failure.
+
+## Development & Deployment
+
+### Prerequisites
+- **Client Terminal:** Windows 10/11
+- **Environment:** XAMPP (PHP 8.2, MariaDB)
+- **Compiler:** Flutter SDK (3.x+)
+
+### Installation
+1. Clone the repository to the target terminal.
+2. Navigate to `/api` and execute `composer install`.
+3. Copy `.env.example` to `.env` and configure local database credentials.
+4. Run the SQL migrations sequentially from `/api/migrations/`.
+5. Execute `flutter pub get` in the project root.
+
+### Building for Production
+A streamlined PowerShell script is provided to automate the packaging process.
+Execute: `.\build_windows.ps1`
+
+This will:
+1. Purge cached artifacts (`flutter clean`).
+2. Compile the native Windows binary (`flutter build windows --release`).
+3. Scaffold a deployment folder (`\build\laundrypro_release\`).
+4. Inject the PHP backend and routing infrastructure alongside the compiled executable.
+
+## Security Posture
+- **No Client-Side Trust:** All authorizations are validated server-side via JWT.
+- **Sanitized Inputs:** Prepared statements exclusively prevent SQL injections.
+- **Local Backups:** Automated `.zip` snapshots of `.sql` dumps are validated cryptographically (SHA-256) upon restoration to prevent payload tampering.
+
+---
+*Proprietary Software - Developed exclusively for LaundryPro UAE.*
