@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:laundrypro_uae/views/advanced_cycle_screen.dart';
 
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/views/accounting_screen.dart';
@@ -88,6 +89,7 @@ class AppRouter {
         ShellRoute(
           builder: (context, state, child) => AppShell(child: child),
           routes: [
+            GoRoute(path: '/advanced-cycles', builder: (context, state) => const AdvancedCycleScreen()),
             GoRoute(path: '/dashboard', builder: (context, state) => const DashboardScreen()),
             GoRoute(path: '/pos', builder: (context, state) => const PosScreen()),
             GoRoute(path: '/customers', builder: (context, state) => const CustomersScreen()),

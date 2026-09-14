@@ -28,6 +28,7 @@ class _AppShellState extends State<AppShell> {
 
   static const _items = [
     _NavItem('/dashboard', Icons.dashboard_outlined, 'dashboard'),
+    _NavItem('/advanced-cycles', Icons.loop_outlined, 'advanced_cycles', permission: 'advanced.cycle.run'),
     _NavItem('/pos', Icons.point_of_sale_outlined, 'pos', permission: 'sales.write'),
     _NavItem('/customers', Icons.people_outline, 'customers', permission: 'customers.read'),
     _NavItem('/vendors', Icons.store_outlined, 'vendors', permission: 'vendors.read'),
