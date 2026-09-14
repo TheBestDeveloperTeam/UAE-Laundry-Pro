@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LaundryPro\Api\Core;
 
 use LaundryPro\Api\Controllers\AccountingController;
+use LaundryPro\Api\Controllers\AdvancedCycleController;
 use LaundryPro\Api\Controllers\AnalyticsController;
 use LaundryPro\Api\Controllers\AuthController;
 use LaundryPro\Api\Controllers\BackupController;
@@ -45,6 +46,7 @@ use LaundryPro\Api\Middleware\MiddlewareInterface;
 use LaundryPro\Api\Middleware\PermissionMiddleware;
 use LaundryPro\Api\Middleware\RateLimitMiddleware;
 use LaundryPro\Api\Repositories\AccountingRepository;
+use LaundryPro\Api\Repositories\AdvancedCycleRepository;
 use LaundryPro\Api\Repositories\AnalyticsRepository;
 use LaundryPro\Api\Repositories\AttendanceRepository;
 use LaundryPro\Api\Repositories\AuditLogRepository;
@@ -279,6 +281,7 @@ final class Application
       $c->pdo(),
       $c->get(CatalogRepository::class),
       $c->get(InventoryRepository::class),
+      $c->get(SyncOutboxRepository::class)
     ));
     $this->container->singleton(SyncOutboxRepository::class, fn (Container $c) => new SyncOutboxRepository($c->pdo()));
     $this->container->singleton(SyncService::class, fn (Container $c) => new SyncService($c->pdo(), $c->get(SyncOutboxRepository::class)));
@@ -325,6 +328,16 @@ final class Application
       $c->get(InventoryRepository::class),
       $c->get(DeliveryRepository::class),
       $c->get(PurchaseRepository::class),
+      $c->get(TerminalRepository::class),
+    ));
+    $this->container->singleton(AdvancedCycleRepository::class, fn (Container $c) => new AdvancedCycleRepository(
+      $c->get(PDO::class),
+      $c->get(SyncOutboxRepository::class),
+    ));
+    $this->container->singleton(AdvancedCycleController::class, fn (Container $c) => new AdvancedCycleController(
+      $c->get(ApiResponse::class),
+      $c->get(AdvancedCycleRepository::class),
+      $c->get(AuditLogRepository::class),
     ));
     $this->container->singleton(HrController::class, fn (Container $c) => new HrController(
       $c->get(ApiResponse::class),
@@ -411,13 +424,10 @@ final class Application
     $this->container->singleton(AuthMiddleware::class, fn () => new AuthMiddleware());
     $this->container->singleton(PermissionMiddleware::class, fn (Container $c) => new PermissionMiddleware($c->get(PermissionChecker::class)));
     $this->container->singleton(RateLimitMiddleware::class, fn () => new RateLimitMiddleware(
-      API_ROOT . '/storage/rate_limits',
       (int) $this->securityConfig['login_rate_limit'],
       (int) $this->securityConfig['login_rate_window'],
     ));
-    $this->container->singleton(InstallRateLimitMiddleware::class, fn () => new InstallRateLimitMiddleware(
-      API_ROOT . '/storage/rate_limits',
-      (int) $this->securityConfig['install_rate_limit'],
+    $this->container->singleton(InstallRateLimitMiddleware::class, fn () => new InstallRateLimitMiddleware(API_ROOT . '/storage/rate_limits', (int) $this->securityConfig['install_rate_limit'],
       (int) $this->securityConfig['install_rate_window'],
     ));
     $this->container->singleton(\LaundryPro\Api\Middleware\InstallTokenMiddleware::class, fn () => new \LaundryPro\Api\Middleware\InstallTokenMiddleware());

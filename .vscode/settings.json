@@ -1,1 +1,6 @@
-{"git.autofetch": false, "git.autorefresh": false, "git.enableSmartCommit": true}
+{
+    "git.autofetch": false,
+    "git.autorefresh": false,
+    "git.enableSmartCommit": true,
+    "cmake.sourceDirectory": "E:/Projects/Flutter/UAE-Laundry-Pro/windows"
+}

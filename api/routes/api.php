@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use LaundryPro\Api\Controllers\AccountingController;
+use LaundryPro\Api\Controllers\AdvancedCycleController;
 use LaundryPro\Api\Controllers\AnalyticsController;
 use LaundryPro\Api\Controllers\AuthController;
 use LaundryPro\Api\Controllers\BackupController;
@@ -757,5 +758,21 @@ function register_api_routes(Router $router): void
   $router->get('/api/v1/portal/order', [CustomerPortalController::class, 'orderStatus'], [], [
     'tag' => 'Portal', 'summary' => 'Customer order status by token', 'security' => false,
     'responses' => ['200' => 'PORTAL_ORDER_STATUS', '404' => 'NOT_FOUND'],
+  ]);
+  $router->get('/api/v1/advanced-cycles/presets', [AdvancedCycleController::class, 'getPresets'], $auth, [
+    'tag' => 'Advanced Cycles', 'summary' => 'List presets', 'permission' => 'advanced.cycle.run',
+    'responses' => ['200' => 'CYCLE_PRESETS_LIST'],
+  ]);
+  $router->post('/api/v1/advanced-cycles/start', [AdvancedCycleController::class, 'startCycle'], $audit, [
+    'tag' => 'Advanced Cycles', 'summary' => 'Start cycle', 'permission' => 'advanced.cycle.run',
+    'responses' => ['201' => 'CYCLE_STARTED', '422' => 'VALIDATION_ERROR'],
+  ]);
+  $router->post('/api/v1/advanced-cycles/{id}/complete', [AdvancedCycleController::class, 'completeCycle'], $audit, [
+    'tag' => 'Advanced Cycles', 'summary' => 'Complete cycle', 'permission' => 'advanced.cycle.run',
+    'responses' => ['200' => 'CYCLE_COMPLETED', '422' => 'INVALID_STATUS'],
+  ]);
+  $router->post('/api/v1/advanced-cycles/{id}/process-logs', [AdvancedCycleController::class, 'recordProcessLog'], $audit, [
+    'tag' => 'Advanced Cycles', 'summary' => 'Record process log', 'permission' => 'advanced.cycle.run',
+    'responses' => ['201' => 'LOG_RECORDED', '422' => 'VALIDATION_ERROR'],
   ]);
 }

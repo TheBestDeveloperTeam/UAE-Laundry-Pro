@@ -19,7 +19,7 @@ final class RateLimitMiddleware implements MiddlewareInterface
   public function handle(Request $request, Container $container, callable $next): void
   {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-    $path = $request->path();
+    $path = $request->getPath();
     
     // Only rate limit login endpoints
     if (!str_starts_with($path, '/auth/login')) {

@@ -60,7 +60,7 @@ final class SyncOutboxRepository
   public function enqueue(int $businessOwnerId, string $entityType, int $localId, string $operation, array $payload): void
   {
     $stmt = $this->pdo->prepare(
-      'INSERT INTO sync_outbox (business_owner_id, entity_type, entity_local_id, operation, payload, status, attempts, created_at)
+      'INSERT INTO sync_outbox (business_owner_id, entity_type, entity_local_id, operation, payload, status, sync_attempts, created_at)
        VALUES (:owner, :type, :local_id, :op, :payload, "pending", 0, UTC_TIMESTAMP())'
     );
     $stmt->execute([

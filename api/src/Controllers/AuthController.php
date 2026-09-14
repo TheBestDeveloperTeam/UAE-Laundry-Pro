@@ -53,7 +53,7 @@ final class AuthController
         return;
       }
 
-      $this->response->error($request, 'AUTH_SESSION_EXPIRED', 'auth.session_expired', 401);
+      $this->response->error($request, 'AUTH_SESSION_EXPIRED', $code, 401);
     }
   }
 
@@ -68,7 +68,7 @@ final class AuthController
     try {
       $data = $this->auth->refresh($refreshToken);
       $this->response->success($request, $data, 'AUTH_REFRESH_SUCCESS', 'auth.refresh_success');
-    } catch (\Throwable) {
+    } catch (\Throwable $e) {
       $this->response->error($request, 'AUTH_SESSION_EXPIRED', 'auth.session_expired', 401);
     }
   }
@@ -92,7 +92,7 @@ final class AuthController
     try {
       $user = $this->auth->me($userId);
       $this->response->success($request, ['user' => $user], 'AUTH_ME_SUCCESS', 'auth.me_success');
-    } catch (\Throwable) {
+    } catch (\Throwable $e) {
       $this->response->error($request, 'AUTH_SESSION_EXPIRED', 'auth.session_expired', 401);
     }
   }

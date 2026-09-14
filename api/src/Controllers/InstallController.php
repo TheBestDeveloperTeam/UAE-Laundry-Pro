@@ -70,6 +70,6 @@ final class InstallController
       return;
     }
 
-    $this->response->error($request, 'INSTALL_FAILED', 'install.failed', 500);
+    $this->response->error($request, 'INSTALL_FAILED', $e->getMessage(), 500);
   }
 }

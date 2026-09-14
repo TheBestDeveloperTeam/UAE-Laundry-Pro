@@ -29,7 +29,7 @@ final class AuthService
       throw new \RuntimeException('AUTH_INVALID_CREDENTIALS');
     }
 
-    if ($user['locked_until'] !== null && strtotime($user['locked_until']) > time()) {
+    if (($user['locked_until'] ?? null) !== null && strtotime($user['locked_until'] ?? '') > time()) {
       throw new \RuntimeException('AUTH_ACCOUNT_LOCKED');
     }
 

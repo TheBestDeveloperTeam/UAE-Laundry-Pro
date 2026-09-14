@@ -83,49 +83,6 @@ final class AuthMiddleware implements MiddlewareInterface
   }
 }
 
-final class RateLimitMiddleware implements MiddlewareInterface
-{
-  public function __construct(
-    private readonly string $storagePath,
-    private readonly int $maxAttempts,
-    private readonly int $windowSeconds,
-  ) {
-  }
-
-  public function handle(Request $request, Container $container, callable $next): void
-  {
-    $key = hash('sha256', $request->ip() . ':' . $request->getPath());
-    $file = rtrim($this->storagePath, '/\\') . DIRECTORY_SEPARATOR . 'rate_' . $key . '.json';
-    $now = time();
-    $data = ['count' => 0, 'reset' => $now + $this->windowSeconds];
-
-    if (is_file($file)) {
-      $decoded = json_decode((string) file_get_contents($file), true);
-      if (is_array($decoded)) {
-        $data = $decoded;
-      }
-    }
-
-    if ($now > ($data['reset'] ?? 0)) {
-      $data = ['count' => 0, 'reset' => $now + $this->windowSeconds];
-    }
-
-    $data['count'] = ($data['count'] ?? 0) + 1;
-    file_put_contents($file, json_encode($data));
-
-    if ($data['count'] > $this->maxAttempts) {
-      $container->get(ApiResponse::class)->error(
-        $request,
-        'RATE_LIMIT_EXCEEDED',
-        'auth.rate_limit_exceeded',
-        429
-      );
-      return;
-    }
-
-    $next($request);
-  }
-}
 
 final class AuditMiddleware implements MiddlewareInterface
 {
