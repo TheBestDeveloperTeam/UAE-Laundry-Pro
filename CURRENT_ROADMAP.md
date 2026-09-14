@@ -13,13 +13,13 @@
 - `PermissionMiddleware` verified for new routes
 - Test suite regressions fixed (166 tests passing)
 
-### [ACTIVE] Sprint 3: Advanced Core APIs
+### [COMPLETED] Sprint 3: Advanced Core APIs
 - Implementation of `AdvancedCycleController.php`
 - Implementation of `AdvancedCycleRepository.php`
 - Integration of Process Logs (pH, Temperature)
 - UI: `advanced_cycle_screen.dart`
 
-### Sprint 4: Sterilization & Compliance
+### [ACTIVE] Sprint 4: Sterilization & Compliance
 - `SterilizationController` and UI
 - Batch tracking and e-signatures
 - Auto-quarantine logic for failed biological indicators
