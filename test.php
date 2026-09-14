@@ -1,0 +1,1 @@
+<?php require "api/bootstrap.php"; $_SERVER["REQUEST_METHOD"] = "GET"; $_SERVER["REQUEST_URI"] = "/laundrypro-api/public/api/v1/docs/openapi.json"; $app = \LaundryPro\Api\Core\Application::create(); $app->run();

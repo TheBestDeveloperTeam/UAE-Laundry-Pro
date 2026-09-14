@@ -1,0 +1,1 @@
+<?php require "api/bootstrap.php"; $gen = new \LaundryPro\Api\Docs\OpenApiGenerator("LaundryPro UAE API", "1.2.0", "http://localhost/laundrypro-api/public/api/v1"); if(!is_dir("api/public/docs")) mkdir("api/public/docs", 0777, true); file_put_contents("api/public/docs/openapi.json", json_encode($gen->generate()));

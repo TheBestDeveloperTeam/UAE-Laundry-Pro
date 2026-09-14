@@ -21,3 +21,4 @@ if (substr($c, 0, 3) === "\xEF\xBB\xBF") {
 
 file_put_contents($f, $c);
 echo "Fixed\n";
+

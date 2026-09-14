@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "name": "Tenant A",
+        "license_key": "LIC-A-001",
+        "cloud_token": "d00d9f338b0910570d3d60d2238346a0504504bf38542251e46e4bc8ca8046b3",
+        "created_at": "2026-09-14T20:18:55+00:00"
+    },
+    {
+        "id": 2,
+        "name": "Tenant B",
+        "license_key": "LIC-B-001",
+        "cloud_token": "bd4a290c00063deeb8304876617d39765dd563aa951663e1ecf877221e482f23",
+        "created_at": "2026-09-14T20:18:59+00:00"
+    }
+]

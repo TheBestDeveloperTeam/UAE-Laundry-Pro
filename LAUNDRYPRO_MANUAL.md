@@ -1,138 +1,106 @@
-# LaundryPro UAE: Complete System Manual & Walkthrough
+# LaundryPro UAE: Comprehensive Application Manual & Walkthrough
 
-Welcome to the comprehensive handbook for **LaundryPro UAE**. This manual is designed for non-technical stakeholders, business owners, and operations managers. It details every feature, workflow, and user journey within the platform, explaining how the system operates in real-world scenarios.
+Welcome to the **LaundryPro UAE Complete Handbook**. This manual is designed for owners, managers, cashiers, and technical staff to understand the complete functionality, architecture, workflows, and rules of the system. 
 
----
+LaundryPro UAE is an offline-first POS (Point of Sale) and ERP (Enterprise Resource Planning) system explicitly tailored for modern laundry businesses.
 
-## 1. System Overview
+## 1. System Overview and Assumptions
 
-LaundryPro UAE is a specialized Point of Sale (POS) and Enterprise Resource Planning (ERP) system built for the garment care industry. 
+### What is LaundryPro UAE?
+LaundryPro UAE is designed for environments where the internet might be unstable. It operates on a Windows Desktop machine locally. 
+- The **backend** is powered by a high-performance PHP 8.2 micro-framework with a local MariaDB database.
+- The **frontend** is a responsive Flutter application designed for touch screens and keyboard/mouse setups.
+- A **cloud synchronization engine** works in the background to push data to the main server when the internet is restored.
 
-### Key Capabilities
-*   **Offline Resilience:** The application is installed directly on your Windows computers. If the internet goes down, your cashiers can continue serving customers, printing receipts, and opening the cash drawer. The system automatically syncs data when the connection returns.
-*   **Financial Integrity:** Once an invoice is finalized, it cannot be deleted or altered. This ensures complete auditability and prevents fraud. Mistakes are handled through formal "Correction Memos."
-*   **Hardware Integration:** Native support for ESC/POS receipt printers, barcode scanners for garment tracking, weight scales for "per kilo" services, and customer-facing displays.
+### Core Assumptions & Non-Negotiable Rules
+- **No Monetary Data Loss:** The system calculates money using high-precision decimal math. No floats are used anywhere.
+- **Audit Trails:** Everything from deleting an invoice to changing the temperature on a washing cycle is logged.
+- **Additive Migrations:** The database is designed so data is never truly "lost" when updates happen.
+- **Offline First:** The cashier must be able to ring up customers, print invoices, and open the cash drawer even if the internet is completely disconnected.
 
----
+## 2. User Roles and Permissions
 
-## 2. User Roles & Permissions
+LaundryPro uses a robust Role-Based Access Control (RBAC) system. Every user logs in with an explicit token. 
 
-The system uses strict Role-Based Access Control (RBAC). A user can only see and interact with features they have permission to access.
+### Roles
+1. **Admin / Owner** 
+   - *Permissions:* Can access all settings, create new users, modify inventory, run backups, and override prices.
+   - *Use Case:* Setting up the business initially, closing the register at the end of the day, reviewing the Profit & Loss (P&L) statements.
 
-### Standard Roles
+2. **Manager**
+   - *Permissions:* Can approve expenses, manage employees, view payroll, and refund customers. Cannot alter the core settings or run database migrations.
+   - *Use Case:* Overseeing daily operations, managing customer complaints, handling cash drop-offs.
 
-*   **System Administrator (`administrator`)**
-    *   *Permissions:* Unrestricted access to all features (`*`).
-    *   *Use Case:* The business owner or IT manager configuring the system, setting up hardware, or viewing top-level financial analytics.
-*   **Store Manager (`manager`)**
-    *   *Permissions:* Can manage inventory, approve expenses, authorize refunds, and view daily sales reports. Cannot alter global system settings or delete user accounts.
-    *   *Use Case:* The branch manager handling daily operations, overseeing cashiers, and ordering supplies from vendors.
-*   **Cashier (`cashier`)**
-    *   *Permissions:* Can create sales drafts, accept payments, search for customers, and print receipts (`sales.create`, `customers.view`). Cannot view overall business profitability or access HR modules.
-    *   *Use Case:* Front-desk staff greeting customers, taking garments, and processing transactions.
-*   **Factory/Production Staff (`production`)**
-    *   *Permissions:* Can update the status of garments (e.g., from "Washing" to "Ready for Collection") and generate batch transfer documents (Challans).
-    *   *Use Case:* Staff in the back-room or central facility tracking the actual cleaning process.
-*   **Delivery Driver (`driver`)**
-    *   *Permissions:* Can view assigned delivery tasks and mark them as complete.
-    *   *Use Case:* Drivers handling pickup and delivery routes.
+3. **Cashier**
+   - *Permissions:* Can create sales drafts, confirm orders, accept payments, and add new customers. 
+   - *Restrictions:* Cannot view business analytics, cannot delete invoices, cannot perform backups.
+   - *Use Case:* The person standing at the front desk greeting customers and taking clothes.
 
----
+4. **Operator / Driver**
+   - *Permissions:* Specifically tailored for managing production cycles or delivery routes. 
+   - *Use Case:* The delivery driver checking off "Challans" (delivery batches) on their tablet or the washing machine operator recording the pH levels of a wash.
 
-## 3. Core Workflows & Features
+## 3. Core Workflows with Examples
 
-### 3.1 The Sales & Checkout Workflow (Point of Sale)
+### A. The Front-Desk Workflow: Creating a Sale
+*Scenario:* A customer walks in with 3 shirts for dry cleaning.
 
-The POS interface is designed for speed. 
+1. **Customer Selection:** The cashier clicks "New Order." They search for the customer by phone number. If the customer is new, they quickly add them (Name and Phone required).
+2. **Item Entry:** The cashier taps "Dry Cleaning" -> "Shirt". They change the quantity to 3.
+3. **Drafting:** The system creates a "Sales Draft." The items are not yet confirmed, allowing the cashier to modify quantities or apply a discount if the manager approves.
+4. **Confirmation:** The cashier hits "Confirm Order." The system locks the prices. The order is now an official invoice.
+5. **Payment:** The customer hands over cash. The cashier enters the amount received. The system calculates change, records a "Payment Transaction," and triggers the receipt printer.
 
-**Scenario:** A customer walks in with 3 shirts for dry cleaning and 1 carpet for washing (priced per kilo).
+### B. The Production Workflow: Advanced Garment Care
+*Scenario:* The 3 shirts need to go through a specialized "Delicate Wash" cycle.
 
-1.  **Customer Identification:** The cashier searches for the customer by phone number. If it's a new customer, they are added instantly with basic details.
-2.  **Item Entry:**
-    *   The cashier taps "Dry Clean" -> "Shirt". They increase the quantity to 3.
-    *   The cashier taps "Carpet Wash". The system prompts for a weight. The scale automatically inputs "4.5 kg", and the price is calculated based on the per-kilo rate.
-3.  **Modifiers & Notes:** One shirt has a heavy wine stain. The cashier selects the shirt and applies a "Heavy Stain" modifier (which may add a small fee) and types a note: "Customer warned about potential color fade."
-4.  **Drafting:** The order is saved as a "Draft." The system prints a preliminary ticket to attach to the garments.
-5.  **Payment & Confirmation:** The customer pays via Credit Card. The cashier selects "Card" as the tender type. The system finalizes the invoice, opening the cash drawer (if cash was used), and prints the final customer receipt.
+1. **Starting the Cycle:** The Operator goes to the "Advanced Cycles" screen. They scan the barcode on the garment tag (Sale ID). They select "Delicate Wash Preset" and the specific washing machine (Equipment ID).
+2. **Recording Metrics:** Halfway through the wash, the system prompts for a quality check. The operator checks the water and logs a "pH Level" of 7.2 in the "Process Logs" tab.
+3. **Completion:** The wash is done. The operator marks the cycle as "Completed." The system automatically logs who did the wash, on what machine, and the exact timestamp.
 
-### 3.2 Advanced Garment Care (The Production Cycle)
+### C. The Inventory Workflow: Receiving Detergent
+*Scenario:* A vendor drops off 10 bottles of specialized detergent.
 
-Once garments are taken in, they move through the production lifecycle.
+1. **Purchase Order (PO):** The Manager goes to "Purchasing" and creates a PO for the vendor.
+2. **Receiving Items:** When the delivery arrives, the Manager clicks "Receive Items" against the PO. 
+3. **Stock Update:** The system adds 10 bottles to the local inventory. This transaction is permanently recorded in the "Inventory Movements" ledger.
+4. **Usage:** As cycles are run, detergent is automatically deducted from stock based on the preset configurations. 
 
-**Scenario:** Tracking garments through a central processing facility.
+## 4. Feature Deep Dives
 
-1.  **Sorting & Tagging:** Garments are tagged with unique barcodes.
-2.  **Batch Transfer (Challans):** If garments need to move from a retail storefront to a central factory, the manager creates a "Challan" (a batch transfer document). The driver uses this document to verify the load.
-3.  **Status Updates:** At the factory, a worker scans the garment barcode. The system updates the item's status from "Received" to "Processing."
-4.  **Quality Check:** After cleaning, the garment is inspected. If it fails, it is placed on "Quality Hold" and re-routed for re-washing.
-5.  **Ready for Collection:** Once packed, the status changes to "Ready." The system automatically sends an SMS to the customer notifying them their order is ready for pickup.
+### Multi-Branch and Cloud Sync
+- **How it works:** The `sync_outbox` table securely queues every transaction. When the background sync worker runs (every few minutes), it securely pushes these to the central cloud.
+- **Example:** If branch A creates a new customer, Branch B will see that customer once both branches sync with the cloud.
 
-### 3.3 Inventory & Purchasing
+### Deliveries & Challans
+- **Challans:** A Challan is a manifest of items being moved. If you are sending 50 garments to a central factory for washing, you create a Challan. The driver signs it, and the factory acknowledges receipt. This ensures zero lost garments.
+- **Route Delivery:** Drivers use the "Delivery Tasks" feature to see a prioritized list of customer locations for drop-offs, optimized by the system.
 
-Managing retail items (like detergents sold over the counter) and raw materials (chemicals used for cleaning).
+### Payroll & HR
+- **Attendance:** Staff clock in and out using a PIN or RFID card.
+- **Salary Advances:** If an employee requests an advance, the manager can approve it. 
+- **Payroll Run:** At the end of the month, the system automatically calculates salaries, deducts the approved advances, adds overtime, and generates a payroll report.
 
-**Scenario:** Restocking liquid detergent.
+### Offline Resilience & Backups
+- **Local Database:** You never see a "Connecting to server..." loading spinner when ringing up a customer. 
+- **Automatic Backups:** The system creates encrypted `.zip` backups locally. If the computer crashes, a new computer can be restored instantly using this file.
+- **Verification:** The "Backup Verify" feature ensures the backup file isn't corrupted before relying on it.
 
-1.  **Low Stock Alert:** The store manager sees a notification that "Premium Liquid Detergent" has fallen below the minimum threshold.
-2.  **Purchase Order:** The manager creates a Purchase Order (PO) for the vendor "Chemical Supplies LLC" for 50 bottles.
-3.  **Receiving Stock:** The delivery arrives. The manager opens the PO in the system and marks it as "Received." The inventory levels are automatically increased by 50.
-4.  **Sales Deduction:** Every time a cashier sells a bottle of detergent at the POS, the inventory is automatically reduced by 1.
+## 5. Security & Licensing
 
-### 3.4 Human Resources & Payroll
+- **Tamper Protection:** If a user tries to modify the local SQLite/MariaDB database directly using a third-party tool, the sync engine will detect the signature mismatch and flag the branch for an audit.
+- **Rate Limiting:** To prevent brute-force attacks on the manager's password, the system locks login attempts after 5 failures in 1 minute.
+- **Licensing:** The software requires a valid license key (checked against the cloud). If the license expires, the system drops into a "Read-Only" mode where sales are blocked but historical data is still accessible.
 
-Managing staff shifts, leaves, and compensation.
+## 6. End-to-End Walkthrough (The "Perfect Day")
 
-**Scenario:** Processing monthly payroll with a salary advance.
-
-1.  **Attendance:** Employees clock in and out daily using a PIN code at the terminal.
-2.  **Salary Advance:** Mid-month, an employee requests a 500 AED advance. The manager approves it in the system. The amount is disbursed from the cash drawer (logging an expense).
-3.  **Payroll Run:** At the end of the month, the manager clicks "Run Payroll." The system calculates the base salary, adds any overtime based on attendance records, and automatically deducts the 500 AED advance.
-4.  **Payslips:** The system generates PDF payslips for distribution.
-
-### 3.5 Accounting & Expense Management
-
-Tracking money going out of the business.
-
-**Scenario:** Paying a utility bill from the till.
-
-1.  **Expense Creation:** The manager takes 200 AED from the cash drawer to pay the water bill. They log an expense in the system under the category "Utilities".
-2.  **Approval:** Because the amount is small, it is auto-approved (based on business rules).
-3.  **Financial Impact:** The system records the outflow. When the shift is closed, the system expects the physical cash drawer to have 200 AED less, ensuring cash reconciliation matches perfectly.
-
----
-
-## 4. Key Assumptions & Safeguards
-
-To maintain enterprise-grade reliability, LaundryPro UAE operates on several strict assumptions:
-
-1.  **No Deletions (Soft Deletes Only):** To prevent accidental data loss or malicious tampering, users cannot permanently delete records (like old customers or past inventory movements). Records are instead marked as "inactive" and hidden from daily views.
-2.  **Immutability of Sales:** Once an invoice is paid and confirmed, it is locked. If a cashier makes a mistake, they cannot "edit" the invoice. They must issue a formal refund or correction memo, leaving a clear paper trail.
-3.  **Offline Integrity:** If the system is offline, cashiers can still create orders. However, they are warned that these orders are "pending sync." Complex operations that require centralized validation (like registering a new branch) require an active internet connection.
-4.  **Device Binding:** Terminals (the physical computers) must be registered to a specific branch. A cashier logging into Terminal A will automatically be processing sales for Branch A.
+1. **8:00 AM:** The manager opens the store, turns on the computer. The system boots in 2 seconds. The manager checks the **Health Screen** to ensure the receipt printer and cloud sync are green.
+2. **8:15 AM - 12:00 PM:** Cashiers take 50 orders. The system works flawlessly offline even when the local ISP goes down at 10 AM.
+3. **1:00 PM:** The driver arrives. The manager generates a **Challan** for 100 dirty garments. The driver takes them to the factory.
+4. **3:00 PM:** The factory receives the garments, runs **Advanced Cycles**, and logs the metrics.
+5. **5:00 PM:** The clean garments return. They are scanned in via the **Barcode Scanner**. The system automatically sends a WhatsApp/SMS notification to the 50 customers: "Your clothes are ready!"
+6. **6:00 PM - 8:00 PM:** Customers pick up their clothes and pay the remaining balances.
+7. **9:00 PM:** The manager runs the **End of Day Report**. It matches the cash drawer perfectly. The manager triggers a **Manual Backup** to a USB drive and closes the store.
 
 ---
-
-## 5. End-to-End Walkthrough Example: A Day in the Life
-
-**Morning (8:00 AM)**
-*   The Manager unlocks the store.
-*   Employees arrive and use the POS terminal to clock in via the HR module.
-*   The Manager checks the Dashboard for any pending online orders (Customer Portal) and verifies the cash float in the drawer.
-
-**Mid-Day (12:00 PM)**
-*   The Cashier processes a steady stream of walk-in customers.
-*   The internet provider has an outage. The POS displays a yellow "Offline" indicator, but the Cashier continues working without interruption. The local database securely stores all transactions.
-*   A delivery driver arrives to pick up garments for the central factory. The Manager generates a Challan, prints it, and hands the garments over.
-
-**Afternoon (3:00 PM)**
-*   The internet comes back online. The Sync Engine immediately pushes the offline transactions to the server in the background. The "Offline" indicator turns green.
-*   The Manager receives an automated notification that washing chemicals are running low and creates a Purchase Order.
-
-**Evening (9:00 PM)**
-*   The store closes. Employees clock out.
-*   The Manager runs the "End of Day" report, counting the physical cash in the drawer and comparing it to the system's expected cash total (accounting for today's sales minus any petty cash expenses logged).
-*   The system performs an automated encrypted backup of the day's data.
-
----
-
-*This manual covers the core operational flows of LaundryPro UAE. For technical configuration, hardware setup, or API integration, please refer to the README and API_DOCS.*
+*Generated by Antigravity AI - System Documentation Module*

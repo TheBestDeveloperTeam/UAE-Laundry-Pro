@@ -51,7 +51,7 @@ final class SettingsController
       $this->settings->upsert($key, $settingValue, $scope);
     }
 
-    $this->audit->log($userId, 'settings.update', 'settings', null, json_encode(array_keys($settings)));
+    $this->audit->log($userId, 'settings.update', 'settings', null, json_encode(array_keys($settings)) ?: null);
     $this->response->success($request, [
       'settings' => $this->settings->all(),
     ], 'SETTINGS_UPDATED', 'settings.update_success');

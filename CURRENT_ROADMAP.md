@@ -45,3 +45,4 @@
 - Registry-backed Licensing system
 - Universal background sync outbox coverage
 - Multi-platform packaging (MSIX, APK, AppImage)
+

@@ -5,3 +5,4 @@ $c = preg_replace('/ALTER TABLE users ADD COLUMN failed_attempts.*/s', '', $c);
 $c = rtrim($c);
 $c .= "\n";
 file_put_contents($f, $c);
+

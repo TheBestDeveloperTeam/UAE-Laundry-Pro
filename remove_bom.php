@@ -7,3 +7,4 @@ if (substr($c, 0, 3) === "\xEF\xBB\xBF") {
 } else {
     echo "No BOM found\n";
 }
+

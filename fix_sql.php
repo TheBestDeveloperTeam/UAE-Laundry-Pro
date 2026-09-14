@@ -8,3 +8,4 @@ if ($pos !== false) {
 }
 $content .= "\n\nALTER TABLE users ADD COLUMN failed_attempts INT UNSIGNED NOT NULL DEFAULT 0, ADD COLUMN locked_until TIMESTAMP NULL DEFAULT NULL;\n";
 file_put_contents($f, $content);
+

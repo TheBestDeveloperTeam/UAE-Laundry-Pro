@@ -10,3 +10,4 @@ try {
 } catch (\Throwable $e) {
   echo $e->getMessage() . "\n";
 }
+

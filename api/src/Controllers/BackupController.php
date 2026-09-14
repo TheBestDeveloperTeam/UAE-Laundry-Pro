@@ -36,8 +36,9 @@ final class BackupController
     $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
     $db   = $_ENV['DB_NAME'] ?? 'laundrypro';
     
-    // Assume mysqldump is in PATH
-    $cmd = sprintf('mysqldump -h %s -u %s %s %s > %s',
+    $mysqldump = file_exists('E:\\xampp\\mysql\\bin\\mysqldump.exe') ? 'E:\\xampp\\mysql\\bin\\mysqldump.exe' : 'mysqldump';
+    $cmd = sprintf('"%s" -h %s -u %s %s %s > %s',
+        $mysqldump,
         escapeshellarg($host),
         escapeshellarg($user),
         $pass !== '' ? '--password=' . escapeshellarg($pass) : '',
@@ -68,7 +69,7 @@ final class BackupController
     
     @unlink($dbFile);
     
-    $this->audit->log($userId, 'backup.run', 'backup', null, 'Manual backup triggered');
+    $this->audit->log($userId, 'backup.run', 'backup', null, json_encode(['message' => 'Manual backup triggered']));
     $this->response->success($request, ['file' => basename($zipFile), 'size' => filesize($zipFile), 'path' => $zipFile], 'BACKUP_CREATED', 'backup.created');
   }
 
@@ -100,7 +101,7 @@ final class BackupController
 
   public function restoreValidate(Request $request, Container $container): void
   {
-    $this->response->success($request, ['valid' => true], 'BACKUP_RESTORE_VALIDATED', 'backup.restore_validated');
+    $this->response->success($request, ['valid' => true, 'dry_run' => 1], 'BACKUP_RESTORE_VALIDATED', 'backup.restore_validated');
   }
 
   public function restore(Request $request, Container $container): void

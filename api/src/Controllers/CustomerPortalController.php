@@ -18,4 +18,14 @@ final class CustomerPortalController
   {
      $this->response->success($request, ['orders' => []], 'PORTAL_ORDERS', 'portal.orders');
   }
+
+  public function createToken(Request $request, Container $container): void
+  {
+     $this->response->success($request, ['token' => 'mock_token'], 'PORTAL_TOKEN_CREATED', 'portal.token_created', 201);
+  }
+
+  public function orderStatus(Request $request, Container $container): void
+  {
+     $this->response->success($request, ['status' => 'processing'], 'PORTAL_ORDER_STATUS', 'portal.order_status');
+  }
 }
