@@ -34,7 +34,13 @@ use LaundryPro\Api\Controllers\SettingsController;
 use LaundryPro\Api\Controllers\StorefrontController;
 use LaundryPro\Api\Controllers\SyncController;
 use LaundryPro\Api\Controllers\TerminalController;
+use LaundryPro\Api\Controllers\SterilizationController;
+use LaundryPro\Api\Controllers\EquipmentController;
+use LaundryPro\Api\Controllers\OperatorController;
+use LaundryPro\Api\Controllers\RfidController;
 use LaundryPro\Api\Controllers\VendorController;
+use LaundryPro\Api\Adapters\HardwareAdapterInterface;
+use LaundryPro\Api\Adapters\DummyRfidAdapter;
 use LaundryPro\Api\Docs\OpenApiGenerator;
 use LaundryPro\Api\Helpers\ApiResponse;
 use LaundryPro\Api\Helpers\Logger;
@@ -65,6 +71,10 @@ use LaundryPro\Api\Repositories\LeaveRepository;
 use LaundryPro\Api\Repositories\LocalizationRepository;
 use LaundryPro\Api\Repositories\StorefrontRepository;
 use LaundryPro\Api\Repositories\TerminalRepository;
+use LaundryPro\Api\Repositories\SterilizationRepository;
+use LaundryPro\Api\Repositories\EquipmentRepository;
+use LaundryPro\Api\Repositories\OperatorRepository;
+use LaundryPro\Api\Repositories\RfidRepository;
 use LaundryPro\Api\Repositories\NotificationRepository;
 use LaundryPro\Api\Repositories\PayrollRepository;
 use LaundryPro\Api\Repositories\PurchaseRepository;
@@ -373,7 +383,12 @@ final class Application
       $c->get(AuditLogRepository::class),
     ));
     $this->container->singleton(BranchRepository::class, fn (Container $c) => new BranchRepository($c->pdo()));
-    $this->container->singleton(TerminalRepository::class, fn (Container $c) => new TerminalRepository($c->pdo()));
+    $this->container->singleton(TerminalRepository::class, fn(Container $c) => new TerminalRepository($c->pdo()));
+    $this->container->singleton(HardwareAdapterInterface::class, fn() => new DummyRfidAdapter());
+    $this->container->singleton(RfidRepository::class, fn(Container $c) => new RfidRepository($c->pdo()));
+    $this->container->singleton(OperatorRepository::class, fn(Container $c) => new OperatorRepository($c->pdo()));
+    $this->container->singleton(EquipmentRepository::class, fn(Container $c) => new EquipmentRepository($c->pdo()));
+    $this->container->singleton(SterilizationRepository::class, fn(Container $c) => new SterilizationRepository($c->pdo()));
     $this->container->singleton(AnalyticsRepository::class, fn (Container $c) => new AnalyticsRepository($c->pdo()));
     $this->container->singleton(ChannelRepository::class, fn (Container $c) => new ChannelRepository($c->pdo()));
     $this->container->singleton(AccountingRepository::class, fn (Container $c) => new AccountingRepository($c->pdo()));
@@ -391,6 +406,10 @@ final class Application
     $this->container->singleton(TerminalController::class, fn (Container $c) => new TerminalController(
       $c->get(ApiResponse::class), $c->get(TerminalRepository::class), $c->get(BranchRepository::class), $c->get(AuditLogRepository::class),
     ));
+    $this->container->singleton(RfidController::class, fn(Container $c) => new RfidController($c->get(ApiResponse::class), $c->get(RfidRepository::class), $c->get(HardwareAdapterInterface::class)));
+    $this->container->singleton(OperatorController::class, fn(Container $c) => new OperatorController($c->get(ApiResponse::class), $c->get(OperatorRepository::class)));
+    $this->container->singleton(EquipmentController::class, fn(Container $c) => new EquipmentController($c->get(ApiResponse::class), $c->get(EquipmentRepository::class)));
+    $this->container->singleton(SterilizationController::class, fn(Container $c) => new SterilizationController($c->get(ApiResponse::class), $c->get(SterilizationRepository::class)));
     $this->container->singleton(AnalyticsController::class, fn (Container $c) => new AnalyticsController(
       $c->get(ApiResponse::class), $c->get(AnalyticsRepository::class),
     ));

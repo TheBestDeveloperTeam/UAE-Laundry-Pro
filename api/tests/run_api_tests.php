@@ -154,7 +154,7 @@ final class ApiTestRunner
         echo "SKIP  {$name} (optional — status {$status})\n";
         return;
       }
-      $this->fail($name, "Expected status {$expected['status']} got {$status}");
+      $this->fail($name, "Expected status {$expected['status']} got {$status} - Response: " . json_encode($decoded, JSON_PRETTY_PRINT));
       return;
     }
     if (isset($expected['success']) && ($decoded['success'] ?? null) !== $expected['success']) {

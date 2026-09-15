@@ -1,0 +1,50 @@
+[
+  {
+    "name": "sprint6_list_certifications",
+    "method": "GET",
+    "url": "/operators/certifications",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "expected_status": 200,
+    "expected_json": {
+      "success": true
+    }
+  },
+  {
+    "name": "sprint6_certify_operator",
+    "method": "POST",
+    "url": "/operators/2/certify",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "body": {
+      "certification_name": "Advanced Operations Certified",
+      "issued_at": "2026-09-15",
+      "expires_at": "2027-09-15"
+    },
+    "expected_status": 201,
+    "expected_json": {
+      "success": true
+    }
+  },
+  {
+    "name": "sprint6_start_cycle_blocked_uncertified",
+    "method": "POST",
+    "url": "/advanced-cycles/start",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "body": {
+      "equipment_id": 2,
+      "operator_id": 1,
+      "preset_id": 1,
+      "sale_order_id": 1
+    },
+    "expected_status": 422,
+    "expected_json": {
+      "success": false,
+      "code": "OPERATOR_UNCERTIFIED"
+    }
+  }
+]

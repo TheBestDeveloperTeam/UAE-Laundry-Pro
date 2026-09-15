@@ -38,7 +38,7 @@ final class AdvancedCycleController
     }
 
     $eq = $this->cycles->checkEquipment($equipmentId);
-    if (!$eq || $eq['status'] === 'out_of_service') {
+    if (!$eq || $eq['out_of_service'] == 1) {
       $this->response->error($request, 'EQUIPMENT_OUT_OF_SERVICE', 'advanced.equipment_oos', 422);
       return;
     }
@@ -48,7 +48,7 @@ final class AdvancedCycleController
     }
 
     $op = $this->cycles->checkOperator($operatorId);
-    if (!$op || ($op['certification_expires_at'] && strtotime($op['certification_expires_at']) < time())) {
+    if (!$op || empty($op['certification_expires_at']) || strtotime($op['certification_expires_at']) < time()) {
       $this->response->error($request, 'OPERATOR_UNCERTIFIED', 'advanced.operator_certification_expired', 422);
       return;
     }

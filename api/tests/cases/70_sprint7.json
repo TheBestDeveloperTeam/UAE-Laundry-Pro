@@ -1,0 +1,30 @@
+[
+  {
+    "name": "sprint7_rfid_scan",
+    "method": "POST",
+    "url": "/rfid/scan",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "body": {
+      "epc_tags": ["EPC001", "EPC002", "EPC003"]
+    },
+    "expected_status": 201,
+    "expected_json": {
+      "success": true
+    }
+  },
+  {
+    "name": "sprint7_rfid_scan_empty_fallback",
+    "method": "POST",
+    "url": "/rfid/scan",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "body": {},
+    "expected_status": 201,
+    "expected_json": {
+      "success": true
+    }
+  }
+]

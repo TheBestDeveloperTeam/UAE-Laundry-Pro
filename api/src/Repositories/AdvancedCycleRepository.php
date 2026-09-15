@@ -23,7 +23,7 @@ final class AdvancedCycleRepository
 
   public function checkEquipment(int $equipmentId): ?array
   {
-    $stmt = $this->pdo->prepare('SELECT status, next_calibration_due FROM equipment WHERE id = :id');
+    $stmt = $this->pdo->prepare('SELECT out_of_service, next_calibration_due FROM equipment WHERE id = :id');
     $stmt->execute(['id' => $equipmentId]);
     $res = $stmt->fetch(PDO::FETCH_ASSOC);
     return $res ?: null;
@@ -31,7 +31,7 @@ final class AdvancedCycleRepository
 
   public function checkOperator(int $operatorId): ?array
   {
-    $stmt = $this->pdo->prepare('SELECT certification_expires_at FROM users WHERE id = :id');
+    $stmt = $this->pdo->prepare('SELECT MAX(expires_at) as certification_expires_at FROM operator_certifications WHERE employee_id = :id');
     $stmt->execute(['id' => $operatorId]);
     $res = $stmt->fetch(PDO::FETCH_ASSOC);
     return $res ?: null;

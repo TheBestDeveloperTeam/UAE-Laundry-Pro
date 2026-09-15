@@ -12,5 +12,19 @@
         "license_key": "LIC-B-001",
         "cloud_token": "bd4a290c00063deeb8304876617d39765dd563aa951663e1ecf877221e482f23",
         "created_at": "2026-09-14T20:18:59+00:00"
+    },
+    {
+        "id": 3,
+        "name": "Tenant A",
+        "license_key": "LIC-A-001",
+        "cloud_token": "2723110f65a9dbb12f3ce7e74cfa35cd7f361e0425126119bb56a4f3415bc580",
+        "created_at": "2026-09-15T14:18:34+00:00"
+    },
+    {
+        "id": 4,
+        "name": "Tenant B",
+        "license_key": "LIC-B-001",
+        "cloud_token": "799a164c7da45c4e431a17bacdb0f8215836f67c4ed4b50685e81d50e9ef11f5",
+        "created_at": "2026-09-15T14:18:38+00:00"
     }
 ]

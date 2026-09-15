@@ -30,6 +30,10 @@ use LaundryPro\Api\Controllers\ReportsController;
 use LaundryPro\Api\Controllers\SalesController;
 use LaundryPro\Api\Controllers\SettingsController;
 use LaundryPro\Api\Controllers\StorefrontController;
+use LaundryPro\Api\Controllers\SterilizationController;
+use LaundryPro\Api\Controllers\EquipmentController;
+use LaundryPro\Api\Controllers\OperatorController;
+use LaundryPro\Api\Controllers\RfidController;
 use LaundryPro\Api\Controllers\SyncController;
 use LaundryPro\Api\Controllers\TerminalController;
 use LaundryPro\Api\Controllers\VendorController;
@@ -774,5 +778,56 @@ function register_api_routes(Router $router): void
   $router->post('/api/v1/advanced-cycles/{id}/process-logs', [AdvancedCycleController::class, 'recordProcessLog'], $audit, [
     'tag' => 'Advanced Cycles', 'summary' => 'Record process log', 'permission' => 'advanced.cycle.run',
     'responses' => ['201' => 'LOG_RECORDED', '422' => 'VALIDATION_ERROR'],
+  ]);
+  
+  $router->post("/api/v1/sterilization/batch", [SterilizationController::class, "batchCreate"], $audit, [
+    "tag" => "Sterilization", "summary" => "Create batch", "permission" => "advanced.cycle.run",
+    "responses" => ["201" => "BATCH_CREATED"]
+  ]);
+  $router->post("/api/v1/sterilization/scan", [SterilizationController::class, "batchScan"], $audit, [
+    "tag" => "Sterilization", "summary" => "Scan batch", "permission" => "advanced.cycle.run",
+    "responses" => ["201" => "BATCH_SCANNED"]
+  ]);
+  $router->post("/api/v1/sterilization/log", [SterilizationController::class, "logSterilization"], $audit, [
+    "tag" => "Sterilization", "summary" => "Log sterilization", "permission" => "advanced.cycle.run",
+    "responses" => ["201" => "LOG_CREATED"]
+  ]);
+  $router->post("/api/v1/sterilization/sign", [SterilizationController::class, "signElectronic"], $audit, [
+    "tag" => "Sterilization", "summary" => "Sign electronically", "permission" => "advanced.cycle.run",
+    "responses" => ["201" => "SIGNED"]
+  ]);
+  $router->get("/api/v1/sterilization/logs/{cycleRunId}", [SterilizationController::class, "listLogs"], $auth, [
+    "tag" => "Sterilization", "summary" => "List logs", "permission" => "advanced.cycle.run",
+    "responses" => ["200" => "LOGS_LIST"]
+  ]);
+
+  $router->get('/api/v1/equipment', [EquipmentController::class, 'listAll'], $auth, [
+    'tag' => 'Equipment', 'summary' => 'List equipment', 'permission' => 'advanced.equipment.manage',
+    'responses' => ['200' => 'EQUIPMENT_LIST']
+  ]);
+
+  $router->post('/api/v1/equipment/{id}/calibrate', [EquipmentController::class, 'logCalibration'], $audit, [
+    'tag' => 'Equipment', 'summary' => 'Log calibration', 'permission' => 'advanced.equipment.manage',
+    'responses' => ['201' => 'CALIBRATION_LOGGED']
+  ]);
+
+  $router->post('/api/v1/equipment/{id}/status', [EquipmentController::class, 'setOutOfService'], $audit, [
+    'tag' => 'Equipment', 'summary' => 'Update status', 'permission' => 'advanced.equipment.manage',
+    'responses' => ['200' => 'STATUS_UPDATED']
+  ]);
+
+  $router->get('/api/v1/operators/certifications', [OperatorController::class, 'listCertifications'], $auth, [
+    'tag' => 'Operators', 'summary' => 'List certifications', 'permission' => 'advanced.equipment.manage',
+    'responses' => ['200' => 'CERTIFICATIONS_LIST']
+  ]);
+
+  $router->post('/api/v1/operators/{id}/certify', [OperatorController::class, 'certify'], $audit, [
+    'tag' => 'Operators', 'summary' => 'Certify operator', 'permission' => 'advanced.equipment.manage',
+    'responses' => ['201' => 'CERTIFIED']
+  ]);
+
+  $router->post('/api/v1/rfid/scan', [RfidController::class, 'scan'], $audit, [
+    'tag' => 'RFID', 'summary' => 'Bulk Scan RFID tags', 'permission' => 'advanced.equipment.manage',
+    'responses' => ['201' => 'TAGS_PROCESSED']
   ]);
 }

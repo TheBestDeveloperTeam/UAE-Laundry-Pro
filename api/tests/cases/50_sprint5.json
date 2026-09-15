@@ -1,0 +1,66 @@
+[
+  {
+    "name": "sprint5_list_equipment",
+    "method": "GET",
+    "url": "/equipment",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "expected_status": 200,
+    "expected_json": {
+      "success": true
+    }
+  },
+  {
+    "name": "sprint5_log_calibration",
+    "method": "POST",
+    "url": "/equipment/1/calibrate",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "body": {
+      "calibrated_at": "2026-09-15",
+      "performed_by": "John Doe",
+      "certificate_ref": "CERT-2026",
+      "next_calibration_due": "2027-09-15"
+    },
+    "expected_status": 201,
+    "expected_json": {
+      "success": true
+    }
+  },
+  {
+    "name": "sprint5_set_oos",
+    "method": "POST",
+    "url": "/equipment/1/status",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "body": {
+      "out_of_service": true
+    },
+    "expected_status": 200,
+    "expected_json": {
+      "success": true
+    }
+  },
+  {
+    "name": "sprint5_start_cycle_blocked",
+    "method": "POST",
+    "url": "/advanced-cycles/start",
+    "headers": {
+      "Authorization": "Bearer {{admin_token}}"
+    },
+    "body": {
+      "equipment_id": 1,
+      "operator_id": 1,
+      "preset_id": 1,
+      "sale_order_id": 1
+    },
+    "expected_status": 422,
+    "expected_json": {
+      "success": false,
+      "code": "EQUIPMENT_OUT_OF_SERVICE"
+    }
+  }
+]

@@ -1,0 +1,114 @@
+[
+  {
+    "name": "sprint4_batch_create",
+    "tag": "Sprint4",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/sterilization/batch",
+      "headers": {"Authorization": "Bearer {{access_token}}"},
+      "body": {
+        "lot_number": "LOT-1000",
+        "expiry_date": "2029-12-31",
+        "origin_sales_order_id": 1
+      }
+    },
+    "expected": {
+      "status": 201
+    },
+    "capture": {
+      "sprint4_batch_id": "data.id"
+    }
+  },
+  {
+    "name": "sprint4_batch_scan",
+    "tag": "Sprint4",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/sterilization/scan",
+      "headers": {"Authorization": "Bearer {{access_token}}"},
+      "body": {
+        "batch_lot_id": "{{sprint4_batch_id}}",
+        "scan_type": "in",
+        "device_id": "SCANNER-01"
+      }
+    },
+    "expected": {
+      "status": 201
+    }
+  },
+  {
+    "name": "sprint4_log_sterilization_approved",
+    "tag": "Sprint4",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/sterilization/log",
+      "headers": {"Authorization": "Bearer {{access_token}}"},
+      "body": {
+        "cycle_run_id": 1,
+        "autoclave_program": "Program A",
+        "pressure_kpa": 120.5,
+        "temperature_c": 134.0,
+        "duration_minutes": 30,
+        "validation_result": "approved"
+      }
+    },
+    "expected": {
+      "status": 201
+    }
+  },
+  {
+    "name": "sprint4_sign_electronic",
+    "tag": "Sprint4",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/sterilization/sign",
+      "headers": {"Authorization": "Bearer {{access_token}}"},
+      "body": {
+        "cycle_run_id": 1,
+        "signature_hash": "a1b2c3d4e5f6g7h8",
+        "meaning": "Approval"
+      }
+    },
+    "expected": {
+      "status": 201
+    }
+  },
+  {
+    "name": "sprint4_log_sterilization_rejected",
+    "tag": "Sprint4",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "POST",
+      "path": "/sterilization/log",
+      "headers": {"Authorization": "Bearer {{access_token}}"},
+      "body": {
+        "cycle_run_id": 1,
+        "autoclave_program": "Program A",
+        "pressure_kpa": 100.5,
+        "temperature_c": 120.0,
+        "duration_minutes": 30,
+        "validation_result": "rejected"
+      }
+    },
+    "expected": {
+      "status": 201
+    }
+  },
+  {
+    "name": "sprint4_list_logs",
+    "tag": "Sprint4",
+    "setup": "login_as_admin",
+    "request": {
+      "method": "GET",
+      "path": "/sterilization/logs/1",
+      "headers": {"Authorization": "Bearer {{access_token}}"}
+    },
+    "expected": {
+      "status": 200
+    }
+  }
+]

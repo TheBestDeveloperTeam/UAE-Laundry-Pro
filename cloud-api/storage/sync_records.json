@@ -1,0 +1,12 @@
+[
+    {
+        "business_owner_id": 3,
+        "entity_type": "customer",
+        "entity_local_id": 1,
+        "operation": "create",
+        "payload": {
+            "name": "A Customer"
+        },
+        "created_at": "2026-09-15T14:18:46+00:00"
+    }
+]

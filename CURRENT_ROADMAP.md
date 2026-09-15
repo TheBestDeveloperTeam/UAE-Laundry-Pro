@@ -19,27 +19,27 @@
 - Integration of Process Logs (pH, Temperature)
 - UI: `advanced_cycle_screen.dart`
 
-### [ACTIVE] Sprint 4: Sterilization & Compliance
+### [COMPLETED] Sprint 4: Sterilization & Compliance
 - `SterilizationController` and UI
 - Batch tracking and e-signatures
 - Auto-quarantine logic for failed biological indicators
 
-### Sprint 5: Equipment Calibration Management
+### [COMPLETED] Sprint 5: Equipment Calibration Management
 - `EquipmentController` for calibration logs
 - Blocking logic for out-of-calibration machines
 - Reminders and dashboard alerts
 
-### Sprint 6: Operator Certification
+### [COMPLETED] Sprint 6: Operator Certification
 - `OperatorController` for tracking training and certifications
 - Expiration logic to block uncertified operators from starting cycles
 - HR module integration
 
-### Sprint 7: RFID & Batch Tracking
+### [COMPLETED] Sprint 7: RFID & Batch Tracking
 - Integration with external UHF RFID middleware via `HardwareAdapterInterface`
 - Real-time garment tracking UI
 - Bulk scanning and automated status transitions
 
-### Sprint 8-16: Admin Consoles, Licensing, & Cloud Sync
+### [COMPLETED] Sprint 8-16: Admin Consoles, Licensing, & Cloud Sync
 - Local XAMPP Admin Console
 - Cloud Super-Admin Console (cPanel / AdminLTE)
 - Registry-backed Licensing system

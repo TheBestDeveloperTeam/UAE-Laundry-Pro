@@ -27,6 +27,10 @@ import 'package:laundrypro_uae/views/pending_invoices_screen.dart';
 import 'package:laundrypro_uae/views/peripherals_screen.dart';
 import 'package:laundrypro_uae/views/pos_screen.dart';
 import 'package:laundrypro_uae/views/production_screen.dart';
+import 'package:laundrypro_uae/views/equipment_screen.dart';
+import 'package:laundrypro_uae/views/operator_screen.dart';
+import 'package:laundrypro_uae/views/rfid_tracking_screen.dart';
+import 'package:laundrypro_uae/views/sterilization_screen.dart';
 import 'package:laundrypro_uae/views/purchasing_screen.dart';
 import 'package:laundrypro_uae/views/reports_screen.dart';
 import 'package:laundrypro_uae/views/role_editor_screen.dart';
@@ -97,6 +101,10 @@ class AppRouter {
             GoRoute(path: '/catalog', builder: (context, state) => const CatalogScreen()),
             GoRoute(path: '/pending', builder: (context, state) => const PendingInvoicesScreen()),
             GoRoute(path: '/production', builder: (context, state) => const ProductionScreen()),
+            GoRoute(path: '/equipment', builder: (context, state) => const EquipmentScreen()),
+            GoRoute(path: '/operators', builder: (context, state) => const OperatorScreen()),
+            GoRoute(path: '/rfid', builder: (context, state) => const RfidTrackingScreen()),
+            GoRoute(path: '/sterilization', builder: (context, state) => const SterilizationScreen()),
             GoRoute(path: '/delivery', builder: (context, state) => const DeliveryScreen()),
             GoRoute(path: '/challans', builder: (context, state) => const ChallansScreen()),
             GoRoute(path: '/purchasing', builder: (context, state) => const PurchasingScreen()),
