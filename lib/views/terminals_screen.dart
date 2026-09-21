@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/branch_model.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
 import 'package:laundrypro_uae/services/terminal_service.dart';
 
@@ -16,7 +17,7 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
   late final TerminalService _terminals;
   late final BranchService _branches;
   List<Map<String, dynamic>> _items = [];
-  List<Map<String, dynamic>> _branchList = [];
+  List<BranchModel> _branchList = [];
   bool _loading = true;
 
   @override
@@ -39,7 +40,7 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
   Future<void> _add() async {
     if (_branchList.isEmpty) return;
     await _terminals.create({
-      'branch_id': _branchList.first['id'],
+      'branch_id': _branchList.first.id,
       'code': 'T${DateTime.now().millisecond}',
       'name': 'Terminal',
     });

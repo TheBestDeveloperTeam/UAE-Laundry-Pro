@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/delivery_model.dart';
 import 'package:laundrypro_uae/services/delivery_service.dart';
 
 class DeliveryScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class DeliveryScreen extends StatefulWidget {
 
 class _DeliveryScreenState extends State<DeliveryScreen> {
   late final DeliveryService _delivery;
-  List<Map<String, dynamic>> _items = [];
+  List<DeliveryModel> _items = [];
   bool _loading = true;
   String _statusFilter = 'all';
 
@@ -33,8 +34,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     setState(() => _loading = false);
   }
 
-  Future<void> _updateStatus(Map<String, dynamic> task, String status) async {
-    final id = int.tryParse(task['id']?.toString() ?? '');
+  Future<void> _updateStatus(DeliveryModel task, String status) async {
+    final id = task.id;
     if (id == null) return;
     try {
       await _delivery.update(id, {'status': status});
@@ -74,10 +75,10 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
                   segments: const [
-                    ButtonSegment(value: 'all', label: Text('All')),
-                    ButtonSegment(value: 'pending', label: Text('Pending')),
+                    ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
+                    ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
                     ButtonSegment(value: 'in_transit', label: Text('Transit')),
-                    ButtonSegment(value: 'delivered', label: Text('Delivered')),
+                    ButtonSegment(value: 'delivered', label: Text(context.l10n.t('status_delivered'))),
                   ],
                   selected: {_statusFilter},
                   onSelectionChanged: (set) {
@@ -99,7 +100,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, i) {
                           final t = _items[i];
-                          final status = t['status']?.toString() ?? 'pending';
+                          final status = t.status ?? 'pending';
                           final isDelivered = status == 'delivered';
                           final isInTransit = status == 'in_transit';
 
@@ -117,8 +118,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                                     : (isInTransit ? Colors.blue.shade900 : Colors.amber.shade900),
                               ),
                             ),
-                            title: Text('${l10n.t('orders')} #${t['sales_order_id']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('Address: ${t['delivery_address'] ?? 'Counter Pickup'} · Driver: ${t['driver_name'] ?? 'Unassigned'}'),
+                            title: Text('${l10n.t('orders')} #${t.salesOrderId}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('Address: ${t.deliveryAddress ?? 'Counter Pickup'} · Driver: ${t.driverName ?? 'Unassigned'}'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

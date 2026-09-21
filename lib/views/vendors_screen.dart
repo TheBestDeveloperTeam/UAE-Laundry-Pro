@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
+import '../models/vendor_model.dart';
 
 class VendorsScreen extends StatefulWidget {
   const VendorsScreen({super.key});
@@ -12,7 +13,7 @@ class VendorsScreen extends StatefulWidget {
 class _VendorsScreenState extends State<VendorsScreen> {
   final _api = ApiClient();
   final _searchController = TextEditingController();
-  List<Map<String, dynamic>> _items = [];
+  List<VendorModel> _items = [];
   bool _loading = true;
 
   @override
@@ -33,7 +34,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
       final q = _searchController.text.trim();
       final path = q.isNotEmpty ? '/vendors?q=$q' : '/vendors';
       final res = await _api.get(path);
-      _items = (res['data']?['vendors'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      _items = (res['data']?['vendors'] as List? ?? []).map((e) => VendorModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
     } catch (_) {}
     setState(() => _loading = false);
   }
@@ -82,8 +83,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
                     itemBuilder: (context, i) {
                       final v = _items[i];
                       return ListTile(
-                        title: Text(v['name']?.toString() ?? ''),
-                        subtitle: Text(v['phone']?.toString() ?? ''),
+                        title: Text(v.name),
+                        subtitle: Text(v.phone ?? ''),
                       );
                     },
                   ),

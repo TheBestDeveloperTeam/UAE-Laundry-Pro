@@ -10,7 +10,7 @@ class EquipmentScreen extends ConsumerStatefulWidget {
 
 class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
   bool _isLoading = false;
-  List<dynamic> _equipmentList = [];
+  List<InventoryModel> _equipmentList = [];
 
   @override
   void initState() {
@@ -25,7 +25,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
       final list = await s.listAll();
       if (mounted) setState(() => _equipmentList = list);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -49,10 +49,10 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
             itemCount: _equipmentList.length,
             itemBuilder: (context, index) {
               final eq = _equipmentList[index];
-              final outOfService = eq['out_of_service'] == 1 || eq['out_of_service'] == true;
+              final outOfService = eq.outOfService;
               return ListTile(
-                title: Text(eq['asset_tag']),
-                subtitle: Text('Type: \ - Next Due: \'),
+                title: Text(eq.assetTag ?? 'Unknown Asset'),
+                subtitle: Text('Type: ${eq.machineType ?? 'Unknown'} - Next Due: ${eq.nextCalibrationDue?.toLocal().toString().split(' ')[0] ?? 'N/A'}'),
                 trailing: Chip(
                   label: Text(outOfService ? 'Out of Service' : 'Active'),
                   backgroundColor: outOfService ? Colors.red : Colors.green,

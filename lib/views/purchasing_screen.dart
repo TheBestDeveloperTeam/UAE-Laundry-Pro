@@ -13,7 +13,7 @@ class PurchasingScreen extends StatefulWidget {
 
 class _PurchasingScreenState extends State<PurchasingScreen> {
   late final PurchaseService _purchases;
-  List<Map<String, dynamic>> _items = [];
+  List<PurchaseOrderModel> _items = [];
   bool _loading = true;
   String _statusFilter = 'all';
 
@@ -86,22 +86,22 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
     await _load();
   }
 
-  Future<void> _receiveGoods(Map<String, dynamic> po) async {
-    final id = int.tryParse(po['id']?.toString() ?? '');
-    if (id == null) return;
+  Future<void> _receiveGoods(PurchaseOrderModel po) async {
+    final id = po.id;
+    if (id == 0) return;
 
     final notesController = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Receive Goods (GRN) — ${po['po_no']}'),
+        title: Text('Receive Goods (GRN) — ${po.poNo}'),
         content: SizedBox(
           width: 380,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Confirm goods receipt from Vendor #${po['vendor_id']}?'),
+              Text('Confirm goods receipt from Vendor #${po.vendorId}?'),
               const SizedBox(height: 12),
               TextField(
                 controller: notesController,
@@ -132,7 +132,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('GRN confirmed for ${po['po_no']}! Stock updated.')),
+            SnackBar(content: Text('GRN confirmed for ${po.poNo}! Stock updated.')),
           );
         }
         await _load();
@@ -202,7 +202,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, i) {
                           final po = _items[i];
-                          final status = po['status']?.toString() ?? 'pending';
+                          final status = po.status;
                           final isReceived = status == 'received';
 
                           return ListTile(
@@ -213,8 +213,8 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                                 color: isReceived ? Colors.green.shade900 : Colors.blue.shade900,
                               ),
                             ),
-                            title: Text(po['po_no']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('${l10n.t('vendors')} #${po['vendor_id']} · Status: ${status.toUpperCase()}'),
+                            title: Text(po.poNo, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('${l10n.t('vendors')} #${po.vendorId} · Status: ${status.toUpperCase()}'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

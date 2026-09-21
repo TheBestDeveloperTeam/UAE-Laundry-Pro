@@ -14,7 +14,7 @@ class PayrollScreen extends StatefulWidget {
 
 class _PayrollScreenState extends State<PayrollScreen> {
   late final PayrollService _payroll;
-  List<Map<String, dynamic>> _periods = [];
+  List<PayrollModel> _periods = [];
   bool _loading = true;
 
   @override
@@ -92,11 +92,11 @@ class _PayrollScreenState extends State<PayrollScreen> {
                   itemCount: _periods.length,
                   itemBuilder: (context, i) {
                     final p = _periods[i];
-                    final id = int.tryParse(p['id']?.toString() ?? '');
+                    final id = p.id;
                     return ListTile(
-                      title: Text('${p['period_start']} to ${p['period_end']}'),
-                      subtitle: Text('${l10n.t('status')}: ${p['status']}'),
-                      trailing: id != null && p['status'] != 'closed'
+                      title: Text('${p.periodStart.toIso8601String().split('T').first} to ${p.periodEnd.toIso8601String().split('T').first}'),
+                      subtitle: Text('${l10n.t('status')}: ${p.status}'),
+                      trailing: p.status != 'closed'
                           ? FilledButton(
                               onPressed: () => _runPayroll(id),
                               child: Text(l10n.t('payroll_run')),

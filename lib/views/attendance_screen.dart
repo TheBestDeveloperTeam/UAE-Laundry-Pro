@@ -13,7 +13,7 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   late final AttendanceService _attendance;
-  List<Map<String, dynamic>> _items = [];
+  List<AttendanceModel> _items = [];
   bool _loading = true;
 
   @override
@@ -78,8 +78,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   itemBuilder: (context, i) {
                     final a = _items[i];
                     return ListTile(
-                      title: Text('${l10n.t('employee_id')}: ${a['employee_id']}'),
-                      subtitle: Text('${a['attendance_date']} - ${a['status']}'),
+                      title: Text('${l10n.t('employee_id')}: ${a.employeeId}'),
+                      subtitle: Text('${a.date.toIso8601String().split('T').first} - ${a.status}'),
                     );
                   },
                 ),

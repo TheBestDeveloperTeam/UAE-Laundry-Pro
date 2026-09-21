@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/customer_model.dart';
 import 'package:laundrypro_uae/services/customer_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
 import 'package:laundrypro_uae/widgets/app_form_dialog.dart';
@@ -15,7 +16,7 @@ class CustomersScreen extends StatefulWidget {
 
 class _CustomersScreenState extends State<CustomersScreen> {
   late final CustomerService _service;
-  List<Map<String, dynamic>> _customers = [];
+  List<CustomerModel> _customers = [];
   bool _loading = true;
 
   final _searchController = TextEditingController();
@@ -40,11 +41,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
     }
   }
 
-  void _showForm([Map<String, dynamic>? existing]) {
+  void _showForm([CustomerModel? existing]) {
     final isNew = existing == null;
-    final phoneCtrl = TextEditingController(text: existing?['phone']?.toString() ?? '');
-    final nameCtrl = TextEditingController(text: existing?['name']?.toString() ?? '');
-    final type = existing?['customer_type']?.toString() ?? 'retail';
+    final phoneCtrl = TextEditingController(text: existing?.phone ?? '');
+    final nameCtrl = TextEditingController(text: existing?.name ?? '');
+    final type = existing?.customerType ?? 'retail';
 
     showDialog(
       context: context,
@@ -59,7 +60,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           if (isNew) {
             await _service.create(data);
           } else {
-            await _service.update(existing['id'] as int, data);
+            await _service.update(existing!.id!, data);
           }
         },
         onSuccess: _load,
@@ -117,9 +118,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   AppDataTableColumn(label: 'Type', key: 'customer_type'),
                   AppDataTableColumn(label: 'Balance', key: 'outstanding_balance', numeric: true),
                 ],
-                data: _customers,
+                data: _customers.map((c) => c.toJson()).toList(),
                 isLoading: _loading,
-                onRowTap: (row) => _showForm(row as Map<String, dynamic>),
+                onRowTap: (row) {
+                  final id = row['id'] as int;
+                  final cust = _customers.firstWhere((c) => c.id == id);
+                  _showForm(cust);
+                },
               ),
             ),
           ),

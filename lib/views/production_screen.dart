@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 
 class ProductionScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
   bool _isKanbanMode = true;
   String _searchFilter = '';
 
-  final Map<String, List<Map<String, dynamic>>> _boardData = {
+  final Map<String, List<OrderModel>> _boardData = {
     'received': [],
     'sorting': [],
     'processing': [],
@@ -57,12 +58,12 @@ class _ProductionScreenState extends State<ProductionScreen> {
     setState(() => _loading = true);
     try {
       final allOrders = await _sales.list(limit: 200);
-      final newBoard = <String, List<Map<String, dynamic>>>{
+      final newBoard = <String, List<OrderModel>>{
         for (final stage in _kanbanStages) stage: [],
       };
 
       for (final order in allOrders) {
-        final status = order['status']?.toString() ?? 'received';
+        final status = order.status ?? 'received';
         if (newBoard.containsKey(status)) {
           newBoard[status]!.add(order);
         }
@@ -78,8 +79,8 @@ class _ProductionScreenState extends State<ProductionScreen> {
     }
   }
 
-  Future<void> _changeStatus(Map<String, dynamic> order, String newStatus, {String? notes}) async {
-    final id = int.tryParse(order['id']?.toString() ?? '');
+  Future<void> _changeStatus(OrderModel order, String newStatus, {String? notes}) async {
+    final id = order.id;
     if (id == null) return;
 
     try {
@@ -94,14 +95,14 @@ class _ProductionScreenState extends State<ProductionScreen> {
     }
   }
 
-  Future<void> _showStatusDialog(Map<String, dynamic> order) async {
-    final current = order['status']?.toString() ?? '';
+  Future<void> _showStatusDialog(OrderModel order) async {
+    final current = order.status ?? '';
     final notesController = TextEditingController();
 
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Stage Transition — ${order['order_no']}'),
+        title: Text('Stage Transition — ${order.orderNo}'),
         content: SizedBox(
           width: 380,
           child: Column(
@@ -231,19 +232,19 @@ class _ProductionScreenState extends State<ProductionScreen> {
         children: _kanbanStages.map((stage) {
           final orders = (_boardData[stage] ?? []).where((o) {
             if (_searchFilter.isEmpty) return true;
-            final no = (o['order_no']?.toString() ?? '').toLowerCase();
+            final no = (o.orderNo ?? '').toLowerCase();
             return no.contains(_searchFilter);
           }).toList();
 
           final stageColor = _getStageColor(stage);
 
-          return DragTarget<Map<String, dynamic>>(
-            onWillAcceptWithDetails: (details) => details.data['status'] != stage,
+          return DragTarget<OrderModel>(
+            onWillAcceptWithDetails: (details) => details.data.status != stage,
             onAcceptWithDetails: (details) => _changeStatus(details.data, stage),
             builder: (context, candidateData, rejectedData) {
               return Container(
                 width: 280,
-                margin: const EdgeInsets.only(right: 12),
+                margin: const EdgeInsetsDirectional.only(end: 12),
                 decoration: BoxDecoration(
                   color: candidateData.isNotEmpty
                       ? stageColor.withValues(alpha: 0.15)
@@ -291,7 +292,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                               itemCount: orders.length,
                               itemBuilder: (context, index) {
                                 final o = orders[index];
-                                return Draggable<Map<String, dynamic>>(
+                                return Draggable<OrderModel>(
                                   data: o,
                                   feedback: Material(
                                     elevation: 6,
@@ -304,7 +305,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(color: stageColor),
                                       ),
-                                      child: Text(o['order_no']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      child: Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
                                     ),
                                   ),
                                   childWhenDragging: Opacity(
@@ -326,7 +327,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
     );
   }
 
-  Widget _buildOrderCard(Map<String, dynamic> o, String stage, Color stageColor) {
+  Widget _buildOrderCard(OrderModel o, String stage, Color stageColor) {
     final next = _nextStatus[stage];
 
     return Card(
@@ -340,7 +341,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(o['order_no']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 IconButton(
                   icon: const Icon(Icons.more_horiz, size: 18),
                   padding: EdgeInsets.zero,
@@ -351,11 +352,11 @@ class _ProductionScreenState extends State<ProductionScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Customer: ${o['customer_name'] ?? o['customer']?['name'] ?? 'Walk-In'}',
+              'Customer: ${o.customerName ?? 'Walk-In'}',
               style: const TextStyle(fontSize: 12, color: Colors.black87),
             ),
             Text(
-              'Promised: ${o['promised_date'] ?? 'Standard'}',
+              'Promised: ${o.promisedDate ?? 'Standard'}',
               style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 8),
@@ -363,7 +364,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'AED ${o['grand_total'] ?? '0.00'}',
+                  'AED ${o.grandTotal ?? '0.00'}',
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                 ),
                 if (next != null)
@@ -391,13 +392,13 @@ class _ProductionScreenState extends State<ProductionScreen> {
   }
 
   Widget _buildTabularView() {
-    final all = <Map<String, dynamic>>[];
+    final all = <OrderModel>[];
     for (final list in _boardData.values) {
       all.addAll(list);
     }
     final filtered = all.where((o) {
       if (_searchFilter.isEmpty) return true;
-      return (o['order_no']?.toString() ?? '').toLowerCase().contains(_searchFilter);
+      return (o.orderNo ?? '').toLowerCase().contains(_searchFilter);
     }).toList();
 
     return ListView.separated(
@@ -405,12 +406,12 @@ class _ProductionScreenState extends State<ProductionScreen> {
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, i) {
         final o = filtered[i];
-        final current = o['status']?.toString() ?? '';
+        final current = o.status ?? '';
         final next = _nextStatus[current];
 
         return ListTile(
-          title: Text(o['order_no']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text('Stage: ${current.toUpperCase()} · Total: AED ${o['grand_total'] ?? '0.00'}'),
+          title: Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text('Stage: ${current.toUpperCase()} · Total: AED ${o.grandTotal ?? '0.00'}'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

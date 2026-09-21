@@ -126,7 +126,7 @@ class _AppShellState extends State<AppShell> {
           actions: [
             if (auth.user != null)
               Padding(
-                padding: const EdgeInsets.only(right: 16.0),
+                padding: const EdgeInsetsDirectional.only(end: 16.0),
                 child: Row(
                   children: [
                     const Icon(Icons.person_outline, size: 18),

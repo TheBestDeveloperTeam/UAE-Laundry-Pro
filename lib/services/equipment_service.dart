@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'api_client.dart';
+import '../models/inventory_model.dart';
 
 final equipmentServiceProvider = Provider((ref) => EquipmentService(ref.read(apiClientProvider)));
 
@@ -8,9 +9,11 @@ class EquipmentService {
 
   EquipmentService(this._api);
 
-  Future<List<dynamic>> listAll() async {
+  Future<List<InventoryModel>> listAll() async {
     final res = await _api.get('/equipment');
-    return res['data']['equipment'] ?? [];
+    return (res['data']['equipment'] as List? ?? [])
+        .map((e) => InventoryModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> logCalibration(int equipmentId, Map<String, dynamic> data) async {

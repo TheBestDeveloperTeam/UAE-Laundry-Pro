@@ -7,6 +7,7 @@ import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/services/notification_service.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
 import 'package:provider/provider.dart';
+import 'package:laundrypro_uae/models/dashboard_metrics_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, this.reportsService});
@@ -20,9 +21,9 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late final ReportsService _reports;
   final NotificationService _notifications = NotificationService();
-  Map<String, dynamic> _today = {};
-  Map<String, dynamic> _period = {};
-  Map<String, dynamic> _inventory = {};
+  DashboardMetricsModel? _today;
+  DashboardMetricsModel? _period;
+  DashboardMetricsModel? _inventory;
   bool _loading = true;
   String? _error;
   int _unreadCount = 0;
@@ -66,9 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ]);
       if (mounted) {
         setState(() {
-          _today = results[0];
-          _period = results[1];
-          _inventory = results[2];
+          _today = results[0] as DashboardMetricsModel;
+          _period = results[1] as DashboardMetricsModel;
+          _inventory = results[2] as DashboardMetricsModel;
           _unreadCount = notifs.length;
           _loading = false;
         });
@@ -150,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(width: 12),
                     Text(_error!, style: TextStyle(color: Colors.red.shade700)),
                     const Spacer(),
-                    TextButton(onPressed: _loadSummary, child: const Text('Retry')),
+                    TextButton(onPressed: _loadSummary, child: const Text(context.l10n.t('retry'))),
                   ],
                 ),
               ),
@@ -159,7 +160,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            if (_loading && _today.isEmpty)
+            if (_loading && _today == null)
               const Center(child: CircularProgressIndicator())
             else
               Wrap(
@@ -168,7 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   _kpi(
                     l10n.t('pos_total'),
-                    _money(_today['grand_total']),
+                    _money(_today?.grandTotal),
                     Icons.storefront_rounded,
                     Colors.green.shade700,
                     () => context.go('/reports'),
@@ -176,7 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   _kpi(
                     l10n.t('dashboard_outstanding'),
-                    _money(_today['balance_due']),
+                    _money(_today?.balanceDue),
                     Icons.receipt_long_rounded,
                     Colors.orange.shade800,
                     () => context.go('/pending'),
@@ -184,7 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   _kpi(
                     l10n.t('orders'),
-                    '${_today['order_count'] ?? 0}',
+                    '${_today?.orderCount ?? 0}',
                     Icons.shopping_bag_rounded,
                     Colors.blue.shade700,
                     () => context.go('/production'),
@@ -192,7 +193,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   _kpi(
                     l10n.t('dashboard_low_stock'),
-                    '${_inventory['product_count'] ?? 0}',
+                    '${_inventory?.productCount ?? 0}',
                     Icons.inventory_2_rounded,
                     Colors.purple.shade700,
                     () => context.go('/catalog'),
@@ -206,14 +207,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            if (!_loading || _period.isNotEmpty)
+            if (!_loading || _period != null)
               Wrap(
                 spacing: 16,
                 runSpacing: 16,
                 children: [
                   _kpi(
                     l10n.t('pos_total'),
-                    _money(_period['grand_total']),
+                    _money(_period?.grandTotal),
                     Icons.bar_chart_rounded,
                     Colors.teal.shade700,
                     () => context.go('/reports'),
@@ -221,7 +222,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   _kpi(
                     l10n.t('pos_paid'),
-                    _money(_period['amount_paid']),
+                    _money(_period?.amountPaid),
                     Icons.account_balance_rounded,
                     Colors.indigo.shade700,
                     () => context.go('/reports'),
@@ -229,7 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   _kpi(
                     l10n.t('balance'),
-                    _money(_period['balance_due']),
+                    _money(_period?.balanceDue),
                     Icons.warning_amber_rounded,
                     Colors.red.shade700,
                     () => context.go('/pending'),

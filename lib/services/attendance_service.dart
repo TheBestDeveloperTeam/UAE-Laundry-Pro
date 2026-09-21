@@ -1,11 +1,12 @@
 import 'package:laundrypro_uae/services/api_client.dart';
+import '../models/attendance_model.dart';
 
 class AttendanceService {
   AttendanceService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
   final ApiClient _api;
 
-  Future<List<Map<String, dynamic>>> list({int? employeeId, String? from, String? to}) async {
+  Future<List<AttendanceModel>> list({int? employeeId, String? from, String? to}) async {
     final params = <String>[];
     if (employeeId != null) params.add('employee_id=$employeeId');
     if (from != null) params.add('from=$from');
@@ -13,12 +14,12 @@ class AttendanceService {
     final q = params.isEmpty ? '' : '?${params.join('&')}';
     final res = await _api.get('/attendance$q');
     return (res['data']?['attendance'] as List? ?? [])
-        .map((e) => Map<String, dynamic>.from(e as Map))
+        .map((e) => AttendanceModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<Map<String, dynamic>> record(Map<String, dynamic> body) async {
+  Future<AttendanceModel> record(Map<String, dynamic> body) async {
     final res = await _api.post('/attendance', body: body);
-    return Map<String, dynamic>.from(res['data']?['attendance'] as Map? ?? {});
+    return AttendanceModel.fromJson(res['data']?['attendance'] as Map<String, dynamic>? ?? {});
   }
 }

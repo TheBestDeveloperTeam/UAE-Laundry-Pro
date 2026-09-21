@@ -1,25 +1,26 @@
 import 'package:laundrypro_uae/services/api_client.dart';
+import '../models/challan_model.dart';
 
 class ChallanService {
   ChallanService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
   final ApiClient _api;
 
-  Future<List<Map<String, dynamic>>> list({String? challanType}) async {
+  Future<List<ChallanModel>> list({String? challanType}) async {
     final path = challanType != null ? '/challans?challan_type=$challanType' : '/challans';
     final res = await _api.get(path);
     return (res['data']?['challans'] as List? ?? [])
-        .map((e) => Map<String, dynamic>.from(e as Map))
+        .map((e) => ChallanModel.fromMap(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<Map<String, dynamic>> create(Map<String, dynamic> body) async {
+  Future<ChallanModel> create(Map<String, dynamic> body) async {
     final res = await _api.post('/challans', body: body);
-    return Map<String, dynamic>.from(res['data']?['challan'] as Map? ?? {});
+    return ChallanModel.fromMap(res['data']?['challan'] as Map<String, dynamic>? ?? {});
   }
 
-  Future<Map<String, dynamic>> cancel(int id) async {
+  Future<ChallanModel> cancel(int id) async {
     final res = await _api.post('/challans/$id/cancel');
-    return Map<String, dynamic>.from(res['data']?['challan'] as Map? ?? {});
+    return ChallanModel.fromMap(res['data']?['challan'] as Map<String, dynamic>? ?? {});
   }
 }

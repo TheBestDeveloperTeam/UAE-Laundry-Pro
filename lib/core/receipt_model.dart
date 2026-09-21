@@ -67,28 +67,32 @@ class ReceiptModel {
   final String? status;
   final String? paymentStatus;
 
-  factory ReceiptModel.fromOrder(Map<String, dynamic> order) {
-    final rawLines = order['lines'] as List? ?? [];
-    final lines = rawLines
-        .map((e) => ReceiptLine.fromMap(Map<String, dynamic>.from(e as Map)))
-        .toList();
+  factory ReceiptModel.fromOrderModel(OrderModel order) {
+    final lines = order.lines?.map((e) => ReceiptLine(
+      description: e.description ?? '',
+      quantity: double.tryParse(e.quantity?.toString() ?? '0') ?? 0.0,
+      rate: double.tryParse(e.rate?.toString() ?? '0') ?? 0.0,
+      amount: double.tryParse(e.amount?.toString() ?? '0') ?? 0.0,
+      discount: double.tryParse(e.discount?.toString() ?? '0') ?? 0.0,
+      modifiers: [], // simplified for now
+    )).toList() ?? [];
 
     return ReceiptModel(
-      orderNo: order['order_no']?.toString() ?? '',
+      orderNo: order.orderNo ?? '',
       lines: lines,
-      subtotal: double.tryParse(order['subtotal']?.toString() ?? '0') ?? 0,
-      discount: double.tryParse(order['discount']?.toString() ?? '0') ?? 0,
-      tax: double.tryParse(order['tax']?.toString() ?? '0') ?? 0,
-      grandTotal: double.tryParse(order['grand_total']?.toString() ?? '0') ?? 0,
-      amountPaid: double.tryParse(order['amount_paid']?.toString() ?? '0') ?? 0,
-      balanceDue: double.tryParse(order['balance_due']?.toString() ?? '0') ?? 0,
-      customerName: order['customer_name']?.toString() ?? order['customer']?['name']?.toString(),
-      customerPhone: order['customer_phone']?.toString() ?? order['customer']?['phone']?.toString(),
-      trn: order['trn']?.toString(),
-      createdAt: order['created_at']?.toString(),
-      promisedDate: order['promised_date']?.toString(),
-      status: order['status']?.toString(),
-      paymentStatus: order['payment_status']?.toString(),
+      subtotal: double.tryParse(order.subtotal?.toString() ?? '0') ?? 0.0,
+      discount: double.tryParse(order.discount?.toString() ?? '0') ?? 0.0,
+      tax: double.tryParse(order.tax?.toString() ?? '0') ?? 0.0,
+      grandTotal: double.tryParse(order.grandTotal?.toString() ?? '0') ?? 0.0,
+      amountPaid: double.tryParse(order.amountPaid?.toString() ?? '0') ?? 0.0,
+      balanceDue: double.tryParse(order.balanceDue?.toString() ?? '0') ?? 0.0,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      trn: order.trn,
+      createdAt: order.createdAt?.toIso8601String(),
+      promisedDate: order.promisedDate?.toIso8601String(),
+      status: order.status,
+      paymentStatus: order.paymentStatus,
     );
   }
 }

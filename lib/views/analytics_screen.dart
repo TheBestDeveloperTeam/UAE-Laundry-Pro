@@ -13,7 +13,7 @@ class AnalyticsScreen extends StatefulWidget {
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   late final AnalyticsService _service;
-  Map<String, dynamic> _summary = {};
+  DashboardMetricsModel _summary = const DashboardMetricsModel();
   List<Map<String, dynamic>> _trends = [];
   bool _loading = true;
 
@@ -30,7 +30,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       _summary = await _service.summary();
       final to = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final from = DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(const Duration(days: 30)));
-      _trends = await _service.trends(metric: 'sales_total', from: from, to: to);
+      _trends = await _service.trends(ReportConfigModel(
+        metric: 'sales_total',
+        fromDate: from,
+        toDate: to,
+      ));
     } catch (_) {}
     setState(() => _loading = false);
   }
@@ -56,9 +60,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(l10n.t('dashboard_today_sales'), style: Theme.of(context).textTheme.titleMedium),
-                        Text(fmt.format(_summary['sales_total'] ?? 0), style: Theme.of(context).textTheme.headlineSmall),
+                        Text(fmt.format(_summary.salesTotal), style: Theme.of(context).textTheme.headlineSmall),
                         const SizedBox(height: 8),
-                        Text('${l10n.t('dashboard_orders')}: ${_summary['order_count'] ?? 0}'),
+                        Text('${l10n.t('dashboard_orders')}: ${_summary.orderCount}'),
                       ],
                     ),
                   ),

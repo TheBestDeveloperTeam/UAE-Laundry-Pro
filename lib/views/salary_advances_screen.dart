@@ -13,7 +13,7 @@ class SalaryAdvancesScreen extends StatefulWidget {
 
 class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
   late final PayrollService _payroll;
-  List<Map<String, dynamic>> _items = [];
+  List<SalaryAdvanceModel> _items = [];
   bool _loading = true;
 
   @override
@@ -80,8 +80,8 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                   itemBuilder: (context, i) {
                     final a = _items[i];
                     return ListTile(
-                      title: Text('${l10n.t('employee_id')}: ${a['employee_id']}'),
-                      subtitle: Text('Amount: ${a['amount']}'),
+                      title: Text('${l10n.t('employee_id')}: ${a.employeeId}'),
+                      subtitle: Text('Amount: ${a.amount}'),
                     );
                   },
                 ),

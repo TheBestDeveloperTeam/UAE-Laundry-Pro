@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/branch_model.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
 
 class BranchesScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class BranchesScreen extends StatefulWidget {
 
 class _BranchesScreenState extends State<BranchesScreen> {
   late final BranchService _service;
-  List<Map<String, dynamic>> _items = [];
+  List<BranchModel> _items = [];
   bool _loading = true;
 
   @override
@@ -51,8 +52,8 @@ class _BranchesScreenState extends State<BranchesScreen> {
                     final b = _items[i];
                     return ListTile(
                       leading: const Icon(Icons.store),
-                      title: Text(b['name']?.toString() ?? ''),
-                      subtitle: Text(b['code']?.toString() ?? ''),
+                      title: Text(b.name ?? ''),
+                      subtitle: Text(b.code ?? ''),
                     );
                   },
                 ),

@@ -1,4 +1,6 @@
 import 'package:laundrypro_uae/services/api_client.dart';
+import '../models/dashboard_metrics_model.dart';
+import '../models/report_config_model.dart';
 
 class ReportsService {
   ReportsService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
@@ -16,7 +18,7 @@ class ReportsService {
     return data;
   }
 
-  Future<Map<String, dynamic>> salesSummary({String? from, String? to, int? branchId, int? userId, int? customerId}) async {
+  Future<DashboardMetricsModel> salesSummary({String? from, String? to, int? branchId, int? userId, int? customerId}) async {
     final now = DateTime.now().toUtc();
     final fromDate = from ?? now.subtract(const Duration(days: 30)).toIso8601String().split('T').first;
     final toDate = to ?? now.toIso8601String().split('T').first;
@@ -29,10 +31,10 @@ class ReportsService {
     final res = await _api.get(url);
     final data = Map<String, dynamic>.from(res['data'] as Map? ?? {});
     final summary = Map<String, dynamic>.from(data['summary'] as Map? ?? {});
-    return {...summary, 'from': data['from'], 'to': data['to']};
+    return DashboardMetricsModel.fromJson({...summary, 'from': data['from'], 'to': data['to']});
   }
 
-  Future<Map<String, dynamic>> todaySalesSummary() async {
+  Future<DashboardMetricsModel> todaySalesSummary() async {
     final today = DateTime.now().toUtc().toIso8601String().split('T').first;
     return salesSummary(from: today, to: today);
   }
@@ -53,9 +55,9 @@ class ReportsService {
     return _unwrap(res);
   }
 
-  Future<Map<String, dynamic>> inventoryValuation() async {
+  Future<DashboardMetricsModel> inventoryValuation() async {
     final res = await _api.get('/reports/inventory/valuation');
-    return _unwrap(res, nestedKey: 'valuation');
+    return DashboardMetricsModel.fromJson(_unwrap(res, nestedKey: 'valuation'));
   }
 
   Future<Map<String, dynamic>> productionThroughput({String? from, String? to}) async {
@@ -66,21 +68,22 @@ class ReportsService {
     return _unwrap(res, nestedKey: 'throughput');
   }
 
-  Future<Map<String, dynamic>> purchasingReport({String? from, String? to}) async {
-    final fromDate = from ?? '';
-    final toDate = to ?? '';
+  Future<Map<String, dynamic>> purchasingReport(ReportConfigModel config) async {
+    final fromDate = config.fromDate ?? '';
+    final toDate = config.toDate ?? '';
     final q = fromDate.isNotEmpty ? '?from=$fromDate&to=$toDate' : '';
     final res = await _api.get('/reports/purchasing$q');
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
   }
 
-  Future<Map<String, dynamic>> deliveryReport({String? from, String? to}) async {
-    final fromDate = from ?? '';
-    final toDate = to ?? '';
+  Future<Map<String, dynamic>> deliveryReport(ReportConfigModel config) async {
+    final fromDate = config.fromDate ?? '';
+    final toDate = config.toDate ?? '';
     final q = fromDate.isNotEmpty ? '?from=$fromDate&to=$toDate' : '';
     final res = await _api.get('/reports/delivery$q');
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
   }
+
   Future<Map<String, dynamic>> dashboardKpis({String? date}) async {
     final d = date ?? DateTime.now().toUtc().toIso8601String().split('T').first;
     final res = await _api.get('/reports/dashboard-kpis?date=$d');

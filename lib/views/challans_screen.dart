@@ -14,7 +14,7 @@ class ChallansScreen extends StatefulWidget {
 
 class _ChallansScreenState extends State<ChallansScreen> {
   late final ChallanService _challans;
-  List<Map<String, dynamic>> _items = [];
+  List<ChallanModel> _items = [];
   bool _loading = true;
 
   @override
@@ -88,13 +88,12 @@ class _ChallansScreenState extends State<ChallansScreen> {
     await _load();
   }
 
-  void _preview(Map<String, dynamic> item) {
-    final model = ChallanModel.fromMap(item);
-    final thermal = DocumentRenderer.toThermal(model);
+  void _preview(ChallanModel item) {
+    final thermal = DocumentRenderer.toThermal(item);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(item['challan_no']?.toString() ?? ''),
+        title: Text(item.challanNo),
         content: SingleChildScrollView(child: Text(thermal)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l10n.t('pos_close'))),
@@ -120,8 +119,8 @@ class _ChallansScreenState extends State<ChallansScreen> {
                   itemBuilder: (context, i) {
                     final c = _items[i];
                     return ListTile(
-                      title: Text(c['challan_no']?.toString() ?? ''),
-                      subtitle: Text('${c['challan_type']} · ${c['status']}'),
+                      title: Text(c.challanNo),
+                      subtitle: Text('${c.challanType} · ${c.status}'),
                       onTap: () => _preview(c),
                     );
                   },

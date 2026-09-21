@@ -13,7 +13,7 @@ class LeaveScreen extends StatefulWidget {
 
 class _LeaveScreenState extends State<LeaveScreen> {
   late final PayrollService _payroll;
-  List<Map<String, dynamic>> _items = [];
+  List<LeaveModel> _items = [];
   bool _loading = true;
 
   @override
@@ -92,11 +92,11 @@ class _LeaveScreenState extends State<LeaveScreen> {
                   itemCount: _items.length,
                   itemBuilder: (context, i) {
                     final l = _items[i];
-                    final id = int.tryParse(l['id']?.toString() ?? '');
+                    final id = l.id;
                     return ListTile(
-                      title: Text('${l10n.t('employee_id')}: ${l['employee_id']}'),
-                      subtitle: Text('${l['start_date']} to ${l['end_date']} - ${l['status']}'),
-                      trailing: l['status'] == 'pending' && id != null
+                      title: Text('${l10n.t('employee_id')}: ${l.employeeId}'),
+                      subtitle: Text('${l.startDate.toIso8601String().split('T').first} to ${l.endDate.toIso8601String().split('T').first} - ${l.status}'),
+                      trailing: l.status == 'pending'
                           ? Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

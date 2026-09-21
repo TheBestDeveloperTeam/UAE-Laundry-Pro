@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/employee_model.dart';
 import 'package:laundrypro_uae/services/employee_service.dart';
 
 class EmployeesScreen extends StatefulWidget {
@@ -14,7 +15,7 @@ class EmployeesScreen extends StatefulWidget {
 class _EmployeesScreenState extends State<EmployeesScreen> {
   late final EmployeeService _employees;
   final _searchController = TextEditingController();
-  List<Map<String, dynamic>> _items = [];
+  List<EmployeeModel> _items = [];
   bool _loading = true;
 
   @override
@@ -102,8 +103,8 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                         itemBuilder: (context, i) {
                           final e = _items[i];
                           return ListTile(
-                            title: Text(e['full_name']?.toString() ?? ''),
-                            subtitle: Text(e['phone']?.toString() ?? e['employee_code']?.toString() ?? ''),
+                            title: Text(e.fullName ?? ''),
+                            subtitle: Text(e.phone ?? e.employeeCode ?? ''),
                           );
                         },
                       ),

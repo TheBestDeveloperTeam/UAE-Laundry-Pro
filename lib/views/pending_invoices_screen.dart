@@ -4,6 +4,7 @@ import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
 import 'package:laundrypro_uae/core/receipt_renderer.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
+import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 
 class PendingInvoicesScreen extends ConsumerStatefulWidget {
@@ -17,7 +18,7 @@ class PendingInvoicesScreen extends ConsumerStatefulWidget {
 
 class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
   late final SalesService _sales;
-  List<Map<String, dynamic>> _orders = [];
+  List<OrderModel> _orders = [];
   bool _loading = true;
   String _searchQuery = '';
   String _filterStatus = 'all'; // all, pending, partial
@@ -43,22 +44,22 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
     }
   }
 
-  List<Map<String, dynamic>> get _filteredOrders {
+  List<OrderModel> get _filteredOrders {
     return _orders.where((o) {
       if (_filterStatus != 'all') {
-        if (o['payment_status'] != _filterStatus) return false;
+        if (o.paymentStatus != _filterStatus) return false;
       }
       if (_searchQuery.trim().isEmpty) return true;
       final q = _searchQuery.toLowerCase();
-      final orderNo = (o['order_no']?.toString() ?? '').toLowerCase();
-      final custName = (o['customer_name']?.toString() ?? o['customer']?['name']?.toString() ?? '').toLowerCase();
-      final custPhone = (o['customer_phone']?.toString() ?? o['customer']?['phone']?.toString() ?? '').toLowerCase();
+      final orderNo = (o.orderNo ?? '').toLowerCase();
+      final custName = (o.customerName ?? '').toLowerCase();
+      final custPhone = (o.customerPhone ?? '').toLowerCase();
       return orderNo.contains(q) || custName.contains(q) || custPhone.contains(q);
     }).toList();
   }
 
-  Future<void> _openPaymentDialog(Map<String, dynamic> order) async {
-    final balance = double.tryParse(order['balance_due']?.toString() ?? '0') ?? 0;
+  Future<void> _openPaymentDialog(OrderModel order) async {
+    final balance = double.tryParse(order.balanceDue?.toString() ?? '0') ?? 0;
     if (balance <= 0) return;
 
     final amountController = TextEditingController(text: balance.toStringAsFixed(2));
@@ -70,7 +71,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: Text('${context.l10n.t('pos_pay')} — ${order['order_no']}'),
+            title: Text('${context.l10n.t('pos_pay')} — ${order.orderNo}'),
             content: SizedBox(
               width: 420,
               child: Column(
@@ -86,7 +87,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total: AED ${order['grand_total'] ?? '0.00'}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text('Total: AED ${order.grandTotal ?? '0.00'}', style: const TextStyle(fontWeight: FontWeight.w600)),
                         Text('Balance: AED ${balance.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.error)),
                       ],
                     ),
@@ -147,7 +148,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
       final payAmount = double.tryParse(amountController.text) ?? 0;
       if (payAmount <= 0) return;
 
-      final orderId = int.tryParse(order['id']?.toString() ?? '');
+      final orderId = order.id;
       if (orderId == null) return;
 
       try {
@@ -177,7 +178,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
           );
         }
         await _load();
-        if (mounted && updated.isNotEmpty) {
+        if (mounted && updated != null) {
           _showReceiptOptions(updated);
         }
       } catch (e) {
@@ -190,8 +191,8 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
     }
   }
 
-  void _showReceiptOptions(Map<String, dynamic> order) {
-    final receipt = ReceiptModel.fromOrder(order);
+  void _showReceiptOptions(OrderModel order) {
+    final receipt = ReceiptModel.fromOrderModel(order);
     showModalBottomSheet(
       context: context,
       builder: (ctx) => Padding(
@@ -220,7 +221,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                       ),
                     ),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Close')),
+                      TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text(context.l10n.t('pos_close'))),
                     ],
                   ),
                 );
@@ -254,7 +255,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
     );
   }
 
-  Future<void> _updateStatus(Map<String, dynamic> order) async {
+  Future<void> _updateStatus(OrderModel order) async {
     const statuses = ['confirmed', 'processing', 'ready', 'delivered', 'closed'];
     final selected = await showDialog<String>(
       context: context,
@@ -266,7 +267,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
       ),
     );
     if (selected == null) return;
-    await _sales.updateStatus(int.parse(order['id'].toString()), selected);
+    await _sales.updateStatus(order.id!, selected);
     await _load();
   }
 
@@ -301,7 +302,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
                   segments: const [
-                    ButtonSegment(value: 'all', label: Text('All')),
+                    ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
                     ButtonSegment(value: 'pending', label: Text('Unpaid')),
                     ButtonSegment(value: 'partial', label: Text('Partial')),
                   ],
@@ -322,8 +323,8 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, i) {
                           final o = list[i];
-                          final balance = double.tryParse(o['balance_due']?.toString() ?? '0') ?? 0;
-                          final isPartial = o['payment_status'] == 'partial';
+                          final balance = double.tryParse(o.balanceDue?.toString() ?? '0') ?? 0;
+                          final isPartial = o.paymentStatus == 'partial';
 
                           return ListTile(
                             leading: CircleAvatar(
@@ -335,7 +336,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                             ),
                             title: Row(
                               children: [
-                                Text(o['order_no']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
                                 const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -344,14 +345,14 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    (o['status']?.toString() ?? '').toUpperCase(),
+                                    (o.status ?? '').toUpperCase(),
                                     style: TextStyle(fontSize: 11, color: Colors.blue.shade900, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
                             ),
                             subtitle: Text(
-                              'Customer: ${o['customer_name'] ?? o['customer']?['name'] ?? 'Walk-In'} · Total: AED ${o['grand_total'] ?? '0.00'}',
+                              'Customer: ${o.customerName ?? 'Walk-In'} · Total: AED ${o.grandTotal ?? '0.00'}',
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -365,7 +366,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red),
                                     ),
                                     Text(
-                                      (o['payment_status']?.toString() ?? '').toUpperCase(),
+                                      (o.paymentStatus ?? '').toUpperCase(),
                                       style: TextStyle(fontSize: 11, color: isPartial ? Colors.amber.shade900 : Colors.red.shade700),
                                     ),
                                   ],

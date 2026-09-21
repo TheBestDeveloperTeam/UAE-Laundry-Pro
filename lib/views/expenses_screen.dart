@@ -201,8 +201,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
                   segments: const [
-                    ButtonSegment(value: 'all', label: Text('All')),
-                    ButtonSegment(value: 'pending', label: Text('Pending')),
+                    ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
+                    ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
                     ButtonSegment(value: 'approved', label: Text('Approved')),
                   ],
                   selected: {_statusFilter},

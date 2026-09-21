@@ -1,0 +1,39 @@
+class ReportConfigModel {
+  const ReportConfigModel({
+    this.fromDate,
+    this.toDate,
+    this.branchId,
+    this.userId,
+    this.customerId,
+    this.metric,
+  });
+
+  final String? fromDate;
+  final String? toDate;
+  final int? branchId;
+  final int? userId;
+  final int? customerId;
+  final String? metric;
+
+  factory ReportConfigModel.fromJson(Map<String, dynamic> json) {
+    return ReportConfigModel(
+      fromDate: json['from_date'] as String?,
+      toDate: json['to_date'] as String?,
+      branchId: json['branch_id'] as int?,
+      userId: json['user_id'] as int?,
+      customerId: json['customer_id'] as int?,
+      metric: json['metric'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (fromDate != null) 'from_date': fromDate,
+      if (toDate != null) 'to_date': toDate,
+      if (branchId != null) 'branch_id': branchId,
+      if (userId != null) 'user_id': userId,
+      if (customerId != null) 'customer_id': customerId,
+      if (metric != null) 'metric': metric,
+    };
+  }
+}

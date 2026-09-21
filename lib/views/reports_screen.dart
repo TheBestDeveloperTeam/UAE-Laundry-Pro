@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
+import 'package:laundrypro_uae/models/report_config_model.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key, this.reportsService});
@@ -73,7 +74,8 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
       Map<String, dynamic> data;
       switch (idx) {
         case 0:
-          data = await _reports.salesSummary(from: from, to: to);
+          final metrics = await _reports.salesSummary(from: from, to: to);
+          data = metrics.toJson();
           data['P&L'] = await _reports.operationalPnl(from: from, to: to);
           data['Aging'] = await _reports.agingReport();
           data['Payment Breakdown'] = await _reports.paymentMethodBreakdown(from: from, to: to);
@@ -82,13 +84,14 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         case 2:
           data = await _reports.payrollSummary(from: from, to: to);
         case 3:
-          data = await _reports.inventoryValuation();
+          final val = await _reports.inventoryValuation();
+          data = val.toJson();
         case 4:
           data = await _reports.productionThroughput(from: from, to: to);
         case 5:
-          data = await _reports.purchasingReport(from: from, to: to);
+          data = await _reports.purchasingReport(ReportConfigModel(fromDate: from, toDate: to));
         default:
-          data = await _reports.deliveryReport(from: from, to: to);
+          data = await _reports.deliveryReport(ReportConfigModel(fromDate: from, toDate: to));
       }
       _cache[idx] = data;
     } catch (_) {

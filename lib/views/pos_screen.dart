@@ -7,6 +7,9 @@ import 'package:laundrypro_uae/core/receipt_model.dart';
 import 'package:laundrypro_uae/core/receipt_renderer.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
 import 'package:laundrypro_uae/peripherals/core/scanner/scanner_models.dart';
+import 'package:laundrypro_uae/models/order_model.dart';
+import 'package:laundrypro_uae/models/customer_model.dart';
+import 'package:laundrypro_uae/models/service_model.dart';
 import 'package:laundrypro_uae/services/catalog_service.dart';
 import 'package:laundrypro_uae/services/customer_service.dart';
 import 'package:laundrypro_uae/services/peripheral_print_service.dart';
@@ -90,20 +93,20 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   late final CustomerService _customerService;
 
   final FocusNode _scannerFocus = FocusNode(debugLabel: 'pos-scanner-wedge');
-  List<Map<String, dynamic>> _services = [];
+  List<ServiceModel> _services = [];
   List<Map<String, dynamic>> _products = [];
   final List<CartLine> _cart = [];
   bool _loading = true;
   bool _processing = false;
-  Map<String, dynamic>? _confirmedOrder;
+  OrderModel? _confirmedOrder;
   String? _businessName;
   String _searchFilter = '';
   final TextEditingController _searchController = TextEditingController();
   ProviderSubscription<AsyncValue<ScannerPacketModel>>? _scannerSub;
 
   // Selected customer
-  Map<String, dynamic>? _selectedCustomer;
-  List<Map<String, dynamic>> _customers = [];
+  CustomerModel? _selectedCustomer;
+  List<CustomerModel> _customers = [];
 
   // Order-level discount
   double _orderDiscount = 0.0;
@@ -183,10 +186,10 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     });
   }
 
-  void _addService(Map<String, dynamic> service) {
-    final id = int.tryParse(service['id']?.toString() ?? '') ?? 0;
-    final name = service['name']?.toString() ?? '';
-    final rate = double.tryParse(service['base_rate']?.toString() ?? '0') ?? 0;
+  void _addService(ServiceModel service) {
+    final id = service.id ?? 0;
+    final name = service.name ?? '';
+    final rate = double.tryParse(service.baseRate?.toString() ?? '0') ?? 0;
     _addLine(itemType: 'service', itemId: id, name: name, rate: rate);
   }
 
@@ -202,8 +205,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     final scanned = code.trim();
 
     // 1. Check Service code
-    final service = _services.cast<Map<String, dynamic>?>().firstWhere(
-      (s) => s?['code']?.toString() == scanned,
+    final service = _services.cast<ServiceModel?>().firstWhere(
+      (s) => s?.code == scanned,
       orElse: () => null,
     );
     if (service != null) {
@@ -221,15 +224,15 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     } catch (_) {}
 
     // 3. Check Customer code
-    final customer = _customers.cast<Map<String, dynamic>?>().firstWhere(
-      (c) => c?['customer_code']?.toString() == scanned || c?['phone']?.toString() == scanned,
+    final customer = _customers.cast<CustomerModel?>().firstWhere(
+      (c) => c?.customerCode == scanned || c?.phone == scanned,
       orElse: () => null,
     );
     if (customer != null) {
       setState(() => _selectedCustomer = customer);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Customer Selected: ${customer['name']}')),
+          SnackBar(content: Text('Customer Selected: ${customer.name}')),
         );
       }
       return;
@@ -253,10 +256,10 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     setState(() => _processing = true);
     try {
       final draft = await _sales.createDraft(
-        customerId: _selectedCustomer?['id'] as int?,
+        customerId: _selectedCustomer?.id,
         lines: _cart.map((l) => l.toLine()).toList(),
       );
-      final orderId = int.tryParse(draft['id']?.toString() ?? '') ?? 0;
+      final orderId = draft.id ?? 0;
       final confirmed = await _sales.confirm(orderId);
       setState(() {
         _confirmedOrder = confirmed;
@@ -264,7 +267,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.t('pos_confirmed')}: ${confirmed['order_no']}')),
+          SnackBar(content: Text('${l10n.t('pos_confirmed')}: ${confirmed.orderNo}')),
         );
       }
     } catch (_) {
@@ -280,8 +283,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   Future<void> _pay() async {
     if (_confirmedOrder == null || _processing) return;
     final l10n = context.l10n;
-    final orderId = int.tryParse(_confirmedOrder!['id']?.toString() ?? '') ?? 0;
-    final total = double.tryParse(_confirmedOrder!['grand_total']?.toString() ?? '0') ?? _grandTotal;
+    final orderId = _confirmedOrder!.id ?? 0;
+    final total = double.tryParse(_confirmedOrder!.grandTotal?.toString() ?? '0') ?? _grandTotal;
 
     final payment = await showDialog<_PaymentResult>(
       context: context,
@@ -337,9 +340,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     );
   }
 
-  Future<void> _showReceipt(Map<String, dynamic> order) async {
+  Future<void> _showReceipt(OrderModel order) async {
     final l10n = context.l10n;
-    final receipt = ReceiptModel.fromOrder(order);
+    final receipt = ReceiptModel.fromOrderModel(order);
     final preview = ReceiptRenderer.toThermal(receipt);
 
     if (!mounted) return;
@@ -352,7 +355,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           TextButton(
             onPressed: () async {
               final result = await _printService().printOrder(
-                order,
+                order.toJson(), // Temporary for compilation
                 businessName: _businessName,
               );
               if (!ctx.mounted) return;
@@ -405,8 +408,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               final c = _customers[i];
               return ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.person, size: 18)),
-                title: Text(c['name']?.toString() ?? ''),
-                subtitle: Text(c['phone']?.toString() ?? ''),
+                title: Text(c.name ?? ''),
+                subtitle: Text(c.phone ?? ''),
                 onTap: () {
                   setState(() => _selectedCustomer = c);
                   Navigator.pop(ctx);
@@ -441,7 +444,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                 avatar: const Icon(Icons.person, size: 16),
                 label: Text(
                   _selectedCustomer != null
-                      ? '${_selectedCustomer!['name']} (${_selectedCustomer!['phone'] ?? ''})'
+                      ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
                       : 'Walk-In Customer (Tap to select)',
                   style: const TextStyle(fontSize: 12),
                 ),
@@ -512,8 +515,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                               builder: (context) {
                                 final filtered = _services.where((s) {
                                   if (_searchFilter.isEmpty) return true;
-                                  final name = (s['name']?.toString() ?? '').toLowerCase();
-                                  final code = (s['code']?.toString() ?? '').toLowerCase();
+                                  final name = (s.name ?? '').toLowerCase();
+                                  final code = (s.code ?? '').toLowerCase();
                                   return name.contains(_searchFilter) || code.contains(_searchFilter);
                                 }).toList();
 
@@ -540,7 +543,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   itemCount: filtered.length,
                                   itemBuilder: (context, i) {
                                     final s = filtered[i];
-                                    final rate = s['base_rate']?.toString() ?? '0';
+                                    final rate = s.baseRate?.toString() ?? '0';
                                     return OutlinedButton(
                                       style: OutlinedButton.styleFrom(
                                         padding: const EdgeInsets.all(8),
@@ -551,7 +554,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            s['name']?.toString() ?? '',
+                                            s.name ?? '',
                                             textAlign: TextAlign.center,
                                             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                                             maxLines: 2,
@@ -684,7 +687,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   : Text(l10n.t('pos_confirm')),
                             )
                           else ...[
-                            Text('${l10n.t('pos_confirmed')}: ${_confirmedOrder!['order_no']}'),
+                            Text('${l10n.t('pos_confirmed')}: ${_confirmedOrder!.orderNo}'),
                             const SizedBox(height: 8),
                             FilledButton(
                               key: const Key('pos_pay_btn'),

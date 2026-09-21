@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/empty_state.dart';
@@ -60,7 +61,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Advanced Cycles'),
+        title: const Text(context.l10n.t('advanced_cycles')),
       ),
       body: DefaultTabController(
         length: 3,
@@ -137,7 +138,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> {
             value: _metricType,
             items: const [
               DropdownMenuItem(value: 'pH', child: Text('pH Level')),
-              DropdownMenuItem(value: 'temperature', child: Text('Temperature (°C)')),
+              DropdownMenuItem(value: 'temperature', child: Text('Temperature (Â°C)')),
             ],
             onChanged: (val) => setState(() => _metricType = val),
           ),

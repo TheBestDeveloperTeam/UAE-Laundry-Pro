@@ -360,7 +360,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
                 // Step 5: Backup Location
                 Step(
-                  title: const Text('Backup'),
+                  title: const Text(context.l10n.t('backup')),
                   isActive: _currentStep >= 4,
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

@@ -195,7 +195,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                       _fetchRoles();
                     }
                   },
-                  child: const Text('Save'),
+                  child: const Text(context.l10n.t('save')),
                 ),
               ],
             );
