@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class EmployeeModel {
   const EmployeeModel({
     required this.id,
@@ -25,16 +27,16 @@ class EmployeeModel {
 
   factory EmployeeModel.fromJson(Map<String, dynamic> json) {
     return EmployeeModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
-      userId: json['user_id'] as int,
+      userId: SafeParser.parseInt(json['user_id']),
       employeeId: json['employee_id'] as String,
       department: json['department'] as String,
       position: json['position'] as String,
       baseSalary: (json['base_salary'] as num).toDouble(),
-      joinDate: DateTime.parse(json['join_date'] as String),
+      joinDate: SafeParser.parseDateTime(json['join_date']),
       status: json['status'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
 

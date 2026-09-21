@@ -225,5 +225,17 @@
     "hr_leave_requests":  "Leave Requests",
     "salary_advances":  "Salary Advances",
     "empty_data":  "No data found.",
-    "salary_advance_create":  "New Salary Advance"
+    "salary_advance_create":  "New Salary Advance",
+    "printers_ready": "Printers Ready",
+    "roles_permissions": "Roles & Permissions",
+    "services": "Services",
+    "terminal": "Terminal",
+    "mark_all_read": "Mark All Read",
+    "today": "Today",
+    "products_inventory": "Products & Inventory",
+    "disk_ok": "Disk OK",
+    "branch": "Branch",
+    "scanner_ready": "Scanner Ready",
+    "api_online": "API Online",
+    "api_offline": "API Offline"
 }

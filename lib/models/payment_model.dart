@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class PaymentModel {
   const PaymentModel({
     required this.id,
@@ -23,15 +25,15 @@ class PaymentModel {
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
-      invoiceId: json['invoice_id'] as int?,
-      orderId: json['order_id'] as int?,
+      invoiceId: SafeParser.parseInt(json['invoice_id']) == 0 ? null : SafeParser.parseInt(json['invoice_id']),
+      orderId: SafeParser.parseInt(json['order_id']) == 0 ? null : SafeParser.parseInt(json['order_id']),
       amount: (json['amount'] as num).toDouble(),
       method: json['method'] as String,
       status: json['status'] as String,
       transactionReference: json['transaction_reference'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
 

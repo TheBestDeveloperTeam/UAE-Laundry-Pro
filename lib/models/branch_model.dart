@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class BranchModel {
   const BranchModel({
     required this.id,
@@ -19,13 +21,13 @@ class BranchModel {
 
   factory BranchModel.fromJson(Map<String, dynamic> json) {
     return BranchModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
       name: json['name'] as String,
       location: json['location'] as String,
       contactNumber: json['contact_number'] as String?,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
 

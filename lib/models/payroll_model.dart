@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class PayrollModel {
   const PayrollModel({
     required this.id,
@@ -29,18 +31,18 @@ class PayrollModel {
 
   factory PayrollModel.fromJson(Map<String, dynamic> json) {
     return PayrollModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
-      employeeId: json['employee_id'] as int,
-      periodStart: DateTime.parse(json['period_start'] as String),
-      periodEnd: DateTime.parse(json['period_end'] as String),
+      employeeId: SafeParser.parseInt(json['employee_id']),
+      periodStart: SafeParser.parseDateTime(json['period_start']),
+      periodEnd: SafeParser.parseDateTime(json['period_end']),
       baseSalary: (json['base_salary'] as num).toDouble(),
       overtimePay: (json['overtime_pay'] as num?)?.toDouble() ?? 0.0,
       deductions: (json['deductions'] as num?)?.toDouble() ?? 0.0,
       allowances: (json['allowances'] as num?)?.toDouble() ?? 0.0,
       netPay: (json['net_pay'] as num).toDouble(),
       status: json['status'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
 

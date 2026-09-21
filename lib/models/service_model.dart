@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class ServiceModel {
   const ServiceModel({
     required this.id,
@@ -21,14 +23,14 @@ class ServiceModel {
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
-      categoryId: json['category_id'] as int,
+      categoryId: SafeParser.parseInt(json['category_id']),
       name: json['name'] as String,
       price: (json['price'] as num).toDouble(),
       sku: json['sku'] as String?,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
 

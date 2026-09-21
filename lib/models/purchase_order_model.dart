@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class PurchaseOrderModel {
   const PurchaseOrderModel({
     required this.id,
@@ -25,10 +27,10 @@ class PurchaseOrderModel {
 
   factory PurchaseOrderModel.fromJson(Map<String, dynamic> json) {
     return PurchaseOrderModel(
-      id: json['id'] as int? ?? 0,
+      id: SafeParser.parseInt(json['id'], 0),
       uuid: json['uuid'] as String? ?? '',
       poNo: json['po_no'] as String? ?? '',
-      vendorId: json['vendor_id'] as int? ?? 0,
+      vendorId: SafeParser.parseInt(json['vendor_id'], 0),
       totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] as String? ?? 'pending',
       notes: json['notes'] as String?,

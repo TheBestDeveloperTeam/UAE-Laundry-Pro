@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class LeaveModel {
   const LeaveModel({
     required this.id,
@@ -21,8 +23,8 @@ class LeaveModel {
 
   factory LeaveModel.fromJson(Map<String, dynamic> json) {
     return LeaveModel(
-      id: json['id'] as int,
-      employeeId: json['employee_id'] as int,
+      id: SafeParser.parseInt(json['id']),
+      employeeId: SafeParser.parseInt(json['employee_id']),
       leaveType: json['leave_type'] as String? ?? 'Annual',
       startDate: DateTime.tryParse(json['start_date']?.toString() ?? '') ?? DateTime.now(),
       endDate: DateTime.tryParse(json['end_date']?.toString() ?? '') ?? DateTime.now(),

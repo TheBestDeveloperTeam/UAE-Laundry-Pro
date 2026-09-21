@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class VendorModel {
   const VendorModel({
     required this.id,
@@ -15,7 +17,7 @@ class VendorModel {
 
   factory VendorModel.fromJson(Map<String, dynamic> json) {
     return VendorModel(
-      id: json['id'] as int? ?? 0,
+      id: SafeParser.parseInt(json['id'], 0),
       name: json['name'] as String? ?? '',
       phone: json['phone'] as String?,
       email: json['email'] as String?,

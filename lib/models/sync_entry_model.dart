@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class SyncEntryModel {
   const SyncEntryModel({
     required this.id,
@@ -23,15 +25,15 @@ class SyncEntryModel {
 
   factory SyncEntryModel.fromJson(Map<String, dynamic> json) {
     return SyncEntryModel(
-      id: json['id'] as int?,
+      id: SafeParser.parseInt(json['id']) == 0 ? null : SafeParser.parseInt(json['id']),
       entityType: json['entity_type'] as String,
       entityId: json['entity_id'] as String,
       action: json['action'] as String,
       payload: json['payload'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      syncAttempts: json['sync_attempts'] as int? ?? 0,
+      createdAt: SafeParser.parseDateTime(json['created_at']),
+      syncAttempts: SafeParser.parseInt(json['sync_attempts'], 0),
       lastAttemptAt: json['last_attempt_at'] != null 
-          ? DateTime.parse(json['last_attempt_at'] as String) 
+          ? SafeParser.parseDateTime(json['last_attempt_at']) 
           : null,
       status: json['status'] as String? ?? 'pending',
     );

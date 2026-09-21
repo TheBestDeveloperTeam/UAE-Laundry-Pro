@@ -225,5 +225,17 @@
     "salary_advances":  "سلف الرواتب",
     "empty_data":  "لا توجد بيانات.",
     "salary_advance_create":  "سلفة راتب جديدة",
-    "amount":  "المبلغ"
+    "amount":  "المبلغ",
+    "printers_ready": "الطابعات جاهزة",
+    "roles_permissions": "الأدوار والصلاحيات",
+    "services": "الخدمات",
+    "terminal": "الجهاز",
+    "mark_all_read": "قراءة الكل",
+    "today": "اليوم",
+    "products_inventory": "المنتجات والمخزون",
+    "disk_ok": "القرص سليم",
+    "branch": "الفرع",
+    "scanner_ready": "الماسح جاهز",
+    "api_online": "الخدمة متصلة",
+    "api_offline": "الخدمة غير متصلة"
 }

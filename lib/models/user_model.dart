@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class UserModel {
   const UserModel({
     required this.id,
@@ -23,7 +25,7 @@ class UserModel {
         .toList();
 
     return UserModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
       username: json['username'] as String,
       fullName: json['full_name'] as String,
@@ -68,7 +70,7 @@ class AuthTokens {
     return AuthTokens(
       accessToken: json['access_token'] as String,
       refreshToken: json['refresh_token'] as String,
-      expiresIn: json['expires_in'] as int? ?? 0,
+      expiresIn: SafeParser.parseInt(json['expires_in'], 0),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class DeliveryModel {
   const DeliveryModel({
     required this.id,
@@ -21,16 +23,16 @@ class DeliveryModel {
 
   factory DeliveryModel.fromJson(Map<String, dynamic> json) {
     return DeliveryModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
-      orderId: json['order_id'] as int,
-      driverId: json['driver_id'] as int,
+      orderId: SafeParser.parseInt(json['order_id']),
+      driverId: SafeParser.parseInt(json['driver_id']),
       status: json['status'] as String,
       address: json['address'] as String?,
       deliveryDate: json['delivery_date'] != null 
-          ? DateTime.parse(json['delivery_date'] as String) 
+          ? SafeParser.parseDateTime(json['delivery_date']) 
           : null,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
 

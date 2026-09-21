@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class ReportConfigModel {
   const ReportConfigModel({
     this.fromDate,
@@ -19,9 +21,9 @@ class ReportConfigModel {
     return ReportConfigModel(
       fromDate: json['from_date'] as String?,
       toDate: json['to_date'] as String?,
-      branchId: json['branch_id'] as int?,
-      userId: json['user_id'] as int?,
-      customerId: json['customer_id'] as int?,
+      branchId: SafeParser.parseInt(json['branch_id']) == 0 ? null : SafeParser.parseInt(json['branch_id']),
+      userId: SafeParser.parseInt(json['user_id']) == 0 ? null : SafeParser.parseInt(json['user_id']),
+      customerId: SafeParser.parseInt(json['customer_id']) == 0 ? null : SafeParser.parseInt(json['customer_id']),
       metric: json['metric'] as String?,
     );
   }

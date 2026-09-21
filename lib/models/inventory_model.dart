@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class InventoryModel {
   const InventoryModel({
     required this.id,
@@ -31,13 +33,13 @@ class InventoryModel {
 
   factory InventoryModel.fromJson(Map<String, dynamic> json) {
     return InventoryModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
       itemName: json['item_name'] as String,
       sku: json['sku'] as String,
-      quantity: json['quantity'] as int,
+      quantity: SafeParser.parseInt(json['quantity']),
       unitPrice: (json['unit_price'] as num?)?.toDouble(),
-      reorderLevel: json['reorder_level'] as int? ?? 0,
+      reorderLevel: SafeParser.parseInt(json['reorder_level'], 0),
       outOfService: json['out_of_service'] == 1 || json['out_of_service'] == true,
       assetTag: json['asset_tag'] as String?,
       machineType: json['machine_type'] as String?,

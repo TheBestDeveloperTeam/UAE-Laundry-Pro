@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class OrderItemModel {
   const OrderItemModel({
     this.id,
@@ -21,11 +23,11 @@ class OrderItemModel {
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
-      id: json['id'] as int?,
-      orderId: json['order_id'] as int,
-      serviceId: json['service_id'] as int,
+      id: SafeParser.parseInt(json['id']) == 0 ? null : SafeParser.parseInt(json['id']),
+      orderId: SafeParser.parseInt(json['order_id']),
+      serviceId: SafeParser.parseInt(json['service_id']),
       serviceName: json['service_name'] as String,
-      quantity: json['quantity'] as int,
+      quantity: SafeParser.parseInt(json['quantity']),
       unitPrice: (json['unit_price'] as num).toDouble(),
       totalPrice: (json['total_price'] as num).toDouble(),
       notes: json['notes'] as String?,

@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class SalaryAdvanceModel {
   const SalaryAdvanceModel({
     required this.id,
@@ -19,8 +21,8 @@ class SalaryAdvanceModel {
 
   factory SalaryAdvanceModel.fromJson(Map<String, dynamic> json) {
     return SalaryAdvanceModel(
-      id: json['id'] as int,
-      employeeId: json['employee_id'] as int,
+      id: SafeParser.parseInt(json['id']),
+      employeeId: SafeParser.parseInt(json['employee_id']),
       amount: (json['amount'] as num).toDouble(),
       requestDate: DateTime.tryParse(json['request_date']?.toString() ?? '') ?? DateTime.now(),
       status: json['status'] as String? ?? 'pending',

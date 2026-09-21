@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class DashboardMetricsModel {
   const DashboardMetricsModel({
     this.salesTotal = 0.0,
@@ -18,11 +20,11 @@ class DashboardMetricsModel {
   factory DashboardMetricsModel.fromJson(Map<String, dynamic> json) {
     return DashboardMetricsModel(
       salesTotal: (json['sales_total'] as num?)?.toDouble() ?? 0.0,
-      orderCount: json['order_count'] as int? ?? 0,
+      orderCount: SafeParser.parseInt(json['order_count'], 0),
       balanceDue: (json['balance_due'] as num?)?.toDouble() ?? 0.0,
       amountPaid: (json['amount_paid'] as num?)?.toDouble() ?? 0.0,
       grandTotal: (json['grand_total'] as num?)?.toDouble() ?? 0.0,
-      productCount: json['product_count'] as int? ?? 0,
+      productCount: SafeParser.parseInt(json['product_count'], 0),
     );
   }
 

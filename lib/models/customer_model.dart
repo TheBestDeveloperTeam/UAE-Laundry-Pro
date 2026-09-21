@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class CustomerModel {
   const CustomerModel({
     required this.id,
@@ -21,14 +23,14 @@ class CustomerModel {
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) {
     return CustomerModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
       name: json['name'] as String,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
       trn: json['trn'] as String?,
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
 

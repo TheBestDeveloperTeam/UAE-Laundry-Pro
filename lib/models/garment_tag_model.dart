@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/core/safe_parser.dart';
+
 class GarmentTagModel {
   const GarmentTagModel({
     required this.id,
@@ -21,14 +23,14 @@ class GarmentTagModel {
 
   factory GarmentTagModel.fromJson(Map<String, dynamic> json) {
     return GarmentTagModel(
-      id: json['id'] as int,
+      id: SafeParser.parseInt(json['id']),
       uuid: json['uuid'] as String,
       rfidEpc: json['rfid_epc'] as String,
       barcode: json['barcode'] as String?,
-      orderItemId: json['order_item_id'] as int,
+      orderItemId: SafeParser.parseInt(json['order_item_id']),
       status: json['status'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: SafeParser.parseDateTime(json['created_at']),
+      updatedAt: SafeParser.parseDateTime(json['updated_at']),
     );
   }
 
