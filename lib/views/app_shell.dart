@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/providers/locale_provider.dart';
+import 'package:laundrypro_uae/providers/sync_provider.dart';
 import 'package:provider/provider.dart';
 
 class AppShell extends StatefulWidget {
@@ -217,6 +218,30 @@ class _AppShellState extends State<AppShell> {
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(width: 16),
+                  Consumer<SyncProvider>(
+                    builder: (context, syncProvider, child) {
+                      if (!syncProvider.enabled) return const SizedBox.shrink();
+                      return Row(
+                        children: [
+                          Icon(
+                            syncProvider.isSyncing
+                                ? Icons.cloud_sync_outlined
+                                : (syncProvider.pendingCount > 0 ? Icons.cloud_queue_outlined : Icons.cloud_done_outlined),
+                            size: 14,
+                            color: syncProvider.isSyncing
+                                ? Colors.blue
+                                : (syncProvider.pendingCount > 0 ? Colors.orange : Colors.green),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${syncProvider.pendingCount}',
+                            style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+                      );
+                    },
+                  ),
                   const Icon(Icons.print_outlined, size: 14, color: Colors.blueGrey),
                   const SizedBox(width: 4),
                   Text(l10n.t('printers_ready'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),

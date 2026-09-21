@@ -4,6 +4,7 @@ import 'package:laundrypro_uae/app.dart';
 import 'package:laundrypro_uae/peripherals/bootstrap.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/providers/locale_provider.dart';
+import 'package:laundrypro_uae/providers/sync_provider.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
 import 'package:laundrypro_uae/services/auth_service.dart';
 import 'package:laundrypro_uae/services/global_config_service.dart';
@@ -27,6 +28,9 @@ Future<void> main() async {
           legacy_provider.Provider<ApiClient>.value(value: apiClient),
           legacy_provider.ChangeNotifierProvider(
             create: (_) => AuthProvider(authService),
+          ),
+          legacy_provider.ChangeNotifierProvider(
+            create: (context) => SyncProvider(context.read<ApiClient>()),
           ),
           legacy_provider.ChangeNotifierProvider(
             create: (_) => LocaleProvider(),

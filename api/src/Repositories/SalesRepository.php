@@ -593,8 +593,8 @@ final class SalesRepository
       $subtotal = bcadd($subtotal, $lineTotal, 2);
       $discount = bcadd($discount, $lineDiscount, 2);
     }
-    $tax = '0.00';
     $afterDiscount = bcsub($subtotal, $discount, 2);
+    $tax = \LaundryPro\Api\Services\VatCalculator::calculateVat($afterDiscount);
     $grand = bcadd($afterDiscount, $tax, 2);
 
     return [
@@ -615,11 +615,8 @@ final class SalesRepository
 
   private function nextOrderNo(): string
   {
-    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(id), 0) + 1 FROM sales_orders WHERE business_owner_id = :owner');
-    $stmt->execute(['owner' => $this->businessOwnerId]);
-    $n = (int) $stmt->fetchColumn();
-
-    return 'SO-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
+    $generator = new \LaundryPro\Api\Services\OrderNumberGenerator($this->pdo);
+    return $generator->generateNext();
   }
 
   private function uuid(): string

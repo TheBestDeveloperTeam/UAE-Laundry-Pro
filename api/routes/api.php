@@ -44,13 +44,16 @@ use LaundryPro\Api\Middleware\InstallRateLimitMiddleware;
 use LaundryPro\Api\Middleware\InstallTokenMiddleware;
 use LaundryPro\Api\Middleware\PermissionMiddleware;
 use LaundryPro\Api\Middleware\RateLimitMiddleware;
+use LaundryPro\Api\Middleware\AuditLogMiddleware;
+use LaundryPro\Api\Middleware\IdempotencyMiddleware;
+use LaundryPro\Api\Controllers\InvoiceController;
 
 function register_api_routes(Router $router): void
 {
   $auth = [AuthMiddleware::class, PermissionMiddleware::class];
-  $audit = [AuthMiddleware::class, PermissionMiddleware::class, AuditMiddleware::class];
+  $audit = [AuthMiddleware::class, PermissionMiddleware::class, IdempotencyMiddleware::class, AuditLogMiddleware::class];
   $loginRateLimit = [RateLimitMiddleware::class];
-  $installAuth = [InstallRateLimitMiddleware::class, InstallTokenMiddleware::class, AuditMiddleware::class];
+  $installAuth = [InstallRateLimitMiddleware::class, InstallTokenMiddleware::class, AuditLogMiddleware::class];
 
   $envelope = ['200' => 'OK', '400' => 'VALIDATION_ERROR', '401' => 'AUTH_SESSION_EXPIRED', '500' => 'SERVER_ERROR'];
 
@@ -301,6 +304,23 @@ function register_api_routes(Router $router): void
   $router->post('/api/v1/sales/{id}/delivery-tasks', [SalesController::class, 'storeDeliveryTask'], $audit, [
     'tag' => 'Sales', 'summary' => 'Create delivery task for order', 'permission' => 'delivery.write',
     'responses' => ['201' => 'SALE_DELIVERY_CREATED', '404' => 'NOT_FOUND', '422' => 'VALIDATION_ERROR'],
+  ]);
+
+  $router->get('/api/v1/invoices', [InvoiceController::class, 'index'], $auth, [
+    'tag' => 'Sales', 'summary' => 'List invoices', 'permission' => 'sales.read',
+    'responses' => ['200' => 'INVOICES_LIST', '401' => 'AUTH_SESSION_EXPIRED'],
+  ]);
+  $router->get('/api/v1/invoices/{id}', [InvoiceController::class, 'show'], $auth, [
+    'tag' => 'Sales', 'summary' => 'Get invoice', 'permission' => 'sales.read',
+    'responses' => ['200' => 'INVOICE_DETAIL', '404' => 'NOT_FOUND'],
+  ]);
+  $router->post('/api/v1/invoices/{id}/post', [InvoiceController::class, 'post'], $audit, [
+    'tag' => 'Sales', 'summary' => 'Post invoice', 'permission' => 'sales.create',
+    'responses' => ['200' => 'INVOICE_POSTED', '422' => 'VALIDATION_ERROR'],
+  ]);
+  $router->post('/api/v1/invoices/{id}/correction', [InvoiceController::class, 'correction'], $audit, [
+    'tag' => 'Sales', 'summary' => 'Create correction memo', 'permission' => 'sales.create',
+    'responses' => ['201' => 'INVOICE_CORRECTION_CREATED', '422' => 'VALIDATION_ERROR'],
   ]);
 
   $router->get('/api/v1/employees', [HrController::class, 'listEmployees'], $auth, [
