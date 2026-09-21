@@ -10,7 +10,7 @@ class DummyRfidAdapter implements HardwareAdapterInterface
         return true;
     }
 
-    public function readTags(int  = 1000): array
+    public function readTags(int $limit = 1000): array
     {
         // Mocking reading RFID tags
         return ['EPC123456789', 'EPC987654321', 'EPC111222333'];

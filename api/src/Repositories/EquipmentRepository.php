@@ -7,68 +7,67 @@ use PDO;
 
 class EquipmentRepository
 {
-    public function __construct(private readonly PDO )
+    public function __construct(private readonly PDO $pdo)
     {
     }
 
     public function getAllEquipment(): array
     {
-         = ->pdo->query('SELECT * FROM equipment ORDER BY asset_tag ASC');
-        return ->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->query('SELECT * FROM equipment ORDER BY asset_tag ASC');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getEquipmentById(int ): ?array
+    public function getEquipmentById(int $id): ?array
     {
-         = ->pdo->prepare('SELECT * FROM equipment WHERE id = :id');
-        ->execute(['id' => ]);
-         = ->fetch(PDO::FETCH_ASSOC);
-        return  ?: null;
+        $stmt = $this->pdo->prepare('SELECT * FROM equipment WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
     }
 
-    public function logCalibration(int , string , string , string , string ): int
+    public function logCalibration(int $id, string $calibrated_at, string $performed_by, string $certificate_ref, string $next_calibration_due): int
     {
-        ->pdo->beginTransaction();
+        $this->pdo->beginTransaction();
         try {
             // Insert calibration record
-             = ->pdo->prepare('
+            $stmt = $this->pdo->prepare('
                 INSERT INTO calibration_records (equipment_id, calibrated_at, performed_by, certificate_ref, created_at)
                 VALUES (:eq_id, :cal_date, :perf_by, :cert, UTC_TIMESTAMP())
             ');
-            ->execute([
-                'eq_id' => ,
-                'cal_date' => ,
-                'perf_by' => ,
-                'cert' => 
+            $stmt->execute([
+                'eq_id' => $id,
+                'cal_date' => $calibrated_at,
+                'perf_by' => $performed_by,
+                'cert' => $certificate_ref
             ]);
-             = (int) ->pdo->lastInsertId();
+            $insertId = (int) $this->pdo->lastInsertId();
 
             // Update equipment last and next dates
-             = ->pdo->prepare('
+            $update = $this->pdo->prepare('
                 UPDATE equipment 
                 SET last_calibration_date = :last_date, next_calibration_due = :next_date, out_of_service = 0
                 WHERE id = :eq_id
             ');
-            ->execute([
-                'last_date' => ,
-                'next_date' => ,
-                'eq_id' => 
+            $update->execute([
+                'last_date' => $calibrated_at,
+                'next_date' => $next_calibration_due,
+                'eq_id' => $id
             ]);
 
-            ->pdo->commit();
-            return ;
-        } catch (\Exception ) {
-            ->pdo->rollBack();
-            throw ;
+            $this->pdo->commit();
+            return $insertId;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
         }
     }
 
-    public function setOutOfService(int , bool ): void
+    public function setOutOfService(int $id, bool $out_of_service): void
     {
-         = ->pdo->prepare('UPDATE equipment SET out_of_service = :oos WHERE id = :id');
-        ->execute([
-            'oos' =>  ? 1 : 0,
-            'id' => 
+        $stmt = $this->pdo->prepare('UPDATE equipment SET out_of_service = :oos WHERE id = :id');
+        $stmt->execute([
+            'oos' => $out_of_service ? 1 : 0,
+            'id' => $id
         ]);
     }
 }
-

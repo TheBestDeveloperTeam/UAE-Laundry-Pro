@@ -11,7 +11,7 @@ class OrderNumberGenerator
 
     public function __construct(PDO $pdo)
     {
-        $this.pdo = $pdo;
+        $this->pdo = $pdo;
     }
 
     /**

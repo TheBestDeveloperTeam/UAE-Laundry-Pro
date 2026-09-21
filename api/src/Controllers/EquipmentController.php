@@ -11,63 +11,62 @@ use LaundryPro\Api\Core\Container;
 final class EquipmentController
 {
     public function __construct(
-        private readonly ApiResponse ,
-        private readonly EquipmentRepository 
+        private readonly ApiResponse $response,
+        private readonly EquipmentRepository $repository
     ) {
     }
 
-    public function listAll(Request ): void
+    public function listAll(Request $request): void
     {
-         = ->repository->getAllEquipment();
-        ->response->success(, ['equipment' => ], 'EQUIPMENT_LIST', 'equipment.list', 200);
+        $equipment = $this->repository->getAllEquipment();
+        $this->response->success($request, ['equipment' => $equipment], 'EQUIPMENT_LIST', 'equipment.list', 200);
     }
 
-    public function logCalibration(Request , Container ): void
+    public function logCalibration(Request $request, Container $container): void
     {
-         = (int) ->route('id');
-         = ->all();
+        $id = (int) $request->route('id');
+        $payload = $request->all();
 
-        if (!isset(['calibrated_at'], ['performed_by'], ['certificate_ref'], ['next_calibration_due'])) {
-            ->response->error(, 'Missing required fields', 422, 'VALIDATION_ERROR');
+        if (!isset($payload['calibrated_at'], $payload['performed_by'], $payload['certificate_ref'], $payload['next_calibration_due'])) {
+            $this->response->error($request, 'Missing required fields', 422, 'VALIDATION_ERROR');
             return;
         }
 
-         = ->repository->getEquipmentById();
-        if (!) {
-            ->response->error(, 'Equipment not found', 404, 'NOT_FOUND');
+        $equipment = $this->repository->getEquipmentById($id);
+        if (!$equipment) {
+            $this->response->error($request, 'Equipment not found', 404, 'NOT_FOUND');
             return;
         }
 
-         = ->repository->logCalibration(
-            ,
-            ['calibrated_at'],
-            ['performed_by'],
-            ['certificate_ref'],
-            ['next_calibration_due']
+        $logId = $this->repository->logCalibration(
+            $id,
+            $payload['calibrated_at'],
+            $payload['performed_by'],
+            $payload['certificate_ref'],
+            $payload['next_calibration_due']
         );
 
-        ->response->success(, ['id' => ], 'CALIBRATION_LOGGED', 'equipment.calibration_logged', 201);
+        $this->response->success($request, ['id' => $logId], 'CALIBRATION_LOGGED', 'equipment.calibration_logged', 201);
     }
 
-    public function setOutOfService(Request , Container ): void
+    public function setOutOfService(Request $request, Container $container): void
     {
-         = (int) ->route('id');
-         = ->all();
+        $id = (int) $request->route('id');
+        $payload = $request->all();
 
-        if (!isset(['out_of_service'])) {
-            ->response->error(, 'Missing required fields', 422, 'VALIDATION_ERROR');
+        if (!isset($payload['out_of_service'])) {
+            $this->response->error($request, 'Missing required fields', 422, 'VALIDATION_ERROR');
             return;
         }
 
-         = ->repository->getEquipmentById();
-        if (!) {
-            ->response->error(, 'Equipment not found', 404, 'NOT_FOUND');
+        $equipment = $this->repository->getEquipmentById($id);
+        if (!$equipment) {
+            $this->response->error($request, 'Equipment not found', 404, 'NOT_FOUND');
             return;
         }
 
-        ->repository->setOutOfService(, (bool) ['out_of_service']);
+        $this->repository->setOutOfService($id, (bool) $payload['out_of_service']);
 
-        ->response->success(, null, 'STATUS_UPDATED', 'equipment.status_updated', 200);
+        $this->response->success($request, null, 'STATUS_UPDATED', 'equipment.status_updated', 200);
     }
 }
-

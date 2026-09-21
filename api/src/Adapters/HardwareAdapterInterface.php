@@ -6,7 +6,7 @@ namespace LaundryPro\Api\Adapters;
 interface HardwareAdapterInterface
 {
     public function connect(): bool;
-    public function readTags(int  = 1000): array;
+    public function readTags(int $limit = 1000): array;
     public function disconnect(): void;
 }
 

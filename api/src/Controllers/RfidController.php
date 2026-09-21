@@ -11,33 +11,32 @@ use LaundryPro\Api\Adapters\HardwareAdapterInterface;
 final class RfidController
 {
     public function __construct(
-        private readonly ApiResponse ,
-        private readonly RfidRepository ,
-        private readonly HardwareAdapterInterface 
+        private readonly ApiResponse $response,
+        private readonly RfidRepository $repository,
+        private readonly HardwareAdapterInterface $adapter
     ) {
     }
 
-    public function scan(Request ): void
+    public function scan(Request $request): void
     {
-         = ->all();
-         = ['epc_tags'] ?? [];
+        $payload = $request->all();
+        $tags = $payload['epc_tags'] ?? [];
         
-        if (empty()) {
+        if (empty($tags)) {
             // Trigger a read from the physical adapter if payload is empty
-            if (->adapter->connect()) {
-                 = ->adapter->readTags();
-                ->adapter->disconnect();
+            if ($this->adapter->connect()) {
+                $tags = $this->adapter->readTags();
+                $this->adapter->disconnect();
             }
         }
 
-        if (empty()) {
-            ->response->error(, 'No RFID tags found', 422, 'NO_TAGS_FOUND');
+        if (empty($tags)) {
+            $this->response->error($request, 'No RFID tags found', 422, 'NO_TAGS_FOUND');
             return;
         }
 
-         = ->repository->processTags();
+        $result = $this->repository->processTags($tags);
 
-        ->response->success(, , 'TAGS_PROCESSED', 'rfid.tags_processed', 201);
+        $this->response->success($request, $result, 'TAGS_PROCESSED', 'rfid.tags_processed', 201);
     }
 }
-

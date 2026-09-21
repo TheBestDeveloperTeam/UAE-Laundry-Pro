@@ -11,35 +11,34 @@ use LaundryPro\Api\Core\Container;
 final class OperatorController
 {
     public function __construct(
-        private readonly ApiResponse ,
-        private readonly OperatorRepository 
+        private readonly ApiResponse $response,
+        private readonly OperatorRepository $repository
     ) {
     }
 
-    public function listCertifications(Request ): void
+    public function listCertifications(Request $request): void
     {
-         = ->repository->getCertifications();
-        ->response->success(, ['certifications' => ], 'CERTIFICATIONS_LIST', 'operator.list_certifications', 200);
+        $certifications = $this->repository->getCertifications();
+        $this->response->success($request, ['certifications' => $certifications], 'CERTIFICATIONS_LIST', 'operator.list_certifications', 200);
     }
 
-    public function certify(Request , Container ): void
+    public function certify(Request $request, Container $container): void
     {
-         = (int) ->route('id');
-         = ->all();
+        $id = (int) $request->route('id');
+        $payload = $request->all();
 
-        if (!isset(['certification_name'], ['issued_at'], ['expires_at'])) {
-            ->response->error(, 'Missing required fields', 422, 'VALIDATION_ERROR');
+        if (!isset($payload['certification_name'], $payload['issued_at'], $payload['expires_at'])) {
+            $this->response->error($request, 'Missing required fields', 422, 'VALIDATION_ERROR');
             return;
         }
 
-         = ->repository->certify(
-            ,
-            ['certification_name'],
-            ['issued_at'],
-            ['expires_at']
+        $logId = $this->repository->certify(
+            $id,
+            $payload['certification_name'],
+            $payload['issued_at'],
+            $payload['expires_at']
         );
 
-        ->response->success(, ['id' => ], 'CERTIFIED', 'operator.certified', 201);
+        $this->response->success($request, ['id' => $logId], 'CERTIFIED', 'operator.certified', 201);
     }
 }
-

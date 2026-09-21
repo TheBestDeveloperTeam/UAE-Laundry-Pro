@@ -7,34 +7,33 @@ use PDO;
 
 class OperatorRepository
 {
-    public function __construct(private readonly PDO )
+    public function __construct(private readonly PDO $pdo)
     {
     }
 
     public function getCertifications(): array
     {
-         = ->pdo->query('
+        $stmt = $this->pdo->query('
             SELECT oc.*, e.full_name, e.employee_no 
             FROM operator_certifications oc
             JOIN employees e ON oc.employee_id = e.id
             ORDER BY oc.expires_at ASC
         ');
-        return ->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function certify(int , string , string , string ): int
+    public function certify(int $empId, string $certName, string $issued, string $expires): int
     {
-         = ->pdo->prepare('
+        $stmt = $this->pdo->prepare('
             INSERT INTO operator_certifications (employee_id, certification_name, issued_at, expires_at, created_at)
             VALUES (:emp_id, :cert_name, :issued, :expires, UTC_TIMESTAMP())
         ');
-        ->execute([
-            'emp_id' => ,
-            'cert_name' => ,
-            'issued' => ,
-            'expires' => 
+        $stmt->execute([
+            'emp_id' => $empId,
+            'cert_name' => $certName,
+            'issued' => $issued,
+            'expires' => $expires
         ]);
-        return (int) ->pdo->lastInsertId();
+        return (int) $this->pdo->lastInsertId();
     }
 }
-
