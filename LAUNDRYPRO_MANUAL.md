@@ -54,6 +54,8 @@ LaundryPro uses a robust Role-Based Access Control (RBAC) system. Every user log
 ### B. The Production Workflow: Advanced Garment Care
 *Scenario:* The 3 shirts need to go through a specialized "Delicate Wash" cycle.
 
+![Advanced Cycles Dashboard](docs/assets/advanced_cycles_dashboard.png)
+
 1. **Starting the Cycle:** The Operator goes to the "Advanced Cycles" screen. They scan the barcode on the garment tag (Sale ID). They select "Delicate Wash Preset" and the specific washing machine (Equipment ID).
 2. **Recording Metrics:** Halfway through the wash, the system prompts for a quality check. The operator checks the water and logs a "pH Level" of 7.2 in the "Process Logs" tab.
 3. **Completion:** The wash is done. The operator marks the cycle as "Completed." The system automatically logs who did the wash, on what machine, and the exact timestamp.

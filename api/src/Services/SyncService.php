@@ -227,4 +227,34 @@ final class SyncService
 
     return is_string($response) ? (json_decode($response, true) ?: []) : [];
   }
+
+  /**
+   * Resolves conflicts during sync pull, specifically for order_line_modifiers.
+   * Wraps modifier merges in a SELECT ... FOR UPDATE transaction.
+   *
+   * @param array<string, mixed> $cloudPayload
+   * @return void
+   */
+  public function resolveConflict(array $cloudPayload): void
+  {
+      $this->pdo->beginTransaction();
+      try {
+          if (($cloudPayload['entity_type'] ?? '') === 'order_line_modifier') {
+              $localId = (int)($cloudPayload['entity_local_id'] ?? 0);
+              // Wrap in SELECT ... FOR UPDATE to prevent race condition
+              $stmt = $this->pdo->prepare('SELECT id FROM order_line_modifiers WHERE id = :id FOR UPDATE');
+              $stmt->execute(['id' => $localId]);
+              
+              if ($stmt->fetch()) {
+                  // Deterministic merge strategy
+                  $update = $this->pdo->prepare('UPDATE order_line_modifiers SET payload = :payload, updated_at = UTC_TIMESTAMP() WHERE id = :id');
+                  $update->execute(['payload' => json_encode($cloudPayload['payload']), 'id' => $localId]);
+              }
+          }
+          $this->pdo->commit();
+      } catch (\Throwable $e) {
+          $this->pdo->rollBack();
+          throw $e;
+      }
+  }
 }

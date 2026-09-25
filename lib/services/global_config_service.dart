@@ -22,6 +22,7 @@ class GlobalConfigService {
     'EXPORT_PATH':   'C:/LaundryPro/exports/',
     'TEMP_PATH':     'C:/LaundryPro/temp/',
     'TEMPLATE_PATH': 'C:/LaundryPro/templates/',
+    'CURRENCY_SYMBOL': 'AED ',
   };
 
   Map<String, String> _paths = Map.from(_defaults);
@@ -66,6 +67,7 @@ class GlobalConfigService {
   String get exportPath   => _paths['EXPORT_PATH']!;
   String get tempPath     => _paths['TEMP_PATH']!;
   String get templatePath => _paths['TEMPLATE_PATH']!;
+  String get currencySymbol => _paths['CURRENCY_SYMBOL'] ?? 'AED ';
 
   /// Returns a copy of all current path values.
   Map<String, String> get allPaths => Map.unmodifiable(_paths);

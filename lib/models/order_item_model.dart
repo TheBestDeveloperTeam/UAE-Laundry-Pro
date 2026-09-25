@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:laundrypro_uae/core/safe_parser.dart';
 
 class OrderItemModel {
@@ -10,6 +11,7 @@ class OrderItemModel {
     required this.unitPrice,
     required this.totalPrice,
     this.notes,
+    this.modifiers,
   });
 
   final int? id;
@@ -20,6 +22,7 @@ class OrderItemModel {
   final double unitPrice;
   final double totalPrice;
   final String? notes;
+  final Map<String, dynamic>? modifiers;
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
@@ -31,6 +34,9 @@ class OrderItemModel {
       unitPrice: (json['unit_price'] as num).toDouble(),
       totalPrice: (json['total_price'] as num).toDouble(),
       notes: json['notes'] as String?,
+      modifiers: json['modifiers'] != null 
+          ? (json['modifiers'] is String ? jsonDecode(json['modifiers']) as Map<String, dynamic> : json['modifiers'] as Map<String, dynamic>) 
+          : null,
     );
   }
 
@@ -44,6 +50,7 @@ class OrderItemModel {
       'unit_price': unitPrice,
       'total_price': totalPrice,
       if (notes != null) 'notes': notes,
+      if (modifiers != null) 'modifiers': modifiers,
     };
   }
 
@@ -56,6 +63,7 @@ class OrderItemModel {
     double? unitPrice,
     double? totalPrice,
     String? notes,
+    Map<String, dynamic>? modifiers,
   }) {
     return OrderItemModel(
       id: id ?? this.id,
@@ -66,6 +74,7 @@ class OrderItemModel {
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,
       notes: notes ?? this.notes,
+      modifiers: modifiers ?? this.modifiers,
     );
   }
 }

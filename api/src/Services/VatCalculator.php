@@ -40,8 +40,18 @@ class VatCalculator
 
     private static function roundHalfUp(string $value, int $precision): string
     {
-        // bcmath does not natively support round half up easily without workarounds
-        // We can use native round() since we just need 2 decimal places for AED currency
-        return number_format(round((float)$value, $precision, PHP_ROUND_HALF_UP), $precision, '.', '');
+        // Pure bcmath rounding implementation
+        $factor = '0.' . str_repeat('0', $precision) . '5';
+        $valueStr = (string)$value;
+        
+        // Handle negative numbers
+        if (str_starts_with($valueStr, '-')) {
+            $added = bcsub($valueStr, $factor, $precision + 1);
+        } else {
+            $added = bcadd($valueStr, $factor, $precision + 1);
+        }
+        
+        // Truncate to desired precision
+        return bcadd($added, '0', $precision);
     }
 }

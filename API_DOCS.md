@@ -116,3 +116,11 @@ Standard HTTP status codes are used alongside domain-specific error keys:
 - `422 Unprocessable Entity` - Validation failure.
 - `429 Too Many Requests` - Rate limit exceeded.
 - `500 Internal Server Error` - Unhandled exception (safely obfuscated in production).
+
+## Hardware Integration
+
+### RFID HardwareAdapterInterface Fallback
+The `HardwareAdapterInterface` provides an abstraction layer for RFID scanners. In cases where the primary hardware bridge (e.g., native SDK or COM port) becomes unavailable or disconnected:
+1. **Fallback to Keyboard Wedge**: The interface automatically degrades to accept standard HID keyboard inputs if a scanner supports it.
+2. **Offline Buffering**: Scans captured while the network is offline are buffered locally in the Flutter app's internal queue.
+3. **Reconciliation**: Once connection restores, buffered scans are pushed through the standard sync outbox to ensure no tags are missed during brief disconnects.

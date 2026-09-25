@@ -1,9 +1,11 @@
 import 'package:intl/intl.dart';
+import 'package:laundrypro_uae/services/global_config_service.dart';
 
 class Formatters {
-  /// Formats double as UAE Dirham currency (e.g. AED 1,234.50)
+  /// Formats double as dynamically configured currency
   static String currency(double amount) {
-    final formatter = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
+    final symbol = GlobalConfigService().currencySymbol;
+    final formatter = NumberFormat.currency(symbol: symbol, decimalDigits: 2);
     return formatter.format(amount);
   }
 

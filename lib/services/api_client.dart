@@ -140,6 +140,8 @@ class ApiClient {
       final refreshed = await _tryRefreshToken();
       if (refreshed) {
         return _request(method, path, body: body, auth: auth, retried: true);
+      } else {
+        await _tokenStorage.clear();
       }
     }
 
@@ -174,6 +176,7 @@ class ApiClient {
       await _tokenStorage.saveTokens(accessToken: access, refreshToken: refresh);
       return true;
     } catch (_) {
+      await _tokenStorage.clear();
       return false;
     }
   }
@@ -192,6 +195,9 @@ class ApiClient {
 
     final success = decoded['success'] == true;
     if (!success && (response.statusCode >= 400 || !allowUnauthorized)) {
+      if (response.statusCode == 401) {
+        _tokenStorage.clear();
+      }
       throw ApiException(
         decoded['code']?.toString() ?? 'API_ERROR',
         decoded['message_key']?.toString() ?? 'common.error',

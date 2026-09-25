@@ -26,6 +26,15 @@ use LaundryPro\Cloud\Core\Response;
 use LaundryPro\Cloud\Core\Router;
 
 $request = new Request();
+
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Business-Owner-Id');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 $router = new Router();
 
 // API Endpoints
@@ -33,6 +42,8 @@ $router->get('/api/v1/health', [CloudApiController::class, 'health']);
 $router->post('/api/v1/businesses/register', [CloudApiController::class, 'registerBusiness']);
 $router->post('/api/v1/sync/push', [CloudApiController::class, 'syncPush']);
 $router->get('/api/v1/sync/pull', [CloudApiController::class, 'syncPull']);
+$router->post('/api/v1/sync/backup', [CloudApiController::class, 'uploadBackup']);
+$router->get('/api/v1/reports/aggregation', [CloudApiController::class, 'centralizedReports']);
 
 // Super-Admin Web Portal Endpoints
 $router->get('/admin/login', [AdminPortalController::class, 'loginView']);

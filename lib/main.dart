@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/app.dart';
@@ -15,6 +17,22 @@ Future<void> main() async {
 
   // Initialise global path config + auto-create all directories
   await GlobalConfigService().init();
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    try {
+      final file = File('${GlobalConfigService().logPath}crash.log');
+      file.writeAsStringSync('${DateTime.now()}: ${details.exceptionAsString()}\n', mode: FileMode.append);
+    } catch (_) {}
+  };
+  
+  PlatformDispatcher.instance.onError = (error, stack) {
+    try {
+      final file = File('${GlobalConfigService().logPath}crash.log');
+      file.writeAsStringSync('${DateTime.now()}: $error\n$stack\n', mode: FileMode.append);
+    } catch (_) {}
+    return true;
+  };
 
   final peripheralContainer = await bootstrapPeripherals();
   final authService = AuthService();

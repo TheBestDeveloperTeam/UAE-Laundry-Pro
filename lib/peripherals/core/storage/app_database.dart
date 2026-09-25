@@ -8,7 +8,7 @@ final appDatabaseProvider = Provider<AppDatabase>((_) {
 class AppDatabase {
   AppDatabase({required this.dbPath});
 
-  static const int schemaVersion = 2;
+  static const int schemaVersion = 3;
 
   final String dbPath;
   Database? _db;
@@ -20,13 +20,20 @@ class AppDatabase {
       dbPath,
       options: OpenDatabaseOptions(
         version: schemaVersion,
+        onConfigure: (db) async {
+          await db.execute('PRAGMA foreign_keys = ON');
+        },
         onCreate: (db, _) async {
           await _createV1(db);
           await _createV2(db);
+          await _createV3(db);
         },
         onUpgrade: (db, fromVersion, toVersion) async {
           if (fromVersion < 2) {
             await _createV2(db);
+          }
+          if (fromVersion < 3) {
+            await _createV3(db);
           }
         },
       ),
@@ -64,6 +71,21 @@ CREATE TABLE IF NOT EXISTS receipt_templates(
   name TEXT NOT NULL,
   lines_json TEXT NOT NULL,
   paper_id TEXT NOT NULL,
+  created_at TEXT NOT NULL
+)
+''');
+  }
+
+  Future<void> _createV3(Database db) async {
+    await db.execute('''
+CREATE TABLE IF NOT EXISTS sync_queue(
+  id TEXT PRIMARY KEY,
+  entity_type TEXT NOT NULL,
+  entity_local_id INTEGER NOT NULL,
+  operation TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  status TEXT NOT NULL,
+  retry_count INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 )
 ''');

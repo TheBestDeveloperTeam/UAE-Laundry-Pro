@@ -15,9 +15,12 @@ class InventoryModel {
     this.nextCalibrationDue,
     required this.createdAt,
     required this.updatedAt,
+    this.consumedQuantity = 0,
+    this.syncStatus = 'pending',
   });
 
   final int id;
+  final int? localId;
   final String uuid;
   final String itemName;
   final String sku;
@@ -30,6 +33,8 @@ class InventoryModel {
   final DateTime? nextCalibrationDue;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int consumedQuantity;
+  final String? syncStatus;
 
   factory InventoryModel.fromJson(Map<String, dynamic> json) {
     return InventoryModel(
@@ -46,6 +51,9 @@ class InventoryModel {
       nextCalibrationDue: json['next_calibration_due'] != null ? DateTime.tryParse(json['next_calibration_due'].toString()) : null,
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+      consumedQuantity: SafeParser.parseInt(json['consumed_quantity'], 0),
+      localId: json['local_id'] != null ? SafeParser.parseInt(json['local_id']) : null,
+      syncStatus: json['sync_status'] as String?,
     );
   }
 
@@ -64,6 +72,9 @@ class InventoryModel {
       if (nextCalibrationDue != null) 'next_calibration_due': nextCalibrationDue!.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'consumed_quantity': consumedQuantity,
+      if (localId != null) 'local_id': localId,
+      if (syncStatus != null) 'sync_status': syncStatus,
     };
   }
 
@@ -81,6 +92,9 @@ class InventoryModel {
     DateTime? nextCalibrationDue,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? consumedQuantity,
+    int? localId,
+    String? syncStatus,
   }) {
     return InventoryModel(
       id: id ?? this.id,
@@ -96,6 +110,9 @@ class InventoryModel {
       nextCalibrationDue: nextCalibrationDue ?? this.nextCalibrationDue,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      consumedQuantity: consumedQuantity ?? this.consumedQuantity,
+      localId: localId ?? this.localId,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }

@@ -13,9 +13,11 @@ class InvoiceModel {
     required this.status, // e.g., 'draft', 'posted', 'paid', 'cancelled'
     required this.createdAt,
     required this.isPosted,
+    this.syncStatus = 'pending',
   });
 
   final int id;
+  final int? localId;
   final String uuid;
   final String invoiceNumber;
   final int orderId;
@@ -26,6 +28,7 @@ class InvoiceModel {
   final String status;
   final DateTime createdAt;
   final bool isPosted;
+  final String? syncStatus;
 
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
     return InvoiceModel(
@@ -40,6 +43,8 @@ class InvoiceModel {
       status: json['status'] as String,
       createdAt: SafeParser.parseDateTime(json['created_at']),
       isPosted: json['is_posted'] == 1 || json['is_posted'] == true,
+      localId: json['local_id'] != null ? SafeParser.parseInt(json['local_id']) : null,
+      syncStatus: json['sync_status'] as String?,
     );
   }
 
@@ -56,6 +61,8 @@ class InvoiceModel {
       'status': status,
       'created_at': createdAt.toIso8601String(),
       'is_posted': isPosted ? 1 : 0,
+      if (localId != null) 'local_id': localId,
+      if (syncStatus != null) 'sync_status': syncStatus,
     };
   }
 
@@ -71,6 +78,8 @@ class InvoiceModel {
     String? status,
     DateTime? createdAt,
     bool? isPosted,
+    int? localId,
+    String? syncStatus,
   }) {
     return InvoiceModel(
       id: id ?? this.id,
@@ -84,6 +93,8 @@ class InvoiceModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       isPosted: isPosted ?? this.isPosted,
+      localId: localId ?? this.localId,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }

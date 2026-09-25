@@ -67,6 +67,15 @@ final class InvoiceRepository
     return $this->findById($id);
   }
 
+  public function update(int $id, array $data): void
+  {
+    $invoice = $this->findById($id);
+    if ($invoice !== null && $invoice['status'] === 'posted') {
+      throw new RuntimeException('Invoices are immutable once posted. Create a correction memo instead.');
+    }
+    // Update logic for draft invoices (if needed in future)
+  }
+
   public function createCorrection(int $id, array $data, int $userId): ?array
   {
     $invoice = $this->findById($id);

@@ -36,12 +36,7 @@ final class Database
             self::$pdo = new PDO($dsn, $config['username'], $config['password'], $options);
             return self::$pdo;
         } catch (PDOException $e) {
-            // Log error
-            $logDir = dirname(__DIR__, 2) . '/logs';
-            if (!is_dir($logDir)) {
-                @mkdir($logDir, 0775, true);
-            }
-            @file_put_contents($logDir . '/error.log', date('c') . ' DB Connection Error: ' . $e->getMessage() . PHP_EOL, FILE_APPEND);
+            error_log('DB Connection Error: ' . $e->getMessage());
             return null;
         }
     }

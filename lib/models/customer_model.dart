@@ -10,9 +10,11 @@ class CustomerModel {
     this.trn,
     this.balance = 0.0,
     required this.createdAt,
+    this.syncStatus = 'pending',
   });
 
   final int id;
+  final int? localId;
   final String uuid;
   final String name;
   final String? phone;
@@ -20,6 +22,7 @@ class CustomerModel {
   final String? trn;
   final double balance;
   final DateTime createdAt;
+  final String? syncStatus;
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) {
     return CustomerModel(
@@ -31,6 +34,8 @@ class CustomerModel {
       trn: json['trn'] as String?,
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
       createdAt: SafeParser.parseDateTime(json['created_at']),
+      localId: json['local_id'] != null ? SafeParser.parseInt(json['local_id']) : null,
+      syncStatus: json['sync_status'] as String?,
     );
   }
 
@@ -44,6 +49,8 @@ class CustomerModel {
       'trn': trn,
       'balance': balance,
       'created_at': createdAt.toIso8601String(),
+      if (localId != null) 'local_id': localId,
+      if (syncStatus != null) 'sync_status': syncStatus,
     };
   }
 
@@ -56,6 +63,8 @@ class CustomerModel {
     String? trn,
     double? balance,
     DateTime? createdAt,
+    int? localId,
+    String? syncStatus,
   }) {
     return CustomerModel(
       id: id ?? this.id,
@@ -66,6 +75,8 @@ class CustomerModel {
       trn: trn ?? this.trn,
       balance: balance ?? this.balance,
       createdAt: createdAt ?? this.createdAt,
+      localId: localId ?? this.localId,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }

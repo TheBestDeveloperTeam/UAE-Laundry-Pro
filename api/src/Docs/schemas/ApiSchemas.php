@@ -78,6 +78,19 @@ final class ApiSchemas
             'admin_password' => ['type' => 'string', 'format' => 'password'],
           ],
         ],
+        'ServiceCreateRequest' => [
+          'type' => 'object',
+          'required' => ['name', 'price'],
+          'properties' => [
+            'name' => ['type' => 'string'],
+            'price' => ['type' => 'number'],
+            'chemical_dosage_map' => [
+              'type' => 'object',
+              'additionalProperties' => ['type' => 'number'],
+              'example' => ['detergent_id_1' => 10.5, 'softener_id_2' => 5.0]
+            ],
+          ],
+        ],
       ],
     ];
   }

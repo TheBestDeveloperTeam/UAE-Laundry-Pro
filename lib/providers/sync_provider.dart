@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
+import 'package:laundrypro_uae/services/sync_service.dart';
 
 class SyncProvider extends ChangeNotifier {
   final ApiClient _api;
+  final SyncService? _syncService;
   Timer? _timer;
   bool _isSyncing = false;
   int _pendingCount = 0;
   bool _enabled = false;
   
-  SyncProvider(this._api) {
+  SyncProvider(this._api, [this._syncService]) {
     _startPolling();
   }
 
@@ -46,7 +48,13 @@ class SyncProvider extends ChangeNotifier {
     _isSyncing = true;
     notifyListeners();
     try {
-      await _api.post('/sync/push', body: {});
+      if (_syncService != null) {
+         await _syncService!.pushUpstream({});
+         await _syncService!.pullDownstream();
+      } else {
+         await _api.post('/sync/push', body: {});
+      }
+      
       // Refresh status after push
       final res = await _api.get('/sync/status');
       final data = res['data'] as Map<String, dynamic>?;
@@ -57,7 +65,7 @@ class SyncProvider extends ChangeNotifier {
       // Fail silently
     } finally {
       _isSyncing = false;
-      notifyListeners();
+      notifyListeners(); // FLUTTER-SYNC-006: Trigger foreground UI sync indicators
     }
   }
 
