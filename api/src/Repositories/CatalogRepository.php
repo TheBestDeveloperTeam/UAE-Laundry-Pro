@@ -18,7 +18,7 @@ final class CatalogRepository
   /** @return array<int, array<string, mixed>> */
   public function listServices(?int $parentId = null): array
   {
-    $sql = 'SELECT * FROM services WHERE business_owner_id = :owner AND is_active = 1';
+    $sql = 'SELECT * FROM services WHERE admin_id = :owner AND is_active = 1';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($parentId === null) {
@@ -40,7 +40,7 @@ final class CatalogRepository
   {
     if ($barcode !== null && $barcode !== '') {
       $stmt = $this->pdo->prepare(
-        'SELECT * FROM products WHERE business_owner_id = :owner AND barcode = :barcode AND is_active = 1 LIMIT 1'
+        'SELECT * FROM products WHERE admin_id = :owner AND barcode = :barcode AND is_active = 1 LIMIT 1'
       );
       $stmt->execute(['owner' => $this->businessOwnerId, 'barcode' => $barcode]);
       $row = $stmt->fetch();
@@ -48,7 +48,7 @@ final class CatalogRepository
       return $row ? [$row] : [];
     }
 
-    $sql = 'SELECT * FROM products WHERE business_owner_id = :owner AND is_active = 1';
+    $sql = 'SELECT * FROM products WHERE admin_id = :owner AND is_active = 1';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($parentId === null) {
@@ -75,7 +75,7 @@ final class CatalogRepository
 
     $localId = $this->nextLocalId('services');
     $stmt = $this->pdo->prepare(
-      'INSERT INTO services (uuid, business_owner_id, local_id, parent_id, category_id, code, name, description, base_rate, cost, is_group, created_at)
+      'INSERT INTO services (uuid, admin_id, local_id, parent_id, category_id, code, name, description, base_rate, cost, is_group, created_at)
        VALUES (:uuid, :owner, :local_id, :parent, :cat, :code, :name, :desc, :rate, :cost, :grp, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -122,7 +122,7 @@ final class CatalogRepository
       return $existing;
     }
     $fields[] = 'updated_at = UTC_TIMESTAMP()';
-    $sql = 'UPDATE services SET ' . implode(', ', $fields) . ' WHERE id = :id AND business_owner_id = :owner';
+    $sql = 'UPDATE services SET ' . implode(', ', $fields) . ' WHERE id = :id AND admin_id = :owner';
     $stmt = $this->pdo->prepare($sql);
     $stmt->execute($params);
 
@@ -139,7 +139,7 @@ final class CatalogRepository
 
     $localId = $this->nextLocalId('products');
     $stmt = $this->pdo->prepare(
-      'INSERT INTO products (uuid, business_owner_id, local_id, parent_id, category_id, code, name, description, barcode, base_rate, cost, stock_quantity, low_stock_threshold, is_group, created_at)
+      'INSERT INTO products (uuid, admin_id, local_id, parent_id, category_id, code, name, description, barcode, base_rate, cost, stock_quantity, low_stock_threshold, is_group, created_at)
        VALUES (:uuid, :owner, :local_id, :parent, :cat, :code, :name, :desc, :barcode, :rate, :cost, :stock, :low, :grp, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -189,7 +189,7 @@ final class CatalogRepository
       return $existing;
     }
     $fields[] = 'updated_at = UTC_TIMESTAMP()';
-    $sql = 'UPDATE products SET ' . implode(', ', $fields) . ' WHERE id = :id AND business_owner_id = :owner';
+    $sql = 'UPDATE products SET ' . implode(', ', $fields) . ' WHERE id = :id AND admin_id = :owner';
     $stmt = $this->pdo->prepare($sql);
     $stmt->execute($params);
 
@@ -204,7 +204,7 @@ final class CatalogRepository
        FROM service_product_map spm
        JOIN services s ON s.id = spm.service_id
        JOIN products p ON p.id = spm.product_id
-       WHERE spm.service_id = :service AND s.business_owner_id = :owner AND spm.is_active = 1'
+       WHERE spm.service_id = :service AND s.admin_id = :owner AND spm.is_active = 1'
     );
     $stmt->execute(['service' => $serviceId, 'owner' => $this->businessOwnerId]);
 
@@ -253,7 +253,7 @@ final class CatalogRepository
     $stmt = $this->pdo->prepare(
       'SELECT sm.* FROM service_modifiers sm
        JOIN services s ON s.id = sm.service_id
-       WHERE sm.service_id = :service AND s.business_owner_id = :owner AND sm.is_active = 1'
+       WHERE sm.service_id = :service AND s.admin_id = :owner AND sm.is_active = 1'
     );
     $stmt->execute(['service' => $serviceId, 'owner' => $this->businessOwnerId]);
 
@@ -291,7 +291,7 @@ final class CatalogRepository
     $stmt = $this->pdo->prepare(
       'SELECT pm.* FROM product_modifiers pm
        JOIN products p ON p.id = pm.product_id
-       WHERE pm.product_id = :product AND p.business_owner_id = :owner AND pm.is_active = 1'
+       WHERE pm.product_id = :product AND p.admin_id = :owner AND pm.is_active = 1'
     );
     $stmt->execute(['product' => $productId, 'owner' => $this->businessOwnerId]);
 
@@ -338,7 +338,7 @@ final class CatalogRepository
 
   public function findService(int $id): ?array
   {
-    $stmt = $this->pdo->prepare('SELECT * FROM services WHERE id = :id AND business_owner_id = :owner LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT * FROM services WHERE id = :id AND admin_id = :owner LIMIT 1');
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
     return $stmt->fetch() ?: null;
@@ -346,7 +346,7 @@ final class CatalogRepository
 
   public function findProduct(int $id): ?array
   {
-    $stmt = $this->pdo->prepare('SELECT * FROM products WHERE id = :id AND business_owner_id = :owner LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT * FROM products WHERE id = :id AND admin_id = :owner LIMIT 1');
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
     return $stmt->fetch() ?: null;
@@ -384,7 +384,7 @@ final class CatalogRepository
         return true;
       }
       $visited[$current] = true;
-      $stmt = $this->pdo->prepare("SELECT parent_id FROM {$table} WHERE id = :id AND business_owner_id = :owner LIMIT 1");
+      $stmt = $this->pdo->prepare("SELECT parent_id FROM {$table} WHERE id = :id AND admin_id = :owner LIMIT 1");
       $stmt->execute(['id' => $current, 'owner' => $this->businessOwnerId]);
       $row = $stmt->fetch();
       $current = $row && $row['parent_id'] !== null ? (int) $row['parent_id'] : null;
@@ -395,7 +395,7 @@ final class CatalogRepository
 
   private function nextLocalId(string $table): int
   {
-    $stmt = $this->pdo->prepare("SELECT COALESCE(MAX(local_id), 0) + 1 FROM {$table} WHERE business_owner_id = :owner");
+    $stmt = $this->pdo->prepare("SELECT COALESCE(MAX(local_id), 0) + 1 FROM {$table} WHERE admin_id = :owner");
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
     return (int) $stmt->fetchColumn();

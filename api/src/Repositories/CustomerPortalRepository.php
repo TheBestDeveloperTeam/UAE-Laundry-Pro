@@ -19,7 +19,7 @@ final class CustomerPortalRepository
     $token = bin2hex(random_bytes(32));
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO customer_portal_tokens (uuid, business_owner_id, sales_order_id, access_token, expires_at)
+      'INSERT INTO customer_portal_tokens (uuid, admin_id, sales_order_id, access_token, expires_at)
        VALUES (:uuid, :owner, :order, :token, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 DAY))'
     );
     $stmt->execute([
@@ -38,7 +38,7 @@ final class CustomerPortalRepository
       'SELECT cpt.*, so.order_no, so.status, so.grand_total, so.customer_id
        FROM customer_portal_tokens cpt
        INNER JOIN sales_orders so ON so.id = cpt.sales_order_id
-       WHERE cpt.access_token = :token AND cpt.business_owner_id = :owner
+       WHERE cpt.access_token = :token AND cpt.admin_id = :owner
        AND (cpt.expires_at IS NULL OR cpt.expires_at > UTC_TIMESTAMP())
        LIMIT 1'
     );

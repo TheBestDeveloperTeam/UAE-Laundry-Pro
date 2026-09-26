@@ -115,7 +115,7 @@
               <?php else: ?>
                 <?php foreach ($stats['recent_sync'] as $s): ?>
                   <tr>
-                    <td class="fw-semibold small"><?= htmlspecialchars($s['business_name'] ?? ('ID #' . $s['business_owner_id'])) ?></td>
+                    <td class="fw-semibold small"><?= htmlspecialchars($s['business_name'] ?? ('ID #' . $s['admin_id'])) ?></td>
                     <td><span class="badge bg-primary-subtle text-primary border"><?= htmlspecialchars($s['entity_type']) ?></span></td>
                     <td><span class="badge bg-info-subtle text-info"><?= htmlspecialchars($s['operation']) ?></span></td>
                     <td class="small text-muted"><?= htmlspecialchars(substr($s['created_at'], 11, 8)) ?></td>

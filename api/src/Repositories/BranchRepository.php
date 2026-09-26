@@ -19,7 +19,7 @@ final class BranchRepository
   {
     $stmt = $this->pdo->prepare(
       'SELECT br.* FROM branches br
-       INNER JOIN business b ON b.id = br.business_id AND b.business_owner_id = :owner
+       INNER JOIN business b ON b.id = br.business_id AND b.admin_id = :owner
        ORDER BY br.code'
     );
     $stmt->execute(['owner' => $this->businessOwnerId]);
@@ -31,7 +31,7 @@ final class BranchRepository
   {
     $stmt = $this->pdo->prepare(
       'SELECT br.* FROM branches br
-       INNER JOIN business b ON b.id = br.business_id AND b.business_owner_id = :owner
+       INNER JOIN business b ON b.id = br.business_id AND b.admin_id = :owner
        WHERE br.id = :id LIMIT 1'
     );
     $stmt->execute(['owner' => $this->businessOwnerId, 'id' => $id]);
@@ -79,7 +79,7 @@ final class BranchRepository
 
   private function businessId(): int
   {
-    $stmt = $this->pdo->prepare('SELECT id FROM business WHERE business_owner_id = :owner LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT id FROM business WHERE admin_id = :owner LIMIT 1');
     $stmt->execute(['owner' => $this->businessOwnerId]);
     $row = $stmt->fetch();
 

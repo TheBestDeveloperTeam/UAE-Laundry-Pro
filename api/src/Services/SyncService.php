@@ -19,7 +19,7 @@ final class SyncService
   /** @return array<string, mixed> */
   public function status(): array
   {
-    $stmt = $this->pdo->prepare('SELECT * FROM sync_state WHERE business_owner_id = :id LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT * FROM sync_state WHERE admin_id = :id LIMIT 1');
     $stmt->execute(['id' => $this->businessOwnerId]);
     $state = $stmt->fetch() ?: [];
 
@@ -90,7 +90,7 @@ final class SyncService
     }
 
     $stmt = $this->pdo->prepare(
-      'UPDATE sync_state SET last_push_at = UTC_TIMESTAMP() WHERE business_owner_id = :id'
+      'UPDATE sync_state SET last_push_at = UTC_TIMESTAMP() WHERE admin_id = :id'
     );
     $stmt->execute(['id' => $this->businessOwnerId]);
 
@@ -111,7 +111,7 @@ final class SyncService
     }
 
     $stmt = $this->pdo->prepare(
-      'UPDATE sync_state SET last_pull_at = UTC_TIMESTAMP() WHERE business_owner_id = :id'
+      'UPDATE sync_state SET last_pull_at = UTC_TIMESTAMP() WHERE admin_id = :id'
     );
     $stmt->execute(['id' => $this->businessOwnerId]);
 
@@ -137,7 +137,7 @@ final class SyncService
 
     if (!empty($response['data']['cloud_token'])) {
       $upd = $this->pdo->prepare(
-        'UPDATE sync_state SET cloud_token = :token, is_enabled = 1 WHERE business_owner_id = :id'
+        'UPDATE sync_state SET cloud_token = :token, is_enabled = 1 WHERE admin_id = :id'
       );
       $upd->execute([
         'token' => $response['data']['cloud_token'],
@@ -155,7 +155,7 @@ final class SyncService
   public function updateConfig(array $config): void
   {
     $stmt = $this->pdo->prepare(
-      'UPDATE sync_state SET is_enabled = :enabled, cloud_api_url = :url WHERE business_owner_id = :id'
+      'UPDATE sync_state SET is_enabled = :enabled, cloud_api_url = :url WHERE admin_id = :id'
     );
     $stmt->execute([
       'enabled' => !empty($config['enabled']) ? 1 : 0,
@@ -166,7 +166,7 @@ final class SyncService
 
   private function getCloudUrl(): ?string
   {
-    $stmt = $this->pdo->prepare('SELECT cloud_api_url FROM sync_state WHERE business_owner_id = :id LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT cloud_api_url FROM sync_state WHERE admin_id = :id LIMIT 1');
     $stmt->execute(['id' => $this->businessOwnerId]);
     $row = $stmt->fetch();
     $url = $row['cloud_api_url'] ?? null;
@@ -176,7 +176,7 @@ final class SyncService
 
   private function getCloudToken(): ?string
   {
-    $stmt = $this->pdo->prepare('SELECT cloud_token FROM sync_state WHERE business_owner_id = :id LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT cloud_token FROM sync_state WHERE admin_id = :id LIMIT 1');
     $stmt->execute(['id' => $this->businessOwnerId]);
     $row = $stmt->fetch();
     $token = $row['cloud_token'] ?? null;

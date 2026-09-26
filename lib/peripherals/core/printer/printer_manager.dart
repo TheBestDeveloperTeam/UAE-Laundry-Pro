@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:laundrypro_uae/peripherals/core/logging/app_logger.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/esc_pos_generator.dart';
+import 'package:laundrypro_uae/peripherals/core/printer/bluetooth_printer_engine.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/network_printer_discovery.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/paper_size.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/paper_source.dart';
@@ -21,6 +22,7 @@ class PrinterManager {
     required AppDatabase database,
   })  : _logger = logger,
         _silentPrintEngine = SilentPrintEngine(logger: logger),
+        _bluetoothEngine = BluetoothPrinterEngine(logger: logger),
         _queueManager = PrintQueueManager(database: database),
         _rawSpoolerPrinter = RawSpoolerPrinter(),
         _escPosGenerator = EscPosGenerator(),
@@ -30,6 +32,7 @@ class PrinterManager {
 
   final AppLogger _logger;
   final SilentPrintEngine _silentPrintEngine;
+  final BluetoothPrinterEngine _bluetoothEngine;
   final PrintQueueManager _queueManager;
   final RawSpoolerPrinter _rawSpoolerPrinter;
   final EscPosGenerator _escPosGenerator;
@@ -40,6 +43,7 @@ class PrinterManager {
   EscPosGenerator get escPos => _escPosGenerator;
   ReceiptTemplateRepository get templates => _templates;
   NetworkPrinterDiscovery get networkDiscovery => _networkDiscovery;
+  BluetoothPrinterEngine get bluetooth => _bluetoothEngine;
 
   Future<List<PrinterDeviceModel>> discoverWindowsPrinters() async {
     final result = await Process.run(

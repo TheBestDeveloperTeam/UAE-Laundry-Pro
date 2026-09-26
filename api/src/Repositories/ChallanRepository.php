@@ -4,215 +4,176 @@ declare(strict_types=1);
 
 namespace LaundryPro\Api\Repositories;
 
+use LaundryPro\Api\Core\EventBus;
+use LaundryPro\Api\Core\Uuid;
 use PDO;
+use RuntimeException;
+use InvalidArgumentException;
 
-final class ChallanRepository
+class ChallanRepository
 {
-  public function __construct(
-    private readonly PDO $pdo,
-    private readonly int $businessOwnerId = 1,
-  ) {
-  }
-
-  /** @return array<int, array<string, mixed>> */
-  public function list(?string $challanType = null, int $limit = 50): array
-  {
-    $sql = 'SELECT * FROM challans WHERE business_owner_id = :owner';
-    $params = ['owner' => $this->businessOwnerId];
-
-    if ($challanType !== null && $challanType !== '') {
-      $sql .= ' AND challan_type = :type';
-      $params['type'] = $challanType;
+    public function __construct(
+        private readonly PDO $db,
+        private readonly EventBus $eventBus
+    ) {
     }
 
-    $sql .= ' ORDER BY id DESC LIMIT ' . (int) $limit;
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll() ?: [];
+    /**
+     * Create a Challan Draft
+     */
+    public function createDraft(int $adminId, array $challanData, array $orderIds, int $userId = null): array
+    {
+        try {
+            $this->db->beginTransaction();
 
-    foreach ($rows as &$row) {
-      $row['lines'] = $this->lines((int) $row['id']);
+            $challanUuid = Uuid::v4();
+            $rowUuid = Uuid::v4();
+            $challanNumber = $this->generateChallanNumber($adminId);
+
+            $sourceBranchId = (int)$challanData['source_branch_id'];
+            $destBranchId = (int)$challanData['destination_branch_id'];
+
+            // Validate all orders belong to admin and are in 'processing' status
+            $placeholders = str_repeat('?,', count($orderIds) - 1) . '?';
+            $stmt = $this->db->prepare("SELECT id, status FROM sales_orders WHERE admin_id = ? AND id IN ($placeholders)");
+            $params = array_merge([$adminId], $orderIds);
+            $stmt->execute($params);
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (count($orders) !== count($orderIds)) {
+                throw new InvalidArgumentException("Some orders are invalid or belong to another tenant.");
+            }
+
+            foreach ($orders as $o) {
+                if ($o['status'] !== 'processing') {
+                    throw new InvalidArgumentException("Order {$o['id']} is not in 'processing' status.");
+                }
+            }
+
+            $sql = "INSERT INTO challans (uuid, admin_id, row_uuid, challan_number, source_branch_id, destination_branch_id, status, notes)
+                    VALUES (:uuid, :admin_id, :row_uuid, :challan_number, :source_branch_id, :destination_branch_id, :status, :notes)";
+            
+            $insertStmt = $this->db->prepare($sql);
+            $insertStmt->execute([
+                'uuid' => $challanUuid,
+                'admin_id' => $adminId,
+                'row_uuid' => $rowUuid,
+                'challan_number' => $challanNumber,
+                'source_branch_id' => $sourceBranchId,
+                'destination_branch_id' => $destBranchId,
+                'status' => 'draft',
+                'notes' => $challanData['notes'] ?? null,
+            ]);
+
+            $challanId = (int) $this->db->lastInsertId();
+
+            $lineSql = "INSERT INTO challan_lines (uuid, admin_id, row_uuid, challan_id, order_id, item_count)
+                        VALUES (:uuid, :admin_id, :row_uuid, :challan_id, :order_id, :item_count)";
+            $lineStmt = $this->db->prepare($lineSql);
+
+            foreach ($orderIds as $oid) {
+                $lineStmt->execute([
+                    'uuid' => Uuid::v4(),
+                    'admin_id' => $adminId,
+                    'row_uuid' => Uuid::v4(),
+                    'challan_id' => $challanId,
+                    'order_id' => (int)$oid,
+                    'item_count' => 1 // Simplified item count abstraction
+                ]);
+            }
+
+            $this->eventBus->publish('challans.draft.created', [
+                'admin_id' => $adminId,
+                'challan_id' => $challanId,
+                'row_uuid' => $rowUuid
+            ]);
+
+            $this->db->commit();
+
+            return [
+                'id' => $challanId,
+                'challan_number' => $challanNumber
+            ];
+
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw new RuntimeException("Challan creation failed: " . $e->getMessage(), 0, $e);
+        }
     }
 
-    return $rows;
-  }
+    /**
+     * Dispatch Challan
+     */
+    public function dispatch(int $adminId, int $challanId, int $userId = null): void
+    {
+        try {
+            $this->db->beginTransaction();
 
-  public function findById(int $id): ?array
-  {
-    $stmt = $this->pdo->prepare(
-      'SELECT * FROM challans WHERE id = :id AND business_owner_id = :owner LIMIT 1'
-    );
-    $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
-    $row = $stmt->fetch();
-    if (!$row) {
-      return null;
-    }
-    $row['lines'] = $this->lines($id);
-    $row['sequence_no'] = $this->sequenceNoForChallan((string) $row['challan_type'], (string) $row['challan_no']);
+            $stmt = $this->db->prepare("SELECT status FROM challans WHERE id = ? AND admin_id = ? FOR UPDATE");
+            $stmt->execute([$challanId, $adminId]);
+            $status = $stmt->fetchColumn();
 
-    return $row;
-  }
+            if (!$status) throw new InvalidArgumentException("Challan not found");
+            if ($status !== 'draft') throw new InvalidArgumentException("Only draft challans can be dispatched");
 
-  /** @param array<string, mixed> $data */
-  public function create(array $data, int $userId): array
-  {
-    $type = (string) ($data['challan_type'] ?? 'delivery');
-    $numbering = $this->nextChallanNo($type);
-    $challanNo = (string) ($data['challan_no'] ?? $numbering['challan_no']);
+            $updStmt = $this->db->prepare("UPDATE challans SET status = 'dispatched', dispatched_by_user_id = ?, dispatched_at = CURRENT_TIMESTAMP WHERE id = ?");
+            $updStmt->execute([$userId, $challanId]);
 
-    $this->pdo->beginTransaction();
-    try {
-      $stmt = $this->pdo->prepare(
-        'INSERT INTO challans (uuid, business_owner_id, challan_no, challan_type, reference_type, reference_id, status, notes, created_by, created_at)
-         VALUES (:uuid, :owner, :no, :type, :ref_type, :ref_id, :status, :notes, :user, UTC_TIMESTAMP())'
-      );
-      $stmt->execute([
-        'uuid' => $this->uuid(),
-        'owner' => $this->businessOwnerId,
-        'no' => $challanNo,
-        'type' => $type,
-        'ref_type' => $data['reference_type'] ?? null,
-        'ref_id' => isset($data['reference_id']) ? (int) $data['reference_id'] : null,
-        'status' => $data['status'] ?? 'issued',
-        'notes' => $data['notes'] ?? null,
-        'user' => $userId,
-      ]);
-      $challanId = (int) $this->pdo->lastInsertId();
+            $this->eventBus->publish('challans.dispatched', [
+                'admin_id' => $adminId,
+                'challan_id' => $challanId
+            ]);
 
-      $lines = $data['lines'] ?? [];
-      if (is_array($lines)) {
-        $this->replaceLines($challanId, $lines);
-      }
-
-      $this->pdo->commit();
-    } catch (\Throwable $e) {
-      $this->pdo->rollBack();
-      throw $e;
+            $this->db->commit();
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw new RuntimeException("Dispatch failed: " . $e->getMessage(), 0, $e);
+        }
     }
 
-    return $this->findById($challanId) ?? [];
-  }
+    /**
+     * Receive Challan
+     */
+    public function receive(int $adminId, int $challanId, int $userId = null): void
+    {
+        try {
+            $this->db->beginTransaction();
 
-  private function enrichChallan(array $row): array
-  {
-    $row['sequence_no'] = $this->sequenceNoForChallan(
-      (string) ($row['challan_type'] ?? ''),
-      (string) ($row['challan_no'] ?? ''),
-    );
+            $stmt = $this->db->prepare("SELECT status FROM challans WHERE id = ? AND admin_id = ? FOR UPDATE");
+            $stmt->execute([$challanId, $adminId]);
+            $status = $stmt->fetchColumn();
 
-    return $row;
-  }
+            if (!$status) throw new InvalidArgumentException("Challan not found");
+            if ($status !== 'dispatched') throw new InvalidArgumentException("Only dispatched challans can be received");
 
-  /** @param array<string, mixed> $data */
-  public function update(int $id, array $data): ?array
-  {
-    $existing = $this->findById($id);
-    if ($existing === null) {
-      return null;
+            $updStmt = $this->db->prepare("UPDATE challans SET status = 'received', received_by_user_id = ?, received_at = CURRENT_TIMESTAMP WHERE id = ?");
+            $updStmt->execute([$userId, $challanId]);
+
+            // Automatically move associated orders to 'ready'
+            $ordersStmt = $this->db->prepare("SELECT order_id FROM challan_lines WHERE challan_id = ?");
+            $ordersStmt->execute([$challanId]);
+            $orderIds = $ordersStmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!empty($orderIds)) {
+                $placeholders = str_repeat('?,', count($orderIds) - 1) . '?';
+                $statusUpdate = $this->db->prepare("UPDATE sales_orders SET status = 'ready' WHERE id IN ($placeholders)");
+                $statusUpdate->execute($orderIds);
+            }
+
+            $this->eventBus->publish('challans.received', [
+                'admin_id' => $adminId,
+                'challan_id' => $challanId
+            ]);
+
+            $this->db->commit();
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw new RuntimeException("Receive failed: " . $e->getMessage(), 0, $e);
+        }
     }
 
-    $this->pdo->beginTransaction();
-    try {
-      $stmt = $this->pdo->prepare(
-        'UPDATE challans SET status = :status, notes = :notes, reference_type = :ref_type, reference_id = :ref_id
-         WHERE id = :id AND business_owner_id = :owner'
-      );
-      $stmt->execute([
-        'id' => $id,
-        'owner' => $this->businessOwnerId,
-        'status' => $data['status'] ?? $existing['status'],
-        'notes' => $data['notes'] ?? $existing['notes'],
-        'ref_type' => $data['reference_type'] ?? $existing['reference_type'],
-        'ref_id' => $data['reference_id'] ?? $existing['reference_id'],
-      ]);
-
-      if (isset($data['lines']) && is_array($data['lines'])) {
-        $this->replaceLines($id, $data['lines']);
-      }
-
-      $this->pdo->commit();
-    } catch (\Throwable $e) {
-      $this->pdo->rollBack();
-      throw $e;
+    private function generateChallanNumber(int $adminId): string
+    {
+        return 'CHL-' . date('ymd') . '-' . mt_rand(1000, 9999);
     }
-
-    return $this->findById($id);
-  }
-
-  public function cancel(int $id): ?array
-  {
-    return $this->update($id, ['status' => 'cancelled']);
-  }
-
-  private function nextChallanNo(string $type): array
-  {
-    $stmt = $this->pdo->prepare(
-      'INSERT INTO challan_sequences (business_owner_id, challan_type, last_number)
-       VALUES (:owner, :type, 1)
-       ON DUPLICATE KEY UPDATE last_number = last_number + 1'
-    );
-    $stmt->execute(['owner' => $this->businessOwnerId, 'type' => $type]);
-
-    $sel = $this->pdo->prepare(
-      'SELECT last_number FROM challan_sequences WHERE business_owner_id = :owner AND challan_type = :type LIMIT 1'
-    );
-    $sel->execute(['owner' => $this->businessOwnerId, 'type' => $type]);
-    $n = (int) $sel->fetchColumn();
-
-    $prefix = strtoupper(substr($type, 0, 3));
-
-    return [
-      'challan_no' => $prefix . '-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT),
-      'sequence_no' => $n,
-    ];
-  }
-
-  private function sequenceNoForChallan(string $type, string $challanNo): int
-  {
-    if (preg_match('/(\d+)$/', $challanNo, $m)) {
-      return (int) $m[1];
-    }
-
-    return 0;
-  }
-
-  /** @param array<int, array<string, mixed>> $lines */
-  private function replaceLines(int $challanId, array $lines): void
-  {
-    $del = $this->pdo->prepare('DELETE FROM challan_lines WHERE challan_id = :id');
-    $del->execute(['id' => $challanId]);
-
-    $ins = $this->pdo->prepare(
-      'INSERT INTO challan_lines (challan_id, line_no, description, quantity, unit)
-       VALUES (:challan, :line, :desc, :qty, :unit)'
-    );
-    $lineNo = 1;
-    foreach ($lines as $line) {
-      $ins->execute([
-        'challan' => $challanId,
-        'line' => $lineNo++,
-        'desc' => (string) ($line['description'] ?? ''),
-        'qty' => (float) ($line['quantity'] ?? 1),
-        'unit' => $line['unit'] ?? null,
-      ]);
-    }
-  }
-
-  /** @return array<int, array<string, mixed>> */
-  private function lines(int $challanId): array
-  {
-    $stmt = $this->pdo->prepare('SELECT * FROM challan_lines WHERE challan_id = :id ORDER BY line_no');
-    $stmt->execute(['id' => $challanId]);
-
-    return $stmt->fetchAll() ?: [];
-  }
-
-  private function uuid(): string
-  {
-    $data = random_bytes(16);
-    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-
-    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-  }
 }

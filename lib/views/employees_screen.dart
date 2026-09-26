@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
 import 'package:laundrypro_uae/services/employee_service.dart';
+import 'package:laundrypro_uae/widgets/app_data_table.dart';
 
 class EmployeesScreen extends StatefulWidget {
   const EmployeesScreen({super.key, this.employeeService});
@@ -98,15 +99,22 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(child: Text(l10n.t('employees_empty')))
-                    : ListView.builder(
-                        itemCount: _items.length,
-                        itemBuilder: (context, i) {
-                          final e = _items[i];
-                          return ListTile(
-                            title: Text(e.fullName ?? ''),
-                            subtitle: Text(e.phone ?? e.employeeCode ?? ''),
-                          );
-                        },
+                    : Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        clipBehavior: Clip.antiAlias,
+                        child: AppDataTable(
+                          columns: const [
+                            AppDataTableColumn(label: 'Code', key: 'employee_code'),
+                            AppDataTableColumn(label: 'Name', key: 'full_name'),
+                            AppDataTableColumn(label: 'Phone', key: 'phone'),
+                          ],
+                          data: _items.map((e) => e.toJson()).toList(),
+                          isLoading: _loading,
+                          emptyMessage: l10n.t('employees_empty'),
+                          onRowTap: (row) {
+                             // Can expand later to edit employee
+                          },
+                        ),
                       ),
           ),
         ],

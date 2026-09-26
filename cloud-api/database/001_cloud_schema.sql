@@ -1,4 +1,4 @@
-﻿-- LaundryPro UAE Central Cloud Schema (Multi-Tenant & Super-Admin)
+-- LaundryPro UAE Central Cloud Schema (Multi-Tenant & Super-Admin)
 -- Compatible with MariaDB / MySQL 5.7+ / 8.0+
 
 CREATE TABLE IF NOT EXISTS cloud_super_admins (
@@ -32,14 +32,14 @@ CREATE TABLE IF NOT EXISTS businesses (
 
 CREATE TABLE IF NOT EXISTS sync_records (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  business_owner_id INT UNSIGNED NOT NULL,
+  admin_id INT UNSIGNED NOT NULL,
   entity_type VARCHAR(100) NOT NULL,
   entity_local_id INT UNSIGNED NOT NULL,
   operation VARCHAR(20) NOT NULL,
   payload JSON NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_sync_entity (business_owner_id, entity_type, entity_local_id),
-  INDEX idx_sync_owner (business_owner_id, created_at)
+  UNIQUE KEY uq_sync_entity (admin_id, entity_type, entity_local_id),
+  INDEX idx_sync_owner (admin_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS cloud_licenses (

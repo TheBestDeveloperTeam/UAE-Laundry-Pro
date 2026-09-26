@@ -5,49 +5,67 @@ declare(strict_types=1);
 namespace LaundryPro\Api\Repositories;
 
 use PDO;
+use LaundryPro\Api\Core\Database;
 
-final class RoleRepository
+class RoleRepository
 {
-  public function __construct(
-    private readonly PDO $pdo,
-  ) {
-  }
+    public function __construct(private readonly PDO $db)
+    {
+    }
 
-  public function findAll(): array
-  {
-    $stmt = $this->pdo->query('SELECT * FROM roles ORDER BY name ASC');
-    return $stmt->fetchAll();
-  }
+    public function getAllRoles(int $adminId): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM roles WHERE admin_id = ? OR is_system_default = 1");
+        $stmt->execute([$adminId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-  public function findById(int $id): ?array
-  {
-    $stmt = $this->pdo->prepare('SELECT * FROM roles WHERE id = :id');
-    $stmt->execute(['id' => $id]);
-    return $stmt->fetch() ?: null;
-  }
+    public function createRole(int $adminId, string $name, array $permissions): int
+    {
+        $this->db->beginTransaction();
+        try {
+            $stmt = $this->db->prepare("INSERT INTO roles (admin_id, name) VALUES (?, ?)");
+            $stmt->execute([$adminId, $name]);
+            $roleId = (int)$this->db->lastInsertId();
 
-  public function create(string $name, array $permissions): int
-  {
-    $stmt = $this->pdo->prepare(
-      'INSERT INTO roles (uuid, name, permissions) VALUES (UUID(), :name, :permissions)'
-    );
-    $stmt->execute([
-      'name' => $name,
-      'permissions' => json_encode($permissions),
-    ]);
-    return (int) $this->pdo->lastInsertId();
-  }
+            if (!empty($permissions)) {
+                $placeholders = str_repeat('?,', count($permissions) - 1) . '?';
+                $permsQuery = "SELECT id FROM permissions WHERE name IN ($placeholders)";
+                $permsStmt = $this->db->prepare($permsQuery);
+                $permsStmt->execute($permissions);
+                $permIds = $permsStmt->fetchAll(PDO::FETCH_COLUMN);
 
-  public function update(int $id, string $name, array $permissions): void
-  {
-    $stmt = $this->pdo->prepare(
-      'UPDATE roles SET name = :name, permissions = :permissions WHERE id = :id'
-    );
-    $stmt->execute([
-      'id' => $id,
-      'name' => $name,
-      'permissions' => json_encode($permissions),
-    ]);
-  }
+                $insertPerms = $this->db->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");
+                foreach ($permIds as $pid) {
+                    $insertPerms->execute([$roleId, $pid]);
+                }
+            }
+
+            $this->db->commit();
+            return $roleId;
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    public function deleteRole(int $adminId, int $roleId): void
+    {
+        // Block delete if users assigned
+        $checkStmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE role_id = ? AND admin_id = ?");
+        $checkStmt->execute([$roleId, $adminId]);
+        if ($checkStmt->fetchColumn() > 0) {
+            throw new \Exception("Cannot delete role: users are assigned to it.");
+        }
+
+        $this->db->beginTransaction();
+        try {
+            $this->db->prepare("DELETE FROM role_permissions WHERE role_id = ?")->execute([$roleId]);
+            $this->db->prepare("DELETE FROM roles WHERE id = ? AND admin_id = ?")->execute([$roleId, $adminId]);
+            $this->db->commit();
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
 }
-

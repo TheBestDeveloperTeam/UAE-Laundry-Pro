@@ -17,7 +17,7 @@ final class EmployeeRepository
   /** @return array<int, array<string, mixed>> */
   public function list(?string $search = null, bool $activeOnly = true, int $limit = 50, int $offset = 0): array
   {
-    $sql = 'SELECT * FROM employees WHERE business_owner_id = :owner';
+    $sql = 'SELECT * FROM employees WHERE admin_id = :owner';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($activeOnly) {
@@ -44,7 +44,7 @@ final class EmployeeRepository
   public function findById(int $id): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM employees WHERE id = :id AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM employees WHERE id = :id AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -61,7 +61,7 @@ final class EmployeeRepository
     }
 
     $stmt = $this->pdo->prepare(
-      'INSERT INTO employees (uuid, business_owner_id, employee_no, full_name, phone, email, job_title, base_salary, created_at)
+      'INSERT INTO employees (uuid, admin_id, employee_no, full_name, phone, email, job_title, base_salary, created_at)
        VALUES (:uuid, :owner, :no, :name, :phone, :email, :title, :salary, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -81,7 +81,7 @@ final class EmployeeRepository
   public function findByEmployeeNo(string $employeeNo): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM employees WHERE employee_no = :no AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM employees WHERE employee_no = :no AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['no' => $employeeNo, 'owner' => $this->businessOwnerId]);
 
@@ -99,7 +99,7 @@ final class EmployeeRepository
     $stmt = $this->pdo->prepare(
       'UPDATE employees SET full_name = :name, phone = :phone, email = :email, job_title = :title,
        base_salary = :salary, updated_at = UTC_TIMESTAMP()
-       WHERE id = :id AND business_owner_id = :owner'
+       WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute([
       'id' => $id,
@@ -117,7 +117,7 @@ final class EmployeeRepository
   public function deactivate(int $id): bool
   {
     $stmt = $this->pdo->prepare(
-      'UPDATE employees SET is_active = 0, updated_at = UTC_TIMESTAMP() WHERE id = :id AND business_owner_id = :owner'
+      'UPDATE employees SET is_active = 0, updated_at = UTC_TIMESTAMP() WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -126,7 +126,7 @@ final class EmployeeRepository
 
   private function nextEmployeeNo(): string
   {
-    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(id), 0) + 1 FROM employees WHERE business_owner_id = :owner');
+    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(id), 0) + 1 FROM employees WHERE admin_id = :owner');
     $stmt->execute(['owner' => $this->businessOwnerId]);
     $n = (int) $stmt->fetchColumn();
 

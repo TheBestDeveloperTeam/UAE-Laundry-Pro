@@ -54,7 +54,7 @@ final class AdvancedCycleController
     }
 
     $userId = (int) $container->get('auth.user_id');
-    $businessOwnerId = (int) $container->get('auth.business_owner_id');
+    $businessOwnerId = (int) $container->get('auth.admin_id');
 
     $runId = $this->cycles->startCycle($businessOwnerId, $equipmentId, $operatorId, $presetId, $saleOrderId);
     $this->audit->log($userId, 'advanced_cycle.start', 'advanced_cycle_runs', $runId);
@@ -65,7 +65,7 @@ final class AdvancedCycleController
   public function completeCycle(Request $request, Container $container, int $id): void
   {
     $userId = (int) $container->get('auth.user_id');
-    $businessOwnerId = (int) $container->get('auth.business_owner_id');
+    $businessOwnerId = (int) $container->get('auth.admin_id');
 
     $run = $this->cycles->getCycleRun($id);
     if (!$run) {
@@ -95,7 +95,7 @@ final class AdvancedCycleController
     }
 
     $userId = (int) $container->get('auth.user_id');
-    $businessOwnerId = (int) $container->get('auth.business_owner_id');
+    $businessOwnerId = (int) $container->get('auth.admin_id');
 
     $run = $this->cycles->getCycleRun($id);
     if (!$run || $run['status'] !== 'running') {

@@ -69,7 +69,8 @@ final printerPortProvider = StateProvider<int>((_) => 9100);
 /// Connection mode for outgoing print jobs:
 /// `spooler` — Windows installed printer via Win32 spooler (default)
 /// `tcp`     — Direct raw socket to thermal printer (port 9100)
-enum PrinterConnectionMode { spooler, tcp }
+/// `bluetooth` — Bluetooth thermal printer via SPP (Android)
+enum PrinterConnectionMode { spooler, tcp, bluetooth }
 
 final printerConnectionModeProvider =
     StateProvider<PrinterConnectionMode>((_) => PrinterConnectionMode.spooler);

@@ -37,7 +37,7 @@ final class LocalizationRepository
     }
 
     $stmt = $this->pdo->prepare(
-      'UPDATE business SET country = :code, updated_at = UTC_TIMESTAMP() WHERE business_owner_id = 1'
+      'UPDATE business SET country = :code, updated_at = UTC_TIMESTAMP() WHERE admin_id = 1'
     );
     $stmt->execute(['code' => $profile['code']]);
 

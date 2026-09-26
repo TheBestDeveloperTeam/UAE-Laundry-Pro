@@ -10,7 +10,7 @@ class MockApiClient extends ApiClient {
   int retryCount = 0;
   
   @override
-  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body, bool auth = true, Map<String, String>? customHeaders}) async {
+  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body, bool auth = true}) async {
     if (path == '/api/v1/sync/push' || path == '/sync/push') {
       if (failWith503 && retryCount < 2) {
         retryCount++;
@@ -18,18 +18,18 @@ class MockApiClient extends ApiClient {
       }
       return {'success': true};
     }
-    return super.post(path, body: body, auth: auth, customHeaders: customHeaders);
+    return super.post(path, body: body, auth: auth);
   }
 
   @override
-  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, String>? customHeaders}) async {
+  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, dynamic>? queryParameters}) async {
     if (path == '/sync/status') {
       return {'success': true, 'data': {'enabled': true, 'pending_count': 1}};
     }
     if (path.contains('/sync/pull')) {
       return {'success': true, 'data': {'records': []}};
     }
-    return super.get(path, auth: auth, customHeaders: customHeaders);
+    return super.get(path, auth: auth, queryParameters: queryParameters);
   }
 }
 

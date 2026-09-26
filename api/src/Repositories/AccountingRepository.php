@@ -18,7 +18,7 @@ final class AccountingRepository
   public function listBatches(): array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM accounting_export_batches WHERE business_owner_id = :owner ORDER BY created_at DESC LIMIT 50'
+      'SELECT * FROM accounting_export_batches WHERE admin_id = :owner ORDER BY created_at DESC LIMIT 50'
     );
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
@@ -28,7 +28,7 @@ final class AccountingRepository
   public function findBatch(int $id): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM accounting_export_batches WHERE id = :id AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM accounting_export_batches WHERE id = :id AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
     $row = $stmt->fetch();
@@ -52,7 +52,7 @@ final class AccountingRepository
   {
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO accounting_export_batches (uuid, business_owner_id, adapter, period_start, period_end, status, created_by)
+      'INSERT INTO accounting_export_batches (uuid, admin_id, adapter, period_start, period_end, status, created_by)
        VALUES (:uuid, :owner, :adapter, :start, :end, :status, :user)'
     );
     $stmt->execute([

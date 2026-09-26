@@ -24,7 +24,7 @@
             <?php foreach ($records as $r): ?>
               <tr>
                 <td><span class="badge bg-secondary">#<?= $r['id'] ?></span></td>
-                <td class="fw-semibold small"><?= htmlspecialchars($r['business_name'] ?? ('Tenant #' . $r['business_owner_id'])) ?></td>
+                <td class="fw-semibold small"><?= htmlspecialchars($r['business_name'] ?? ('Tenant #' . $r['admin_id'])) ?></td>
                 <td><span class="badge bg-primary-subtle text-primary border"><?= htmlspecialchars($r['entity_type']) ?></span></td>
                 <td><span class="badge bg-light text-dark border">#<?= $r['entity_local_id'] ?></span></td>
                 <td><span class="badge bg-info-subtle text-info fw-bold"><?= htmlspecialchars(strtoupper($r['operation'])) ?></span></td>

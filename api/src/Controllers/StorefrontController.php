@@ -4,68 +4,54 @@ declare(strict_types=1);
 
 namespace LaundryPro\Api\Controllers;
 
-use LaundryPro\Api\Core\Container;
 use LaundryPro\Api\Core\Request;
-use LaundryPro\Api\Helpers\ApiResponse;
-use LaundryPro\Api\Repositories\AuditLogRepository;
-use LaundryPro\Api\Repositories\CatalogRepository;
-use LaundryPro\Api\Repositories\SalesRepository;
-use LaundryPro\Api\Repositories\StorefrontRepository;
+use LaundryPro\Api\Core\Response;
+use PDO;
 
-final class StorefrontController
+class StorefrontController
 {
-  public function __construct(
-    private readonly ApiResponse $response,
-    private readonly StorefrontRepository $storefront,
-    private readonly CatalogRepository $catalog,
-    private readonly SalesRepository $sales,
-    private readonly AuditLogRepository $audit,
-  ) {
-  }
-
-  public function catalog(Request $request, Container $container): void
-  {
-    $services = $this->catalog->listServices();
-    $products = $this->catalog->listProducts();
-    $this->response->success($request, ['services' => $services, 'products' => $products], 'STOREFRONT_CATALOG', 'storefront.catalog');
-  }
-
-  public function submitOrder(Request $request, Container $container): void
-  {
-    $name = $request->input('customer_name');
-    $phone = $request->input('customer_phone');
-    $nameStr = is_string($name) ? trim($name) : '';
-    $phoneStr = is_string($phone) ? trim($phone) : (is_int($phone) || is_float($phone) ? (string) $phone : '');
-    if ($nameStr === '' || $phoneStr === '') {
-      $this->response->error($request, 'VALIDATION_ERROR', 'storefront.validation_failed', 422);
-      return;
+    public function __construct(private readonly PDO $db)
+    {
     }
-    $data = $request->all();
-    $data['customer_name'] = $nameStr;
-    $data['customer_phone'] = $phoneStr;
-    $order = $this->storefront->createOrder($data);
-    $this->response->success($request, ['order' => $order], 'STOREFRONT_ORDER_CREATED', 'storefront.order_created', 201);
-  }
 
-  public function listOrders(Request $request, Container $container): void
-  {
-    $status = $request->query('status');
-    $items = $this->storefront->listOrders(is_string($status) ? $status : null);
-    $this->response->success($request, ['orders' => $items], 'STOREFRONT_ORDERS_LIST', 'storefront.orders');
-  }
+    /**
+     * Public catalog, no auth required, just requires admin identifier in query or header
+     */
+    public function getCatalog(Request $request, Response $response): void
+    {
+        $adminId = $_GET['admin_id'] ?? null;
+        if (!$adminId) {
+            $response->error(400, 'Admin ID is required for public storefront');
+            return;
+        }
 
-  public function convert(Request $request, Container $container): void
-  {
-    $id = (int) $request->route('id', 0);
-    $order = $this->storefront->findOrder($id);
-    if ($order === null) {
-      $this->response->error($request, 'NOT_FOUND', 'storefront.not_found', 404);
-      return;
+        $stmt = $this->db->prepare("SELECT id, name, category, price, is_active FROM services WHERE admin_id = ? AND is_active = 1");
+        $stmt->execute([(int)$adminId]);
+        $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response->success($services, 'Catalog retrieved');
     }
-    $userId = (int) $container->get('auth.user_id');
-    $draft = $this->sales->createDraft(['notes' => 'Storefront order #' . $id], $userId);
-    $converted = $this->storefront->convertToSalesOrder($id, (int) $draft['id']);
-    $this->audit->log($userId, 'storefront.convert', 'storefront_order', $id, null);
-    $this->response->success($request, ['order' => $converted, 'sales_order' => $draft], 'STOREFRONT_CONVERTED', 'storefront.converted');
-  }
+
+    /**
+     * Storefront config (branding, enabled features, contact info)
+     */
+    public function getConfig(Request $request, Response $response): void
+    {
+        $adminId = $_GET['admin_id'] ?? null;
+        if (!$adminId) {
+            $response->error(400, 'Admin ID is required');
+            return;
+        }
+
+        $stmt = $this->db->prepare("SELECT setting_key, setting_value FROM system_settings WHERE admin_id = ? AND setting_key IN ('business_name', 'logo_url', 'contact_email', 'contact_phone', 'storefront_enabled')");
+        $stmt->execute([(int)$adminId]);
+        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        if (($settings['storefront_enabled'] ?? '0') !== '1') {
+            $response->error(403, 'Storefront is not enabled for this business');
+            return;
+        }
+
+        $response->success($settings, 'Config retrieved');
+    }
 }

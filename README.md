@@ -2,6 +2,14 @@
 
 LaundryPro UAE is a comprehensive, offline-first Windows desktop POS and ERP system tailored for garment care, dry cleaning, and specialized laundry operations in the UAE market. It combines a robust Flutter desktop client with a high-performance PHP 8.2 micro-framework backend and MariaDB, ensuring extreme reliability, seamless hardware integration, and zero-data-loss synchronization.
 
+## Design System & Brand Identity
+
+Laundry Pro UAE features a premium, futuristic, and elegant visual identity tailored for the enterprise market:
+- **Color Palette**: Deep Navy (`#0A2540`) base with Electric Cyan (`#00D4FF`) and Aqua Green (`#00E5A0`) accents.
+- **Typography**: `Poppins` for geometric, clean headings and `Inter` for highly legible data-dense interfaces.
+- **Iconography**: A custom 230+ minimalist geometric icon set built on a strict 24x24 grid with a consistent 2px stroke.
+- **UI Metaphor**: Glassmorphism and subtle glowing accents to signify active states and premium actions.
+
 ## Architecture
 
 LaundryPro UAE is built on a **Clean Architecture** model, ensuring strict separation of concerns, high testability, and offline-first resilience.

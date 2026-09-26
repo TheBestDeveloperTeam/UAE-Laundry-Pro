@@ -21,7 +21,7 @@ DELIMITER ;
 CREATE INDEX idx_adv_cycle_status_started ON advanced_cycle_runs (status, started_at);
 
 -- PRF-001: Missing composite indexes
-CREATE INDEX idx_sales_orders_owner_status ON sales_orders (business_owner_id, status);
+CREATE INDEX idx_sales_orders_owner_status ON sales_orders (admin_id, status);
 CREATE INDEX idx_customers_phone ON customers (phone);
 
 -- SEC-008: Add previous_hash column to audit_logs

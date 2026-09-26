@@ -19,7 +19,7 @@ final class ChannelRepository
   {
     $stmt = $this->pdo->prepare(
       'SELECT id, uuid, channel_type, provider, is_active, created_at FROM notification_channels
-       WHERE business_owner_id = :owner ORDER BY channel_type'
+       WHERE admin_id = :owner ORDER BY channel_type'
     );
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
@@ -31,7 +31,7 @@ final class ChannelRepository
   {
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO notification_channels (uuid, business_owner_id, channel_type, provider, config_json, is_active)
+      'INSERT INTO notification_channels (uuid, admin_id, channel_type, provider, config_json, is_active)
        VALUES (:uuid, :owner, :type, :provider, :config, 1)'
     );
     $stmt->execute([
@@ -49,7 +49,7 @@ final class ChannelRepository
   public function findById(int $id): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM notification_channels WHERE id = :id AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM notification_channels WHERE id = :id AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
     $row = $stmt->fetch();

@@ -36,7 +36,7 @@ final class AccountingExportService
   {
     $stmt = $this->pdo->prepare(
       "SELECT COALESCE(SUM(grand_total), 0) AS total FROM sales_orders
-       WHERE business_owner_id = :owner AND status != 'cancelled'
+       WHERE admin_id = :owner AND status != 'cancelled'
        AND DATE(created_at) BETWEEN :start AND :end"
     );
     $stmt->execute(['owner' => $this->businessOwnerId, 'start' => $start, 'end' => $end]);
@@ -44,7 +44,7 @@ final class AccountingExportService
 
     $stmt = $this->pdo->prepare(
       "SELECT COALESCE(SUM(amount), 0) AS total FROM expenses
-       WHERE business_owner_id = :owner AND status = 'approved'
+       WHERE admin_id = :owner AND status = 'approved'
        AND expense_date BETWEEN :start AND :end"
     );
     $stmt->execute(['owner' => $this->businessOwnerId, 'start' => $start, 'end' => $end]);

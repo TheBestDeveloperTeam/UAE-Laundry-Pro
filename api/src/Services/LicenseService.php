@@ -87,7 +87,7 @@ final class LicenseService
     $hash = hash('sha256', $umac);
     $fingerprint = json_encode(['umac' => $umac, 'php_os' => PHP_OS]);
     $stmt = $this->pdo->prepare(
-      'INSERT INTO hardware_identity (uuid, business_owner_id, umac_hash, machine_fingerprint, first_seen_at)
+      'INSERT INTO hardware_identity (uuid, admin_id, umac_hash, machine_fingerprint, first_seen_at)
        VALUES (:uuid, 1, :hash, :fp, UTC_TIMESTAMP())
        ON DUPLICATE KEY UPDATE last_seen_at = UTC_TIMESTAMP(), is_active = 1'
     );

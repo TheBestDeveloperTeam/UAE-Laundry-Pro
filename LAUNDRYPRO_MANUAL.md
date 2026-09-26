@@ -18,6 +18,9 @@ LaundryPro UAE is designed for environments where the internet might be unstable
 - **Additive Migrations:** The database is designed so data is never truly "lost" when updates happen.
 - **Offline First:** The cashier must be able to ring up customers, print invoices, and open the cash drawer even if the internet is completely disconnected.
 
+### UI & Brand Identity
+The platform features a premium, futuristic, glassmorphic UI characterized by Deep Navy, Electric Cyan, and Aqua Green. With an extensive set of minimalist geometric icons and highly legible typography (Poppins and Inter), the interface ensures efficient high-density data management without cognitive overload.
+
 ## 2. User Roles and Permissions
 
 LaundryPro uses a robust Role-Based Access Control (RBAC) system. Every user logs in with an explicit token. 

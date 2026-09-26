@@ -60,7 +60,7 @@ final class CloudApiController
                 'success' => true,
                 'code' => 'BUSINESS_REGISTERED',
                 'data' => [
-                    'business_owner_id' => $tenantId,
+                    'admin_id' => $tenantId,
                     'cloud_token' => $cloudToken,
                 ],
             ]);
@@ -85,7 +85,7 @@ final class CloudApiController
 
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO sync_records (business_owner_id, entity_type, entity_local_id, operation, payload, created_at)
+                'INSERT INTO sync_records (admin_id, entity_type, entity_local_id, operation, payload, created_at)
                  VALUES (:owner, :type, :local_id, :op, :payload, NOW())
                  ON DUPLICATE KEY UPDATE payload = VALUES(payload), operation = VALUES(operation), created_at = NOW()'
             );
@@ -120,7 +120,7 @@ final class CloudApiController
             Response::json(['success' => false, 'code' => 'SERVICE_UNAVAILABLE'], 503);
         }
         
-        $stmt = $pdo->prepare('SELECT entity_type, COUNT(*) as sync_count, MAX(created_at) as last_sync FROM sync_records WHERE business_owner_id = ? GROUP BY entity_type');
+        $stmt = $pdo->prepare('SELECT entity_type, COUNT(*) as sync_count, MAX(created_at) as last_sync FROM sync_records WHERE admin_id = ? GROUP BY entity_type');
         $stmt->execute([$ownerId]);
         $aggregations = $stmt->fetchAll() ?: [];
         
@@ -173,10 +173,10 @@ final class CloudApiController
         try {
             if ($since !== null && $since !== '') {
                 $sinceId = (int) $since;
-                $stmt = $pdo->prepare('SELECT id, entity_type, entity_local_id, operation, payload, created_at FROM sync_records WHERE business_owner_id = :owner AND id > :since ORDER BY id ASC');
+                $stmt = $pdo->prepare('SELECT id, entity_type, entity_local_id, operation, payload, created_at FROM sync_records WHERE admin_id = :owner AND id > :since ORDER BY id ASC');
                 $stmt->execute(['owner' => $businessOwnerId, 'since' => $sinceId]);
             } else {
-                $stmt = $pdo->prepare('SELECT id, entity_type, entity_local_id, operation, payload, created_at FROM sync_records WHERE business_owner_id = :owner ORDER BY id ASC');
+                $stmt = $pdo->prepare('SELECT id, entity_type, entity_local_id, operation, payload, created_at FROM sync_records WHERE admin_id = :owner ORDER BY id ASC');
                 $stmt->execute(['owner' => $businessOwnerId]);
             }
             $rows = $stmt->fetchAll() ?: [];
@@ -184,7 +184,7 @@ final class CloudApiController
             foreach ($rows as $row) {
                 $records[] = [
                     'global_sequence' => (int) $row['id'],
-                    'business_owner_id' => $businessOwnerId,
+                    'admin_id' => $businessOwnerId,
                     'entity_type' => $row['entity_type'],
                     'entity_local_id' => (int) $row['entity_local_id'],
                     'operation' => $row['operation'],

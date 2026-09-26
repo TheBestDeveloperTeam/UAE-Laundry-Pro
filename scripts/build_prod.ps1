@@ -41,7 +41,23 @@ if (Test-Path $FlutterReleaseDir) {
     Write-Host "[!] Flutter build output not found." -ForegroundColor Red
 }
 
-# 3. Package API
+# 3. Build Flutter Android APK/AppBundle
+Write-Host "[*] Building Flutter Android AppBundle..." -ForegroundColor Yellow
+Push-Location $RepoRoot
+& $FlutterPath build appbundle --release
+Pop-Location
+
+$AndroidReleaseDir = Join-Path $RepoRoot "build\app\outputs\bundle\release"
+if (Test-Path $AndroidReleaseDir) {
+    $TargetAndroidDir = Join-Path $BuildDir "Android"
+    New-Item -ItemType Directory -Force -Path $TargetAndroidDir | Out-Null
+    Copy-Item -Force (Join-Path $AndroidReleaseDir "app-release.aab") (Join-Path $TargetAndroidDir "LaundryPro.aab") -ErrorAction SilentlyContinue
+    Write-Host "[x] Android Build Successful: $TargetAndroidDir" -ForegroundColor Green
+} else {
+    Write-Host "[!] Android build output not found." -ForegroundColor Red
+}
+
+# 4. Package API
 Write-Host "[*] Packaging PHP API..." -ForegroundColor Yellow
 $ApiDir = Join-Path $RepoRoot "api"
 $ApiDistDir = Join-Path $BuildDir "LaundryProApi"

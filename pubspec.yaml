@@ -26,6 +26,8 @@ dependencies:
   crypto: ^3.0.7
   mysql1: ^0.20.0
   file_picker: ^11.0.3
+  dio: ^5.11.1
+  print_bluetooth_thermal: ^1.2.1
 
 dev_dependencies:
   flutter_test:

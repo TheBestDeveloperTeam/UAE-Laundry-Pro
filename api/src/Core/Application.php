@@ -265,6 +265,9 @@ final class Application
       $c->get(OpenApiGenerator::class),
       API_ROOT . '/public/docs',
     ));
+    $this->container->singleton(\LaundryPro\Api\Controllers\AdminController::class, fn (Container $c) => new \LaundryPro\Api\Controllers\AdminController(
+      $c->pdo()
+    ));
     $this->container->singleton(InstallController::class, fn (Container $c) => new InstallController(
       $c->get(ApiResponse::class),
       $c->get(InstallService::class),

@@ -17,7 +17,7 @@ final class CustomerRepository
   /** @return array<int, array<string, mixed>> */
   public function list(?string $search = null, int $limit = 50, int $offset = 0): array
   {
-    $sql = 'SELECT * FROM customers WHERE business_owner_id = :owner AND is_active = 1';
+    $sql = 'SELECT * FROM customers WHERE admin_id = :owner AND is_active = 1';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($search !== null && $search !== '') {
@@ -40,7 +40,7 @@ final class CustomerRepository
   public function findById(int $id): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM customers WHERE id = :id AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM customers WHERE id = :id AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
     $row = $stmt->fetch();
@@ -54,7 +54,7 @@ final class CustomerRepository
     $localId = $this->nextLocalId();
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO customers (uuid, business_owner_id, local_id, customer_code, name, phone, email, address_line1, city, emirate, customer_type, credit_limit, notes, created_at)
+      'INSERT INTO customers (uuid, admin_id, local_id, customer_code, name, phone, email, address_line1, city, emirate, customer_type, credit_limit, notes, created_at)
        VALUES (:uuid, :owner, :local_id, :code, :name, :phone, :email, :address, :city, :emirate, :type, :credit, :notes, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -87,7 +87,7 @@ final class CustomerRepository
     $stmt = $this->pdo->prepare(
       'UPDATE customers SET name = :name, phone = :phone, email = :email, address_line1 = :address,
        city = :city, emirate = :emirate, customer_type = :type, credit_limit = :credit, notes = :notes, updated_at = UTC_TIMESTAMP()
-       WHERE id = :id AND business_owner_id = :owner'
+       WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute([
       'id' => $id,
@@ -109,7 +109,7 @@ final class CustomerRepository
   public function deactivate(int $id): bool
   {
     $stmt = $this->pdo->prepare(
-      'UPDATE customers SET is_active = 0, updated_at = UTC_TIMESTAMP() WHERE id = :id AND business_owner_id = :owner'
+      'UPDATE customers SET is_active = 0, updated_at = UTC_TIMESTAMP() WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -118,7 +118,7 @@ final class CustomerRepository
 
   private function nextLocalId(): int
   {
-    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(local_id), 0) + 1 FROM customers WHERE business_owner_id = :owner');
+    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(local_id), 0) + 1 FROM customers WHERE admin_id = :owner');
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
     return (int) $stmt->fetchColumn();

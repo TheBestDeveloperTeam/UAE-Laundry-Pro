@@ -1,0 +1,159 @@
+openapi: 3.0.3
+info:
+  title: LaundryPro UAE - Cloud Portal API
+  description: Central cloud micro-services API for multi-tenant Super-Admins and franchise sync ingestion.
+  version: 1.0.0
+servers:
+  - url: https://api.cloud.laundrypro.ae/v1
+    description: Production Cloud
+  - url: http://localhost:8080/cloud
+    description: Local Staging
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+        errors:
+          type: array
+          items:
+            type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+  /businesses/register:
+    post:
+      summary: Register New Local Node (Tenant)
+      tags: [Ingestion]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                trn: { type: string }
+                email: { type: string }
+                phone: { type: string }
+      responses:
+        '201':
+          description: Tenant Registered Successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  admin_id: { type: integer }
+                  tenant_token: { type: string }
+
+  /sync/push:
+    post:
+      summary: Cloud Sync Ingestion (Local -> Cloud)
+      tags: [Sync]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                batch: 
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Batch Synced Successfully (Returns Accepted/Rejected UUIDs)
+
+  /sync/pull:
+    get:
+      summary: Cloud Sync Extraction (Cloud -> Local)
+      tags: [Sync]
+      parameters:
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          required: true
+          description: Last sync timestamp
+      responses:
+        '200':
+          description: Returns changes since cursor
+
+  /analytics/global-overview:
+    get:
+      summary: Super-Admin Global Dashboard
+      tags: [Analytics]
+      responses:
+        '200':
+          description: Global Multi-Tenant Metrics
+
+  /auth/super-login:
+    post:
+      summary: Login to Cloud Portal
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: Success }
+
+  /businesses/suspend:
+    post:
+      summary: Suspend a Tenant
+      tags: [Tenants]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                admin_id: { type: integer }
+      responses:
+        '200': { description: Tenant Suspended }
+
+  /license/issue:
+    post:
+      summary: Issue License Key
+      tags: [License]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                admin_id: { type: integer }
+                expiry: { type: string }
+      responses:
+        '201': { description: License Generated }
+
+  /reports/global-sales:
+    get:
+      summary: Cross-tenant Sales Report
+      tags: [Reports]
+      responses:
+        '200': { description: Return aggregated data }

@@ -16,7 +16,7 @@ final class BusinessRepository
 
   public function getProfile(): ?array
   {
-    $stmt = $this->pdo->prepare('SELECT * FROM business WHERE business_owner_id = :owner LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT * FROM business WHERE admin_id = :owner LIMIT 1');
     $stmt->execute(['owner' => $this->businessOwnerId]);
     $row = $stmt->fetch();
 
@@ -46,7 +46,7 @@ final class BusinessRepository
       'UPDATE business SET legal_name = :legal_name, display_name = :display_name, phone = :phone,
        email = :email, address_line1 = :address_line1, city = :city, emirate = :emirate,
        country = :country, updated_at = UTC_TIMESTAMP()
-       WHERE id = :id AND business_owner_id = :owner'
+       WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute([
       'id' => $profile['id'],

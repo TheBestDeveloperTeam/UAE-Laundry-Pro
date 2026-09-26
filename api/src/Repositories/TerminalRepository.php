@@ -19,7 +19,7 @@ final class TerminalRepository
   {
     $sql = 'SELECT t.*, br.code AS branch_code FROM terminals t
             INNER JOIN branches br ON br.id = t.branch_id
-            INNER JOIN business b ON b.id = br.business_id AND b.business_owner_id = :owner';
+            INNER JOIN business b ON b.id = br.business_id AND b.admin_id = :owner';
     $params = ['owner' => $this->businessOwnerId];
     if ($branchId !== null) {
       $sql .= ' WHERE t.branch_id = :branch';
@@ -37,7 +37,7 @@ final class TerminalRepository
     $stmt = $this->pdo->prepare(
       'SELECT t.* FROM terminals t
        INNER JOIN branches br ON br.id = t.branch_id
-       INNER JOIN business b ON b.id = br.business_id AND b.business_owner_id = :owner
+       INNER JOIN business b ON b.id = br.business_id AND b.admin_id = :owner
        WHERE t.id = :id LIMIT 1'
     );
     $stmt->execute(['owner' => $this->businessOwnerId, 'id' => $id]);
@@ -69,7 +69,7 @@ final class TerminalRepository
     $token = bin2hex(random_bytes(32));
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO terminal_sessions (uuid, business_owner_id, terminal_id, session_token, device_fingerprint, last_seen_at)
+      'INSERT INTO terminal_sessions (uuid, admin_id, terminal_id, session_token, device_fingerprint, last_seen_at)
        VALUES (:uuid, :owner, :terminal, :token, :fp, UTC_TIMESTAMP())'
     );
     $stmt->execute([

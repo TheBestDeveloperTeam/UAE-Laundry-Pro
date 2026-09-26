@@ -35,5 +35,10 @@ Copy-Item -Recurse -Force ".\api\vendor" $ApiDir\
 Write-Host "Copying Deployment Scripts..."
 Copy-Item -Force ".\start_server.ps1" $OutputDir\
 
+# 7. Package MSIX
+Write-Host "Packaging MSIX Installer..."
+dart run msix:create
+
 Write-Host "=====================================" -ForegroundColor Green
 Write-Host "Build Complete! Output is located at $OutputDir" -ForegroundColor Green
+Write-Host "MSIX package is located in build\windows\runner\Release\" -ForegroundColor Green

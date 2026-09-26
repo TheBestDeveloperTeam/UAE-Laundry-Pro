@@ -18,7 +18,7 @@ final class PayrollRepository
   public function listPeriods(int $limit = 24): array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM payroll_periods WHERE business_owner_id = :owner ORDER BY period_start DESC LIMIT ' . (int) $limit
+      'SELECT * FROM payroll_periods WHERE admin_id = :owner ORDER BY period_start DESC LIMIT ' . (int) $limit
     );
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
@@ -29,7 +29,7 @@ final class PayrollRepository
   public function createPeriod(array $data): array
   {
     $stmt = $this->pdo->prepare(
-      'INSERT INTO payroll_periods (uuid, business_owner_id, period_start, period_end, created_at)
+      'INSERT INTO payroll_periods (uuid, admin_id, period_start, period_end, created_at)
        VALUES (:uuid, :owner, :start, :end, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -45,7 +45,7 @@ final class PayrollRepository
   public function findPeriodById(int $id): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM payroll_periods WHERE id = :id AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM payroll_periods WHERE id = :id AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -56,7 +56,7 @@ final class PayrollRepository
   {
     $stmt = $this->pdo->prepare(
       'SELECT * FROM payroll_periods
-       WHERE business_owner_id = :owner AND period_start = :start AND period_end = :end
+       WHERE admin_id = :owner AND period_start = :start AND period_end = :end
        LIMIT 1'
     );
     $stmt->execute(['owner' => $this->businessOwnerId, 'start' => $start, 'end' => $end]);
@@ -81,7 +81,7 @@ final class PayrollRepository
       'SELECT pr.*, pp.period_start, pp.period_end
        FROM payroll_runs pr
        JOIN payroll_periods pp ON pp.id = pr.payroll_period_id
-       WHERE pr.business_owner_id = :owner
+       WHERE pr.admin_id = :owner
        ORDER BY pr.id DESC LIMIT ' . (int) $limit
     );
     $stmt->execute(['owner' => $this->businessOwnerId]);
@@ -130,7 +130,7 @@ final class PayrollRepository
 
       $runNo = $this->nextRunNo();
       $runStmt = $this->pdo->prepare(
-        'INSERT INTO payroll_runs (uuid, business_owner_id, payroll_period_id, run_no, total_amount, status, created_by, created_at)
+        'INSERT INTO payroll_runs (uuid, admin_id, payroll_period_id, run_no, total_amount, status, created_by, created_at)
          VALUES (:uuid, :owner, :period, :run_no, :total, :status, :user, UTC_TIMESTAMP())'
       );
       $runStmt->execute([
@@ -182,7 +182,7 @@ final class PayrollRepository
       'SELECT pr.*, pp.period_start, pp.period_end
        FROM payroll_runs pr
        JOIN payroll_periods pp ON pp.id = pr.payroll_period_id
-       WHERE pr.id = :id AND pr.business_owner_id = :owner LIMIT 1'
+       WHERE pr.id = :id AND pr.admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -195,7 +195,7 @@ final class PayrollRepository
     $sql = 'SELECT sa.*, e.full_name AS employee_name, e.employee_no
             FROM salary_advances sa
             JOIN employees e ON e.id = sa.employee_id
-            WHERE sa.business_owner_id = :owner';
+            WHERE sa.admin_id = :owner';
     $params = ['owner' => $this->businessOwnerId];
     if ($employeeId !== null) {
       $sql .= ' AND sa.employee_id = :employee';
@@ -213,7 +213,7 @@ final class PayrollRepository
   {
     $amount = round((float) ($data['amount'] ?? 0), 2);
     $stmt = $this->pdo->prepare(
-      'INSERT INTO salary_advances (uuid, business_owner_id, employee_id, amount, balance_remaining, notes, created_by, created_at)
+      'INSERT INTO salary_advances (uuid, admin_id, employee_id, amount, balance_remaining, notes, created_by, created_at)
        VALUES (:uuid, :owner, :employee, :amount, :balance, :notes, :user, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -242,7 +242,7 @@ final class PayrollRepository
               COALESCE(SUM((SELECT COUNT(*) FROM payroll_lines pl WHERE pl.payroll_run_id = pr.id)), 0) AS line_count
        FROM payroll_runs pr
        JOIN payroll_periods pp ON pp.id = pr.payroll_period_id
-       WHERE pr.business_owner_id = :owner
+       WHERE pr.admin_id = :owner
          AND pp.period_start >= :from AND pp.period_end <= :to'
     );
     $stmt->execute(['owner' => $this->businessOwnerId, 'from' => $from, 'to' => $to]);
@@ -258,7 +258,7 @@ final class PayrollRepository
   private function findRunByPeriod(int $periodId): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM payroll_runs WHERE payroll_period_id = :period AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM payroll_runs WHERE payroll_period_id = :period AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['period' => $periodId, 'owner' => $this->businessOwnerId]);
 
@@ -283,7 +283,7 @@ final class PayrollRepository
   /** @return array<int, array<string, mixed>> */
   private function activeEmployees(?array $employeeIds = null): array
   {
-    $sql = 'SELECT id, base_salary FROM employees WHERE business_owner_id = :owner AND is_active = 1';
+    $sql = 'SELECT id, base_salary FROM employees WHERE admin_id = :owner AND is_active = 1';
     $params = ['owner' => $this->businessOwnerId];
     if ($employeeIds !== null && $employeeIds !== []) {
       $placeholders = [];
@@ -304,7 +304,7 @@ final class PayrollRepository
   {
     $stmt = $this->pdo->prepare(
       'SELECT COALESCE(SUM(balance_remaining), 0) FROM salary_advances
-       WHERE employee_id = :employee AND business_owner_id = :owner AND status = :status'
+       WHERE employee_id = :employee AND admin_id = :owner AND status = :status'
     );
     $stmt->execute(['employee' => $employeeId, 'owner' => $this->businessOwnerId, 'status' => 'open']);
 
@@ -316,7 +316,7 @@ final class PayrollRepository
     $remaining = $amount;
     $stmt = $this->pdo->prepare(
       'SELECT id, balance_remaining FROM salary_advances
-       WHERE employee_id = :employee AND business_owner_id = :owner AND status = :status AND balance_remaining > 0
+       WHERE employee_id = :employee AND admin_id = :owner AND status = :status AND balance_remaining > 0
        ORDER BY created_at ASC'
     );
     $stmt->execute(['employee' => $employeeId, 'owner' => $this->businessOwnerId, 'status' => 'open']);
@@ -343,7 +343,7 @@ final class PayrollRepository
 
   private function nextRunNo(): string
   {
-    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(id), 0) + 1 FROM payroll_runs WHERE business_owner_id = :owner');
+    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(id), 0) + 1 FROM payroll_runs WHERE admin_id = :owner');
     $stmt->execute(['owner' => $this->businessOwnerId]);
     $n = (int) $stmt->fetchColumn();
 

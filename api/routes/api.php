@@ -850,4 +850,7 @@ function register_api_routes(Router $router): void
     'tag' => 'RFID', 'summary' => 'Bulk Scan RFID tags', 'permission' => 'advanced.equipment.manage',
     'responses' => ['201' => 'TAGS_PROCESSED']
   ]);
+
+  // Admin Web Portal
+  $router->get('/admin', [\LaundryPro\Api\Controllers\AdminController::class, 'dashboard'], [], []);
 }

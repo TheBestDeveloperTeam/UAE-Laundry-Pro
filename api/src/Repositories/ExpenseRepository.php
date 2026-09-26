@@ -18,7 +18,7 @@ final class ExpenseRepository
   public function listCategories(): array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM expense_categories WHERE business_owner_id = :owner AND is_active = 1 ORDER BY name'
+      'SELECT * FROM expense_categories WHERE admin_id = :owner AND is_active = 1 ORDER BY name'
     );
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
@@ -29,7 +29,7 @@ final class ExpenseRepository
   public function createCategory(array $data): array
   {
     $stmt = $this->pdo->prepare(
-      'INSERT INTO expense_categories (uuid, business_owner_id, name, created_at)
+      'INSERT INTO expense_categories (uuid, admin_id, name, created_at)
        VALUES (:uuid, :owner, :name, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -51,7 +51,7 @@ final class ExpenseRepository
     $sql = 'SELECT ex.*, ec.name AS category_name
             FROM expenses ex
             JOIN expense_categories ec ON ec.id = ex.category_id
-            WHERE ex.business_owner_id = :owner';
+            WHERE ex.admin_id = :owner';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($status !== null && $status !== '') {
@@ -79,7 +79,7 @@ final class ExpenseRepository
     $stmt = $this->pdo->prepare(
       'SELECT ex.*, ec.name AS category_name FROM expenses ex
        JOIN expense_categories ec ON ec.id = ex.category_id
-       WHERE ex.id = :id AND ex.business_owner_id = :owner LIMIT 1'
+       WHERE ex.id = :id AND ex.admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -90,7 +90,7 @@ final class ExpenseRepository
   public function create(array $data, int $userId): array
   {
     $stmt = $this->pdo->prepare(
-      'INSERT INTO expenses (uuid, business_owner_id, category_id, expense_date, amount, description, status, created_by, created_at)
+      'INSERT INTO expenses (uuid, admin_id, category_id, expense_date, amount, description, status, created_by, created_at)
        VALUES (:uuid, :owner, :category, :date, :amount, :desc, :status, :user, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -134,7 +134,7 @@ final class ExpenseRepository
               COALESCE(SUM(CASE WHEN status = :approved THEN amount ELSE 0 END), 0) AS approved_amount,
               COALESCE(SUM(CASE WHEN status = :pending THEN amount ELSE 0 END), 0) AS pending_amount
        FROM expenses
-       WHERE business_owner_id = :owner AND expense_date BETWEEN :from AND :to'
+       WHERE admin_id = :owner AND expense_date BETWEEN :from AND :to'
     );
     $stmt->execute([
       'owner' => $this->businessOwnerId,
@@ -162,7 +162,7 @@ final class ExpenseRepository
 
     $stmt = $this->pdo->prepare(
       'UPDATE expenses SET status = :status, approved_by = :user, approved_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP()
-       WHERE id = :id AND business_owner_id = :owner'
+       WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute(['status' => $status, 'user' => $userId, 'id' => $id, 'owner' => $this->businessOwnerId]);
 

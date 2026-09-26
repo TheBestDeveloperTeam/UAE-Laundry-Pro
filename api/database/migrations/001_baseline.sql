@@ -116,7 +116,7 @@ WHERE r.name = 'administrator'
 CREATE TABLE IF NOT EXISTS business (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL UNIQUE,
+  admin_id INT UNSIGNED NOT NULL UNIQUE,
   legal_name VARCHAR(255) NOT NULL,
   display_name VARCHAR(255) NOT NULL,
   phone VARCHAR(50) NULL,
@@ -157,19 +157,19 @@ CREATE TABLE IF NOT EXISTS terminals (
   CONSTRAINT fk_terminals_branch FOREIGN KEY (branch_id) REFERENCES branches(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO business (uuid, business_owner_id, legal_name, display_name, city, emirate, country)
+INSERT INTO business (uuid, admin_id, legal_name, display_name, city, emirate, country)
 SELECT '00000000-0000-4000-8000-000000000100', 1, 'LaundryPro UAE', 'LaundryPro UAE', 'Dubai', 'Dubai', 'AE'
-WHERE NOT EXISTS (SELECT 1 FROM business WHERE business_owner_id = 1);
+WHERE NOT EXISTS (SELECT 1 FROM business WHERE admin_id = 1);
 
 INSERT INTO branches (uuid, business_id, code, name)
 SELECT '00000000-0000-4000-8000-000000000101', b.id, 'MAIN', 'Main Branch'
-FROM business b WHERE b.business_owner_id = 1
+FROM business b WHERE b.admin_id = 1
   AND NOT EXISTS (SELECT 1 FROM branches WHERE code = 'MAIN' AND business_id = b.id);
 
 INSERT INTO terminals (uuid, branch_id, code, name)
 SELECT '00000000-0000-4000-8000-000000000102', br.id, 'T01', 'Counter 1'
 FROM branches br
-INNER JOIN business b ON b.id = br.business_id AND b.business_owner_id = 1
+INNER JOIN business b ON b.id = br.business_id AND b.admin_id = 1
 WHERE br.code = 'MAIN'
   AND NOT EXISTS (SELECT 1 FROM terminals WHERE code = 'T01' AND branch_id = br.id);
 
@@ -177,7 +177,7 @@ WHERE br.code = 'MAIN'
 CREATE TABLE IF NOT EXISTS customers (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   local_id INT UNSIGNED NOT NULL,
   customer_code VARCHAR(50) NULL,
   name VARCHAR(255) NOT NULL,
@@ -193,7 +193,7 @@ CREATE TABLE IF NOT EXISTS customers (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_customer_local (business_owner_id, local_id),
+  UNIQUE KEY uq_customer_local (admin_id, local_id),
   INDEX idx_customer_phone (phone),
   INDEX idx_customer_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS customers (
 CREATE TABLE IF NOT EXISTS vendors (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   local_id INT UNSIGNED NOT NULL,
   vendor_code VARCHAR(50) NULL,
   name VARCHAR(255) NOT NULL,
@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS vendors (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_vendor_local (business_owner_id, local_id),
+  UNIQUE KEY uq_vendor_local (admin_id, local_id),
   INDEX idx_vendor_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -222,7 +222,7 @@ CREATE TABLE IF NOT EXISTS vendors (
 CREATE TABLE IF NOT EXISTS categories (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   parent_id INT UNSIGNED NULL,
   type ENUM('service', 'product') NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -237,7 +237,7 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS services (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   local_id INT UNSIGNED NOT NULL,
   parent_id INT UNSIGNED NULL,
   category_id INT UNSIGNED NULL,
@@ -250,7 +250,7 @@ CREATE TABLE IF NOT EXISTS services (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_service_local (business_owner_id, local_id),
+  UNIQUE KEY uq_service_local (admin_id, local_id),
   INDEX idx_service_parent (parent_id),
   CONSTRAINT fk_services_parent FOREIGN KEY (parent_id) REFERENCES services(id),
   CONSTRAINT fk_services_category FOREIGN KEY (category_id) REFERENCES categories(id)
@@ -259,7 +259,7 @@ CREATE TABLE IF NOT EXISTS services (
 CREATE TABLE IF NOT EXISTS products (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   local_id INT UNSIGNED NOT NULL,
   parent_id INT UNSIGNED NULL,
   category_id INT UNSIGNED NULL,
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS products (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_product_local (business_owner_id, local_id),
+  UNIQUE KEY uq_product_local (admin_id, local_id),
   INDEX idx_product_parent (parent_id),
   INDEX idx_product_barcode (barcode),
   CONSTRAINT fk_products_parent FOREIGN KEY (parent_id) REFERENCES products(id),
@@ -298,7 +298,7 @@ CREATE TABLE IF NOT EXISTS service_product_map (
 CREATE TABLE IF NOT EXISTS sales_orders (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   local_id INT UNSIGNED NOT NULL,
   order_no VARCHAR(50) NOT NULL,
   customer_id INT UNSIGNED NULL,
@@ -315,8 +315,8 @@ CREATE TABLE IF NOT EXISTS sales_orders (
   confirmed_at TIMESTAMP NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_order_local (business_owner_id, local_id),
-  UNIQUE KEY uq_order_no (business_owner_id, order_no),
+  UNIQUE KEY uq_order_local (admin_id, local_id),
+  UNIQUE KEY uq_order_no (admin_id, order_no),
   INDEX idx_sales_customer (customer_id),
   CONSTRAINT fk_sales_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
   CONSTRAINT fk_sales_created_by FOREIGN KEY (created_by) REFERENCES users(id)
@@ -343,7 +343,7 @@ CREATE TABLE IF NOT EXISTS sales_order_lines (
 CREATE TABLE IF NOT EXISTS payment_transactions (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   sales_order_id INT UNSIGNED NOT NULL,
   payment_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   amount DECIMAL(18,2) NOT NULL,
@@ -360,7 +360,7 @@ CREATE TABLE IF NOT EXISTS payment_transactions (
 CREATE TABLE IF NOT EXISTS inventory_movements (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   product_id INT UNSIGNED NOT NULL,
   movement_type ENUM('receipt', 'issue', 'adjustment', 'sale_consumption') NOT NULL,
   quantity DECIMAL(18,3) NOT NULL,
@@ -371,7 +371,7 @@ CREATE TABLE IF NOT EXISTS inventory_movements (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_inv_product (product_id),
   INDEX idx_inv_type (movement_type),
-  INDEX idx_inv_owner (business_owner_id),
+  INDEX idx_inv_owner (admin_id),
   CONSTRAINT fk_inv_product FOREIGN KEY (product_id) REFERENCES products(id),
   CONSTRAINT fk_inv_user FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -379,7 +379,7 @@ CREATE TABLE IF NOT EXISTS inventory_movements (
 CREATE TABLE IF NOT EXISTS inventory_adjustments (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   product_id INT UNSIGNED NOT NULL,
   quantity_before DECIMAL(18,3) NOT NULL,
   quantity_after DECIMAL(18,3) NOT NULL,
@@ -398,7 +398,7 @@ WHERE NOT EXISTS (SELECT 1 FROM settings WHERE setting_key = 'inventory.allow_ne
 CREATE TABLE IF NOT EXISTS employees (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   employee_no VARCHAR(50) NOT NULL,
   full_name VARCHAR(150) NOT NULL,
   phone VARCHAR(30) NULL,
@@ -408,14 +408,14 @@ CREATE TABLE IF NOT EXISTS employees (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_employee_no (business_owner_id, employee_no),
-  INDEX idx_emp_owner (business_owner_id)
+  UNIQUE KEY uk_employee_no (admin_id, employee_no),
+  INDEX idx_emp_owner (admin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS attendance (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   employee_id INT UNSIGNED NOT NULL,
   attendance_date DATE NOT NULL,
   status ENUM('present', 'absent', 'half_day', 'leave') NOT NULL DEFAULT 'present',
@@ -432,7 +432,7 @@ CREATE TABLE IF NOT EXISTS attendance (
 CREATE TABLE IF NOT EXISTS leave_types (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   name VARCHAR(100) NOT NULL,
   is_paid TINYINT(1) NOT NULL DEFAULT 1,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
@@ -442,7 +442,7 @@ CREATE TABLE IF NOT EXISTS leave_types (
 CREATE TABLE IF NOT EXISTS leave_requests (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   employee_id INT UNSIGNED NOT NULL,
   leave_type_id INT UNSIGNED NOT NULL,
   start_date DATE NOT NULL,
@@ -460,18 +460,18 @@ CREATE TABLE IF NOT EXISTS leave_requests (
 CREATE TABLE IF NOT EXISTS payroll_periods (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   period_start DATE NOT NULL,
   period_end DATE NOT NULL,
   status ENUM('open', 'closed') NOT NULL DEFAULT 'open',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_payroll_period (business_owner_id, period_start, period_end)
+  UNIQUE KEY uk_payroll_period (admin_id, period_start, period_end)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS payroll_runs (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   payroll_period_id INT UNSIGNED NOT NULL,
   run_no VARCHAR(50) NOT NULL,
   total_amount DECIMAL(18,2) NOT NULL DEFAULT 0,
@@ -496,7 +496,7 @@ CREATE TABLE IF NOT EXISTS payroll_lines (
 CREATE TABLE IF NOT EXISTS salary_advances (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   employee_id INT UNSIGNED NOT NULL,
   amount DECIMAL(18,2) NOT NULL,
   balance_remaining DECIMAL(18,2) NOT NULL,
@@ -508,29 +508,29 @@ CREATE TABLE IF NOT EXISTS salary_advances (
   CONSTRAINT fk_sa_user FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO leave_types (uuid, business_owner_id, name, is_paid)
+INSERT INTO leave_types (uuid, admin_id, name, is_paid)
 SELECT UUID(), 1, 'Annual Leave', 1
-WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE name = 'Annual Leave' AND business_owner_id = 1);
+WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE name = 'Annual Leave' AND admin_id = 1);
 
-INSERT INTO leave_types (uuid, business_owner_id, name, is_paid)
+INSERT INTO leave_types (uuid, admin_id, name, is_paid)
 SELECT UUID(), 1, 'Sick Leave', 1
-WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE name = 'Sick Leave' AND business_owner_id = 1);
+WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE name = 'Sick Leave' AND admin_id = 1);
 
 -- ===== 009_expenses.sql =====
 CREATE TABLE IF NOT EXISTS expense_categories (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   name VARCHAR(100) NOT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_exp_cat (business_owner_id, name)
+  UNIQUE KEY uk_exp_cat (admin_id, name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS expenses (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   category_id INT UNSIGNED NOT NULL,
   expense_date DATE NOT NULL,
   amount DECIMAL(18,2) NOT NULL,
@@ -555,18 +555,18 @@ CREATE TABLE IF NOT EXISTS expense_attachments (
   CONSTRAINT fk_ea_expense FOREIGN KEY (expense_id) REFERENCES expenses(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO expense_categories (uuid, business_owner_id, name)
+INSERT INTO expense_categories (uuid, admin_id, name)
 SELECT UUID(), 1, 'Utilities'
-WHERE NOT EXISTS (SELECT 1 FROM expense_categories WHERE name = 'Utilities' AND business_owner_id = 1);
+WHERE NOT EXISTS (SELECT 1 FROM expense_categories WHERE name = 'Utilities' AND admin_id = 1);
 
-INSERT INTO expense_categories (uuid, business_owner_id, name)
+INSERT INTO expense_categories (uuid, admin_id, name)
 SELECT UUID(), 1, 'Supplies'
-WHERE NOT EXISTS (SELECT 1 FROM expense_categories WHERE name = 'Supplies' AND business_owner_id = 1);
+WHERE NOT EXISTS (SELECT 1 FROM expense_categories WHERE name = 'Supplies' AND admin_id = 1);
 
 -- ===== 010_sync_outbox.sql =====
 CREATE TABLE IF NOT EXISTS sync_state (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  business_owner_id INT UNSIGNED NOT NULL UNIQUE,
+  admin_id INT UNSIGNED NOT NULL UNIQUE,
   last_push_at TIMESTAMP NULL,
   last_pull_at TIMESTAMP NULL,
   cloud_api_url VARCHAR(500) NULL,
@@ -577,7 +577,7 @@ CREATE TABLE IF NOT EXISTS sync_state (
 
 CREATE TABLE IF NOT EXISTS sync_outbox (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  business_owner_id INT UNSIGNED NOT NULL,
+  admin_id INT UNSIGNED NOT NULL,
   entity_type VARCHAR(100) NOT NULL,
   entity_local_id INT UNSIGNED NOT NULL,
   operation ENUM('create', 'update', 'delete') NOT NULL,
@@ -586,19 +586,19 @@ CREATE TABLE IF NOT EXISTS sync_outbox (
   sync_attempts INT UNSIGNED NOT NULL DEFAULT 0,
   last_error VARCHAR(500) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_outbox_pending (business_owner_id, synced_at, created_at),
+  INDEX idx_outbox_pending (admin_id, synced_at, created_at),
   INDEX idx_outbox_entity (entity_type, entity_local_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO sync_state (business_owner_id, is_enabled)
+INSERT INTO sync_state (admin_id, is_enabled)
 SELECT 1, 0
-WHERE NOT EXISTS (SELECT 1 FROM sync_state WHERE business_owner_id = 1);
+WHERE NOT EXISTS (SELECT 1 FROM sync_state WHERE admin_id = 1);
 
 -- ===== 011_documents_files.sql =====
 CREATE TABLE IF NOT EXISTS file_assets (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   entity_type VARCHAR(50) NOT NULL,
   entity_id INT UNSIGNED NULL,
   file_path VARCHAR(500) NOT NULL,
@@ -607,28 +607,28 @@ CREATE TABLE IF NOT EXISTS file_assets (
   size_bytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_file_entity (entity_type, entity_id),
-  INDEX idx_file_owner (business_owner_id)
+  INDEX idx_file_owner (admin_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS document_templates (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   template_key VARCHAR(50) NOT NULL,
   format ENUM('thermal', 'a4') NOT NULL,
   schema_json JSON NOT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_template (business_owner_id, template_key, format)
+  UNIQUE KEY uq_template (admin_id, template_key, format)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO document_templates (uuid, business_owner_id, template_key, format, schema_json)
+INSERT INTO document_templates (uuid, admin_id, template_key, format, schema_json)
 SELECT '00000000-0000-4000-8000-000000000101', 1, 'receipt', 'thermal',
   JSON_OBJECT('version', 1, 'width', 48, 'fields', JSON_ARRAY('order_no', 'lines', 'totals', 'payments'))
 WHERE NOT EXISTS (SELECT 1 FROM document_templates WHERE template_key = 'receipt' AND format = 'thermal');
 
-INSERT INTO document_templates (uuid, business_owner_id, template_key, format, schema_json)
+INSERT INTO document_templates (uuid, admin_id, template_key, format, schema_json)
 SELECT '00000000-0000-4000-8000-000000000102', 1, 'receipt', 'a4',
   JSON_OBJECT('version', 1, 'page', 'A4', 'fields', JSON_ARRAY('order_no', 'lines', 'totals', 'payments'))
 WHERE NOT EXISTS (SELECT 1 FROM document_templates WHERE template_key = 'receipt' AND format = 'a4');
@@ -637,28 +637,28 @@ WHERE NOT EXISTS (SELECT 1 FROM document_templates WHERE template_key = 'receipt
 CREATE TABLE IF NOT EXISTS umac_policy (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   policy_key VARCHAR(50) NOT NULL,
   policy_value JSON NOT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_umac_policy (business_owner_id, policy_key)
+  UNIQUE KEY uq_umac_policy (admin_id, policy_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS hardware_identity (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   umac_hash CHAR(64) NOT NULL,
   machine_fingerprint TEXT NOT NULL,
   first_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_seen_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
-  UNIQUE KEY uq_hw_umac (business_owner_id, umac_hash)
+  UNIQUE KEY uq_hw_umac (admin_id, umac_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO umac_policy (uuid, business_owner_id, policy_key, policy_value)
+INSERT INTO umac_policy (uuid, admin_id, policy_key, policy_value)
 SELECT '00000000-0000-4000-8000-000000000201', 1, 'bind_to_hardware', JSON_OBJECT('enabled', true, 'max_devices', 1)
 WHERE NOT EXISTS (SELECT 1 FROM umac_policy WHERE policy_key = 'bind_to_hardware');
 
@@ -724,7 +724,7 @@ ALTER TABLE sales_orders
 CREATE TABLE IF NOT EXISTS delivery_tasks (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   sales_order_id INT UNSIGNED NOT NULL,
   task_type ENUM('delivery', 'collection') NOT NULL DEFAULT 'delivery',
   scheduled_at DATETIME NULL,
@@ -746,7 +746,7 @@ CREATE TABLE IF NOT EXISTS delivery_tasks (
 CREATE TABLE IF NOT EXISTS challans (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   challan_no VARCHAR(50) NOT NULL,
   challan_type ENUM('delivery', 'collection', 'stock_transfer', 'vendor_return', 'service_receipt') NOT NULL,
   reference_type VARCHAR(50) NULL,
@@ -755,7 +755,7 @@ CREATE TABLE IF NOT EXISTS challans (
   notes TEXT NULL,
   created_by INT UNSIGNED NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_challan_no (business_owner_id, challan_type, challan_no),
+  UNIQUE KEY uk_challan_no (admin_id, challan_type, challan_no),
   CONSTRAINT fk_ch_user FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -771,17 +771,17 @@ CREATE TABLE IF NOT EXISTS challan_lines (
 
 CREATE TABLE IF NOT EXISTS challan_sequences (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   challan_type VARCHAR(50) NOT NULL,
   last_number INT UNSIGNED NOT NULL DEFAULT 0,
-  UNIQUE KEY uk_ch_seq (business_owner_id, challan_type)
+  UNIQUE KEY uk_ch_seq (admin_id, challan_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===== 017_purchasing.sql =====
 CREATE TABLE IF NOT EXISTS purchase_orders (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   po_no VARCHAR(50) NOT NULL,
   vendor_id INT UNSIGNED NOT NULL,
   status ENUM('draft', 'ordered', 'partial', 'received', 'cancelled') NOT NULL DEFAULT 'draft',
@@ -791,7 +791,7 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
   created_by INT UNSIGNED NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_po_no (business_owner_id, po_no),
+  UNIQUE KEY uk_po_no (admin_id, po_no),
   CONSTRAINT fk_po_vendor FOREIGN KEY (vendor_id) REFERENCES vendors(id),
   CONSTRAINT fk_po_user FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -811,13 +811,13 @@ CREATE TABLE IF NOT EXISTS purchase_order_lines (
 CREATE TABLE IF NOT EXISTS goods_receipts (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   purchase_order_id INT UNSIGNED NOT NULL,
   receipt_no VARCHAR(50) NOT NULL,
   received_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   notes TEXT NULL,
   created_by INT UNSIGNED NULL,
-  UNIQUE KEY uk_gr_no (business_owner_id, receipt_no),
+  UNIQUE KEY uk_gr_no (admin_id, receipt_no),
   CONSTRAINT fk_gr_po FOREIGN KEY (purchase_order_id) REFERENCES purchase_orders(id),
   CONSTRAINT fk_gr_user FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -836,23 +836,23 @@ CREATE TABLE IF NOT EXISTS goods_receipt_lines (
 CREATE TABLE IF NOT EXISTS inventory_locations (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   name VARCHAR(100) NOT NULL,
   is_default TINYINT(1) NOT NULL DEFAULT 0,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_loc_name (business_owner_id, name)
+  UNIQUE KEY uk_loc_name (admin_id, name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO inventory_locations (uuid, business_owner_id, name, is_default)
+INSERT INTO inventory_locations (uuid, admin_id, name, is_default)
 SELECT UUID(), 1, 'Main Store', 1
-WHERE NOT EXISTS (SELECT 1 FROM inventory_locations WHERE business_owner_id = 1 AND is_default = 1);
+WHERE NOT EXISTS (SELECT 1 FROM inventory_locations WHERE admin_id = 1 AND is_default = 1);
 
 -- ===== 018_notifications.sql =====
 CREATE TABLE IF NOT EXISTS notifications (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   notification_type VARCHAR(50) NOT NULL,
   title VARCHAR(150) NOT NULL,
   message TEXT NOT NULL,
@@ -861,7 +861,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   reference_id INT UNSIGNED NULL,
   is_read TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_notif_owner (business_owner_id),
+  INDEX idx_notif_owner (admin_id),
   INDEX idx_notif_read (is_read)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -885,17 +885,17 @@ ALTER TABLE sales_orders
 
 -- ===== 020_branch_terminal_context.sql =====
 ALTER TABLE sales_orders
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER business_owner_id,
+  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id,
   ADD COLUMN terminal_id INT UNSIGNED NULL AFTER branch_id;
 
 ALTER TABLE inventory_movements
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER business_owner_id;
+  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id;
 
 ALTER TABLE employees
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER business_owner_id;
+  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id;
 
 ALTER TABLE expenses
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER business_owner_id;
+  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id;
 
 UPDATE sales_orders SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
 UPDATE employees SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
@@ -904,7 +904,7 @@ UPDATE employees SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_
 CREATE TABLE IF NOT EXISTS terminal_sessions (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   terminal_id INT UNSIGNED NOT NULL,
   session_token VARCHAR(128) NOT NULL UNIQUE,
   device_fingerprint VARCHAR(255) NULL,
@@ -946,7 +946,7 @@ INSERT IGNORE INTO country_profiles (code, name, currency_code, currency_symbol,
 CREATE TABLE IF NOT EXISTS notification_channels (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   channel_type ENUM('sms', 'whatsapp', 'email') NOT NULL,
   provider VARCHAR(50) NOT NULL DEFAULT 'stub',
   config_json JSON NULL,
@@ -969,7 +969,7 @@ CREATE TABLE IF NOT EXISTS notification_messages (
 CREATE TABLE IF NOT EXISTS accounting_export_batches (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   adapter VARCHAR(50) NOT NULL DEFAULT 'csv',
   period_start DATE NOT NULL,
   period_end DATE NOT NULL,
@@ -993,20 +993,20 @@ CREATE TABLE IF NOT EXISTS accounting_export_lines (
 -- ===== 026_analytics_snapshots.sql =====
 CREATE TABLE IF NOT EXISTS analytics_daily_snapshots (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   branch_id INT UNSIGNED NULL,
   snapshot_date DATE NOT NULL,
   metric_key VARCHAR(50) NOT NULL,
   metric_value DECIMAL(18,4) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_analytics_day (business_owner_id, branch_id, snapshot_date, metric_key)
+  UNIQUE KEY uq_analytics_day (admin_id, branch_id, snapshot_date, metric_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===== 027_storefront.sql =====
 CREATE TABLE IF NOT EXISTS storefront_tokens (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   token_hash VARCHAR(128) NOT NULL UNIQUE,
   label VARCHAR(100) NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
@@ -1016,7 +1016,7 @@ CREATE TABLE IF NOT EXISTS storefront_tokens (
 CREATE TABLE IF NOT EXISTS storefront_orders (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   customer_name VARCHAR(150) NOT NULL,
   customer_phone VARCHAR(50) NOT NULL,
   notes TEXT NULL,
@@ -1030,7 +1030,7 @@ CREATE TABLE IF NOT EXISTS storefront_orders (
 CREATE TABLE IF NOT EXISTS customer_portal_tokens (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   uuid CHAR(36) NOT NULL UNIQUE,
-  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  admin_id INT UNSIGNED NOT NULL DEFAULT 1,
   sales_order_id INT UNSIGNED NOT NULL,
   access_token VARCHAR(128) NOT NULL UNIQUE,
   expires_at TIMESTAMP NULL,

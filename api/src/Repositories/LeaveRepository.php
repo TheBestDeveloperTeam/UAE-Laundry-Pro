@@ -21,7 +21,7 @@ final class LeaveRepository
             FROM leave_requests lr
             JOIN employees e ON e.id = lr.employee_id
             JOIN leave_types lt ON lt.id = lr.leave_type_id
-            WHERE lr.business_owner_id = :owner';
+            WHERE lr.admin_id = :owner';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($status !== null && $status !== '') {
@@ -44,7 +44,7 @@ final class LeaveRepository
   public function listTypes(): array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM leave_types WHERE business_owner_id = :owner AND is_active = 1 ORDER BY name'
+      'SELECT * FROM leave_types WHERE admin_id = :owner AND is_active = 1 ORDER BY name'
     );
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
@@ -58,7 +58,7 @@ final class LeaveRepository
        FROM leave_requests lr
        JOIN employees e ON e.id = lr.employee_id
        JOIN leave_types lt ON lt.id = lr.leave_type_id
-       WHERE lr.id = :id AND lr.business_owner_id = :owner LIMIT 1'
+       WHERE lr.id = :id AND lr.admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -69,7 +69,7 @@ final class LeaveRepository
   public function create(array $data): array
   {
     $stmt = $this->pdo->prepare(
-      'INSERT INTO leave_requests (uuid, business_owner_id, employee_id, leave_type_id, start_date, end_date, reason, created_at)
+      'INSERT INTO leave_requests (uuid, admin_id, employee_id, leave_type_id, start_date, end_date, reason, created_at)
        VALUES (:uuid, :owner, :employee, :type, :start, :end, :reason, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -104,7 +104,7 @@ final class LeaveRepository
 
     $stmt = $this->pdo->prepare(
       'UPDATE leave_requests SET status = :status, approved_by = :user, approved_at = UTC_TIMESTAMP()
-       WHERE id = :id AND business_owner_id = :owner'
+       WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute(['status' => $status, 'user' => $userId, 'id' => $id, 'owner' => $this->businessOwnerId]);
 

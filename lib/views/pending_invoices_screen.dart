@@ -6,6 +6,7 @@ import 'package:laundrypro_uae/core/receipt_renderer.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
 import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
+import 'package:laundrypro_uae/widgets/app_data_table.dart';
 
 class PendingInvoicesScreen extends ConsumerStatefulWidget {
   const PendingInvoicesScreen({super.key, this.salesService});
@@ -314,78 +315,61 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
           ),
           const Divider(height: 1),
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : list.isEmpty
-                    ? Center(child: Text(l10n.t('pending_invoices_empty')))
-                    : ListView.separated(
-                        itemCount: list.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, i) {
-                          final o = list[i];
-                          final balance = double.tryParse(o.balanceDue?.toString() ?? '0') ?? 0;
-                          final isPartial = o.paymentStatus == 'partial';
-
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: isPartial ? Colors.amber.shade100 : Colors.red.shade100,
-                              child: Icon(
-                                isPartial ? Icons.hourglass_bottom : Icons.pending,
-                                color: isPartial ? Colors.amber.shade900 : Colors.red.shade900,
-                              ),
-                            ),
-                            title: Row(
-                              children: [
-                                Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    (o.status ?? '').toUpperCase(),
-                                    style: TextStyle(fontSize: 11, color: Colors.blue.shade900, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            subtitle: Text(
-                              'Customer: ${o.customerName ?? 'Walk-In'} · Total: AED ${o.grandTotal ?? '0.00'}',
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      'Due: AED ${balance.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red),
-                                    ),
-                                    Text(
-                                      (o.paymentStatus ?? '').toUpperCase(),
-                                      style: TextStyle(fontSize: 11, color: isPartial ? Colors.amber.shade900 : Colors.red.shade700),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(width: 8),
-                                FilledButton.tonal(
-                                  onPressed: () => _openPaymentDialog(o),
-                                  child: const Text('Pay'),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.more_vert),
-                                  onPressed: () => _showReceiptOptions(o),
-                                ),
-                              ],
-                            ),
-                            onTap: () => _updateStatus(o),
-                          );
-                        },
-                      ),
+            child: Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              clipBehavior: Clip.antiAlias,
+              child: AppDataTable(
+                columns: [
+                  const AppDataTableColumn(label: 'Order #', key: 'order_no'),
+                  const AppDataTableColumn(label: 'Customer', key: 'customer_name'),
+                  const AppDataTableColumn(label: 'Status', key: 'status'),
+                  AppDataTableColumn(
+                    label: 'Payment Status', 
+                    cellBuilder: (row) {
+                      final status = row['payment_status']?.toString().toUpperCase() ?? '';
+                      final isPartial = status == 'PARTIAL';
+                      return Text(
+                        status,
+                        style: TextStyle(
+                          color: isPartial ? Colors.amber.shade900 : Colors.red.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
+                  ),
+                  const AppDataTableColumn(label: 'Total', key: 'grand_total', numeric: true),
+                  const AppDataTableColumn(label: 'Balance Due', key: 'balance_due', numeric: true),
+                  AppDataTableColumn(
+                    label: 'Actions',
+                    cellBuilder: (row) {
+                      final orderId = row['id'] as int;
+                      final order = list.firstWhere((o) => o.id == orderId);
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FilledButton.tonal(
+                            onPressed: () => _openPaymentDialog(order),
+                            child: const Text('Pay'),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.more_vert),
+                            onPressed: () => _showReceiptOptions(order),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+                data: list.map((o) => o.toJson()).toList(),
+                isLoading: _loading,
+                emptyMessage: l10n.t('pending_invoices_empty'),
+                onRowTap: (row) {
+                  final orderId = row['id'] as int;
+                  final order = list.firstWhere((o) => o.id == orderId);
+                  _updateStatus(order);
+                },
+              ),
+            ),
           ),
         ],
       ),

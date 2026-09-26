@@ -17,7 +17,7 @@ final class VendorRepository
   /** @return array<int, array<string, mixed>> */
   public function list(?string $search = null, int $limit = 50, int $offset = 0): array
   {
-    $sql = 'SELECT * FROM vendors WHERE business_owner_id = :owner AND is_active = 1';
+    $sql = 'SELECT * FROM vendors WHERE admin_id = :owner AND is_active = 1';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($search !== null && $search !== '') {
@@ -39,7 +39,7 @@ final class VendorRepository
 
   public function findById(int $id): ?array
   {
-    $stmt = $this->pdo->prepare('SELECT * FROM vendors WHERE id = :id AND business_owner_id = :owner LIMIT 1');
+    $stmt = $this->pdo->prepare('SELECT * FROM vendors WHERE id = :id AND admin_id = :owner LIMIT 1');
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
     return $stmt->fetch() ?: null;
@@ -50,7 +50,7 @@ final class VendorRepository
   {
     $localId = $this->nextLocalId();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO vendors (uuid, business_owner_id, local_id, vendor_code, name, contact_person, phone, email, address_line1, city, notes, created_at)
+      'INSERT INTO vendors (uuid, admin_id, local_id, vendor_code, name, contact_person, phone, email, address_line1, city, notes, created_at)
        VALUES (:uuid, :owner, :local_id, :code, :name, :contact, :phone, :email, :address, :city, :notes, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -81,7 +81,7 @@ final class VendorRepository
     $stmt = $this->pdo->prepare(
       'UPDATE vendors SET name = :name, contact_person = :contact, phone = :phone, email = :email,
        address_line1 = :address, city = :city, notes = :notes, updated_at = UTC_TIMESTAMP()
-       WHERE id = :id AND business_owner_id = :owner'
+       WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute([
       'id' => $id,
@@ -100,7 +100,7 @@ final class VendorRepository
 
   private function nextLocalId(): int
   {
-    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(local_id), 0) + 1 FROM vendors WHERE business_owner_id = :owner');
+    $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(local_id), 0) + 1 FROM vendors WHERE admin_id = :owner');
     $stmt->execute(['owner' => $this->businessOwnerId]);
 
     return (int) $stmt->fetchColumn();

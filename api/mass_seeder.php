@@ -25,7 +25,7 @@ try {
 
 echo "Generating 500 Customers...\n";
 $pdo->beginTransaction();
-$stmt = $pdo->prepare('INSERT INTO customers (uuid, business_owner_id, full_name, mobile_number, address) VALUES (UUID(), 1, ?, ?, ?)');
+$stmt = $pdo->prepare('INSERT INTO customers (uuid, admin_id, full_name, mobile_number, address) VALUES (UUID(), 1, ?, ?, ?)');
 for ($i=1; $i<=500; $i++) {
     $name = "Customer " . substr(md5((string)rand()), 0, 6);
     $mobile = "+97150" . rand(1000000, 9999999);
@@ -36,7 +36,7 @@ $pdo->commit();
 
 echo "Generating 40 Catalog Services...\n";
 $pdo->beginTransaction();
-$stmt = $pdo->prepare('INSERT INTO catalog_services (uuid, business_owner_id, category, name, base_rate) VALUES (UUID(), 1, ?, ?, ?)');
+$stmt = $pdo->prepare('INSERT INTO catalog_services (uuid, admin_id, category, name, base_rate) VALUES (UUID(), 1, ?, ?, ?)');
 $services = [
     'Dry Clean Kandora', 'Wash & Fold Bag', 'Press Suit', 'Steam Curtain', 
     'Leather Jacket Spa', 'Carpet Wash', 'Sneaker Care', 'Wedding Dress Clean',
@@ -51,7 +51,7 @@ $pdo->commit();
 
 echo "Generating 250 Sales Orders...\n";
 $pdo->beginTransaction();
-$stmtOrd = $pdo->prepare('INSERT INTO sales_orders (uuid, business_owner_id, customer_id, branch_id, status, payment_status, grand_total, balance_due, amount_paid) VALUES (UUID(), 1, ?, 1, ?, ?, ?, ?, ?)');
+$stmtOrd = $pdo->prepare('INSERT INTO sales_orders (uuid, admin_id, customer_id, branch_id, status, payment_status, grand_total, balance_due, amount_paid) VALUES (UUID(), 1, ?, 1, ?, ?, ?, ?, ?)');
 for ($i=1; $i<=250; $i++) {
     $cid = rand(1, 500);
     $statuses = ['received', 'processing', 'ready_for_collection', 'delivered'];

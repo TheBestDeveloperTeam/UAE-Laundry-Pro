@@ -4,399 +4,108 @@ declare(strict_types=1);
 
 namespace LaundryPro\Api\Repositories;
 
+use LaundryPro\Api\Core\EventBus;
+use LaundryPro\Api\Core\Uuid;
 use PDO;
 use RuntimeException;
+use InvalidArgumentException;
 
-final class InventoryRepository
+class InventoryRepository
 {
-  public function __construct(
-    private readonly PDO $pdo,
-    private readonly int $businessOwnerId = 1,
-  ) {
-  }
-
-  public function allowNegativeStock(): bool
-  {
-    $stmt = $this->pdo->prepare(
-      'SELECT setting_value FROM settings WHERE setting_key = :key AND scope = :scope LIMIT 1'
-    );
-    $stmt->execute(['key' => 'inventory.allow_negative_stock', 'scope' => 'inventory']);
-    $row = $stmt->fetch();
-    if (!$row) {
-      return false;
-    }
-    $val = json_decode((string) $row['setting_value'], true);
-
-    return $val === true || $val === 'true' || $val === '1';
-  }
-
-  /** @return array<int, array<string, mixed>> */
-  public function listMovements(?int $productId = null, int $limit = 50): array
-  {
-    $sql = 'SELECT m.*, p.name AS product_name FROM inventory_movements m
-            JOIN products p ON p.id = m.product_id
-            WHERE m.business_owner_id = :owner';
-    $params = ['owner' => $this->businessOwnerId];
-    if ($productId !== null) {
-      $sql .= ' AND m.product_id = :product';
-      $params['product'] = $productId;
-    }
-    $sql .= ' ORDER BY m.id DESC LIMIT ' . (int) $limit;
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute($params);
-
-    return $stmt->fetchAll() ?: [];
-  }
-
-  /** @param array<string, mixed> $data */
-  public function receipt(array $data, int $userId): array
-  {
-    $productId = (int) ($data['product_id'] ?? 0);
-    $qty = (float) ($data['quantity'] ?? 0);
-    if ($productId <= 0 || $qty <= 0) {
-      throw new RuntimeException('VALIDATION_ERROR');
+    public function __construct(
+        private readonly PDO $db,
+        private readonly SyncOutboxRepository $outbox
+    ) {
     }
 
-    $this->pdo->beginTransaction();
-    try {
-      $this->adjustStock($productId, $qty);
-      $movement = $this->recordMovement($productId, 'receipt', $qty, $data['reference_type'] ?? null, isset($data['reference_id']) ? (int) $data['reference_id'] : null, $data['notes'] ?? null, $userId);
-      $this->pdo->commit();
-
-      return $movement;
-    } catch (\Throwable $e) {
-      $this->pdo->rollBack();
-      throw $e;
-    }
-  }
-
-  /** @param array<string, mixed> $data */
-  public function adjustment(array $data, int $userId): array
-  {
-    $productId = (int) ($data['product_id'] ?? 0);
-    $newQty = (float) ($data['quantity_after'] ?? -1);
-    if ($productId <= 0 || $newQty < 0) {
-      throw new RuntimeException('VALIDATION_ERROR');
+    /**
+     * View stock balance for a product at a specific branch
+     */
+    public function getBalance(int $adminId, int $productId, int $branchId): float
+    {
+        $stmt = $this->db->prepare(
+            "SELECT current_stock FROM inventory_balances WHERE admin_id = ? AND product_id = ? AND branch_id = ?"
+        );
+        $stmt->execute([$adminId, $productId, $branchId]);
+        $stock = $stmt->fetchColumn();
+        return $stock !== false ? (float)$stock : 0.0;
     }
 
-    $product = $this->findProduct($productId);
-    if ($product === null) {
-      throw new RuntimeException('NOT_FOUND');
+    /**
+     * Adjust stock concurrency safely using SELECT ... FOR UPDATE
+     */
+    public function adjustStock(int $adminId, int $productId, int $branchId, float $quantityChange, string $type, ?int $userId = null, ?string $referenceType = null, ?int $referenceId = null, ?string $notes = null): array
+    {
+        $allowedTypes = ['receipt', 'sale', 'adjustment', 'transfer_in', 'transfer_out', 'spoilage'];
+        if (!in_array($type, $allowedTypes)) {
+            throw new InvalidArgumentException("Invalid movement type: {$type}");
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            // Lock row
+            $stmt = $this->db->prepare(
+                "SELECT current_stock FROM inventory_balances WHERE admin_id = ? AND product_id = ? AND branch_id = ? FOR UPDATE"
+            );
+            $stmt->execute([$adminId, $productId, $branchId]);
+            $currentStock = $stmt->fetchColumn();
+
+            $balanceUuid = Uuid::v4();
+            if ($currentStock === false) {
+                // Initialize balance if not exists
+                $currentStock = 0.0;
+                $initStmt = $this->db->prepare(
+                    "INSERT INTO inventory_balances (product_id, branch_id, admin_id, uuid, row_uuid, current_stock) VALUES (?, ?, ?, ?, ?, ?)"
+                );
+                $initStmt->execute([$productId, $branchId, $adminId, $balanceUuid, Uuid::v4(), 0.0]);
+            } else {
+                $currentStock = (float)$currentStock;
+            }
+
+            $newBalance = $currentStock + $quantityChange;
+
+            // Enforce Insufficient Stock Exception
+            if ($newBalance < 0 && $type === 'sale') {
+                throw new RuntimeException("INSUFFICIENT_STOCK");
+            }
+
+            // Update balance
+            $updateStmt = $this->db->prepare(
+                "UPDATE inventory_balances SET current_stock = ?, updated_at = CURRENT_TIMESTAMP WHERE admin_id = ? AND product_id = ? AND branch_id = ?"
+            );
+            $updateStmt->execute([$newBalance, $adminId, $productId, $branchId]);
+
+            // Log movement
+            $movementUuid = Uuid::v4();
+            $rowUuid = Uuid::v4();
+            $logStmt = $this->db->prepare(
+                "INSERT INTO inventory_movements (uuid, admin_id, row_uuid, product_id, branch_id, movement_type, quantity_change, balance_after, reference_type, reference_id, notes, created_by_user_id) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+            $logStmt->execute([
+                $movementUuid, $adminId, $rowUuid, $productId, $branchId, $type, $quantityChange, $newBalance, $referenceType, $referenceId, $notes, $userId
+            ]);
+
+            $movementId = (int)$this->db->lastInsertId();
+
+            // Trigger sync hook
+            $this->outbox->enqueue($adminId, 'inventory_movement', $movementId, 'create', [
+                'row_uuid' => $rowUuid
+            ]);
+
+            $this->db->commit();
+
+            return [
+                'movement_id' => $movementId,
+                'uuid' => $movementUuid,
+                'previous_stock' => $currentStock,
+                'new_stock' => $newBalance
+            ];
+
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
-
-    $before = (float) $product['stock_quantity'];
-    $delta = $newQty - $before;
-
-    $this->pdo->beginTransaction();
-    try {
-      $stmt = $this->pdo->prepare(
-        'UPDATE products SET stock_quantity = :qty, updated_at = UTC_TIMESTAMP()
-         WHERE id = :id AND business_owner_id = :owner'
-      );
-      $stmt->execute(['qty' => $newQty, 'id' => $productId, 'owner' => $this->businessOwnerId]);
-
-      $adjStmt = $this->pdo->prepare(
-        'INSERT INTO inventory_adjustments (uuid, business_owner_id, product_id, quantity_before, quantity_after, reason, created_by, created_at)
-         VALUES (:uuid, :owner, :product, :before, :after, :reason, :user, UTC_TIMESTAMP())'
-      );
-      $adjStmt->execute([
-        'uuid' => $this->uuid(),
-        'owner' => $this->businessOwnerId,
-        'product' => $productId,
-        'before' => $before,
-        'after' => $newQty,
-        'reason' => $data['reason'] ?? null,
-        'user' => $userId,
-      ]);
-
-      if ($delta !== 0.0) {
-        $this->recordMovement($productId, 'adjustment', abs($delta), 'adjustment', (int) $this->pdo->lastInsertId(), $data['reason'] ?? null, $userId);
-      }
-
-      $this->pdo->commit();
-
-      return $this->findProduct($productId) ?? [];
-    } catch (\Throwable $e) {
-      $this->pdo->rollBack();
-      throw $e;
-    }
-  }
-
-  /** @param array<int, array{product_id: int, quantity: float}> $items */
-  public function consumeForSale(int $orderId, array $items, int $userId): void
-  {
-    if ($items === []) {
-      return;
-    }
-
-    $allowNegative = $this->allowNegativeStock();
-
-    foreach ($items as $item) {
-      $productId = (int) $item['product_id'];
-      $qty = (float) $item['quantity'];
-      if ($qty <= 0) {
-        continue;
-      }
-
-      $product = $this->findProduct($productId);
-      if ($product === null) {
-        throw new RuntimeException('NOT_FOUND');
-      }
-
-      $stock = (float) $product['stock_quantity'];
-      if (!$allowNegative && $stock < $qty) {
-        throw new RuntimeException('INSUFFICIENT_STOCK');
-      }
-
-      $this->adjustStock($productId, -$qty);
-      $this->recordMovement($productId, 'sale_consumption', $qty, 'sales_order', $orderId, null, $userId);
-    }
-  }
-
-  private function adjustStock(int $productId, float $delta): void
-  {
-    $stmt = $this->pdo->prepare(
-      'UPDATE products SET stock_quantity = stock_quantity + :delta, updated_at = UTC_TIMESTAMP()
-       WHERE id = :id AND business_owner_id = :owner'
-    );
-    $stmt->execute(['delta' => $delta, 'id' => $productId, 'owner' => $this->businessOwnerId]);
-  }
-
-  /** @return array<string, mixed> */
-  private function recordMovement(
-    int $productId,
-    string $type,
-    float $qty,
-    ?string $refType,
-    ?int $refId,
-    ?string $notes,
-    int $userId,
-  ): array {
-    $stmt = $this->pdo->prepare(
-      'INSERT INTO inventory_movements (uuid, business_owner_id, product_id, movement_type, quantity, reference_type, reference_id, notes, created_by, created_at)
-       VALUES (:uuid, :owner, :product, :type, :qty, :ref_type, :ref_id, :notes, :user, UTC_TIMESTAMP())'
-    );
-    $stmt->execute([
-      'uuid' => $this->uuid(),
-      'owner' => $this->businessOwnerId,
-      'product' => $productId,
-      'type' => $type,
-      'qty' => $qty,
-      'ref_type' => $refType,
-      'ref_id' => $refId,
-      'notes' => $notes,
-      'user' => $userId,
-    ]);
-
-    return ['id' => (int) $this->pdo->lastInsertId(), 'product_id' => $productId, 'movement_type' => $type, 'quantity' => $qty];
-  }
-
-  public function findProduct(int $id): ?array
-  {
-    $stmt = $this->pdo->prepare('SELECT * FROM products WHERE id = :id AND business_owner_id = :owner LIMIT 1');
-    $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
-
-    return $stmt->fetch() ?: null;
-  }
-
-  public function transfer(array $data, int $userId): array
-  {
-    $productId = (int) ($data['product_id'] ?? 0);
-    $fromBranch = (int) ($data['from_branch_id'] ?? 0);
-    $toBranch = (int) ($data['to_branch_id'] ?? 0);
-    $quantity = (float) ($data['quantity'] ?? 0);
-
-    if ($productId <= 0 || $fromBranch <= 0 || $toBranch <= 0 || $quantity <= 0 || $fromBranch === $toBranch) {
-      throw new RuntimeException('VALIDATION_ERROR');
-    }
-
-    $this->pdo->beginTransaction();
-    try {
-      $product = $this->pdo->prepare('SELECT id, stock_quantity FROM products WHERE id = :id AND business_owner_id = :owner FOR UPDATE');
-      $product->execute(['id' => $productId, 'owner' => $this->businessOwnerId]);
-      $p = $product->fetch();
-
-      if (!$p) {
-        throw new RuntimeException('NOT_FOUND');
-      }
-
-      // Record out movement
-      $stmt = $this->pdo->prepare(
-        'INSERT INTO inventory_movements (uuid, business_owner_id, branch_id, product_id, user_id, type, quantity_change, quantity_after, unit_cost, reference_type, reference_id, created_at)
-         VALUES (:uuid, :owner, :branch, :product, :user, :type, :change, :after, :cost, :ref_type, :ref_id, UTC_TIMESTAMP())'
-      );
-
-      $qtyAfterFrom = (float)$p['stock_quantity'] - $quantity;
-      $stmt->execute([
-        'uuid' => $this->uuid(),
-        'owner' => $this->businessOwnerId,
-        'branch' => $fromBranch,
-        'product' => $productId,
-        'user' => $userId,
-        'type' => 'transfer_out',
-        'change' => -$quantity,
-        'after' => $qtyAfterFrom,
-        'cost' => 0,
-        'ref_type' => 'branch_transfer',
-        'ref_id' => $toBranch,
-      ]);
-
-      // Record in movement
-      $stmt->execute([
-        'uuid' => $this->uuid(),
-        'owner' => $this->businessOwnerId,
-        'branch' => $toBranch,
-        'product' => $productId,
-        'user' => $userId,
-        'type' => 'transfer_in',
-        'change' => $quantity,
-        'after' => 0, // In reality, we'd need branch-specific stock levels tracked.
-        'cost' => 0,
-        'ref_type' => 'branch_transfer',
-        'ref_id' => $fromBranch,
-      ]);
-
-      $this->pdo->commit();
-      return ['status' => 'success', 'transferred' => $quantity];
-    } catch (\Throwable $e) {
-      $this->pdo->rollBack();
-      throw $e;
-    }
-  }
-
-  /** @return array<int, array<string, mixed>> */
-  public function stock(?int $productId = null): array
-  {
-    $sql = 'SELECT p.id, p.uuid, p.name, p.code, p.stock_quantity AS quantity_on_hand,
-                   p.low_stock_threshold, p.cost AS cost_price,
-                   COALESCE(mv.quantity_from_movements, 0) AS quantity_from_movements
-            FROM products p
-            LEFT JOIN (
-              SELECT product_id,
-                     SUM(CASE movement_type
-                       WHEN :receipt THEN quantity
-                       WHEN :sale THEN -quantity
-                       WHEN :issue THEN -quantity
-                       ELSE 0
-                     END) AS quantity_from_movements
-              FROM inventory_movements
-              WHERE business_owner_id = :owner_mv
-              GROUP BY product_id
-            ) mv ON mv.product_id = p.id
-            WHERE p.business_owner_id = :owner AND p.is_active = 1';
-    $params = [
-      'owner' => $this->businessOwnerId,
-      'owner_mv' => $this->businessOwnerId,
-      'receipt' => 'receipt',
-      'sale' => 'sale_consumption',
-      'issue' => 'issue',
-    ];
-
-    if ($productId !== null) {
-      $sql .= ' AND p.id = :product';
-      $params['product'] = $productId;
-    }
-
-    $sql .= ' ORDER BY p.name ASC';
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll() ?: [];
-
-    foreach ($rows as &$row) {
-      $row['quantity_on_hand'] = round((float) $row['quantity_on_hand'], 3);
-      $row['quantity_from_movements'] = round((float) $row['quantity_from_movements'], 3);
-      $row['variance'] = round((float) $row['quantity_on_hand'] - (float) $row['quantity_from_movements'], 3);
-    }
-
-    return $rows;
-  }
-
-  /**
-   * @return array{dry_run: bool, discrepancies: array<int, array<string, mixed>>, adjusted_count?: int}
-   */
-  public function reconcile(bool $confirm = false, int $userId = 0): array
-  {
-    $items = $this->stock();
-    $discrepancies = [];
-    foreach ($items as $item) {
-      $variance = (float) $item['variance'];
-      if (abs($variance) >= 0.001) {
-        $discrepancies[] = [
-          'product_id' => (int) $item['id'],
-          'product_name' => $item['name'],
-          'quantity_on_hand' => (float) $item['quantity_on_hand'],
-          'quantity_from_movements' => (float) $item['quantity_from_movements'],
-          'variance' => $variance,
-        ];
-      }
-    }
-
-    if (!$confirm || $discrepancies === []) {
-      return ['dry_run' => !$confirm, 'discrepancies' => $discrepancies];
-    }
-
-    foreach ($discrepancies as $row) {
-      $this->adjustment([
-        'product_id' => $row['product_id'],
-        'quantity_after' => $row['quantity_from_movements'],
-        'reason' => 'Stock reconciliation',
-      ], $userId);
-    }
-
-    return [
-      'dry_run' => false,
-      'discrepancies' => $discrepancies,
-      'adjusted_count' => count($discrepancies),
-    ];
-  }
-
-  /** @return array{total_value: float, product_count: int, items: array<int, array<string, mixed>>} */
-  public function valuation(): array
-  {
-    $items = $this->stock();
-    $total = 0.0;
-    foreach ($items as &$item) {
-      $value = round((float) $item['quantity_on_hand'] * (float) ($item['cost_price'] ?? 0), 2);
-      $item['stock_value'] = $value;
-      $total += $value;
-    }
-
-    return [
-      'total_value' => round($total, 2),
-      'product_count' => count($items),
-      'items' => $items,
-    ];
-  }
-
-  /** @param array<int, array{product_id: int, quantity: float, unit_cost?: float}> $items */
-  public function receiveFromPurchase(int $goodsReceiptId, array $items, int $userId): void
-  {
-    foreach ($items as $item) {
-      $productId = (int) $item['product_id'];
-      $qty = (float) $item['quantity'];
-      if ($productId <= 0 || $qty <= 0) {
-        continue;
-      }
-
-      $this->adjustStock($productId, $qty);
-      $this->recordMovement(
-        $productId,
-        'receipt',
-        $qty,
-        'goods_receipt',
-        $goodsReceiptId,
-        null,
-        $userId,
-      );
-    }
-  }
-
-  private function uuid(): string
-  {
-    $data = random_bytes(16);
-    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-
-    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-  }
 }

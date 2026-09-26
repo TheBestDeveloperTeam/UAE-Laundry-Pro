@@ -20,7 +20,7 @@ final class AttendanceRepository
     $sql = 'SELECT a.*, e.full_name AS employee_name, e.employee_no
             FROM attendance a
             JOIN employees e ON e.id = a.employee_id
-            WHERE a.business_owner_id = :owner';
+            WHERE a.admin_id = :owner';
     $params = ['owner' => $this->businessOwnerId];
 
     if ($employeeId !== null) {
@@ -48,7 +48,7 @@ final class AttendanceRepository
     $stmt = $this->pdo->prepare(
       'SELECT a.*, e.full_name AS employee_name FROM attendance a
        JOIN employees e ON e.id = a.employee_id
-       WHERE a.id = :id AND a.business_owner_id = :owner LIMIT 1'
+       WHERE a.id = :id AND a.admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
@@ -85,7 +85,7 @@ final class AttendanceRepository
     }
 
     $stmt = $this->pdo->prepare(
-      'INSERT INTO attendance (uuid, business_owner_id, employee_id, attendance_date, status, check_in, check_out, notes, created_by, created_at)
+      'INSERT INTO attendance (uuid, admin_id, employee_id, attendance_date, status, check_in, check_out, notes, created_by, created_at)
        VALUES (:uuid, :owner, :employee, :date, :status, :in, :out, :notes, :user, UTC_TIMESTAMP())'
     );
     $stmt->execute([
@@ -106,7 +106,7 @@ final class AttendanceRepository
   private function findByEmployeeDate(int $employeeId, string $date): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM attendance WHERE employee_id = :employee AND attendance_date = :date AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM attendance WHERE employee_id = :employee AND attendance_date = :date AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['employee' => $employeeId, 'date' => $date, 'owner' => $this->businessOwnerId]);
 

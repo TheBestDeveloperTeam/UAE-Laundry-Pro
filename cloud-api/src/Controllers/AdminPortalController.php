@@ -125,7 +125,7 @@ final class AdminPortalController
             $tStmt = $pdo->query('SELECT * FROM businesses ORDER BY id DESC LIMIT 5');
             $stats['recent_tenants'] = $tStmt->fetchAll() ?: [];
 
-            $sStmt = $pdo->query('SELECT s.*, b.name as business_name FROM sync_records s LEFT JOIN businesses b ON b.id = s.business_owner_id ORDER BY s.id DESC LIMIT 5');
+            $sStmt = $pdo->query('SELECT s.*, b.name as business_name FROM sync_records s LEFT JOIN businesses b ON b.id = s.admin_id ORDER BY s.id DESC LIMIT 5');
             $stats['recent_sync'] = $sStmt->fetchAll() ?: [];
         }
 
@@ -142,7 +142,7 @@ final class AdminPortalController
         $pdo = Database::connect();
         $tenants = [];
         if ($pdo !== null) {
-            $stmt = $pdo->query('SELECT b.*, (SELECT COUNT(*) FROM sync_records WHERE business_owner_id = b.id) as sync_count FROM businesses b ORDER BY b.id DESC');
+            $stmt = $pdo->query('SELECT b.*, (SELECT COUNT(*) FROM sync_records WHERE admin_id = b.id) as sync_count FROM businesses b ORDER BY b.id DESC');
             $tenants = $stmt->fetchAll() ?: [];
         }
 
@@ -236,7 +236,7 @@ final class AdminPortalController
         $pdo = Database::connect();
         $records = [];
         if ($pdo !== null) {
-            $stmt = $pdo->query('SELECT s.*, b.name as business_name FROM sync_records s LEFT JOIN businesses b ON b.id = s.business_owner_id ORDER BY s.id DESC LIMIT 50');
+            $stmt = $pdo->query('SELECT s.*, b.name as business_name FROM sync_records s LEFT JOIN businesses b ON b.id = s.admin_id ORDER BY s.id DESC LIMIT 50');
             $records = $stmt->fetchAll() ?: [];
         }
 

@@ -19,7 +19,7 @@ final class StorefrontRepository
   {
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO storefront_orders (uuid, business_owner_id, customer_name, customer_phone, notes, payload_json)
+      'INSERT INTO storefront_orders (uuid, admin_id, customer_name, customer_phone, notes, payload_json)
        VALUES (:uuid, :owner, :name, :phone, :notes, :payload)'
     );
     $stmt->execute([
@@ -38,7 +38,7 @@ final class StorefrontRepository
   public function findOrder(int $id): ?array
   {
     $stmt = $this->pdo->prepare(
-      'SELECT * FROM storefront_orders WHERE id = :id AND business_owner_id = :owner LIMIT 1'
+      'SELECT * FROM storefront_orders WHERE id = :id AND admin_id = :owner LIMIT 1'
     );
     $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
     $row = $stmt->fetch();
@@ -49,7 +49,7 @@ final class StorefrontRepository
   /** @return list<array<string, mixed>> */
   public function listOrders(?string $status = null): array
   {
-    $sql = 'SELECT * FROM storefront_orders WHERE business_owner_id = :owner';
+    $sql = 'SELECT * FROM storefront_orders WHERE admin_id = :owner';
     $params = ['owner' => $this->businessOwnerId];
     if ($status !== null) {
       $sql .= ' AND status = :status';
@@ -65,7 +65,7 @@ final class StorefrontRepository
   public function convertToSalesOrder(int $orderId, int $salesOrderId): ?array
   {
     $stmt = $this->pdo->prepare(
-      'UPDATE storefront_orders SET status = :status, sales_order_id = :sales WHERE id = :id AND business_owner_id = :owner'
+      'UPDATE storefront_orders SET status = :status, sales_order_id = :sales WHERE id = :id AND admin_id = :owner'
     );
     $stmt->execute([
       'status' => 'converted',
