@@ -45,7 +45,7 @@ class _AccountingScreenState extends State<AccountingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('accounting_export')),
-        actions: [IconButton(icon: const Icon(Icons.upload_file), onPressed: _export)],
+        actions: [IconButton(icon: const Icon(PhosphorIcons.circle()), onPressed: _export)],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

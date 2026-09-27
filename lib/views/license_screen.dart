@@ -121,7 +121,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.shield_outlined, color: Theme.of(context).colorScheme.primary),
+                            Icon(PhosphorPhosphorIcons.circle()(), color: Theme.of(context).colorScheme.primary),
                             const SizedBox(width: 8),
                             Text(
                               l10n.t('trial_active_title'),
@@ -137,15 +137,15 @@ class _LicenseScreenState extends State<LicenseScreen> {
                           runSpacing: 8,
                           children: [
                             Chip(
-                              avatar: const Icon(Icons.timer_outlined, size: 16),
+                              avatar: const Icon(PhosphorPhosphorIcons.circle()(), size: 16),
                               label: Text(l10n.t('trial_days_remaining', {'days': (_status['trial_days_remaining'] ?? 7).toString()})),
                             ),
                             Chip(
-                              avatar: const Icon(Icons.receipt_outlined, size: 16),
+                              avatar: const Icon(PhosphorPhosphorIcons.circle()(), size: 16),
                               label: Text(l10n.t('trial_invoices_used', {'used': (_status['invoice_count'] ?? 0).toString()})),
                             ),
                             Chip(
-                              avatar: const Icon(Icons.people_outline, size: 16),
+                              avatar: const Icon(PhosphorPhosphorIcons.circle()(), size: 16),
                               label: Text(l10n.t('trial_customers_used', {'used': (_status['customer_count'] ?? 0).toString()})),
                             ),
                           ],
@@ -206,7 +206,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: _exportLicenseRequest,
-                                icon: const Icon(Icons.file_upload_outlined),
+                                icon: const Icon(PhosphorPhosphorIcons.circle()()),
                                 label: Text(l10n.t('export_license_request')),
                               ),
                             ),
@@ -218,7 +218,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                                     const SnackBar(content: Text('Paste license content or key directly into input field above.')),
                                   );
                                 },
-                                icon: const Icon(Icons.file_download_outlined),
+                                icon: const Icon(PhosphorPhosphorIcons.circle()()),
                                 label: Text(l10n.t('import_signed_license')),
                               ),
                             ),

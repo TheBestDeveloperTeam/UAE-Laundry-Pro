@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/delivery_model.dart';
 import 'package:laundrypro_uae/services/delivery_service.dart';
@@ -49,7 +50,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('delivery')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
       ),
       body: Column(
         children: [
@@ -66,7 +67,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Delivery Tasks (${_items.length} active)', style: const TextStyle(fontWeight: FontWeight.w600)),
-                          const Icon(Icons.local_shipping_outlined),
+                          const Icon(PhosphorPhosphorIcons.circle()()),
                         ],
                       ),
                     ),
@@ -111,8 +112,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                                   : (isInTransit ? Colors.blue.shade100 : Colors.amber.shade100),
                               child: Icon(
                                 isDelivered
-                                    ? Icons.check_circle
-                                    : (isInTransit ? Icons.directions_bike : Icons.schedule),
+                                    ? PhosphorPhosphorIcons.circle()()
+                                    : (isInTransit ? PhosphorIcons.circle() : PhosphorIcons.circle()),
                                 color: isDelivered
                                     ? Colors.green.shade900
                                     : (isInTransit ? Colors.blue.shade900 : Colors.amber.shade900),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/operator_service.dart';
 
@@ -38,7 +39,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         title: const Text('Operator Certifications'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(PhosphorPhosphorIcons.circle()()),
             onPressed: _loadCerts,
           )
         ],
@@ -52,7 +53,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
               return ListTile(
                 title: Text('\ (\)'),
                 subtitle: Text('\ - Expires: \'),
-                leading: const Icon(Icons.badge),
+                leading: const Icon(PhosphorIcons.circle()),
               );
             },
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -131,14 +132,14 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
                                 _syncConfigFromFields();
                                 controller.connect();
                               },
-                        icon: const Icon(Icons.link),
+                        icon: const Icon(PhosphorIcons.circle()),
                         label: const Text('Connect'),
                       ),
                       OutlinedButton.icon(
                         onPressed: sqlState.isConnected
                             ? () => controller.disconnect()
                             : null,
-                        icon: const Icon(Icons.link_off),
+                        icon: const Icon(PhosphorIcons.circle()),
                         label: const Text('Disconnect'),
                       ),
                       FilledButton.tonalIcon(
@@ -154,7 +155,7 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
                                 height: 18,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Icon(Icons.table_chart),
+                            : const Icon(PhosphorIcons.circle()),
                         label: const Text('Query'),
                       ),
                     ],
@@ -197,19 +198,19 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
       case RemoteSqlConnectionStatus.connected:
         bg = theme.colorScheme.primaryContainer;
         fg = theme.colorScheme.onPrimaryContainer;
-        icon = Icons.check_circle;
+        icon = PhosphorPhosphorIcons.circle()();
       case RemoteSqlConnectionStatus.connecting:
         bg = theme.colorScheme.tertiaryContainer;
         fg = theme.colorScheme.onTertiaryContainer;
-        icon = Icons.sync;
+        icon = PhosphorPhosphorIcons.circle()();
       case RemoteSqlConnectionStatus.error:
         bg = theme.colorScheme.errorContainer;
         fg = theme.colorScheme.onErrorContainer;
-        icon = Icons.error_outline;
+        icon = PhosphorPhosphorIcons.circle()();
       case RemoteSqlConnectionStatus.disconnected:
         bg = theme.colorScheme.surfaceContainerHighest;
         fg = theme.colorScheme.onSurfaceVariant;
-        icon = Icons.cloud_off;
+        icon = PhosphorIcons.circle();
     }
 
     return Material(

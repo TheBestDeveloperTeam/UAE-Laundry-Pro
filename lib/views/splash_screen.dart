@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 
 import 'package:laundrypro_uae/providers/auth_provider.dart';
@@ -118,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.local_laundry_service_rounded,
+                      PhosphorPhosphorIcons.circle()()_rounded,
                       size: 68,
                       color: Theme.of(context).colorScheme.primary,
                     ),
@@ -162,7 +163,7 @@ class _SplashScreenState extends State<SplashScreen> {
                             Row(
                               children: [
                                 Icon(
-                                  Icons.error_outline_rounded,
+                                  PhosphorPhosphorIcons.circle()()_rounded,
                                   color: Theme.of(context).colorScheme.error,
                                 ),
                                 const SizedBox(width: 8),

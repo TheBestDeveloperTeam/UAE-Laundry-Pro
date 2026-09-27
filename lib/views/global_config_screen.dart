@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/models/user_model.dart';
 import 'package:laundrypro_uae/services/global_config_service.dart';
 
@@ -48,13 +49,13 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
   };
 
   static const _pathIcons = {
-    'BACKUP_PATH':   Icons.backup_outlined,
-    'INVOICE_PATH':  Icons.receipt_long_outlined,
-    'IMAGE_PATH':    Icons.image_outlined,
-    'LOG_PATH':      Icons.article_outlined,
-    'EXPORT_PATH':   Icons.file_download_outlined,
-    'TEMP_PATH':     Icons.folder_special_outlined,
-    'TEMPLATE_PATH': Icons.print_outlined,
+    'BACKUP_PATH':   PhosphorPhosphorIcons.circle()(),
+    'INVOICE_PATH':  PhosphorPhosphorIcons.circle()(),
+    'IMAGE_PATH':    PhosphorPhosphorIcons.circle()(),
+    'LOG_PATH':      PhosphorPhosphorIcons.circle()(),
+    'EXPORT_PATH':   PhosphorPhosphorIcons.circle()(),
+    'TEMP_PATH':     PhosphorPhosphorIcons.circle()(),
+    'TEMPLATE_PATH': PhosphorPhosphorIcons.circle()(),
   };
 
   static const _pathDescriptions = {
@@ -190,7 +191,7 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
         actions: [
           if (!_isReadOnly) ...[
             TextButton.icon(
-              icon: const Icon(Icons.restart_alt),
+              icon: const Icon(PhosphorIcons.circle()),
               label: const Text('Reset All'),
               onPressed: _resetAll,
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -203,7 +204,7 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
                       height: 16,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.save_outlined),
+                  : const Icon(PhosphorPhosphorIcons.circle()()),
               label: Text(_saving ? 'Saving…' : 'Save All Paths'),
               onPressed: _saving ? null : _save,
             ),
@@ -229,7 +230,7 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline,
+                        Icon(PhosphorPhosphorIcons.circle()(),
                             color: theme.colorScheme.primary, size: 18),
                         const SizedBox(width: 8),
                         Text('Path Configuration',
@@ -309,7 +310,7 @@ class _AccessBanner extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.admin_panel_settings,
+            Icon(PhosphorIcons.circle(),
                 color: Colors.amber.shade800, size: 18),
             const SizedBox(width: 8),
             Expanded(
@@ -333,7 +334,7 @@ class _AccessBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.lock_outline, color: Colors.grey.shade600, size: 18),
+          Icon(PhosphorPhosphorIcons.circle()(), color: Colors.grey.shade600, size: 18),
           const SizedBox(width: 8),
           Text(
             'Read-only — You do not have permission to edit system paths.',
@@ -427,9 +428,9 @@ class _PathField extends StatelessWidget {
                       hintText: 'e.g. C:/LaundryPro/backups/',
                       errorText: hasError ? error : null,
                       prefixIcon:
-                          const Icon(Icons.folder_outlined, size: 18),
+                          Icon(PhosphorPhosphorIcons.circle()(), size: 18),
                       suffixIcon: isReadOnly
-                          ? const Icon(Icons.lock_outline, size: 16)
+                          ? const Icon(PhosphorPhosphorIcons.circle()(), size: 16)
                           : null,
                     ),
                   ),
@@ -439,7 +440,7 @@ class _PathField extends StatelessWidget {
                   Tooltip(
                     message: 'Reset to default',
                     child: IconButton.outlined(
-                      icon: const Icon(Icons.restart_alt, size: 18),
+                      icon: const Icon(PhosphorIcons.circle(), size: 18),
                       onPressed: onReset,
                     ),
                   ),

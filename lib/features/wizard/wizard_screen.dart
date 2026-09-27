@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
 
@@ -65,7 +66,7 @@ class _WizardScreenState extends State<WizardScreen> {
           const Text('Printers & Cash Drawers', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           ListTile(
-            leading: const Icon(Icons.print, color: AppTheme.primaryBlue),
+            leading: Icon(PhosphorPhosphorIcons.circle()(), color: AppTheme.primaryNavy),
             title: const Text('Epson TM-T88VI (USB)'),
             subtitle: const Text('Status: Connected'),
             trailing: OutlinedButton(onPressed: () {}, child: const Text('Test Print')),
@@ -74,7 +75,7 @@ class _WizardScreenState extends State<WizardScreen> {
           const Text('Scanners', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           ListTile(
-            leading: const Icon(Icons.qr_code_scanner, color: AppTheme.primaryBlue),
+            leading: Icon(PhosphorPhosphorIcons.circle()(), color: AppTheme.primaryNavy),
             title: const Text('Zebra DS2208 (USB Keyboard)'),
             subtitle: const Text('Status: Connected'),
             trailing: OutlinedButton(onPressed: () {}, child: const Text('Test Scan')),
@@ -111,7 +112,7 @@ class _WizardScreenState extends State<WizardScreen> {
       body: Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme.copyWith(
-            primary: AppTheme.primaryBlue,
+            backgroundColor: AppTheme.primaryNavy,
           ),
         ),
         child: Stepper(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
@@ -97,12 +98,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: Text(l10n.t('dashboard')),
         actions: [
-          IconButton(onPressed: _loadSummary, icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: _loadSummary, icon: Icon(PhosphorPhosphorIcons.circle()())),
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications),
+                icon: const Icon(PhosphorIcons.circle()),
                 onPressed: () => context.go('/notifications'),
               ),
               if (_unreadCount > 0)
@@ -122,14 +123,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             IconButton(
               tooltip: l10n.t('settings'),
               onPressed: () => context.go('/settings'),
-              icon: const Icon(Icons.settings_outlined),
+              icon: Icon(PhosphorPhosphorIcons.circle()()),
             ),
           IconButton(
             onPressed: () async {
               await auth.logout();
               if (context.mounted) context.go('/login');
             },
-            icon: const Icon(Icons.logout),
+            icon: const Icon(PhosphorIcons.circle()),
             tooltip: l10n.t('logout'),
           ),
         ],
@@ -147,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red.shade700),
+                    Icon(PhosphorPhosphorIcons.circle()(), color: Colors.red.shade700),
                     const SizedBox(width: 12),
                     Text(_error!, style: TextStyle(color: Colors.red.shade700)),
                     const Spacer(),
@@ -170,7 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('pos_total'),
                     _money(_today?.grandTotal),
-                    Icons.storefront_rounded,
+                    PhosphorIcons.circle(),
                     Colors.green.shade700,
                     () => context.go('/reports'),
                     trend: 1,
@@ -178,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('dashboard_outstanding'),
                     _money(_today?.balanceDue),
-                    Icons.receipt_long_rounded,
+                    PhosphorPhosphorIcons.circle()()_rounded,
                     Colors.orange.shade800,
                     () => context.go('/pending'),
                     trend: -1,
@@ -186,7 +187,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('orders'),
                     '${_today?.orderCount ?? 0}',
-                    Icons.shopping_bag_rounded,
+                    PhosphorIcons.circle(),
                     Colors.blue.shade700,
                     () => context.go('/production'),
                     trend: 1,
@@ -194,7 +195,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('dashboard_low_stock'),
                     '${_inventory?.productCount ?? 0}',
-                    Icons.inventory_2_rounded,
+                    PhosphorPhosphorIcons.circle()()_rounded,
                     Colors.purple.shade700,
                     () => context.go('/catalog'),
                     trend: 0,
@@ -215,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('pos_total'),
                     _money(_period?.grandTotal),
-                    Icons.bar_chart_rounded,
+                    PhosphorIcons.circle(),
                     Colors.teal.shade700,
                     () => context.go('/reports'),
                     trend: 1,
@@ -223,7 +224,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('pos_paid'),
                     _money(_period?.amountPaid),
-                    Icons.account_balance_rounded,
+                    PhosphorIcons.circle(),
                     Colors.indigo.shade700,
                     () => context.go('/reports'),
                     trend: 1,
@@ -231,7 +232,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('balance'),
                     _money(_period?.balanceDue),
-                    Icons.warning_amber_rounded,
+                    PhosphorPhosphorIcons.circle()(),
                     Colors.red.shade700,
                     () => context.go('/pending'),
                     trend: -1,
@@ -239,7 +240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _kpi(
                     l10n.t('notifications'),
                     'Active',
-                    Icons.notifications_active_rounded,
+                    PhosphorIcons.circle(),
                     Colors.blueGrey.shade700,
                     () => context.go('/notifications'),
                   ),
@@ -267,23 +268,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             children: [
                               FilledButton.icon(
                                 onPressed: () => context.go('/pos'),
-                                icon: const Icon(Icons.point_of_sale_rounded),
+                                icon: const Icon(PhosphorIcons.circle()),
                                 label: Text(l10n.t('pos')),
                               ),
                               OutlinedButton.icon(
                                 onPressed: () => context.go('/customers'),
-                                icon: const Icon(Icons.person_add_alt_1_outlined),
+                                icon: Icon(PhosphorPhosphorIcons.circle()()_add_alt_1_outlined),
                                 label: Text(l10n.t('customers')),
                               ),
                               OutlinedButton.icon(
                                 onPressed: () => context.go('/pending'),
-                                icon: const Icon(Icons.receipt_outlined),
+                                icon: const Icon(PhosphorPhosphorIcons.circle()()),
                                 label: Text(l10n.t('pending_invoices')),
                               ),
                               if (isAdmin)
                                 OutlinedButton.icon(
                                   onPressed: () => context.go('/catalog'),
-                                  icon: const Icon(Icons.category_outlined),
+                                  icon: const Icon(PhosphorPhosphorIcons.circle()()),
                                   label: Text(l10n.t('catalog')),
                                 ),
                             ],
@@ -312,18 +313,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             children: [
                               FilledButton.icon(
                                 onPressed: () => context.go('/hr/employees'),
-                                icon: const Icon(Icons.people_alt_outlined),
+                                icon: const Icon(PhosphorPhosphorIcons.circle()()),
                                 label: Text(l10n.t('hr_employees')),
                               ),
                               OutlinedButton.icon(
                                 onPressed: () => context.go('/hr/attendance'),
-                                icon: const Icon(Icons.access_time_rounded),
+                                icon: const Icon(PhosphorIcons.circle()),
                                 label: Text(l10n.t('hr_attendance')),
                               ),
                               if (isAdmin)
                                 OutlinedButton.icon(
                                   onPressed: () => context.go('/hr/payroll'),
-                                  icon: const Icon(Icons.monetization_on_outlined),
+                                  icon: const Icon(PhosphorPhosphorIcons.circle()()),
                                   label: Text(l10n.t('payroll')),
                                 ),
                             ],
@@ -371,7 +372,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     if (trend != 0)
                       Icon(
-                        trend > 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                        trend > 0 ? PhosphorIcons.circle() : PhosphorIcons.circle(),
                         color: trend > 0 ? Colors.green.shade600 : Colors.red.shade500,
                         size: 20,
                       )

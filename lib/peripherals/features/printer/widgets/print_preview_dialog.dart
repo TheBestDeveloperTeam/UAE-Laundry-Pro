@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:laundrypro_uae/peripherals/core/printer/paper_size.dart';
@@ -67,7 +68,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.print_outlined),
+                  Icon(PhosphorPhosphorIcons.circle()()),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -79,7 +80,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(PhosphorPhosphorIcons.circle()()),
                     onPressed: _printing ? null : () => Navigator.pop(context),
                   ),
                 ],
@@ -133,7 +134,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton.icon(
-                    icon: const Icon(Icons.settings),
+                    icon: Icon(PhosphorPhosphorIcons.circle()()),
                     label: const Text('Page Setup'),
                     onPressed: _printing
                         ? null
@@ -147,7 +148,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.print),
+                        : Icon(PhosphorPhosphorIcons.circle()()),
                     label: const Text('Print'),
                     onPressed: _printing ? null : _confirmPrint,
                   ),
@@ -234,12 +235,12 @@ class _PageSetupPanel extends ConsumerWidget {
             ButtonSegment(
               value: PrinterConnectionMode.spooler,
               label: Text('Windows Printer'),
-              icon: Icon(Icons.devices_other, size: 18),
+              icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()()_other, size: 18),
             ),
             ButtonSegment(
               value: PrinterConnectionMode.tcp,
               label: Text('Network TCP'),
-              icon: Icon(Icons.lan, size: 18),
+              icon: Icon(PhosphorIcons.circle(), size: 18),
             ),
           ],
           selected: {mode},

@@ -92,7 +92,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> {
   Widget _buildRunningCyclesTab() {
     return const Center(
       child: EmptyState(
-        icon: Icons.loop,
+        icon: PhosphorIcons.circle(),
         title: 'No Running Cycles',
         message: 'There are no active advanced cycles running right now.',
       ),

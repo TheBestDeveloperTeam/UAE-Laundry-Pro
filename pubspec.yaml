@@ -28,6 +28,9 @@ dependencies:
   file_picker: ^11.0.3
   dio: ^5.11.1
   print_bluetooth_thermal: ^1.2.1
+  google_fonts: ^6.2.1
+  phosphor_flutter: ^2.1.0
+  lottie: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -40,3 +43,5 @@ flutter:
   assets:
     - assets/lang/en.json
     - assets/lang/ar.json
+    - assets/images/branding/
+    - assets/animations/

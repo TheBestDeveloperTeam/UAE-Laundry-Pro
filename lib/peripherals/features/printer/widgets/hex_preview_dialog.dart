@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class HexPreviewDialog extends StatelessWidget {
   const HexPreviewDialog({
@@ -58,7 +59,7 @@ class HexPreviewDialog extends StatelessWidget {
                   ),
                   Text('${payload.length} bytes'),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(PhosphorPhosphorIcons.circle()()),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -83,7 +84,7 @@ class HexPreviewDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     FilledButton.icon(
-                      icon: const Icon(Icons.print),
+                      icon: Icon(PhosphorPhosphorIcons.circle()()),
                       label: Text(printLabel),
                       onPressed: () async {
                         final navigator = Navigator.of(context);

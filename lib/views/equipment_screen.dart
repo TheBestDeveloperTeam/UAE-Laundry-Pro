@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/equipment_service.dart';
 
@@ -38,7 +39,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         title: const Text('Equipment Calibration'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(PhosphorPhosphorIcons.circle()()),
             onPressed: _loadEquipment,
           )
         ],

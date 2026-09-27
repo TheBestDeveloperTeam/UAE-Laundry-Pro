@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
 
@@ -214,7 +215,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
         title: Text(l10n.t('roles_permissions')),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: Icon(PhosphorPhosphorIcons.circle()()),
             onPressed: () => _showRoleDialog(null),
           ),
         ],
@@ -230,7 +231,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                   child: ListTile(
                     title: Text(role['name'].toString().toUpperCase()),
                     subtitle: Text('${(role['permissions'] as List).length} permissions'),
-                    trailing: const Icon(Icons.edit),
+                    trailing: Icon(PhosphorPhosphorIcons.circle()()),
                     onTap: () => _showRoleDialog(role),
                   ),
                 );

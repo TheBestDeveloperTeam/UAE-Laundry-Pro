@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/attendance_service.dart';
 
@@ -67,7 +68,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('attendance')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -83,7 +84,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     );
                   },
                 ),
-      floatingActionButton: FloatingActionButton(onPressed: _record, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(onPressed: _record, child: Icon(PhosphorPhosphorIcons.circle()())),
     );
   }
 }

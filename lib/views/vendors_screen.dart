@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
 import '../models/vendor_model.dart';
@@ -63,7 +64,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('vendors')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
       ),
       body: Column(
         children: [
@@ -91,7 +92,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(onPressed: _create, child: Icon(PhosphorPhosphorIcons.circle()())),
     );
   }
 }

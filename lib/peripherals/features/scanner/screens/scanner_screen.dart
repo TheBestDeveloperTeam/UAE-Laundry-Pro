@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -80,7 +81,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 ),
               ),
               Chip(
-                avatar: const Icon(Icons.qr_code_scanner, size: 16),
+                avatar: Icon(PhosphorPhosphorIcons.circle()(), size: 16),
                 label: Text('Scans: $_scanCount'),
               ),
             ],
@@ -102,7 +103,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 tooltip: 'Clear',
-                icon: const Icon(Icons.clear),
+                icon: Icon(PhosphorPhosphorIcons.circle()()),
                 onPressed: _clearBeforeNewScan,
               ),
             ),
@@ -113,7 +114,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                   alpha: 0.35,
                 ),
             child: ListTile(
-              leading: const Icon(Icons.document_scanner),
+              leading: const Icon(PhosphorIcons.circle()),
               title: Text(
                 _displayValue.isEmpty ? 'No scan yet' : _displayValue,
                 style: const TextStyle(

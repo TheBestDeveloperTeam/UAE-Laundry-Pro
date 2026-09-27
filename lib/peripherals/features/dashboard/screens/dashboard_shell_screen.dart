@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:laundrypro_uae/peripherals/features/printer/widgets/print_queue_panel.dart';
@@ -64,39 +65,39 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
               onDestinationSelected: _navigateTo,
               destinations: const [
                 NavigationRailDestination(
-                  icon: Icon(Icons.dashboard),
+                  icon: Icon(PhosphorPhosphorIcons.circle()()),
                   label: Text('Dashboard'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.qr_code_scanner),
+                  icon: Icon(PhosphorPhosphorIcons.circle()()),
                   label: Text('Scanner'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.scale),
+                  icon: Icon(PhosphorIcons.circle()),
                   label: Text('Scale'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.print),
+                  icon: Icon(PhosphorPhosphorIcons.circle()()),
                   label: Text('Printer'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.queue),
+                  icon: Icon(PhosphorIcons.circle()),
                   label: Text('Queue'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.point_of_sale),
+                  icon: Icon(PhosphorIcons.circle()),
                   label: Text('Drawer'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.memory),
+                  icon: Icon(PhosphorIcons.circle()),
                   label: Text('Identity'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.list_alt),
+                  icon: Icon(PhosphorIcons.circle()),
                   label: Text('Logs'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.storage),
+                  icon: Icon(PhosphorIcons.circle()),
                   label: Text('SQL'),
                 ),
               ],
@@ -123,37 +124,37 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
               destinationIndex: 1,
               title: 'Scanner',
               subtitle: 'Live keyboard wedge listener active',
-              icon: Icons.qr_code_scanner,
+              icon: PhosphorPhosphorIcons.circle()(),
             ),
             _statusCard(
               destinationIndex: 2,
               title: 'Scale',
               subtitle: 'Protocol parser ready (STX/ETX capable)',
-              icon: Icons.scale,
+              icon: PhosphorIcons.circle(),
             ),
             _statusCard(
               destinationIndex: 3,
               title: 'Printer',
               subtitle: 'Spooler + TCP · QR/BC/HR · templates',
-              icon: Icons.print,
+              icon: PhosphorPhosphorIcons.circle()(),
             ),
             _statusCard(
               destinationIndex: 4,
               title: 'Queue',
               subtitle: 'Live print queue + retry/delete',
-              icon: Icons.queue,
+              icon: PhosphorIcons.circle(),
             ),
             _statusCard(
               destinationIndex: 5,
               title: 'Cash Drawer',
               subtitle: 'ESC/POS pulse via selected printer',
-              icon: Icons.point_of_sale,
+              icon: PhosphorIcons.circle(),
             ),
             _statusCard(
               destinationIndex: 8,
               title: 'SQL Database',
               subtitle: 'MySQL runtime connection & country query',
-              icon: Icons.storage,
+              icon: PhosphorIcons.circle(),
             ),
           ],
         ),
@@ -166,7 +167,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
             loading: () => const Text('Detecting...'),
             error: (e, _) => Text('Error: $e'),
           ),
-          icon: Icons.print,
+          icon: PhosphorPhosphorIcons.circle()(),
         ),
         _navCard(
           destinationIndex: 6,
@@ -177,7 +178,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
             loading: () => const Text('Collecting...'),
             error: (e, _) => Text('Error: $e'),
           ),
-          icon: Icons.memory,
+          icon: PhosphorIcons.circle(),
         ),
       ],
     );
@@ -236,7 +237,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
-          icon: const Icon(Icons.point_of_sale),
+          icon: const Icon(PhosphorIcons.circle()),
           label: const Text('OPEN DRAWER'),
           onPressed: selectedPrinter == null
               ? null
@@ -336,7 +337,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
           leading: Icon(icon),
           title: Text(title),
           subtitle: subtitle,
-          trailing: const Icon(Icons.chevron_right),
+          trailing: Icon(PhosphorPhosphorIcons.circle()()),
         ),
       ),
     );

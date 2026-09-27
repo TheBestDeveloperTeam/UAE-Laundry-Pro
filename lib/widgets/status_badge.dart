@@ -15,16 +15,16 @@ class StatusBadge extends StatelessWidget {
       case AppStatus.paid:
       case AppStatus.ready:
       case AppStatus.delivered:
-        return AppTheme.success;
+        return AppTheme.successGreen;
       case AppStatus.processing:
-        return AppTheme.info;
+        return AppTheme.infoBlue;
       case AppStatus.draft:
       case AppStatus.pending:
-        return AppTheme.pending;
+        return AppTheme.coolGray;
       case AppStatus.cancelled:
-        return AppTheme.warning;
+        return AppTheme.warningOrange;
       case AppStatus.failed:
-        return AppTheme.danger;
+        return AppTheme.errorRed;
     }
   }
 

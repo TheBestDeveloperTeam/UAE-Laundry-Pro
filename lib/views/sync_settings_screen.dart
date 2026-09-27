@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
 import 'package:provider/provider.dart';
@@ -47,8 +48,8 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
       appBar: AppBar(
         title: Text(l10n.t('sync')),
         actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-          IconButton(onPressed: _push, icon: const Icon(Icons.cloud_upload_outlined)),
+          IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()())),
+          IconButton(onPressed: _push, icon: Icon(PhosphorPhosphorIcons.circle()())),
         ],
       ),
       body: _loading

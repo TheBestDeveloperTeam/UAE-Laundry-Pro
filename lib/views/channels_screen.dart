@@ -40,7 +40,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.t('notification_channels'))),
-      floatingActionButton: FloatingActionButton(onPressed: _addSms, child: const Icon(Icons.sms)),
+      floatingActionButton: FloatingActionButton(onPressed: _addSms, child: const Icon(PhosphorIcons.circle())),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -48,7 +48,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
               itemBuilder: (_, i) {
                 final c = _items[i];
                 return ListTile(
-                  leading: Icon(c['channel_type'] == 'whatsapp' ? Icons.chat : Icons.sms),
+                  leading: Icon(c['channel_type'] == 'whatsapp' ? PhosphorIcons.circle() : PhosphorIcons.circle()),
                   title: Text('${c['channel_type']} (${c['provider']})'),
                   trailing: Switch(value: (c['is_active'] ?? 0) == 1, onChanged: null),
                 );

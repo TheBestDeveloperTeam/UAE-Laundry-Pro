@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/payroll_service.dart';
 
@@ -82,7 +83,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('leave')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -100,15 +101,15 @@ class _LeaveScreenState extends State<LeaveScreen> {
                           ? Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                IconButton(icon: const Icon(Icons.check), onPressed: () => _approve(id)),
-                                IconButton(icon: const Icon(Icons.close), onPressed: () => _reject(id)),
+                                IconButton(icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()()), onPressed: () => _approve(id)),
+                                IconButton(icon: Icon(PhosphorPhosphorIcons.circle()()), onPressed: () => _reject(id)),
                               ],
                             )
                           : null,
                     );
                   },
                 ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(onPressed: _create, child: Icon(PhosphorPhosphorIcons.circle()())),
     );
   }
 }

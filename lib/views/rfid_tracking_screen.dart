@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/rfid_service.dart';
 
@@ -50,7 +51,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.sensors,
+              PhosphorPhosphorIcons.circle()(),
               size: 100,
               color: _isScanning ? Colors.blue : Colors.grey,
             ),

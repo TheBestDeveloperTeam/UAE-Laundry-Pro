@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
@@ -68,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Icon(
-                        Icons.local_laundry_service_rounded,
+                        PhosphorPhosphorIcons.circle()()_rounded,
                         size: 54,
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -102,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.wifi_off_rounded,
+                              Icon(PhosphorIcons.circle(),
                                   size: 20, color: Theme.of(context).colorScheme.error),
                               const SizedBox(width: 10),
                               Expanded(
@@ -121,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _usernameController,
                         decoration: InputDecoration(
                           labelText: l10n.t('username'),
-                          prefixIcon: const Icon(Icons.person_outline),
+                          prefixIcon: Icon(PhosphorPhosphorIcons.circle()()),
                         ),
                         validator: (value) =>
                             value == null || value.trim().isEmpty ? l10n.t('username') : null,
@@ -131,12 +132,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         decoration: InputDecoration(
                           labelText: l10n.t('password'),
-                          prefixIcon: const Icon(Icons.lock_outline),
+                          prefixIcon: const Icon(PhosphorPhosphorIcons.circle()()),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
+                                  ? PhosphorPhosphorIcons.circle()()
+                                  : PhosphorPhosphorIcons.circle()(),
                             ),
                             onPressed: () {
                               setState(() {
@@ -154,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         initialValue: localeProvider.locale,
                         decoration: InputDecoration(
                           labelText: l10n.t('language'),
-                          prefixIcon: const Icon(Icons.language_outlined),
+                          prefixIcon: const Icon(PhosphorPhosphorIcons.circle()()),
                         ),
                         items: [
                           DropdownMenuItem(value: 'en', child: Text(l10n.t('english'))),

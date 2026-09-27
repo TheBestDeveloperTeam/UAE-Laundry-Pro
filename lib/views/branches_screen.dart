@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/branch_model.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
@@ -41,7 +42,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.t('branches'))),
-      floatingActionButton: FloatingActionButton(onPressed: _add, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(onPressed: _add, child: Icon(PhosphorPhosphorIcons.circle()())),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
@@ -51,7 +52,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                   itemBuilder: (_, i) {
                     final b = _items[i];
                     return ListTile(
-                      leading: const Icon(Icons.store),
+                      leading: const Icon(PhosphorIcons.circle()),
                       title: Text(b.name ?? ''),
                       subtitle: Text(b.code ?? ''),
                     );

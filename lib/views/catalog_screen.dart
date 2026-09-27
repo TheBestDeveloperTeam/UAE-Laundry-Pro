@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/catalog_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
@@ -181,14 +182,14 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
                   controller: _searchController,
                   decoration: const InputDecoration(
                     labelText: 'Search...',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: Icon(PhosphorPhosphorIcons.circle()()),
                   ),
                 ),
               ),
               const Spacer(),
               FilledButton.icon(
                 onPressed: () => onAdd(),
-                icon: const Icon(Icons.add),
+                icon: Icon(PhosphorPhosphorIcons.circle()()),
                 label: Text('New $title'),
               ),
             ],

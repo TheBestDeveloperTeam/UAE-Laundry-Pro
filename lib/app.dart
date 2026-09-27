@@ -31,7 +31,7 @@ class _LaundryProAppState extends State<LaundryProApp> {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
+      theme: AppTheme.lightTheme,
       locale: Locale(localeProvider.locale),
       supportedLocales: const [
         Locale('en'),

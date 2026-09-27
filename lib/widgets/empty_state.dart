@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class EmptyState extends StatelessWidget {
   final String message;
@@ -9,7 +10,7 @@ class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
     required this.message,
-    this.icon = Icons.inbox_outlined,
+    this.icon = PhosphorPhosphorIcons.circle()(),
     this.onAction,
     this.actionLabel,
   });
@@ -35,7 +36,7 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: onAction,
-                icon: const Icon(Icons.add),
+                icon: Icon(PhosphorPhosphorIcons.circle()()),
                 label: Text(actionLabel!),
               ),
             ]

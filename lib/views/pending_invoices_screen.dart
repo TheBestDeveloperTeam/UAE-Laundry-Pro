@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
@@ -135,7 +136,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.t('pos_close'))),
               FilledButton.icon(
-                icon: const Icon(Icons.check_circle),
+                icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()Circle()),
                 onPressed: () => Navigator.pop(ctx, true),
                 label: Text(context.l10n.t('pos_pay')),
               ),
@@ -205,7 +206,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
             Text('Receipt Options — ${receipt.orderNo}', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.receipt_long),
+              leading: Icon(PhosphorPhosphorIcons.circle()()),
               title: const Text('View Thermal Receipt Preview'),
               subtitle: const Text('Text format with 5% VAT breakdown'),
               onTap: () {
@@ -229,7 +230,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
+              leading: Icon(PhosphorPhosphorIcons.circle()()),
               title: const Text('Generate & View A4 Tax Invoice'),
               subtitle: const Text('Compliant UAE VAT Tax Invoice format'),
               onTap: () async {
@@ -280,7 +281,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('pending_invoices')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
       ),
       body: Column(
         children: [
@@ -292,7 +293,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                   flex: 3,
                   child: TextField(
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: Icon(PhosphorPhosphorIcons.circle()()),
                       hintText: 'Search order #, customer name, phone...',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       isDense: true,
@@ -352,7 +353,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                             child: const Text('Pay'),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.more_vert),
+                            icon: const Icon(PhosphorIcons.circle()),
                             onPressed: () => _showReceiptOptions(order),
                           ),
                         ],

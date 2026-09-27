@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -481,13 +482,13 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
         Tooltip(
           message: 'Ctrl+P prints · Ctrl+L adds a line',
           child: IconButton(
-            icon: const Icon(Icons.keyboard),
+            icon: const Icon(PhosphorIcons.circle()),
             onPressed: () => _toast('Shortcuts: Ctrl+P print · Ctrl+L add line'),
           ),
         ),
         IconButton(
           tooltip: 'Refresh printers',
-          icon: const Icon(Icons.refresh),
+          icon: Icon(PhosphorPhosphorIcons.circle()()),
           onPressed: () => ref.invalidate(printersProvider),
         ),
       ],
@@ -512,12 +513,12 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                 ButtonSegment(
                   value: PrinterConnectionMode.spooler,
                   label: Text('Windows Spooler'),
-                  icon: Icon(Icons.devices_other),
+                  icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()()_other),
                 ),
                 ButtonSegment(
                   value: PrinterConnectionMode.tcp,
                   label: Text('Network TCP'),
-                  icon: Icon(Icons.lan),
+                  icon: Icon(PhosphorIcons.circle()),
                 ),
               ],
               selected: {mode},
@@ -596,7 +597,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                   const SizedBox(width: 8),
                   IconButton(
                     tooltip: 'Discover network printers',
-                    icon: const Icon(Icons.travel_explore),
+                    icon: const Icon(PhosphorIcons.circle()),
                     onPressed: _openNetworkScan,
                   ),
                 ],
@@ -762,7 +763,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
       child: ExpansionTile(
         title: const Row(
           children: [
-            Icon(Icons.translate, size: 18),
+            Icon(PhosphorIcons.circle(), size: 18),
             SizedBox(width: 6),
             Text(
               'Arabic / RTL Settings',
@@ -846,7 +847,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
-              icon: const Icon(Icons.science),
+              icon: const Icon(PhosphorIcons.circle()),
               label: const Text('Insert Arabic sample lines'),
               onPressed: () {
                 _replaceLines(<String>[
@@ -893,12 +894,12 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
               runSpacing: 8,
               children: [
                 FilledButton.tonalIcon(
-                  icon: const Icon(Icons.receipt_long),
+                  icon: Icon(PhosphorPhosphorIcons.circle()()),
                   label: const Text('Preview POS Receipt'),
                   onPressed: _previewPosSample,
                 ),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.edit_note),
+                  icon: Icon(PhosphorPhosphorIcons.circle()()_note),
                   label: const Text('Load into Editor'),
                   onPressed: _loadPosSampleLines,
                 ),
@@ -929,7 +930,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
           children: [
             const Row(
               children: [
-                Icon(Icons.bolt, size: 18),
+                Icon(PhosphorIcons.circle(), size: 18),
                 SizedBox(width: 6),
                 Text(
                   'Quick Commands',
@@ -946,13 +947,13 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
               runSpacing: 8,
               children: [
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.volume_up),
+                  icon: const Icon(PhosphorIcons.circle()),
                   label: const Text('Beep ×1'),
                   onPressed:
                       canSend ? () => send('Beep ×1', () => manager.buildBeep(times: 1)) : null,
                 ),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.notifications_active),
+                  icon: const Icon(PhosphorIcons.circle()),
                   label: const Text('Beep ×3'),
                   onPressed: canSend
                       ? () =>
@@ -960,19 +961,19 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                       : null,
                 ),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.arrow_downward),
+                  icon: const Icon(PhosphorIcons.circle()),
                   label: const Text('Feed 3 lines'),
                   onPressed:
                       canSend ? () => send('Feed 3', () => manager.buildFeed(3)) : null,
                 ),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.keyboard_double_arrow_down),
+                  icon: const Icon(PhosphorIcons.circle()),
                   label: const Text('Feed 9 lines'),
                   onPressed:
                       canSend ? () => send('Feed 9', () => manager.buildFeed(9)) : null,
                 ),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.content_cut),
+                  icon: const Icon(PhosphorIcons.circle()),
                   label: const Text('Cut ×1'),
                   onPressed: canSend
                       ? () => send(
@@ -982,7 +983,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                       : null,
                 ),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.cut),
+                  icon: const Icon(PhosphorIcons.circle()),
                   label: const Text('Cut ×3'),
                   onPressed: canSend
                       ? () => send(
@@ -1013,23 +1014,23 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
               ),
             ),
             TextButton.icon(
-              icon: const Icon(Icons.bookmark),
+              icon: const Icon(PhosphorIcons.circle()),
               label: const Text('Load'),
               onPressed: _loadTemplate,
             ),
             TextButton.icon(
-              icon: const Icon(Icons.save),
+              icon: const Icon(PhosphorIcons.circle()),
               label: const Text('Save'),
               onPressed: _saveAsTemplate,
             ),
             TextButton.icon(
-              icon: const Icon(Icons.add),
+              icon: Icon(PhosphorPhosphorIcons.circle()()),
               label: const Text('Add Line'),
               onPressed: () => _addLine(),
             ),
             if (_lineControllers.isNotEmpty)
               TextButton.icon(
-                icon: const Icon(Icons.clear_all),
+                icon: Icon(PhosphorPhosphorIcons.circle()()_all),
                 label: const Text('Clear'),
                 onPressed: _clearLines,
               ),
@@ -1067,7 +1068,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                     ),
                     IconButton(
                       tooltip: 'Remove line',
-                      icon: const Icon(Icons.remove_circle_outline),
+                      icon: Icon(PhosphorPhosphorIcons.circle()()),
                       onPressed: () => _removeLine(entry.key),
                     ),
                   ],
@@ -1088,27 +1089,27 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
       runSpacing: 8,
       children: [
         FilledButton.icon(
-          icon: const Icon(Icons.flash_on),
+          icon: const Icon(PhosphorIcons.circle()),
           label: const Text('Silent Print (Ctrl+P)'),
           onPressed: canPrint ? _print : null,
         ),
         FilledButton.tonalIcon(
-          icon: const Icon(Icons.preview),
+          icon: const Icon(PhosphorIcons.circle()),
           label: const Text('Preview & Print'),
           onPressed: canPrint ? _previewAndPrint : null,
         ),
         OutlinedButton.icon(
-          icon: const Icon(Icons.code),
+          icon: const Icon(PhosphorIcons.circle()),
           label: const Text('Preview Hex'),
           onPressed: _showHexPreview,
         ),
         OutlinedButton.icon(
-          icon: const Icon(Icons.playlist_add),
+          icon: const Icon(PhosphorIcons.circle()),
           label: const Text('Queue Job'),
           onPressed: canPrint ? _enqueue : null,
         ),
         OutlinedButton.icon(
-          icon: const Icon(Icons.cloud_upload_outlined),
+          icon: Icon(PhosphorPhosphorIcons.circle()()),
           label: const Text('Flush Queue'),
           onPressed: mode == PrinterConnectionMode.spooler &&
                   selectedPrinter != null
