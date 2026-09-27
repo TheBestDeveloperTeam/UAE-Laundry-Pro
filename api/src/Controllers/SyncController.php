@@ -88,7 +88,7 @@ class SyncController
 
         // Select items modified on cloud since cursor
         // For demonstration, we'll return empty. The actual implementation queries cloud DB.
-        
+
         $newCursor = date('Y-m-d H:i:s');
         $changes = [];
 

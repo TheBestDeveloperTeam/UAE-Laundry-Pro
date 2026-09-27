@@ -44,7 +44,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
           )
         ],
       ),
-      body: _isLoading 
+      body: _isLoading
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
             itemCount: _equipmentList.length,
@@ -64,4 +64,3 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
     );
   }
 }
-

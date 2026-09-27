@@ -44,8 +44,8 @@ class OrderModel {
           .map((item) => OrderItemModel.fromJson(item as Map<String, dynamic>))
           .toList(),
       createdAt: SafeParser.parseDateTime(json['created_at']),
-      completedAt: json['completed_at'] != null 
-          ? SafeParser.parseDateTime(json['completed_at']) 
+      completedAt: json['completed_at'] != null
+          ? SafeParser.parseDateTime(json['completed_at'])
           : null,
     );
   }

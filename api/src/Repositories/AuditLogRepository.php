@@ -38,7 +38,7 @@ final class AuditLogRepository
             $payload ?? 'null',
             microtime(true)
         ]);
-        
+
         $newHash = hash('sha256', $dataToHash);
 
         $stmt = $this->pdo->prepare(

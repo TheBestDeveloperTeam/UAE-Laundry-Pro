@@ -33,4 +33,3 @@ class SterilizationService {
     return res['data']['logs'] ?? [];
   }
 }
-

@@ -22,7 +22,7 @@ class SalesController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id'); // From AuthMiddleware
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -44,9 +44,9 @@ class SalesController
 
         try {
             $order = $this->repository->createOrder(
-                (int)$adminId, 
-                $data, 
-                $data['lines'], 
+                (int)$adminId,
+                $data,
+                $data['lines'],
                 $data['payments'] ?? [],
                 $userId ? (int)$userId : null
             );
@@ -99,7 +99,7 @@ class SalesController
         $adminId = $request->getAttribute('admin_id');
         $orderId = (int) ($args['id'] ?? 0);
         $data = $request->getBody();
-        
+
         $stmt = $this->db->prepare("UPDATE sales_orders SET payment_status = 'paid', status = 'closed' WHERE admin_id = ? AND id = ?");
         $stmt->execute([$adminId, $orderId]);
         $response->success(null, 'Payment posted');
@@ -111,7 +111,7 @@ class SalesController
         $orderId = (int) ($args['id'] ?? 0);
         $data = $request->getBody();
         $status = $data['status'] ?? 'pending';
-        
+
         $stmt = $this->db->prepare("UPDATE sales_orders SET status = ? WHERE admin_id = ? AND id = ?");
         $stmt->execute([$status, $adminId, $orderId]);
         $response->success(null, 'Status updated');

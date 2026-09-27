@@ -38,7 +38,7 @@ try {
         ['tender_type' => 'cash', 'amount' => '10.00'],
         ['tender_type' => 'card', 'amount' => '10.00']
     ]);
-    
+
     if ($order['grand_total'] === '20.00') {
         echo "PASS: Order created successfully with exact split payment.\n";
     } else {

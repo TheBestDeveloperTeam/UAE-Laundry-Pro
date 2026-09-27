@@ -6,14 +6,14 @@ use Exception;
 
 /**
  * Uuid
- * 
+ *
  * Utility for generating UUIDv4 strings.
  */
 class Uuid
 {
     /**
      * Generate a UUID version 4 (random).
-     * 
+     *
      * @return string
      * @throws Exception if an appropriate source of randomness cannot be found.
      */

@@ -17,7 +17,7 @@ class OrderNumberGenerator
     /**
      * Generate the next sequential order number without gaps.
      * Format: ORD-YYYY-NNNNNN
-     * 
+     *
      * Uses a table lock on a sequence table or a transaction to ensure no duplicates.
      */
     public function generateNext(): string

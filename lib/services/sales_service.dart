@@ -7,7 +7,7 @@ import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/models/service_model.dart';
 
 class SalesService {
-  SalesService({ApiClient? apiClient, AppDatabase? database}) 
+  SalesService({ApiClient? apiClient, AppDatabase? database})
       : _api = apiClient ?? ApiClient(),
         _database = database;
 
@@ -108,7 +108,7 @@ class SalesService {
     if (limit != null) params.add('limit=$limit');
     if (offset != null) params.add('offset=$offset');
     final q = params.isEmpty ? '' : '?${params.join('&')}';
-    
+
     try {
       final res = await _api.get('/sales$q');
       final list = res['data']?['orders'] as List? ?? [];

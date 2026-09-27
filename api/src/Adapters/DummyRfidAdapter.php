@@ -20,4 +20,3 @@ class DummyRfidAdapter implements HardwareAdapterInterface
     {
     }
 }
-

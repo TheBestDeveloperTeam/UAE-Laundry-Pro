@@ -89,13 +89,13 @@ try {
 
 } catch (\Exception $e) {
     echo "Sync failed: " . $e->getMessage() . "\n";
-    
+
     // Fallback mark everything as failed in this batch if there was a network error
     if (!empty($batch)) {
         foreach ($batch as $item) {
             $outboxRepo->markFailed((int)$item['id'], (int)$item['attempts'], $e->getMessage());
         }
     }
-    
+
     exit(1);
 }

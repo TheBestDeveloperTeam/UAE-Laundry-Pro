@@ -114,16 +114,16 @@ final class CloudApiController
     {
         $tenant = $this->authenticateTenant($request);
         $ownerId = (int) $tenant['id'];
-        
+
         $pdo = Database::connect();
         if ($pdo === null) {
             Response::json(['success' => false, 'code' => 'SERVICE_UNAVAILABLE'], 503);
         }
-        
+
         $stmt = $pdo->prepare('SELECT entity_type, COUNT(*) as sync_count, MAX(created_at) as last_sync FROM sync_records WHERE admin_id = ? GROUP BY entity_type');
         $stmt->execute([$ownerId]);
         $aggregations = $stmt->fetchAll() ?: [];
-        
+
         Response::json([
             'success' => true,
             'code' => 'REPORTS_AGGREGATION',
@@ -138,19 +138,19 @@ final class CloudApiController
     {
         $tenant = $this->authenticateTenant($request);
         $ownerId = (int) $tenant['id'];
-        
+
         if (!isset($_FILES['backup']) || $_FILES['backup']['error'] !== UPLOAD_ERR_OK) {
             Response::json(['success' => false, 'code' => 'UPLOAD_ERROR', 'message' => 'No valid backup file provided'], 400);
         }
-        
+
         $tmpPath = $_FILES['backup']['tmp_name'];
         $fileName = basename($_FILES['backup']['name']);
-        
+
         $backupDir = dirname(__DIR__, 2) . '/storage/backups/tenant_' . $ownerId;
         if (!is_dir($backupDir)) {
             mkdir($backupDir, 0775, true);
         }
-        
+
         $dest = $backupDir . '/' . time() . '_' . $fileName;
         if (move_uploaded_file($tmpPath, $dest)) {
             Response::json(['success' => true, 'code' => 'BACKUP_UPLOADED', 'data' => ['file' => $fileName]]);
@@ -213,7 +213,7 @@ final class CloudApiController
         if ($ownerId <= 0) {
             Response::json(['success' => false, 'code' => 'TENANT_REQUIRED', 'message' => 'Missing X-Business-Owner-Id header'], 401);
         }
-        
+
         if (empty($licenseKey)) {
             Response::json(['success' => false, 'code' => 'LICENSE_REQUIRED', 'message' => 'Missing X-License-Key header'], 401);
         }
@@ -233,19 +233,19 @@ final class CloudApiController
             if ($bearer === '' || !hash_equals((string) $tenant['cloud_token'], $bearer)) {
                 Response::json(['success' => false, 'code' => 'INVALID_TOKEN', 'message' => 'Invalid or expired cloud token'], 401);
             }
-            
+
             // Validate License
             $stmtLic = $pdo->prepare('SELECT * FROM cloud_licenses WHERE license_key = :key AND tenant_id = :id AND status = "active" LIMIT 1');
             $stmtLic->execute(['key' => $licenseKey, 'id' => $ownerId]);
             $license = $stmtLic->fetch();
-            
+
             if (!$license) {
                 Response::json(['success' => false, 'code' => 'INVALID_LICENSE', 'message' => 'Invalid or inactive license key'], 401);
             }
             if (!empty($license['expires_at']) && strtotime($license['expires_at']) < time()) {
                 Response::json(['success' => false, 'code' => 'LICENSE_EXPIRED', 'message' => 'License has expired'], 401);
             }
-            
+
             // Track and Enforce Branch/Device Limits via UMAC
             if (!empty($umac)) {
                 $chk = $pdo->prepare('SELECT id FROM cloud_telemetry WHERE tenant_id = ? AND umac = ? LIMIT 1');
@@ -257,17 +257,17 @@ final class CloudApiController
                     $ins = $pdo->prepare('INSERT INTO cloud_telemetry (tenant_id, umac, last_ping_at) VALUES (?, ?, NOW())');
                     $ins->execute([$ownerId, $umac]);
                 }
-                
+
                 $cnt = $pdo->prepare('SELECT COUNT(DISTINCT umac) FROM cloud_telemetry WHERE tenant_id = ?');
                 $cnt->execute([$ownerId]);
                 $devices = (int) $cnt->fetchColumn();
-                
+
                 $maxDevices = $license['plan_type'] === 'enterprise' ? 999 : ($license['plan_type'] === 'premium' ? 5 : 1);
                 if ($devices > $maxDevices) {
                     Response::json(['success' => false, 'code' => 'LICENSE_LIMIT_EXCEEDED', 'message' => "Device/branch limit exceeded. Max: $maxDevices"], 403);
                 }
             }
-            
+
             return $tenant;
         } catch (\Throwable $e) {
             Response::json(['success' => false, 'code' => 'AUTH_ERROR', 'message' => 'Database error'], 500);

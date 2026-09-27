@@ -32,8 +32,8 @@ class SyncEntryModel {
       payload: json['payload'] as String,
       createdAt: SafeParser.parseDateTime(json['created_at']),
       syncAttempts: SafeParser.parseInt(json['sync_attempts'], 0),
-      lastAttemptAt: json['last_attempt_at'] != null 
-          ? SafeParser.parseDateTime(json['last_attempt_at']) 
+      lastAttemptAt: json['last_attempt_at'] != null
+          ? SafeParser.parseDateTime(json['last_attempt_at'])
           : null,
       status: json['status'] as String? ?? 'pending',
     );

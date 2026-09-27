@@ -36,7 +36,7 @@ class DeliveryRepository
 
             $sql = "INSERT INTO delivery_tasks (uuid, admin_id, row_uuid, task_type, order_id, customer_id, driver_id, scheduled_date, scheduled_time_slot, address, latitude, longitude, notes)
                     VALUES (:uuid, :admin_id, :row_uuid, :task_type, :order_id, :customer_id, :driver_id, :scheduled_date, :scheduled_time_slot, :address, :latitude, :longitude, :notes)";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'uuid' => $taskUuid,
@@ -60,7 +60,7 @@ class DeliveryRepository
                 $lineSql = "INSERT INTO delivery_task_lines (uuid, admin_id, row_uuid, task_id, item_description, quantity)
                             VALUES (:uuid, :admin_id, :row_uuid, :task_id, :item_description, :quantity)";
                 $lineStmt = $this->db->prepare($lineSql);
-                
+
                 foreach ($lines as $line) {
                     $lineStmt->execute([
                         'uuid' => Uuid::v4(),

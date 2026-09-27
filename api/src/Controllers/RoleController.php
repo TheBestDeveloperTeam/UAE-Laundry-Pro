@@ -20,12 +20,12 @@ final class RoleController
   public function index(Request $request, Container $container): void
   {
     $roles = $this->roles->findAll();
-    
+
     // Parse permissions JSON for output
     foreach ($roles as &$role) {
       $role['permissions'] = json_decode($role['permissions'], true);
     }
-    
+
     $this->response->success($request, ['roles' => $roles], 'ROLES_FETCHED');
   }
 
@@ -89,4 +89,3 @@ final class RoleController
     }
   }
 }
-

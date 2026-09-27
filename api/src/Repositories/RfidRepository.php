@@ -15,12 +15,12 @@ class RfidRepository
     {
         // Mock implementation of mapping EPC tags to sales orders and updating their status
         // In a real system, there would be a mapping table like rfid_tag_mappings(epc, order_id)
-        
+
         $this->pdo->beginTransaction();
         try {
             // For MVP demonstration, any tags processed will transition all 'draft' or 'received' orders to 'processing'
             $stmt = $this->pdo->prepare("
-                UPDATE sales_orders 
+                UPDATE sales_orders
                 SET status = 'processing'
                 WHERE status IN ('draft', 'received')
             ");

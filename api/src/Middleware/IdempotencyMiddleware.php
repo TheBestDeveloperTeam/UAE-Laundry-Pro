@@ -19,7 +19,7 @@ final class IdempotencyMiddleware implements MiddlewareInterface
     public function process(Request $request, RequestHandler $handler): Response
     {
         $method = $request->getMethod();
-        
+
         // Idempotency applies mostly to POST and PATCH
         if (!in_array($method, ['POST', 'PATCH', 'PUT'])) {
             return $handler->handle($request);
@@ -52,10 +52,10 @@ final class IdempotencyMiddleware implements MiddlewareInterface
         // Only cache successful or intentional responses
         if ($responseCode >= 200 && $responseCode < 500) {
             $body = (string) $response->getBody();
-            
+
             $insert = $this->pdo->prepare('INSERT INTO idempotency_keys (id_key, response_code, response_body, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())');
             $insert->execute([$idempotencyKey, $responseCode, $body]);
-            
+
             // Rewind body so it can be sent to client
             $response->getBody()->rewind();
         }

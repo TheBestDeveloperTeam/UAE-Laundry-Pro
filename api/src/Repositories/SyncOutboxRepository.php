@@ -20,7 +20,7 @@ class SyncOutboxRepository
     {
         $sql = "INSERT INTO sync_outbox (uuid, admin_id, terminal_id, entity_type, entity_id, operation, payload, next_retry_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             Uuid::v4(),
@@ -38,15 +38,15 @@ class SyncOutboxRepository
      */
     public function getPendingBatch(int $limit = 100): array
     {
-        $sql = "SELECT * FROM sync_outbox 
-                WHERE status IN ('pending', 'failed') 
+        $sql = "SELECT * FROM sync_outbox
+                WHERE status IN ('pending', 'failed')
                   AND (next_retry_at IS NULL OR next_retry_at <= NOW())
-                ORDER BY created_at ASC 
+                ORDER BY created_at ASC
                 LIMIT ?";
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(1, $limit, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

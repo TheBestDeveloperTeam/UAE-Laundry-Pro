@@ -22,7 +22,7 @@ class NotificationController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId || !$userId) {
             $response->error(401, 'Unauthorized');
             return;
@@ -43,9 +43,9 @@ class NotificationController
 
         try {
             $this->repository->registerFcmToken(
-                (int)$adminId, 
-                (int)$userId, 
-                $data['device_id'], 
+                (int)$adminId,
+                (int)$userId,
+                $data['device_id'],
                 $data['fcm_token']
             );
             $response->success(null, 'FCM token registered successfully');

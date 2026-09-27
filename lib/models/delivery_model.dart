@@ -29,8 +29,8 @@ class DeliveryModel {
       driverId: SafeParser.parseInt(json['driver_id']),
       status: json['status'] as String,
       address: json['address'] as String?,
-      deliveryDate: json['delivery_date'] != null 
-          ? SafeParser.parseDateTime(json['delivery_date']) 
+      deliveryDate: json['delivery_date'] != null
+          ? SafeParser.parseDateTime(json['delivery_date'])
           : null,
       createdAt: SafeParser.parseDateTime(json['created_at']),
     );

@@ -52,11 +52,11 @@ final class UserRepository
   public function incrementFailedAttempts(int $userId, int $maxAttempts, int $lockoutMinutes): void
   {
     $stmt = $this->pdo->prepare(
-      'UPDATE users SET 
+      'UPDATE users SET
         failed_attempts = failed_attempts + 1,
-        locked_until = CASE 
+        locked_until = CASE
           WHEN failed_attempts + 1 >= :max THEN DATE_ADD(UTC_TIMESTAMP(), INTERVAL :mins MINUTE)
-          ELSE locked_until 
+          ELSE locked_until
         END
        WHERE id = :id'
     );

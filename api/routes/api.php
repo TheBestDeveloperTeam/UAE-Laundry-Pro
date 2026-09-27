@@ -799,7 +799,7 @@ function register_api_routes(Router $router): void
     'tag' => 'Advanced Cycles', 'summary' => 'Record process log', 'permission' => 'advanced.cycle.run',
     'responses' => ['201' => 'LOG_RECORDED', '422' => 'VALIDATION_ERROR'],
   ]);
-  
+
   $router->post("/api/v1/sterilization/batch", [SterilizationController::class, "batchCreate"], $audit, [
     "tag" => "Sterilization", "summary" => "Create batch", "permission" => "advanced.cycle.run",
     "responses" => ["201" => "BATCH_CREATED"]

@@ -7,7 +7,7 @@ use PDO;
 
 /**
  * Validator
- * 
+ *
  * Simple rule-based request validator.
  * Rules supported: required, string, numeric, int, array, boolean, min:X, max:X, enum:A,B,C, regex:pattern
  */
@@ -26,7 +26,7 @@ class Validator
     /**
      * Validate data against rules.
      * Example: ['name' => 'required|string|max:255', 'age' => 'numeric|min:18']
-     * 
+     *
      * @param array $rules
      * @return bool
      */
@@ -115,8 +115,8 @@ class Validator
                     $sql .= " AND id != ?";
                     $bindings[] = $ignoreId;
                 }
-                
-                // If the context requires tenant isolation, the caller should ensure it's handled 
+
+                // If the context requires tenant isolation, the caller should ensure it's handled
                 // typically by passing admin_id to the rule like unique:users,email,null,123
                 if (count($params) >= 5) {
                    $sql .= " AND `{$adminIdColumn}` = ?";

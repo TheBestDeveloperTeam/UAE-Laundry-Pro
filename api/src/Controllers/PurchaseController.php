@@ -22,7 +22,7 @@ class PurchaseController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -43,9 +43,9 @@ class PurchaseController
 
         try {
             $po = $this->repository->createPO(
-                (int)$adminId, 
-                $data, 
-                $data['lines'], 
+                (int)$adminId,
+                $data,
+                $data['lines'],
                 $userId ? (int)$userId : null
             );
             $response->success($po, 'Purchase order created successfully', null, 201);
@@ -58,7 +58,7 @@ class PurchaseController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -79,9 +79,9 @@ class PurchaseController
 
         try {
             $status = $this->repository->receivePO(
-                (int)$adminId, 
-                $poId, 
-                $data['lines'], 
+                (int)$adminId,
+                $poId,
+                $data['lines'],
                 $userId ? (int)$userId : null
             );
             $response->success($status, 'Purchase order received successfully');

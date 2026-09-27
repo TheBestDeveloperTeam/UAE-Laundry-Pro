@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static const String baseUrl = 'http://localhost:8080';
-  
+
   final http.Client _client = http.Client();
 
   Future<Map<String, String>> _getHeaders() async {

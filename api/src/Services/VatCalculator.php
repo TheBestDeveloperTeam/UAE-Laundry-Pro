@@ -8,7 +8,7 @@ class VatCalculator
 
     /**
      * Calculate VAT from a net amount.
-     * 
+     *
      * @param string|float $netAmount The net amount before VAT
      * @return string The VAT amount (rounded to 2 decimal places, half up)
      */
@@ -16,14 +16,14 @@ class VatCalculator
     {
         $amount = is_float($netAmount) ? number_format($netAmount, 4, '.', '') : $netAmount;
         $vat = bcmul((string)$amount, self::VAT_RATE, 4);
-        
+
         // Round half up to 2 decimal places
         return self::roundHalfUp($vat, 2);
     }
 
     /**
      * Calculate VAT from a gross amount (amount including VAT).
-     * 
+     *
      * @param string|float $grossAmount The gross amount
      * @return string The VAT portion of the gross amount
      */
@@ -34,7 +34,7 @@ class VatCalculator
         // 0.05 / 1.05 = 0.047619047...
         $rateFraction = bcdiv(self::VAT_RATE, bcadd('1', self::VAT_RATE, 4), 6);
         $vat = bcmul((string)$amount, $rateFraction, 4);
-        
+
         return self::roundHalfUp($vat, 2);
     }
 
@@ -43,14 +43,14 @@ class VatCalculator
         // Pure bcmath rounding implementation
         $factor = '0.' . str_repeat('0', $precision) . '5';
         $valueStr = (string)$value;
-        
+
         // Handle negative numbers
         if (str_starts_with($valueStr, '-')) {
             $added = bcsub($valueStr, $factor, $precision + 1);
         } else {
             $added = bcadd($valueStr, $factor, $precision + 1);
         }
-        
+
         // Truncate to desired precision
         return bcadd($added, '0', $precision);
     }

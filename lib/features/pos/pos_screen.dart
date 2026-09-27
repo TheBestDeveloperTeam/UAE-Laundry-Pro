@@ -78,7 +78,7 @@ class _PosScreenState extends State<PosScreen> {
               ),
             ),
           ),
-          
+
           // Right: Cart / Checkout
           Expanded(
             flex: 1,

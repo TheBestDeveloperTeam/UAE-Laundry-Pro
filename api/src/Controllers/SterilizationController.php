@@ -23,13 +23,13 @@ final class SterilizationController
             $this->response->error($request, "Missing required fields", 422, "VALIDATION_ERROR");
             return;
         }
-        
+
         $id = $this->repository->createBatchLot(
             $data["lot_number"],
             $data["expiry_date"],
             (int) $data["origin_sales_order_id"]
         );
-        
+
         $this->response->success($request, ["id" => $id], "BATCH_CREATED", "sterilization.batch_created", 201);
     }
 
@@ -96,4 +96,3 @@ final class SterilizationController
         $this->response->success($request, ["logs" => $logs], "LOGS_LIST", "sterilization.logs_list", 200);
     }
 }
-

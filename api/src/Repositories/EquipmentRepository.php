@@ -44,7 +44,7 @@ class EquipmentRepository
 
             // Update equipment last and next dates
             $update = $this->pdo->prepare('
-                UPDATE equipment 
+                UPDATE equipment
                 SET last_calibration_date = :last_date, next_calibration_due = :next_date, out_of_service = 0
                 WHERE id = :eq_id
             ');

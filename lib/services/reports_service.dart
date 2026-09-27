@@ -22,12 +22,12 @@ class ReportsService {
     final now = DateTime.now().toUtc();
     final fromDate = from ?? now.subtract(const Duration(days: 30)).toIso8601String().split('T').first;
     final toDate = to ?? now.toIso8601String().split('T').first;
-    
+
     var url = '/reports/sales/summary?from=$fromDate&to=$toDate';
     if (branchId != null) url += '&branch_id=$branchId';
     if (userId != null) url += '&user_id=$userId';
     if (customerId != null) url += '&customer_id=$customerId';
-    
+
     final res = await _api.get(url);
     final data = Map<String, dynamic>.from(res['data'] as Map? ?? {});
     final summary = Map<String, dynamic>.from(data['summary'] as Map? ?? {});

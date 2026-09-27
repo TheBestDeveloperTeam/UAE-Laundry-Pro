@@ -14,7 +14,7 @@ class Formatters {
     final formatter = DateFormat('dd/MM/yyyy');
     return formatter.format(date);
   }
-  
+
   /// Formats Date and Time as DD/MM/YYYY HH:mm
   static String dateTime(DateTime date) {
     final formatter = DateFormat('dd/MM/yyyy HH:mm');

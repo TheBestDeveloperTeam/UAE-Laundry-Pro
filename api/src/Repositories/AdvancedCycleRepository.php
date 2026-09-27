@@ -49,7 +49,7 @@ final class AdvancedCycleRepository
       'pr' => $presetId,
       'so' => $saleOrderId
     ]);
-    
+
     $id = (int) $this->pdo->lastInsertId();
     $this->outbox->enqueue($businessOwnerId, 'advanced_cycle_run', $id, 'create', ['status' => 'running']);
     return $id;
@@ -59,7 +59,7 @@ final class AdvancedCycleRepository
   {
     $stmt = $this->pdo->prepare('UPDATE advanced_cycle_runs SET status = "completed", completed_at = UTC_TIMESTAMP() WHERE id = :id AND status = "running"');
     $stmt->execute(['id' => $cycleRunId]);
-    
+
     if ($stmt->rowCount() > 0) {
       $this->outbox->enqueue($businessOwnerId, 'advanced_cycle_run', $cycleRunId, 'update', ['status' => 'completed']);
     }
@@ -85,16 +85,16 @@ final class AdvancedCycleRepository
       'rv' => $readingValue,
       'pf' => $passFail ? 1 : 0
     ]);
-    
+
     $logId = (int) $this->pdo->lastInsertId();
     $this->outbox->enqueue($businessOwnerId, 'process_log', $logId, 'create', []);
-    
+
     if (!$passFail) {
       // Transition to exception
       $this->pdo->prepare('UPDATE advanced_cycle_runs SET status = "exception" WHERE id = :id AND status = "running"')->execute(['id' => $cycleRunId]);
       $this->outbox->enqueue($businessOwnerId, 'advanced_cycle_run', $cycleRunId, 'update', ['status' => 'exception']);
     }
-    
+
     return $logId;
   }
 }

@@ -24,7 +24,7 @@ class ProductRepository
         if ($activeOnly) {
             $sql .= " AND p.is_active = 1";
         }
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['admin_id' => $adminId]);
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -36,11 +36,11 @@ class ProductRepository
         // Fetch details (EAV)
         $productIds = array_column($products, 'id');
         $placeholders = str_repeat('?,', count($productIds) - 1) . '?';
-        
-        $detailSql = "SELECT product_id, field_key, field_value 
-                      FROM product_details 
+
+        $detailSql = "SELECT product_id, field_key, field_value
+                      FROM product_details
                       WHERE admin_id = ? AND product_id IN ($placeholders)";
-                      
+
         $detailStmt = $this->db->prepare($detailSql);
         $params = array_merge([$adminId], $productIds);
         $detailStmt->execute($params);
@@ -76,7 +76,7 @@ class ProductRepository
 
             $sql = "INSERT INTO products (uuid, admin_id, row_uuid, category_id, name, default_rate, stock_class, is_active)
                     VALUES (:uuid, :admin_id, :row_uuid, :category_id, :name, :default_rate, :stock_class, :is_active)";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'uuid' => $uuid,

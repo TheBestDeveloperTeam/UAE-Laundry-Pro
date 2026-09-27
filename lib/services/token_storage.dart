@@ -30,9 +30,9 @@ class TokenStorage {
   Future<String?> readAccessToken() => _storage.read(key: _accessTokenKey);
 
   Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
-  
+
   Future<String?> readCloudToken() => _storage.read(key: _cloudTokenKey);
-  
+
   Future<String?> readTenantId() => _storage.read(key: _tenantIdKey);
 
   Future<void> clear() async {

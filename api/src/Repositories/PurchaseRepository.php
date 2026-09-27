@@ -30,7 +30,7 @@ class PurchaseRepository
 
             $poUuid = Uuid::v4();
             $rowUuid = Uuid::v4();
-            
+
             $vendorId = (int)$poData['vendor_id'];
             $branchId = $poData['branch_id'] ?? null;
             $status = $poData['status'] ?? 'draft';
@@ -43,15 +43,15 @@ class PurchaseRepository
                 $qty = new Money((string)$line['quantity_ordered']);
                 $unitPrice = new Money((string)$line['unit_price']);
                 $taxRate = new Money((string)($line['tax_rate'] ?? '0.00'));
-                
+
                 $lineSubtotal = $unitPrice->multiply($qty->getAmount());
                 $taxFraction = $taxRate->divide('100');
                 $lineTax = $lineSubtotal->multiply($taxFraction->getAmount());
                 $lineTotal = $lineSubtotal->add($lineTax);
-                
+
                 $subtotal = $subtotal->add($lineSubtotal);
                 $taxTotal = $taxTotal->add($lineTax);
-                
+
                 $processedLines[] = [
                     'uuid' => Uuid::v4(),
                     'row_uuid' => Uuid::v4(),
@@ -71,7 +71,7 @@ class PurchaseRepository
 
             $sql = "INSERT INTO purchase_orders (uuid, admin_id, row_uuid, po_number, vendor_id, branch_id, status, subtotal, tax_total, grand_total, notes, created_by_user_id)
                     VALUES (:uuid, :admin_id, :row_uuid, :po_number, :vendor_id, :branch_id, :status, :subtotal, :tax_total, :grand_total, :notes, :user_id)";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'uuid' => $poUuid,
@@ -93,7 +93,7 @@ class PurchaseRepository
             $lineSql = "INSERT INTO purchase_order_lines (uuid, admin_id, row_uuid, po_id, product_id, item_name, quantity_ordered, unit_price, tax_rate, line_subtotal, line_tax, line_total)
                         VALUES (:uuid, :admin_id, :row_uuid, :po_id, :product_id, :item_name, :quantity_ordered, :unit_price, :tax_rate, :line_subtotal, :line_tax, :line_total)";
             $lineStmt = $this->db->prepare($lineSql);
-            
+
             foreach ($processedLines as $pl) {
                 $pl['po_id'] = $poId;
                 $pl['admin_id'] = $adminId;
@@ -142,7 +142,7 @@ class PurchaseRepository
             foreach ($receivedLines as $line) {
                 $polId = (int)$line['pol_id'];
                 $qtyReceived = (float)$line['quantity_received'];
-                
+
                 // Get PO line
                 $lineStmt = $this->db->prepare("SELECT product_id FROM purchase_order_lines WHERE id = ? AND po_id = ?");
                 $lineStmt->execute([$polId, $poId]);

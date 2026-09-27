@@ -13,4 +13,3 @@ class RfidService {
     return res['data'] ?? {};
   }
 }
-

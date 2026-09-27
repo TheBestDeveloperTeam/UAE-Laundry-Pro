@@ -9,4 +9,3 @@ const String kCloudApiBaseUrl = String.fromEnvironment(
 );
 
 const String kDefaultLocale = 'en';
-

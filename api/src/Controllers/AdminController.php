@@ -29,11 +29,11 @@ class AdminController
         $stmtSync = $this->db->prepare("SELECT COUNT(*) FROM sync_outbox WHERE admin_id = ? AND status = 'pending'");
         $stmtSync->execute([$adminId]);
         $pendingSync = (int) $stmtSync->fetchColumn();
-        
+
         $stmtTotalSync = $this->db->prepare("SELECT COUNT(*) FROM sync_outbox WHERE admin_id = ?");
         $stmtTotalSync->execute([$adminId]);
         $totalSync = (int) $stmtTotalSync->fetchColumn();
-        
+
         $syncStatus = 100;
         if ($totalSync > 0) {
             $synced = $totalSync - $pendingSync;

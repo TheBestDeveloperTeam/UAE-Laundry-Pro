@@ -31,7 +31,7 @@ class BluetoothPrinterEngine {
       if (!connected) {
         throw Exception('Failed to connect to bluetooth printer at $macAddress');
       }
-      
+
       final bool result = await PrintBluetoothThermal.writeBytes(payload);
       if (!result) {
         throw Exception('Failed to write bytes to bluetooth printer');

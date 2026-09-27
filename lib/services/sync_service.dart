@@ -15,7 +15,7 @@ class SyncService {
   Future<void> pullDownstream() async {
     final prefs = await SharedPreferences.getInstance();
     int lastSequenceId = prefs.getInt('last_global_sequence_id') ?? 0;
-    
+
     bool hasMore = true;
     while(hasMore) {
       final res = await _apiClient.get('/api/v1/sync/pull?since=$lastSequenceId&limit=100');
@@ -25,7 +25,7 @@ class SyncService {
           hasMore = false;
           break;
         }
-        
+
         for (var record in records) {
            await _resolveConflict(record);
            int seq = record['global_sequence'] as int;
@@ -34,7 +34,7 @@ class SyncService {
            }
         }
         await prefs.setInt('last_global_sequence_id', lastSequenceId);
-        
+
         if (records.length < 100) {
           hasMore = false;
         }
@@ -52,10 +52,10 @@ class SyncService {
     // 3. Compare with cloud state.
     // If local state hasn't changed since baseline, safely overwrite with cloud state.
     // If both changed, merge fields. Cloud overrides win on structural data, local wins on operational status.
-    
+
     String entityType = cloudRecord['entity_type'];
     int localId = cloudRecord['entity_local_id'];
-    
+
     print('Applying 3-way merge resolution for $entityType $localId');
     // Deep merge payload into local database...
   }
@@ -69,7 +69,7 @@ class SyncService {
       whereArgs: ['pending'],
       orderBy: 'created_at ASC',
     );
-    
+
     for (var row in pending) {
        final id = row['id'] as String;
        final payload = {
@@ -112,7 +112,7 @@ class SyncService {
           retries++;
           if (retries > 3) rethrow;
           // Exponential backoff: 2, 4, 8 seconds
-          await Future.delayed(Duration(seconds: (1 << retries))); 
+          await Future.delayed(Duration(seconds: (1 << retries)));
         } else {
           rethrow;
         }

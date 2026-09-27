@@ -17,4 +17,3 @@ class OperatorService {
     await _api.post('/operators/\/certify', data: data);
   }
 }
-

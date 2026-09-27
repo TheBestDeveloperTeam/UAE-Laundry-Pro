@@ -27,11 +27,11 @@ class AttendanceModel {
       uuid: json['uuid'] as String,
       employeeId: SafeParser.parseInt(json['employee_id']),
       date: SafeParser.parseDateTime(json['date']),
-      checkInTime: json['check_in_time'] != null 
-          ? SafeParser.parseDateTime(json['check_in_time']) 
+      checkInTime: json['check_in_time'] != null
+          ? SafeParser.parseDateTime(json['check_in_time'])
           : null,
-      checkOutTime: json['check_out_time'] != null 
-          ? SafeParser.parseDateTime(json['check_out_time']) 
+      checkOutTime: json['check_out_time'] != null
+          ? SafeParser.parseDateTime(json['check_out_time'])
           : null,
       status: json['status'] as String,
       createdAt: SafeParser.parseDateTime(json['created_at']),

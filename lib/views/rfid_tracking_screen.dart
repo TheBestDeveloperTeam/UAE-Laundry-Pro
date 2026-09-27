@@ -68,4 +68,3 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
     );
   }
 }
-

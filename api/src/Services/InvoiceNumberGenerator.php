@@ -17,7 +17,7 @@ class InvoiceNumberGenerator
     /**
      * Generate the next sequential invoice number without gaps.
      * Format: INV-YYYY-NNNNNN
-     * 
+     *
      * Uses a table lock on a sequence table or a transaction to ensure no duplicates.
      */
     public function generateNext(): string

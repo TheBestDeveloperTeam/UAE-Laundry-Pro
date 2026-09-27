@@ -17,7 +17,7 @@ class NotificationRepository
     {
         $sql = "INSERT INTO notifications (uuid, admin_id, row_uuid, user_id, title, body, type, related_entity_type, related_entity_id)
                 VALUES (:uuid, :admin_id, :row_uuid, :user_id, :title, :body, :type, :related_entity_type, :related_entity_id)";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             'uuid' => Uuid::v4(),

@@ -80,7 +80,7 @@ class InventoryRepository
             $movementUuid = Uuid::v4();
             $rowUuid = Uuid::v4();
             $logStmt = $this->db->prepare(
-                "INSERT INTO inventory_movements (uuid, admin_id, row_uuid, product_id, branch_id, movement_type, quantity_change, balance_after, reference_type, reference_id, notes, created_by_user_id) 
+                "INSERT INTO inventory_movements (uuid, admin_id, row_uuid, product_id, branch_id, movement_type, quantity_change, balance_after, reference_type, reference_id, notes, created_by_user_id)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             $logStmt->execute([

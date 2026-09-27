@@ -52,7 +52,7 @@ class ChallanRepository
 
             $sql = "INSERT INTO challans (uuid, admin_id, row_uuid, challan_number, source_branch_id, destination_branch_id, status, notes)
                     VALUES (:uuid, :admin_id, :row_uuid, :challan_number, :source_branch_id, :destination_branch_id, :status, :notes)";
-            
+
             $insertStmt = $this->db->prepare($sql);
             $insertStmt->execute([
                 'uuid' => $challanUuid,

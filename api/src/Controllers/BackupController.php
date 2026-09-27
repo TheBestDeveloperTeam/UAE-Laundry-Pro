@@ -20,22 +20,22 @@ final class BackupController
   public function run(Request $request, Container $container): void
   {
     $userId = (int) $container->get('auth.user_id');
-    
+
     $backupDir = 'C:\\LaundryPro\\backups';
     if (!is_dir($backupDir)) {
       @mkdir($backupDir, 0777, true);
     }
-    
+
     $timestamp = gmdate('Ymd_His');
     $dbFile = $backupDir . '\\db_' . $timestamp . '.sql';
     $zipFile = $backupDir . '\\db_' . $timestamp . '.zip';
-    
+
     // Config values
     $user = $_ENV['DB_USER'] ?? 'root';
     $pass = $_ENV['DB_PASS'] ?? '';
     $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
     $db   = $_ENV['DB_NAME'] ?? 'laundrypro';
-    
+
     $mysqldump = file_exists('E:\\xampp\\mysql\\bin\\mysqldump.exe') ? 'E:\\xampp\\mysql\\bin\\mysqldump.exe' : 'mysqldump';
     $cmd = sprintf('"%s" -h %s -u %s %s %s > %s',
         $mysqldump,
@@ -45,18 +45,18 @@ final class BackupController
         escapeshellarg($db),
         escapeshellarg($dbFile)
     );
-    
+
     exec($cmd, $output, $resultCode);
-    
+
     if ($resultCode !== 0) {
       $this->response->error($request, 'BACKUP_FAILED', 'backup.failed', 500);
       return;
     }
-    
+
     $zip = new \ZipArchive();
     if ($zip->open($zipFile, \ZipArchive::CREATE) === true) {
       $zip->addFile($dbFile, basename($dbFile));
-      
+
       // Manifest
       $manifest = json_encode([
         'schema_version' => '1.0',
@@ -66,9 +66,9 @@ final class BackupController
       $zip->addFromString('backup_manifest.json', (string) $manifest);
       $zip->close();
     }
-    
+
     @unlink($dbFile);
-    
+
     $this->audit->log($userId, 'backup.run', 'backup', null, json_encode(['message' => 'Manual backup triggered']));
     $this->response->success($request, ['file' => basename($zipFile), 'size' => filesize($zipFile), 'path' => $zipFile], 'BACKUP_CREATED', 'backup.created');
   }
@@ -109,7 +109,7 @@ final class BackupController
     $userId = (int) $container->get('auth.user_id');
     $data = $request->getBody();
     $file = $data['file'] ?? '';
-    
+
     if ($file === '') {
       $this->response->error($request, 'MISSING_FILE', 'backup.missing_file', 400);
       return;
@@ -117,7 +117,7 @@ final class BackupController
 
     $backupDir = 'C:\\LaundryPro\\backups';
     $zipPath = $backupDir . '\\' . basename($file);
-    
+
     if (!file_exists($zipPath)) {
       $this->response->error($request, 'FILE_NOT_FOUND', 'backup.file_not_found', 404);
       return;

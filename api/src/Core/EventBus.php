@@ -4,7 +4,7 @@ namespace LaundryPro\Api\Core;
 
 /**
  * EventBus
- * 
+ *
  * A lightweight, synchronous, in-process event bus for decoupling cross-service logic.
  * E.g., Order created -> trigger notification logic without hardcoding dependencies.
  */
@@ -14,7 +14,7 @@ class EventBus
 
     /**
      * Subscribe to an event.
-     * 
+     *
      * @param string $eventName
      * @param callable $callback
      */
@@ -28,7 +28,7 @@ class EventBus
 
     /**
      * Publish an event synchronously to all registered listeners.
-     * 
+     *
      * @param string $eventName
      * @param mixed $payload
      */

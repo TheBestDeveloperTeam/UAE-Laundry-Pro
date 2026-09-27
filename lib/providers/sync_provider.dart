@@ -10,7 +10,7 @@ class SyncProvider extends ChangeNotifier {
   bool _isSyncing = false;
   int _pendingCount = 0;
   bool _enabled = false;
-  
+
   SyncProvider(this._api, [this._syncService]) {
     _startPolling();
   }
@@ -31,7 +31,7 @@ class SyncProvider extends ChangeNotifier {
       if (data != null) {
         _enabled = data['enabled'] == true;
         _pendingCount = data['pending_count'] ?? 0;
-        
+
         // If there are pending changes, we can trigger a silent push
         if (_enabled && _pendingCount > 0 && !_isSyncing) {
           _silentPush();
@@ -54,7 +54,7 @@ class SyncProvider extends ChangeNotifier {
       } else {
          await _api.post('/sync/push', body: {});
       }
-      
+
       // Refresh status after push
       final res = await _api.get('/sync/status');
       final data = res['data'] as Map<String, dynamic>?;

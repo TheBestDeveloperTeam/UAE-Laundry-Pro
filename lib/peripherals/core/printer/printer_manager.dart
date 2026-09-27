@@ -331,4 +331,3 @@ class PrinterManager {
     return builder.buildPreviewLines();
   }
 }
-

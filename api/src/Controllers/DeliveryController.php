@@ -43,8 +43,8 @@ class DeliveryController
 
         try {
             $task = $this->repository->scheduleTask(
-                (int)$adminId, 
-                $data, 
+                (int)$adminId,
+                $data,
                 $data['lines'] ?? []
             );
             $response->success($task, 'Task scheduled successfully', null, 201);
@@ -65,7 +65,7 @@ class DeliveryController
 
         $taskId = (int) ($args['id'] ?? 0);
         $data = $request->getBody();
-        
+
         $status = $data['status'] ?? null;
         if (!$status) {
             $response->error(400, 'Status is required');
@@ -74,8 +74,8 @@ class DeliveryController
 
         try {
             $this->repository->updateStatus(
-                (int)$adminId, 
-                $taskId, 
+                (int)$adminId,
+                $taskId,
                 $status,
                 $data['failure_reason'] ?? null
             );

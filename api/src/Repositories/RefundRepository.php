@@ -30,7 +30,7 @@ class RefundRepository
 
             $memoUuid = Uuid::v4();
             $rowUuid = Uuid::v4();
-            
+
             $refOrderId = (int) $memoData['ref_order_id'];
 
             // Validate order exists and belongs to admin
@@ -59,17 +59,17 @@ class RefundRepository
                 $qty = new Money((string)$line['quantity_refunded']);
                 $unitPrice = new Money((string)$line['unit_price']);
                 $taxRate = new Money((string)($line['tax_rate'] ?? '0.00'));
-                
+
                 $lineSubtotal = $unitPrice->multiply($qty->getAmount());
                 $taxFraction = $taxRate->divide('100');
                 $lineTax = $lineSubtotal->multiply($taxFraction->getAmount());
                 $lineTotal = $lineSubtotal->add($lineTax);
-                
+
                 $subtotal = $subtotal->add($lineSubtotal);
                 $taxTotal = $taxTotal->add($lineTax);
-                
+
                 $returnToStock = isset($line['return_to_stock']) && $line['return_to_stock'] ? 1 : 0;
-                
+
                 $processedLines[] = [
                     'uuid' => Uuid::v4(),
                     'row_uuid' => Uuid::v4(),
@@ -107,7 +107,7 @@ class RefundRepository
 
             $sql = "INSERT INTO credit_memos (uuid, admin_id, row_uuid, memo_number, ref_order_id, consumer_id, branch_id, status, subtotal, tax_total, grand_total, reason, created_by_user_id)
                     VALUES (:uuid, :admin_id, :row_uuid, :memo_number, :ref_order_id, :consumer_id, :branch_id, :status, :subtotal, :tax_total, :grand_total, :reason, :user_id)";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'uuid' => $memoUuid,
@@ -130,7 +130,7 @@ class RefundRepository
             $lineSql = "INSERT INTO credit_memo_lines (uuid, admin_id, row_uuid, memo_id, ref_order_line_id, product_id, item_name, quantity_refunded, unit_price, tax_rate, line_subtotal, line_tax, line_total, return_to_stock)
                         VALUES (:uuid, :admin_id, :row_uuid, :memo_id, :ref_order_line_id, :product_id, :item_name, :quantity_refunded, :unit_price, :tax_rate, :line_subtotal, :line_tax, :line_total, :return_to_stock)";
             $lineStmt = $this->db->prepare($lineSql);
-            
+
             foreach ($processedLines as $pl) {
                 $pl['memo_id'] = $memoId;
                 $pl['admin_id'] = $adminId;

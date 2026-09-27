@@ -22,7 +22,7 @@ class ChallanController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -44,9 +44,9 @@ class ChallanController
 
         try {
             $challan = $this->repository->createDraft(
-                (int)$adminId, 
-                $data, 
-                $data['order_ids'], 
+                (int)$adminId,
+                $data,
+                $data['order_ids'],
                 $userId ? (int)$userId : null
             );
             $response->success($challan, 'Challan created successfully', null, 201);
@@ -61,7 +61,7 @@ class ChallanController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -71,8 +71,8 @@ class ChallanController
 
         try {
             $this->repository->dispatch(
-                (int)$adminId, 
-                $challanId, 
+                (int)$adminId,
+                $challanId,
                 $userId ? (int)$userId : null
             );
             $response->success(null, 'Challan dispatched successfully');
@@ -87,7 +87,7 @@ class ChallanController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -97,8 +97,8 @@ class ChallanController
 
         try {
             $this->repository->receive(
-                (int)$adminId, 
-                $challanId, 
+                (int)$adminId,
+                $challanId,
                 $userId ? (int)$userId : null
             );
             $response->success(null, 'Challan received successfully');

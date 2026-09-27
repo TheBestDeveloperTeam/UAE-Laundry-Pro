@@ -28,7 +28,7 @@ class HrRepository
 
             $sql = "INSERT INTO employees (uuid, admin_id, row_uuid, first_name, last_name, email, phone, dob, id_passport_number, visa_status, photo_url, role_id, branch_id, base_salary, status)
                     VALUES (:uuid, :admin_id, :row_uuid, :first_name, :last_name, :email, :phone, :dob, :id_passport_number, :visa_status, :photo_url, :role_id, :branch_id, :base_salary, :status)";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'uuid' => Uuid::v4(),
@@ -71,7 +71,7 @@ class HrRepository
 
         $sql = "INSERT INTO attendance (uuid, admin_id, row_uuid, employee_id, branch_id, clock_in_time, clock_in_photo_url, latitude, longitude, status)
                 VALUES (:uuid, :admin_id, :row_uuid, :employee_id, :branch_id, NOW(), :photo_url, :latitude, :longitude, :status)";
-        
+
         $insert = $this->db->prepare($sql);
         $insert->execute([
             'uuid' => Uuid::v4(),
@@ -120,12 +120,12 @@ class HrRepository
             $base = new Money((string)$data['base_salary']);
             $allowances = new Money((string)($data['allowances'] ?? '0.00'));
             $deductions = new Money((string)($data['deductions'] ?? '0.00'));
-            
+
             $netPay = $base->add($allowances)->subtract($deductions);
 
             $sql = "INSERT INTO payroll_records (uuid, admin_id, row_uuid, employee_id, period_start, period_end, base_salary, allowances, deductions, net_pay, status, notes)
                     VALUES (:uuid, :admin_id, :row_uuid, :employee_id, :period_start, :period_end, :base_salary, :allowances, :deductions, :net_pay, :status, :notes)";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'uuid' => Uuid::v4(),

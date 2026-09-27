@@ -34,8 +34,8 @@ class OrderItemModel {
       unitPrice: (json['unit_price'] as num).toDouble(),
       totalPrice: (json['total_price'] as num).toDouble(),
       notes: json['notes'] as String?,
-      modifiers: json['modifiers'] != null 
-          ? (json['modifiers'] is String ? jsonDecode(json['modifiers']) as Map<String, dynamic> : json['modifiers'] as Map<String, dynamic>) 
+      modifiers: json['modifiers'] != null
+          ? (json['modifiers'] is String ? jsonDecode(json['modifiers']) as Map<String, dynamic> : json['modifiers'] as Map<String, dynamic>)
           : null,
     );
   }

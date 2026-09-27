@@ -16,7 +16,7 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Phone number is required';
     }
-    
+
     // Optional +971, then optional 0, then 5, then 8 digits
     final uaePhoneRegex = RegExp(r'^(?:\+971|00971|0)?(?:5[024568])\d{7}$');
     final stripped = value.replaceAll(RegExp(r'\s|-'), '');
@@ -32,7 +32,7 @@ class Validators {
     if (value == null || value.isEmpty) {
       return null; // TRN is usually optional
     }
-    
+
     final trnRegex = RegExp(r'^\d{15}$');
     final stripped = value.replaceAll(RegExp(r'\s|-'), '');
 

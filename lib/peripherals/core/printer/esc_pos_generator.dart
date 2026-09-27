@@ -120,4 +120,3 @@ class EscPosGenerator {
     return out;
   }
 }
-

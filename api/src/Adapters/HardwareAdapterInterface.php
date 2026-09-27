@@ -9,4 +9,3 @@ interface HardwareAdapterInterface
     public function readTags(int $limit = 1000): array;
     public function disconnect(): void;
 }
-

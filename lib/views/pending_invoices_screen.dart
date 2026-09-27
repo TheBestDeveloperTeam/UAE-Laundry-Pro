@@ -325,7 +325,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                   const AppDataTableColumn(label: 'Customer', key: 'customer_name'),
                   const AppDataTableColumn(label: 'Status', key: 'status'),
                   AppDataTableColumn(
-                    label: 'Payment Status', 
+                    label: 'Payment Status',
                     cellBuilder: (row) {
                       final status = row['payment_status']?.toString().toUpperCase() ?? '';
                       final isPartial = status == 'PARTIAL';

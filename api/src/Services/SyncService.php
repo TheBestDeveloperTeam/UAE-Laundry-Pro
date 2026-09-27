@@ -244,7 +244,7 @@ final class SyncService
               // Wrap in SELECT ... FOR UPDATE to prevent race condition
               $stmt = $this->pdo->prepare('SELECT id FROM order_line_modifiers WHERE id = :id FOR UPDATE');
               $stmt->execute(['id' => $localId]);
-              
+
               if ($stmt->fetch()) {
                   // Deterministic merge strategy
                   $update = $this->pdo->prepare('UPDATE order_line_modifiers SET payload = :payload, updated_at = UTC_TIMESTAMP() WHERE id = :id');

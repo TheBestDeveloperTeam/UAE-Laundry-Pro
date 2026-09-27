@@ -7,7 +7,7 @@ class PosCartNotifier extends StateNotifier<List<CartLine>> {
   void add(CartLine item) {
     state = [...state, item];
   }
-  
+
   void updateQuantity(int index, int qty) {
     if(qty <= 0) {
       removeAt(index);
@@ -17,13 +17,13 @@ class PosCartNotifier extends StateNotifier<List<CartLine>> {
     newState[index].quantity = qty;
     state = newState;
   }
-  
+
   void removeAt(int index) {
     final newState = [...state];
     newState.removeAt(index);
     state = newState;
   }
-  
+
   void clear() {
     state = [];
   }

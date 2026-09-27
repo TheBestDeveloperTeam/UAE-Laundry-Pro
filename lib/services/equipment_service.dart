@@ -24,4 +24,3 @@ class EquipmentService {
     await _api.post('/equipment/\/status', data: {'out_of_service': outOfService});
   }
 }
-

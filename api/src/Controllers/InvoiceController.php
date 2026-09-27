@@ -22,7 +22,7 @@ class InvoiceController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -43,9 +43,9 @@ class InvoiceController
 
         try {
             $invoice = $this->repository->createInvoice(
-                (int)$adminId, 
-                $data, 
-                $data['lines'], 
+                (int)$adminId,
+                $data,
+                $data['lines'],
                 $userId ? (int)$userId : null
             );
             $response->success($invoice, 'Invoice created successfully', null, 201);

@@ -25,7 +25,7 @@ Future<void> main() async {
       file.writeAsStringSync('${DateTime.now()}: ${details.exceptionAsString()}\n', mode: FileMode.append);
     } catch (_) {}
   };
-  
+
   PlatformDispatcher.instance.onError = (error, stack) {
     try {
       final file = File('${GlobalConfigService().logPath}crash.log');

@@ -20,7 +20,7 @@ final class SettingsRepository
     $stmt = $this->pdo->prepare('SELECT setting_key, setting_value, scope FROM settings WHERE scope = "business" ORDER BY setting_key');
     $stmt->execute();
     $rows = $stmt->fetchAll();
-    
+
     $settings = [];
     foreach ($rows as $row) {
       $settings[$row['setting_key']] = [

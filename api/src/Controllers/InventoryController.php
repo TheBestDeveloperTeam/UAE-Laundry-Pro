@@ -82,7 +82,7 @@ class InventoryController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;

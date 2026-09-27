@@ -5,17 +5,17 @@ class AppTheme {
   // Brand Colors (Laundry Pro UAE Design System)
   static const Color primaryNavy = Color(0xFF0A2540);
   static const Color primaryNavyLight = Color(0xFF1B4B6B);
-  
+
   static const Color accentCyan = Color(0xFF00D4FF);
   static const Color accentGreen = Color(0xFF00E5A0);
   static const Color accentGold = Color(0xFFFFB800);
-  
+
   // Neutrals
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color lightMist = Color(0xFFF5F7FA);
   static const Color coolGray = Color(0xFFB0BEC5);
   static const Color darkSlate = Color(0xFF263238);
-  
+
   // Semantic Colors
   static const Color errorRed = Color(0xFFFF4D4F);
   static const Color warningOrange = Color(0xFFFAAD14);
@@ -34,7 +34,7 @@ class AppTheme {
     end: Alignment.bottomRight,
     colors: [accentCyan, accentGreen],
   );
-  
+
   static const LinearGradient glassGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -70,7 +70,7 @@ class AppTheme {
         surface: pureWhite,
         error: errorRed,
       ),
-      
+
       // Typography
       textTheme: interTextTheme.copyWith(
         displayLarge: poppinsTextTheme.displayLarge?.copyWith(color: primaryNavy, fontWeight: FontWeight.bold),
@@ -99,7 +99,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-      
+
       // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -112,7 +112,7 @@ class AppTheme {
           textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
       ),
-      
+
       // Cards
       cardTheme: CardTheme(
         color: pureWhite,

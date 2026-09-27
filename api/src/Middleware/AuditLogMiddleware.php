@@ -19,14 +19,14 @@ final class AuditLogMiddleware implements MiddlewareInterface
     public function process(Request $request, RequestHandler $handler): Response
     {
         $response = $handler->handle($request);
-        
+
         $method = $request->getMethod();
-        
+
         // We only care about state-changing methods
         if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             $userId = $request->getAttribute('user_id'); // Assuming auth middleware sets this
             $path = $request->getUri()->getPath();
-            
+
             // Basic extraction (could be refined based on route patterns)
             $entityType = 'http_route';
             $entityId = null;
@@ -49,7 +49,7 @@ final class AuditLogMiddleware implements MiddlewareInterface
                 unset($payloadArray['old_password']);
             }
             $payload = $payloadArray ? json_encode($payloadArray) : null;
-            
+
             // Log it
             try {
                 $this->auditLogs->log(
@@ -61,7 +61,7 @@ final class AuditLogMiddleware implements MiddlewareInterface
                 );
             } catch (\Exception $e) {
                 // We typically shouldn't let an audit log failure break the main request
-                // unless it's a strict compliance requirement. 
+                // unless it's a strict compliance requirement.
                 error_log("Audit log failed: " . $e->getMessage());
             }
         }

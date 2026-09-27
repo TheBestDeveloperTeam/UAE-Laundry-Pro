@@ -14,7 +14,7 @@ class OperatorRepository
     public function getCertifications(): array
     {
         $stmt = $this->pdo->query('
-            SELECT oc.*, e.full_name, e.employee_no 
+            SELECT oc.*, e.full_name, e.employee_no
             FROM operator_certifications oc
             JOIN employees e ON oc.employee_id = e.id
             ORDER BY oc.expires_at ASC

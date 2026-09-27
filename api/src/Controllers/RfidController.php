@@ -21,7 +21,7 @@ final class RfidController
     {
         $payload = $request->all();
         $tags = $payload['epc_tags'] ?? [];
-        
+
         if (empty($tags)) {
             // Trigger a read from the physical adapter if payload is empty
             if ($this->adapter->connect()) {

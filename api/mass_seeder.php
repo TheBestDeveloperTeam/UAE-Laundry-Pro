@@ -38,7 +38,7 @@ echo "Generating 40 Catalog Services...\n";
 $pdo->beginTransaction();
 $stmt = $pdo->prepare('INSERT INTO catalog_services (uuid, admin_id, category, name, base_rate) VALUES (UUID(), 1, ?, ?, ?)');
 $services = [
-    'Dry Clean Kandora', 'Wash & Fold Bag', 'Press Suit', 'Steam Curtain', 
+    'Dry Clean Kandora', 'Wash & Fold Bag', 'Press Suit', 'Steam Curtain',
     'Leather Jacket Spa', 'Carpet Wash', 'Sneaker Care', 'Wedding Dress Clean',
     'Iron Shirt', 'Wash Blanket', 'Dry Clean Tie', 'Press Trousers'
 ];

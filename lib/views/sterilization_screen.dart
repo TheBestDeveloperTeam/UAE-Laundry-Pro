@@ -11,7 +11,7 @@ class SterilizationScreen extends ConsumerStatefulWidget {
 class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
   final _lotController = TextEditingController();
   final _orderController = TextEditingController();
-  
+
   bool _isLoading = false;
 
   Future<void> _createBatch() async {
@@ -65,4 +65,3 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
     );
   }
 }
-

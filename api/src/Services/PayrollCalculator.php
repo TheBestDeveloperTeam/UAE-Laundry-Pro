@@ -11,7 +11,7 @@ class PayrollCalculator
     /**
      * Calculate overtime pay according to UAE Labor Law.
      * Basic salary is used as the base for overtime calculation.
-     * 
+     *
      * @param float $basicSalary The employee's monthly basic salary
      * @param int $regularOvertimeHours Hours worked beyond regular hours on normal days
      * @param int $restDayOvertimeHours Hours worked on weekends/rest days
@@ -36,7 +36,7 @@ class PayrollCalculator
 
     /**
      * Calculate End of Service Gratuity (UAE Labor Law).
-     * 
+     *
      * @param float $basicSalary The employee's latest basic salary
      * @param int $yearsOfService Number of full years worked
      * @param int $remainingDays Remaining days worked beyond full years
@@ -71,10 +71,10 @@ class PayrollCalculator
         }
 
         $gratuityAmount = $gratuityDays * $dailyRate;
-        
-        // Cap at 2 years gross salary (assuming basic salary is a reasonable proxy for cap check, 
+
+        // Cap at 2 years gross salary (assuming basic salary is a reasonable proxy for cap check,
         // though strictly it's gross salary, we use basic * 24 as a safe fallback if gross isn't provided)
-        $maxGratuity = $basicSalary * 24; 
+        $maxGratuity = $basicSalary * 24;
 
         return round(min($gratuityAmount, $maxGratuity), 2);
     }

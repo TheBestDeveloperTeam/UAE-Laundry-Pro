@@ -20,7 +20,7 @@ final class RateLimitMiddleware implements MiddlewareInterface
   {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
     $path = $request->getPath();
-    
+
     // Only rate limit login endpoints
     if (!str_starts_with($path, '/auth/login')) {
       $next($request, $container);
@@ -36,7 +36,7 @@ final class RateLimitMiddleware implements MiddlewareInterface
 
     $now = time();
     $data = ['attempts' => 0, 'expires_at' => $now + ($this->decayMinutes * 60)];
-    
+
     if ($row) {
       $decoded = json_decode((string) $row['setting_value'], true);
       if (is_array($decoded) && ($decoded['expires_at'] ?? 0) > $now) {

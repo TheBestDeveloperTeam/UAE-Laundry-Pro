@@ -24,14 +24,14 @@ final class AdvancedCycleController
     $presets = $this->cycles->getPresets();
     $this->response->success($request, ['presets' => $presets], 'CYCLE_PRESETS_LIST', 'advanced.presets_list');
   }
-  
+
   public function startCycle(Request $request, Container $container): void
   {
     $equipmentId = (int) $request->input('equipment_id');
     $operatorId = (int) $request->input('operator_id');
     $presetId = (int) $request->input('preset_id');
     $saleOrderId = (int) $request->input('sale_order_id');
-    
+
     if (!$equipmentId || !$operatorId || !$presetId || !$saleOrderId) {
       $this->response->error($request, 'VALIDATION_ERROR', 'common.validation_failed', 422);
       return;
@@ -58,10 +58,10 @@ final class AdvancedCycleController
 
     $runId = $this->cycles->startCycle($businessOwnerId, $equipmentId, $operatorId, $presetId, $saleOrderId);
     $this->audit->log($userId, 'advanced_cycle.start', 'advanced_cycle_runs', $runId);
-    
+
     $this->response->success($request, ['id' => $runId], 'CYCLE_STARTED', 'advanced.cycle_started', 201);
   }
-  
+
   public function completeCycle(Request $request, Container $container, int $id): void
   {
     $userId = (int) $container->get('auth.user_id');
@@ -80,7 +80,7 @@ final class AdvancedCycleController
 
     $this->cycles->completeCycle($businessOwnerId, $id);
     $this->audit->log($userId, 'advanced_cycle.complete', 'advanced_cycle_runs', $id);
-    
+
     $this->response->success($request, [], 'CYCLE_COMPLETED', 'advanced.cycle_completed');
   }
 
@@ -88,7 +88,7 @@ final class AdvancedCycleController
   {
     $metricType = $request->input('metric_type');
     $readingValue = $request->input('reading_value');
-    
+
     if (!$metricType || !$readingValue) {
       $this->response->error($request, 'VALIDATION_ERROR', 'common.validation_failed', 422);
       return;

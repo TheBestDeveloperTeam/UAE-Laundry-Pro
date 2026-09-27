@@ -40,7 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
     _reports = widget.reportsService ?? ReportsService();
     _loadSummary();
-    
+
     // R-026: Auto-refresh every 60 seconds
     _refreshTimer = Timer.periodic(const Duration(seconds: 60), (_) => _loadSummary());
   }

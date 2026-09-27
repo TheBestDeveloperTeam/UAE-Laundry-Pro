@@ -28,7 +28,7 @@ class AppDateUtils {
   static double calculateOvertimeHours(DateTime checkIn, DateTime checkOut, {int standardHours = 8}) {
     final duration = checkOut.difference(checkIn);
     final hoursWorked = duration.inMinutes / 60.0;
-    
+
     if (hoursWorked > standardHours) {
       return hoursWorked - standardHours;
     }

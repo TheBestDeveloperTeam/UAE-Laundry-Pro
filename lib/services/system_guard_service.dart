@@ -124,4 +124,3 @@ class SystemGuardService {
     return licenseData['signature'] != null && licenseData['signature'].toString().isNotEmpty;
   }
 }
-

@@ -141,7 +141,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       'category_id': selectedCatId,
       if (descController.text.isNotEmpty) 'description': descController.text.trim(),
     });
-    
+
     final expenseId = int.tryParse(created['id']?.toString() ?? '0') ?? 0;
     if (expenseId > 0 && attachmentPath != null) {
       try {
@@ -152,7 +152,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         }
       }
     }
-    
+
     await _load();
   }
 

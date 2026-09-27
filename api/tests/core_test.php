@@ -34,16 +34,16 @@ try {
     $m2 = new Money("50.25");
     $sum = $m1->add($m2);
     assertTest($sum->getAmount() === "150.75", "Money addition");
-    
+
     $sub = $m1->subtract($m2);
     assertTest($sub->getAmount() === "50.25", "Money subtraction");
-    
+
     $mul = $m1->multiply("2");
     assertTest($mul->getAmount() === "201.00", "Money multiplication");
-    
+
     $div = $m1->divide("2");
     assertTest($div->getAmount() === "50.25", "Money division");
-    
+
     assertTest($m1->greaterThan($m2), "Money greaterThan");
 } catch (Exception $e) {
     assertTest(false, "Money tests threw exception: " . $e->getMessage());
@@ -76,14 +76,14 @@ try {
 try {
     $data = ['name' => 'John', 'age' => 20, 'status' => 'active'];
     $validator = new Validator($data);
-    
+
     $valid = $validator->validate([
         'name' => 'required|string|max:50',
         'age' => 'numeric|min:18',
         'status' => 'enum:active,inactive'
     ]);
     assertTest($valid === true, "Validator passes valid data");
-    
+
     $invalidValidator = new Validator(['age' => 15]);
     $invalid = $invalidValidator->validate(['age' => 'numeric|min:18']);
     assertTest($invalid === false, "Validator fails on min rule");

@@ -155,7 +155,7 @@ final class ReportsController
   {
     $date = $request->query('date');
     $dateStr = is_string($date) && $date !== '' ? $date : gmdate('Y-m-d');
-    
+
     $kpis = $this->sales->dashboardKpis($dateStr);
     $this->response->success($request, ['kpis' => $kpis, 'date' => $dateStr], 'DASHBOARD_KPIS', 'reports.dashboard_kpis_success');
   }
@@ -209,7 +209,7 @@ final class ReportsController
     $format = $request->query('format'); // csv, json, tally, xero
     $fromStr = is_string($from) && $from !== '' ? $from : gmdate('Y-m-01');
     $toStr = is_string($to) && $to !== '' ? $to : gmdate('Y-m-d');
-    
+
     $pnl = $this->sales->operationalPnl($fromStr, $toStr);
     // Transform PnL to standard double-entry journal format
     $export = [

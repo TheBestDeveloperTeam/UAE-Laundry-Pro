@@ -28,4 +28,3 @@ class InstallService {
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
   }
 }
-

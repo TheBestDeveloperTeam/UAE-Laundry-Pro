@@ -6,7 +6,7 @@ use InvalidArgumentException;
 
 /**
  * Money
- * 
+ *
  * A strict wrapper around bcmath for precise monetary calculations.
  * Enforces a scale of 2 decimal places everywhere.
  * Raw floating point operations (+, -, *, /) must NEVER be used for monetary values.

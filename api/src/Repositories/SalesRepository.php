@@ -31,7 +31,7 @@ class SalesRepository
 
             $orderUuid = Uuid::v4();
             $rowUuid = Uuid::v4();
-            
+
             // Resolve Consumer (1 = Walk-In if null)
             $consumerId = $orderData['consumer_id'] ?? 1;
 
@@ -49,17 +49,17 @@ class SalesRepository
                 $qty = new Money((string)$line['quantity']);
                 $unitPrice = new Money((string)$line['unit_price']);
                 $taxRate = new Money((string)($line['tax_rate'] ?? '0.00'));
-                
+
                 $lineSubtotal = $unitPrice->multiply($qty->getAmount());
-                
+
                 $taxFraction = $taxRate->divide('100');
                 $lineTax = $lineSubtotal->multiply($taxFraction->getAmount());
-                
+
                 $lineTotal = $lineSubtotal->add($lineTax);
-                
+
                 $subtotal = $subtotal->add($lineSubtotal);
                 $taxTotal = $taxTotal->add($lineTax);
-                
+
                 $processedLines[] = [
                     'uuid' => Uuid::v4(),
                     'row_uuid' => Uuid::v4(),
@@ -76,7 +76,7 @@ class SalesRepository
             }
 
             $discountTotal = new Money((string)($orderData['discount_amount'] ?? '0.00'));
-            
+
             // if there's a percentage discount, apply it to the subtotal before taxes
             if (!empty($orderData['discount_percentage'])) {
                 $discountPercent = new Money((string)$orderData['discount_percentage']);
@@ -84,7 +84,7 @@ class SalesRepository
                 $pctDiscountValue = $subtotal->multiply($pctFraction->getAmount());
                 $discountTotal = $discountTotal->add($pctDiscountValue);
             }
-            
+
             // Compute grand total: (Subtotal - Discount) + Tax
             // But wait, tax was calculated on line Subtotals!
             // If discount is applied at the order level, tax should technically be recalculated,
@@ -95,12 +95,12 @@ class SalesRepository
             if ($discountTotal->greaterThan($grossTotal)) {
                 $discountTotal = clone $grossTotal;
             }
-            
+
             $grandTotal = $grossTotal->subtract($discountTotal);
-            
+
             $paidAmount = new Money('0.00');
             $processedPayments = [];
-            
+
             foreach ($payments as $payment) {
                 $payAmount = new Money((string)$payment['amount']);
                 $paidAmount = $paidAmount->add($payAmount);
@@ -124,7 +124,7 @@ class SalesRepository
 
             $sql = "INSERT INTO sales_orders (uuid, admin_id, row_uuid, order_number, consumer_id, branch_id, status, subtotal, tax_total, discount_total, grand_total, paid_amount, hold_note, created_by_user_id)
                     VALUES (:uuid, :admin_id, :row_uuid, :order_number, :consumer_id, :branch_id, :status, :subtotal, :tax_total, :discount_total, :grand_total, :paid_amount, :hold_note, :user_id)";
-            
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'uuid' => $orderUuid,
@@ -148,7 +148,7 @@ class SalesRepository
             $lineSql = "INSERT INTO sales_order_lines (uuid, admin_id, row_uuid, order_id, service_id, product_id, item_name, quantity, unit_price, tax_rate, line_subtotal, line_tax, line_total)
                         VALUES (:uuid, :admin_id, :row_uuid, :order_id, :service_id, :product_id, :item_name, :quantity, :unit_price, :tax_rate, :line_subtotal, :line_tax, :line_total)";
             $lineStmt = $this->db->prepare($lineSql);
-            
+
             foreach ($processedLines as $pl) {
                 $pl['order_id'] = $orderId;
                 $pl['admin_id'] = $adminId;
@@ -159,7 +159,7 @@ class SalesRepository
                 $paySql = "INSERT INTO payment_transactions (uuid, admin_id, row_uuid, order_id, tender_type, amount, reference_code)
                            VALUES (:uuid, :admin_id, :row_uuid, :order_id, :tender_type, :amount, :reference_code)";
                 $payStmt = $this->db->prepare($paySql);
-                
+
                 foreach ($processedPayments as $pp) {
                     $pp['order_id'] = $orderId;
                     $pp['admin_id'] = $adminId;

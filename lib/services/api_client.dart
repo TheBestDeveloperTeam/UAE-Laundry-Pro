@@ -19,7 +19,7 @@ class ApiClient {
           },
         )),
         _tokenStorage = tokenStorage ?? TokenStorage() {
-    
+
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final auth = options.extra['auth'] ?? true;

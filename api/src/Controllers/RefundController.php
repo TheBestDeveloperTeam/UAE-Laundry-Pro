@@ -22,7 +22,7 @@ class RefundController
     {
         $adminId = $request->getAttribute('admin_id');
         $userId = $request->getAttribute('user_id');
-        
+
         if (!$adminId) {
             $response->error(401, 'Unauthorized tenant access');
             return;
@@ -43,9 +43,9 @@ class RefundController
 
         try {
             $memo = $this->repository->createRefund(
-                (int)$adminId, 
-                $data, 
-                $data['lines'], 
+                (int)$adminId,
+                $data,
+                $data['lines'],
                 $userId ? (int)$userId : null
             );
             $response->success($memo, 'Credit memo created successfully', null, 201);

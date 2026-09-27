@@ -44,7 +44,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
           )
         ],
       ),
-      body: _isLoading 
+      body: _isLoading
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
             itemCount: _certs.length,
@@ -60,4 +60,3 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
     );
   }
 }
-
