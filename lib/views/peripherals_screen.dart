@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/peripherals/features/printer/widgets/print_queue_panel.dart';
@@ -62,39 +61,39 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
               labelType: NavigationRailLabelType.all,
               destinations: [
                 NavigationRailDestination(
-                  icon: Icon(PhosphorPhosphorIcons.circle()()),
+                  icon: const Icon(Icons.dashboard),
                   label: Text(l10n.t('peripherals_overview')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(PhosphorPhosphorIcons.circle()()),
+                  icon: const Icon(Icons.qr_code_scanner),
                   label: Text(l10n.t('peripherals_scanner')),
                 ),
                 NavigationRailDestination(
-                  icon: const Icon(PhosphorIcons.circle()),
+                  icon: const Icon(Icons.scale),
                   label: Text(l10n.t('peripherals_scale')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(PhosphorPhosphorIcons.circle()()),
+                  icon: const Icon(Icons.print),
                   label: Text(l10n.t('peripherals_printer')),
                 ),
                 NavigationRailDestination(
-                  icon: const Icon(PhosphorIcons.circle()),
+                  icon: const Icon(Icons.queue),
                   label: Text(l10n.t('peripherals_queue')),
                 ),
                 NavigationRailDestination(
-                  icon: const Icon(PhosphorIcons.circle()),
+                  icon: const Icon(Icons.point_of_sale),
                   label: Text(l10n.t('peripherals_drawer')),
                 ),
                 NavigationRailDestination(
-                  icon: const Icon(PhosphorIcons.circle()),
+                  icon: const Icon(Icons.memory),
                   label: Text(l10n.t('peripherals_identity')),
                 ),
                 NavigationRailDestination(
-                  icon: const Icon(PhosphorIcons.circle()),
+                  icon: const Icon(Icons.list_alt),
                   label: Text(l10n.t('peripherals_logs')),
                 ),
                 NavigationRailDestination(
-                  icon: const Icon(PhosphorIcons.circle()),
+                  icon: const Icon(Icons.storage),
                   label: Text(l10n.t('peripherals_sql')),
                 ),
               ],
@@ -126,37 +125,37 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
               destinationIndex: 1,
               title: l10n.t('peripherals_scanner'),
               subtitle: l10n.t('peripherals_scanner_hint'),
-              icon: PhosphorPhosphorIcons.circle()(),
+              icon: Icons.qr_code_scanner,
             ),
             _statusCard(
               destinationIndex: 2,
               title: l10n.t('peripherals_scale'),
               subtitle: l10n.t('peripherals_scale_hint'),
-              icon: PhosphorIcons.circle(),
+              icon: Icons.scale,
             ),
             _statusCard(
               destinationIndex: 3,
               title: l10n.t('peripherals_printer'),
               subtitle: l10n.t('peripherals_printer_hint'),
-              icon: PhosphorPhosphorIcons.circle()(),
+              icon: Icons.print,
             ),
             _statusCard(
               destinationIndex: 4,
               title: l10n.t('peripherals_queue'),
               subtitle: l10n.t('peripherals_queue_hint'),
-              icon: PhosphorIcons.circle(),
+              icon: Icons.queue,
             ),
             _statusCard(
               destinationIndex: 5,
               title: l10n.t('peripherals_drawer'),
               subtitle: l10n.t('peripherals_drawer_hint'),
-              icon: PhosphorIcons.circle(),
+              icon: Icons.point_of_sale,
             ),
             _statusCard(
               destinationIndex: 8,
               title: l10n.t('peripherals_sql'),
               subtitle: l10n.t('peripherals_sql_hint'),
-              icon: PhosphorIcons.circle(),
+              icon: Icons.storage,
             ),
           ],
         ),
@@ -169,7 +168,7 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
             loading: () => Text(l10n.t('loading')),
             error: (e, _) => Text('$e'),
           ),
-          icon: PhosphorPhosphorIcons.circle()(),
+          icon: Icons.print,
         ),
         _navCard(
           destinationIndex: 6,
@@ -179,7 +178,7 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
             loading: () => Text(l10n.t('loading')),
             error: (e, _) => Text('$e'),
           ),
-          icon: PhosphorIcons.circle(),
+          icon: Icons.memory,
         ),
       ],
     );
@@ -234,7 +233,7 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
-          icon: const Icon(PhosphorIcons.circle()),
+          icon: const Icon(Icons.point_of_sale),
           label: Text(l10n.t('peripherals_open_drawer')),
           onPressed: selectedPrinter == null
               ? null
@@ -332,7 +331,7 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
           leading: Icon(icon),
           title: Text(title),
           subtitle: subtitle,
-          trailing: Icon(PhosphorPhosphorIcons.circle()()),
+          trailing: const Icon(Icons.chevron_right),
         ),
       ),
     );

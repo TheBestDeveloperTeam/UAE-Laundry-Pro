@@ -21,6 +21,9 @@ class ServiceModel {
   final bool isActive;
   final DateTime createdAt;
 
+  double get baseRate => price;
+  String? get code => sku;
+
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
       id: SafeParser.parseInt(json['id']),

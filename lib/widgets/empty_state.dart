@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class EmptyState extends StatelessWidget {
+  final String? title;
   final String message;
   final IconData icon;
   final VoidCallback? onAction;
@@ -9,8 +9,9 @@ class EmptyState extends StatelessWidget {
 
   const EmptyState({
     super.key,
+    this.title,
     required this.message,
-    this.icon = PhosphorPhosphorIcons.circle()(),
+    this.icon = Icons.inbox_outlined,
     this.onAction,
     this.actionLabel,
   });
@@ -25,6 +26,17 @@ class EmptyState extends StatelessWidget {
           children: [
             Icon(icon, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
+            if (title != null) ...[
+              Text(
+                title!,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+            ],
             Text(
               message,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -36,7 +48,7 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: onAction,
-                icon: Icon(PhosphorPhosphorIcons.circle()()),
+                icon: const Icon(Icons.add),
                 label: Text(actionLabel!),
               ),
             ]

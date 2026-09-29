@@ -9,9 +9,8 @@ use LaundryPro\Api\Core\Request;
 use LaundryPro\Api\Helpers\ApiResponse;
 use LaundryPro\Api\Security\JwtService;
 
-interface MiddlewareInterface
-{
-  public function handle(Request $request, Container $container, callable $next): void;
+if (!interface_exists(MiddlewareInterface::class, false)) {
+  require_once __DIR__ . '/MiddlewareInterface.php';
 }
 
 final class CorsMiddleware implements MiddlewareInterface

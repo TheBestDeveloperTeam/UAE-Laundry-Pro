@@ -24,6 +24,11 @@ class OrderItemModel {
   final String? notes;
   final Map<String, dynamic>? modifiers;
 
+  String get description => serviceName;
+  double get rate => unitPrice;
+  double get amount => totalPrice;
+  double get discount => 0.0;
+
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
       id: SafeParser.parseInt(json['id']) == 0 ? null : SafeParser.parseInt(json['id']),

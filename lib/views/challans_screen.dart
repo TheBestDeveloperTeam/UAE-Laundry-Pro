@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/document_renderer.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/challan_model.dart';
 import 'package:laundrypro_uae/services/challan_service.dart';
 
 class ChallansScreen extends StatefulWidget {
@@ -109,7 +109,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('challans')),
-        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
+        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -126,7 +126,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
                     );
                   },
                 ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: Icon(PhosphorPhosphorIcons.circle()())),
+      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
     );
   }
 }

@@ -38,4 +38,9 @@ class DashboardMetricsModel {
       'product_count': productCount,
     };
   }
+
+  dynamic operator [](String key) {
+    if (key == 'summary' || key == 'valuation') return toJson();
+    return toJson()[key];
+  }
 }

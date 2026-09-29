@@ -6,14 +6,14 @@ class NotificationService {
   final ApiClient _api;
 
   Future<List<Map<String, dynamic>>> list({bool unreadOnly = false}) async {
-    final res = await _api.get('/notifications?unread=\');
+    final res = await _api.get('/notifications?unread=${unreadOnly ? "1" : "0"}');
     return (res['data']?['notifications'] as List? ?? [])
         .map((e) => Map<String, dynamic>.from(e as Map))
         .toList();
   }
 
   Future<Map<String, dynamic>> markRead(int id) async {
-    final res = await _api.post('/notifications/\/read');
+    final res = await _api.post('/notifications/$id/read');
     return Map<String, dynamic>.from(res['data']?['notification'] as Map? ?? {});
   }
 

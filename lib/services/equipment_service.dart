@@ -17,10 +17,10 @@ class EquipmentService {
   }
 
   Future<void> logCalibration(int equipmentId, Map<String, dynamic> data) async {
-    await _api.post('/equipment/\/calibrate', data: data);
+    await _api.post('/equipment/$equipmentId/calibrate', data: data);
   }
 
   Future<void> setOutOfService(int equipmentId, bool outOfService) async {
-    await _api.post('/equipment/\/status', data: {'out_of_service': outOfService});
+    await _api.post('/equipment/$equipmentId/status', data: {'out_of_service': outOfService});
   }
 }

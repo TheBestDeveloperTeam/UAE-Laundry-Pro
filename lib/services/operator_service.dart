@@ -14,6 +14,6 @@ class OperatorService {
   }
 
   Future<void> certify(int employeeId, Map<String, dynamic> data) async {
-    await _api.post('/operators/\/certify', data: data);
+    await _api.post('/operators/$employeeId/certify', data: data);
   }
 }

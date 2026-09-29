@@ -1,5 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:laundrypro_uae/core/document_renderer.dart';
+import 'package:laundrypro_uae/models/challan_model.dart';
+import 'package:laundrypro_uae/models/delivery_model.dart';
+import 'package:laundrypro_uae/models/order_model.dart';
+import 'package:laundrypro_uae/models/purchase_order_model.dart';
 import 'package:laundrypro_uae/services/challan_service.dart';
 import 'package:laundrypro_uae/services/delivery_service.dart';
 import 'package:laundrypro_uae/services/purchase_service.dart';
@@ -7,30 +11,48 @@ import 'package:laundrypro_uae/services/sales_service.dart';
 
 class FakeSalesService extends SalesService {
   FakeSalesService(this.orders);
-  final List<Map<String, dynamic>> orders;
+  final List<dynamic> orders;
 
   @override
-  Future<List<Map<String, dynamic>>> list({String? status, String? paymentStatus, int? limit, int? offset}) async => orders;
+  Future<List<OrderModel>> list({String? status, String? paymentStatus, int? limit, int? offset}) async =>
+      orders.map((o) => o is OrderModel ? o : OrderModel.fromJson(Map<String, dynamic>.from(o as Map))).toList();
 }
 
 class FakeDeliveryService extends DeliveryService {
   @override
-  Future<List<Map<String, dynamic>>> list({String? status, int? salesOrderId}) async => [
-        {'id': 1, 'sales_order_id': 10, 'status': 'pending', 'delivery_address': 'Dubai'},
+  Future<List<DeliveryModel>> list({String? status, int? salesOrderId}) async => [
+        DeliveryModel.fromJson({
+          'id': 1,
+          'uuid': 'DEL-1',
+          'order_id': 10,
+          'driver_id': 1,
+          'status': 'pending',
+          'address': 'Dubai',
+          'created_at': DateTime.now().toIso8601String(),
+        }),
       ];
 }
 
 class FakeChallanService extends ChallanService {
   @override
-  Future<List<Map<String, dynamic>>> list({String? challanType}) async => [
-        {'challan_no': 'CH-001', 'challan_type': 'delivery', 'status': 'issued', 'lines': []},
+  Future<List<ChallanModel>> list({String? challanType}) async => [
+        ChallanModel.fromMap({'challan_no': 'CH-001', 'challan_type': 'delivery', 'status': 'issued', 'lines': []}),
       ];
 }
 
 class FakePurchaseService extends PurchaseService {
   @override
-  Future<List<Map<String, dynamic>>> list({String? status}) async => [
-        {'po_no': 'PO-001', 'vendor_id': 2, 'status': 'draft'},
+  Future<List<PurchaseOrderModel>> list({String? status}) async => [
+        PurchaseOrderModel.fromJson({
+          'id': 1,
+          'uuid': 'PO-UUID-1',
+          'po_no': 'PO-001',
+          'vendor_id': 2,
+          'total_amount': 500.0,
+          'status': 'draft',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }),
       ];
 }
 

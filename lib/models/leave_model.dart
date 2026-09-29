@@ -46,4 +46,6 @@ class LeaveModel {
       'created_at': createdAt.toIso8601String(),
     };
   }
+
+  dynamic operator [](String key) => toJson()[key];
 }

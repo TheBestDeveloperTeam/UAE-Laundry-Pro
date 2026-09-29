@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/backup_service.dart';
@@ -95,26 +94,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(height: 32),
                 Text(l10n.t('peripherals'), style: Theme.of(context).textTheme.titleMedium),
                 ListTile(
-                  leading: Icon(PhosphorPhosphorPhosphorIcons.circle()()()),
+                  leading: const Icon(Icons.devices),
                   title: Text(l10n.t('peripherals')),
                   subtitle: Text(l10n.t('peripherals_settings_hint')),
-                  trailing: Icon(PhosphorPhosphorIcons.circle()()),
+                  trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/peripherals'),
                 ),
                 const Divider(height: 32),
                 Text('System Configuration', style: Theme.of(context).textTheme.titleMedium),
                 ListTile(
-                  leading: Icon(PhosphorPhosphorIcons.circle()()),
+                  leading: const Icon(Icons.folder_outlined),
                   title: const Text('Global Paths & File Locations'),
                   subtitle: const Text('Configure backup, invoice, image, log, and export paths'),
-                  trailing: Icon(PhosphorPhosphorIcons.circle()()),
+                  trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/global-config'),
                 ),
                 ListTile(
-                  leading: Icon(PhosphorPhosphorIcons.circle()()),
+                  leading: const Icon(Icons.security_outlined),
                   title: const Text('Roles & Permissions'),
                   subtitle: const Text('Manage user roles and access control'),
-                  trailing: Icon(PhosphorPhosphorIcons.circle()()),
+                  trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/roles'),
                 ),
                 const Divider(height: 32),

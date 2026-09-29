@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme.dart';
 
 class PosScreen extends StatefulWidget {
@@ -34,12 +33,12 @@ class _PosScreenState extends State<PosScreen> {
         title: const Text('LaundryPro POS Dashboard'),
         actions: [
           IconButton(
-            icon: Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.sync),
             tooltip: 'Manual Sync',
             onPressed: () {},
           ),
           IconButton(
-            icon: Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.settings),
             tooltip: 'Settings & Peripherals',
             onPressed: () {},
           )
@@ -51,7 +50,7 @@ class _PosScreenState extends State<PosScreen> {
           Expanded(
             flex: 2,
             child: Container(
-              color: AppTheme.lightMist,
+              color: AppTheme.background,
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,10 +66,10 @@ class _PosScreenState extends State<PosScreen> {
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                       children: [
-                        _buildServiceCard('Wash & Fold', 15.0, PhosphorPhosphorIcons.circle()()),
-                        _buildServiceCard('Dry Cleaning', 25.0, PhosphorPhosphorIcons.circle()()),
-                        _buildServiceCard('Ironing', 10.0, PhosphorPhosphorIcons.circle()()),
-                        _buildServiceCard('Carpet Cleaning', 50.0, PhosphorPhosphorIcons.circle()()),
+                        _buildServiceCard('Wash & Fold', 15.0, Icons.local_laundry_service),
+                        _buildServiceCard('Dry Cleaning', 25.0, Icons.checkroom),
+                        _buildServiceCard('Ironing', 10.0, Icons.iron),
+                        _buildServiceCard('Carpet Cleaning', 50.0, Icons.layers),
                       ],
                     ),
                   ),
@@ -78,22 +77,22 @@ class _PosScreenState extends State<PosScreen> {
               ),
             ),
           ),
-
+          
           // Right: Cart / Checkout
           Expanded(
             flex: 1,
             child: Container(
-              color: AppTheme.pureWhite,
+              color: AppTheme.cardColor,
               child: Column(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     color: Colors.grey.shade100,
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Current Order', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        Icon(PhosphorPhosphorIcons.circle()()),
+                        Text('Current Order', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Icon(Icons.shopping_cart_outlined),
                       ],
                     ),
                   ),
@@ -116,7 +115,7 @@ class _PosScreenState extends State<PosScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Total:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        Text('AED ${_total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight)),
+                        Text('AED ${_total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryDark)),
                       ],
                     ),
                   ),
@@ -138,7 +137,7 @@ class _PosScreenState extends State<PosScreen> {
                           onPressed: _cart.isEmpty ? null : () {},
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.all(24),
-                            backgroundColor: AppTheme.primaryNavy,
+                            backgroundColor: AppTheme.primaryBlue,
                             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                           ),
                           child: const Text('PAY & PRINT', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -164,7 +163,7 @@ class _PosScreenState extends State<PosScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 48, color: AppTheme.primaryNavy),
+            Icon(icon, size: 48, color: AppTheme.primaryBlue),
             const SizedBox(height: 8),
             Text(title, style: const TextStyle(fontWeight: FontWeight.w600), textAlign: TextAlign.center),
             const SizedBox(height: 4),

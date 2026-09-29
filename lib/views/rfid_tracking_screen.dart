@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/rfid_service.dart';
 
@@ -24,16 +23,17 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
       final result = await s.scanTags([]);
       if (mounted) {
         setState(() {
-          _statusMessage = 'Scanned \ tags. Transitioned \ items.';
+          final tags = (result['tags'] as List?)?.length ?? 0;
+          _statusMessage = 'Scanned $tags tags.';
         });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Scan complete')));
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _statusMessage = 'Scan failed: \';
+          _statusMessage = 'Scan failed: $e';
         });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isScanning = false);
@@ -51,7 +51,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              PhosphorPhosphorIcons.circle()(),
+              Icons.sensors,
               size: 100,
               color: _isScanning ? Colors.blue : Colors.grey,
             ),
@@ -68,3 +68,4 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
     );
   }
 }
+

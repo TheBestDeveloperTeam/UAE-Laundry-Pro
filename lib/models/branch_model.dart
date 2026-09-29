@@ -19,6 +19,8 @@ class BranchModel {
   final bool isActive;
   final DateTime createdAt;
 
+  String get code => uuid;
+
   factory BranchModel.fromJson(Map<String, dynamic> json) {
     return BranchModel(
       id: SafeParser.parseInt(json['id']),
@@ -42,6 +44,8 @@ class BranchModel {
       'created_at': createdAt.toIso8601String(),
     };
   }
+
+  dynamic operator [](String key) => key == 'code' ? uuid : toJson()[key];
 
   BranchModel copyWith({
     int? id,

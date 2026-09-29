@@ -49,18 +49,49 @@ final class TerminalRepository
   /** @param array<string, mixed> $data */
   public function create(array $data): array
   {
+    $branchId = (int) $data['branch_id'];
+    $code = strtoupper((string) $data['code']);
+
+    $existing = $this->pdo->prepare('SELECT id FROM terminals WHERE branch_id = :branch AND code = :code LIMIT 1');
+    $existing->execute(['branch' => $branchId, 'code' => $code]);
+    $existingId = $existing->fetchColumn();
+    if ($existingId) {
+      $this->update((int)$existingId, $data);
+      return $this->findById((int)$existingId) ?? [];
+    }
+
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO terminals (uuid, branch_id, code, name, is_active) VALUES (:uuid, :branch, :code, :name, 1)'
+      'INSERT INTO terminals (uuid, branch_id, admin_id, code, name, is_active) VALUES (:uuid, :branch, :owner, :code, :name, 1)'
     );
     $stmt->execute([
       'uuid' => $uuid,
-      'branch' => (int) $data['branch_id'],
-      'code' => strtoupper((string) $data['code']),
+      'branch' => $branchId,
+      'owner' => $this->businessOwnerId,
+      'code' => $code,
       'name' => (string) $data['name'],
     ]);
 
     return $this->findById((int) $this->pdo->lastInsertId()) ?? [];
+  }
+
+  /** @param array<string, mixed> $data */
+  public function update(int $id, array $data): ?array
+  {
+    if ($this->findById($id) === null) {
+      return null;
+    }
+
+    $stmt = $this->pdo->prepare(
+      'UPDATE terminals SET name = :name, is_active = :active, updated_at = UTC_TIMESTAMP() WHERE id = :id'
+    );
+    $stmt->execute([
+      'id' => $id,
+      'name' => $data['name'] ?? '',
+      'active' => isset($data['is_active']) ? (!empty($data['is_active']) ? 1 : 0) : 1,
+    ]);
+
+    return $this->findById($id);
   }
 
   /** @param array<string, mixed> $data */
@@ -69,8 +100,8 @@ final class TerminalRepository
     $token = bin2hex(random_bytes(32));
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO terminal_sessions (uuid, admin_id, terminal_id, session_token, device_fingerprint, last_seen_at)
-       VALUES (:uuid, :owner, :terminal, :token, :fp, UTC_TIMESTAMP())'
+      'INSERT INTO terminal_sessions (uuid, admin_id, business_owner_id, terminal_id, session_token, device_fingerprint, last_seen_at)
+       VALUES (:uuid, :owner, :owner, :terminal, :token, :fp, UTC_TIMESTAMP())'
     );
     $stmt->execute([
       'uuid' => $uuid,

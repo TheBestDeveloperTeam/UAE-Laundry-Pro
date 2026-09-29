@@ -4,53 +4,86 @@ declare(strict_types=1);
 
 namespace LaundryPro\Api\Controllers;
 
+use LaundryPro\Api\Core\Container;
 use LaundryPro\Api\Core\Request;
-use LaundryPro\Api\Core\Response;
-use LaundryPro\Api\Core\Validator;
+use LaundryPro\Api\Helpers\ApiResponse;
+use LaundryPro\Api\Repositories\AuditLogRepository;
 use LaundryPro\Api\Repositories\NotificationRepository;
-use PDO;
 
-class NotificationController
+final class NotificationController
 {
-    public function __construct(
-        private readonly NotificationRepository $repository,
-        private readonly PDO $db
-    ) {
+  public function __construct(
+    private readonly ApiResponse $response,
+    private readonly NotificationRepository $notifications,
+    private readonly AuditLogRepository $audit,
+  ) {
+  }
+
+  public function index(Request $request, Container $container): void
+  {
+    $unread = $request->query('unread');
+    $unreadOnly = $unread === '1' || $unread === 'true';
+    $items = $this->notifications->list($unreadOnly);
+    $this->response->success($request, ['notifications' => $items], 'NOTIFICATIONS_LIST', 'notifications.list');
+  }
+
+  public function show(Request $request, Container $container): void
+  {
+    $id = (int) $request->route('id', 0);
+    $item = $this->notifications->findById($id);
+    if ($item === null) {
+      $this->response->error($request, 'NOT_FOUND', 'notifications.not_found', 404);
+      return;
+    }
+    $this->response->success($request, ['notification' => $item], 'NOTIFICATION_DETAIL', 'notifications.detail');
+  }
+
+  public function markRead(Request $request, Container $container): void
+  {
+    $id = (int) $request->route('id', 0);
+    $userId = (int) $container->get('auth.user_id');
+    $item = $this->notifications->markRead($id, $userId);
+    if ($item === null) {
+      $this->response->error($request, 'NOT_FOUND', 'notifications.not_found', 404);
+      return;
+    }
+    $this->response->success($request, ['notification' => $item], 'NOTIFICATION_READ', 'notifications.marked_read');
+  }
+
+  public function markAllRead(Request $request, Container $container): void
+  {
+    $userId = (int) $container->get('auth.user_id');
+    $count = $this->notifications->markAllRead($userId);
+    $this->response->success($request, ['marked_count' => $count], 'NOTIFICATIONS_READ_ALL', 'notifications.all_marked_read');
+  }
+
+  public function generate(Request $request, Container $container): void
+  {
+    $userId = (int) $container->get('auth.user_id');
+    $title = $request->input('title');
+    if (is_string($title) && $title !== '') {
+      $notification = $this->notifications->create($request->all());
+      $this->audit->log($userId, 'notifications.create', 'notification', (int) $notification['id'], null);
+      $this->response->success($request, ['notification' => $notification], 'NOTIFICATION_CREATED', 'notifications.created', 201);
+      return;
     }
 
-    public function registerFcmToken(Request $request, Response $response): void
-    {
-        $adminId = $request->getAttribute('admin_id');
-        $userId = $request->getAttribute('user_id');
+    $created = $this->notifications->generateAlerts();
+    $this->audit->log($userId, 'notifications.generate', 'notification', null, json_encode(['created_count' => count($created)]));
+    $this->response->success($request, ['created' => $created, 'created_count' => count($created)], 'NOTIFICATIONS_GENERATED', 'notifications.generated');
+  }
 
-        if (!$adminId || !$userId) {
-            $response->error(401, 'Unauthorized');
-            return;
-        }
-
-        $data = $request->getBody();
-        $validator = new Validator($data, $this->db);
-
-        $rules = [
-            'device_id' => 'required|string',
-            'fcm_token' => 'required|string'
-        ];
-
-        if (!$validator->validate($rules)) {
-            $response->error(400, 'Validation failed', $validator->getErrors());
-            return;
-        }
-
-        try {
-            $this->repository->registerFcmToken(
-                (int)$adminId,
-                (int)$userId,
-                $data['device_id'],
-                $data['fcm_token']
-            );
-            $response->success(null, 'FCM token registered successfully');
-        } catch (\Exception $e) {
-            $response->error(500, 'Internal Server Error', [$e->getMessage()]);
-        }
+  public function registerFcmToken(Request $request, Container $container): void
+  {
+    $adminId = (int) ($container->get('auth.user_id') ?? 1);
+    $userId = (int) ($container->get('auth.user_id') ?? 1);
+    $deviceId = (string) $request->input('device_id', '');
+    $fcmToken = (string) $request->input('fcm_token', '');
+    if ($deviceId === '' || $fcmToken === '') {
+      $this->response->error($request, 'VALIDATION_ERROR', 'validation.failed', 422);
+      return;
     }
+    $this->notifications->registerFcmToken($adminId, $userId, $deviceId, $fcmToken);
+    $this->response->success($request, null, 'FCM_REGISTERED', 'notifications.fcm_registered');
+  }
 }

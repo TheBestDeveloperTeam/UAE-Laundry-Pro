@@ -18,6 +18,15 @@ class SterilizationRepository
 
     public function createBatchLot(string $lotNumber, string $expiryDate, int $originSalesOrderId): int
     {
+        $stmt = $this->pdo->prepare("SELECT id FROM batch_lots WHERE lot_number = ? LIMIT 1");
+        $stmt->execute([$lotNumber]);
+        $existing = $stmt->fetchColumn();
+        if ($existing) {
+            $upd = $this->pdo->prepare("UPDATE batch_lots SET expiry_date = ?, origin_sales_order_id = ?, status = 'active' WHERE id = ?");
+            $upd->execute([$expiryDate, $originSalesOrderId, $existing]);
+            return (int) $existing;
+        }
+
         $stmt = $this->pdo->prepare("INSERT INTO batch_lots (lot_number, expiry_date, origin_sales_order_id, status) VALUES (?, ?, ?, 'active')");
         $stmt->execute([$lotNumber, $expiryDate, $originSalesOrderId]);
         return (int) $this->pdo->lastInsertId();

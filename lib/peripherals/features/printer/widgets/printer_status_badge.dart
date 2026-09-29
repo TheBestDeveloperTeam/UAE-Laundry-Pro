@@ -43,7 +43,7 @@ class PrinterStatusBadge extends ConsumerWidget {
       ),
       error: (e, _) => Card(
         child: ListTile(
-          leading: const Icon(PhosphorIcons.circle(), color: Colors.redAccent),
+          leading: const Icon(Icons.error, color: Colors.redAccent),
           title: Text('Status check failed: $e'),
         ),
       ),

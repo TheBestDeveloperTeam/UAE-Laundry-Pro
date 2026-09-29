@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/constants.dart';
 import 'package:laundrypro_uae/core/errors/api_exception.dart';
 import 'package:laundrypro_uae/services/token_storage.dart';
+
+final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
 class ApiClient {
   ApiClient({
@@ -63,12 +66,16 @@ class ApiClient {
     String path, {
     bool auth = true,
     Map<String, dynamic>? queryParameters,
+    Map<String, String>? customHeaders,
   }) async {
     try {
       final response = await _dio.get(
         path,
         queryParameters: queryParameters,
-        options: Options(extra: {'auth': auth}),
+        options: Options(
+          extra: {'auth': auth},
+          headers: customHeaders,
+        ),
       );
       return _decodeResponse(response);
     } on DioException catch (e) {
@@ -79,13 +86,18 @@ class ApiClient {
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, dynamic>? body,
+    dynamic data,
     bool auth = true,
+    Map<String, String>? customHeaders,
   }) async {
     try {
       final response = await _dio.post(
         path,
-        data: body,
-        options: Options(extra: {'auth': auth}),
+        data: data ?? body,
+        options: Options(
+          extra: {'auth': auth},
+          headers: customHeaders,
+        ),
       );
       return _decodeResponse(response);
     } on DioException catch (e) {
@@ -96,13 +108,18 @@ class ApiClient {
   Future<Map<String, dynamic>> put(
     String path, {
     Map<String, dynamic>? body,
+    dynamic data,
     bool auth = true,
+    Map<String, String>? customHeaders,
   }) async {
     try {
       final response = await _dio.put(
         path,
-        data: body,
-        options: Options(extra: {'auth': auth}),
+        data: data ?? body,
+        options: Options(
+          extra: {'auth': auth},
+          headers: customHeaders,
+        ),
       );
       return _decodeResponse(response);
     } on DioException catch (e) {
@@ -113,13 +130,18 @@ class ApiClient {
   Future<Map<String, dynamic>> patch(
     String path, {
     Map<String, dynamic>? body,
+    dynamic data,
     bool auth = true,
+    Map<String, String>? customHeaders,
   }) async {
     try {
       final response = await _dio.patch(
         path,
-        data: body,
-        options: Options(extra: {'auth': auth}),
+        data: data ?? body,
+        options: Options(
+          extra: {'auth': auth},
+          headers: customHeaders,
+        ),
       );
       return _decodeResponse(response);
     } on DioException catch (e) {

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/notification_service.dart';
-import 'package:intl/intl.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -56,10 +54,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         actions: [
           TextButton.icon(
             onPressed: _markAllRead,
-            icon: const Icon(PhosphorIcons.circle()),
+            icon: const Icon(Icons.done_all),
             label: Text(l10n.t('mark_all_read')),
           ),
-          IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()())),
+          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: _loading
@@ -78,16 +76,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     return ListTile(
                       tileColor: read ? null : Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.2),
                       leading: Icon(
-                        e['severity'] == 'critical' ? PhosphorIcons.circle() : (e['severity'] == 'warning' ? PhosphorIcons.circle() : PhosphorIcons.circle()),
+                        e['severity'] == 'critical' ? Icons.error : (e['severity'] == 'warning' ? Icons.warning : Icons.info),
                         color: e['severity'] == 'critical' ? Colors.red : (e['severity'] == 'warning' ? Colors.amber : Colors.blue),
                       ),
                       title: Text(e['title'] ?? '', style: TextStyle(fontWeight: read ? FontWeight.normal : FontWeight.bold)),
-                      subtitle: Text('\\n\'),
+                      subtitle: Text('${e['message'] ?? ''}\n${dt.toLocal().toString().split('.')[0]}'),
                       isThreeLine: true,
                       trailing: read
                           ? null
                           : IconButton(
-                              icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()()),
+                              icon: const Icon(Icons.check),
                               tooltip: 'Mark as read',
                               onPressed: () => _markRead(id),
                             ),

@@ -44,9 +44,11 @@ use LaundryPro\Api\Adapters\DummyRfidAdapter;
 use LaundryPro\Api\Docs\OpenApiGenerator;
 use LaundryPro\Api\Helpers\ApiResponse;
 use LaundryPro\Api\Helpers\Logger;
+use LaundryPro\Api\Middleware\AuditLogMiddleware;
 use LaundryPro\Api\Middleware\AuditMiddleware;
 use LaundryPro\Api\Middleware\AuthMiddleware;
 use LaundryPro\Api\Middleware\CorsMiddleware;
+use LaundryPro\Api\Middleware\IdempotencyMiddleware;
 use LaundryPro\Api\Middleware\InstallRateLimitMiddleware;
 use LaundryPro\Api\Middleware\MiddlewareInterface;
 use LaundryPro\Api\Middleware\PermissionMiddleware;
@@ -454,6 +456,8 @@ final class Application
     ));
     $this->container->singleton(\LaundryPro\Api\Middleware\InstallTokenMiddleware::class, fn () => new \LaundryPro\Api\Middleware\InstallTokenMiddleware());
     $this->container->singleton(AuditMiddleware::class, fn (Container $c) => new AuditMiddleware());
+    $this->container->singleton(AuditLogMiddleware::class, fn (Container $c) => new AuditLogMiddleware());
+    $this->container->singleton(IdempotencyMiddleware::class, fn (Container $c) => new IdempotencyMiddleware());
   }
 
   public function router(): Router

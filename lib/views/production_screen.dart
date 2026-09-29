@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
@@ -127,7 +126,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
               const SizedBox(height: 12),
               ActionChip(
                 backgroundColor: Colors.amber.shade100,
-                avatar: Icon(PhosphorPhosphorIcons.circle()(), size: 16, color: Colors.amber),
+                avatar: const Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber),
                 label: const Text('Rework Required'),
                 onPressed: () => Navigator.pop(ctx, 'rework_required'),
               ),
@@ -181,12 +180,12 @@ class _ProductionScreenState extends State<ProductionScreen> {
         title: Text(l10n.t('production')),
         actions: [
           IconButton(
-            icon: Icon(_isKanbanMode ? PhosphorPhosphorIcons.circle()() : PhosphorPhosphorIcons.circle()()),
+            icon: Icon(_isKanbanMode ? Icons.view_list : Icons.view_kanban),
             tooltip: _isKanbanMode ? 'List View' : 'Kanban Board',
             onPressed: () => setState(() => _isKanbanMode = !_isKanbanMode),
           ),
           IconButton(
-            icon: Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.refresh),
             onPressed: _loadAllStages,
           ),
         ],
@@ -200,7 +199,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
-                      prefixIcon: Icon(PhosphorPhosphorIcons.circle()()),
+                      prefixIcon: const Icon(Icons.qr_code_scanner),
                       hintText: 'Scan order barcode or search order number...',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       isDense: true,
@@ -344,7 +343,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
               children: [
                 Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 IconButton(
-                  icon: Icon(PhosphorPhosphorIcons.circle()(), size: 18),
+                  icon: const Icon(Icons.more_horiz, size: 18),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   onPressed: () => _showStatusDialog(o),
@@ -380,7 +379,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                       children: [
                         Text(next.replaceAll('_', ' '), style: const TextStyle(fontSize: 11)),
                         const SizedBox(width: 4),
-                        Icon(PhosphorPhosphorIcons.circle()(), size: 14),
+                        const Icon(Icons.arrow_forward, size: 14),
                       ],
                     ),
                   ),
@@ -422,7 +421,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                   child: Text('Move to ${next.replaceAll('_', ' ').toUpperCase()}'),
                 ),
               IconButton(
-                icon: Icon(PhosphorPhosphorIcons.circle()()),
+                icon: const Icon(Icons.tune),
                 onPressed: () => _showStatusDialog(o),
               ),
             ],

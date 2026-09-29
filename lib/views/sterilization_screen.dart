@@ -11,7 +11,7 @@ class SterilizationScreen extends ConsumerStatefulWidget {
 class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
   final _lotController = TextEditingController();
   final _orderController = TextEditingController();
-
+  
   bool _isLoading = false;
 
   Future<void> _createBatch() async {
@@ -28,7 +28,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -65,3 +65,4 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
     );
   }
 }
+

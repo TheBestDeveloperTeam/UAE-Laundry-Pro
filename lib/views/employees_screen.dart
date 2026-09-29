@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
 import 'package:laundrypro_uae/services/employee_service.dart';
@@ -76,7 +75,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('employees')),
-        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
+        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -91,7 +90,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                     onSubmitted: (_) => _load(),
                   ),
                 ),
-                IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()())),
+                IconButton(onPressed: _load, icon: const Icon(Icons.search)),
               ],
             ),
           ),
@@ -120,7 +119,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: Icon(PhosphorPhosphorIcons.circle()())),
+      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
     );
   }
 }

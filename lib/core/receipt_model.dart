@@ -1,3 +1,5 @@
+import 'package:laundrypro_uae/models/order_model.dart';
+
 class ReceiptLine {
   ReceiptLine({
     required this.description,
@@ -66,6 +68,42 @@ class ReceiptModel {
   final String? promisedDate;
   final String? status;
   final String? paymentStatus;
+
+  factory ReceiptModel.fromMap(Map<String, dynamic> map) {
+    final rawLines = map['lines'] as List? ?? map['items'] as List? ?? [];
+    final lines = rawLines
+        .map((e) => ReceiptLine.fromMap(Map<String, dynamic>.from(e as Map? ?? {})))
+        .toList();
+
+    return ReceiptModel(
+      orderNo: (map['order_no'] ?? map['order_number'] ?? '') as String,
+      lines: lines,
+      subtotal: double.tryParse(map['subtotal']?.toString() ?? '0') ?? 0.0,
+      discount: double.tryParse(map['discount']?.toString() ?? '0') ?? 0.0,
+      tax: double.tryParse((map['tax'] ?? map['vat_amount'])?.toString() ?? '0') ?? 0.0,
+      grandTotal: double.tryParse((map['grand_total'] ?? map['total_amount'])?.toString() ?? '0') ?? 0.0,
+      amountPaid: double.tryParse(map['amount_paid']?.toString() ?? '0') ?? 0.0,
+      balanceDue: double.tryParse(map['balance_due']?.toString() ?? '0') ?? 0.0,
+      customerName: map['customer_name'] as String?,
+      customerPhone: map['customer_phone'] as String?,
+      trn: map['trn'] as String?,
+      createdAt: map['created_at']?.toString(),
+      promisedDate: map['promised_date']?.toString(),
+      status: map['status'] as String?,
+      paymentStatus: map['payment_status'] as String?,
+    );
+  }
+
+  factory ReceiptModel.fromOrder(dynamic order) {
+    if (order is OrderModel) {
+      return ReceiptModel.fromOrderModel(order);
+    } else if (order is Map<String, dynamic>) {
+      return ReceiptModel.fromMap(order);
+    } else if (order is Map) {
+      return ReceiptModel.fromMap(Map<String, dynamic>.from(order));
+    }
+    return ReceiptModel.fromMap({});
+  }
 
   factory ReceiptModel.fromOrderModel(OrderModel order) {
     final lines = order.lines?.map((e) => ReceiptLine(

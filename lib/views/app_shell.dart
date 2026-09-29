@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
@@ -29,32 +28,32 @@ class _AppShellState extends State<AppShell> {
   bool _hrExpanded = false;
 
   static const _items = [
-    _NavItem('/dashboard', PhosphorPhosphorIcons.circle()(), 'dashboard'),
-    _NavItem('/advanced-cycles', PhosphorPhosphorIcons.circle()(), 'advanced_cycles', permission: 'advanced.cycle.run'),
-    _NavItem('/pos', PhosphorPhosphorIcons.circle()(), 'pos', permission: 'sales.write'),
-    _NavItem('/customers', PhosphorPhosphorIcons.circle()(), 'customers', permission: 'customers.read'),
-    _NavItem('/vendors', PhosphorPhosphorIcons.circle()(), 'vendors', permission: 'vendors.read'),
-    _NavItem('/catalog', PhosphorPhosphorIcons.circle()(), 'catalog', permission: 'catalog.read'),
-    _NavItem('/pending', PhosphorPhosphorIcons.circle()(), 'pending_invoices', permission: 'sales.read'),
-    _NavItem('/production', PhosphorPhosphorIcons.circle()(), 'production', permission: 'sales.read'),
-    _NavItem('/equipment', PhosphorPhosphorIcons.circle()(), 'equipment', permission: 'advanced.equipment.manage'),
-    _NavItem('/operators', PhosphorPhosphorIcons.circle()(), 'operator_certifications', permission: 'advanced.equipment.manage'),
-    _NavItem('/rfid', PhosphorPhosphorIcons.circle()(), 'rfid_tracking', permission: 'advanced.equipment.manage'),
-    _NavItem('/sterilization', PhosphorPhosphorIcons.circle()(), 'sterilization', permission: 'advanced.cycle.run'),
-    _NavItem('/delivery', PhosphorPhosphorIcons.circle()(), 'delivery', permission: 'delivery.read'),
-    _NavItem('/challans', PhosphorPhosphorIcons.circle()(), 'challans', permission: 'challans.read'),
-    _NavItem('/purchasing', PhosphorPhosphorIcons.circle()(), 'purchasing', permission: 'purchasing.read'),
-    _NavItem('/expenses', PhosphorPhosphorIcons.circle()(), 'expenses', permission: 'expenses.read'),
-    _NavItem('/reports', PhosphorPhosphorIcons.circle()(), 'reports', permission: 'reports.read'),
-    _NavItem('/analytics', PhosphorPhosphorIcons.circle()(), 'analytics', permission: 'reports.read'),
-    _NavItem('/notifications', PhosphorPhosphorIcons.circle()(), 'notifications', permission: 'notifications.read'),
-    _NavItem('/admin/branches', PhosphorPhosphorIcons.circle()(), 'branches', permission: 'business.read'),
-    _NavItem('/admin/terminals', PhosphorPhosphorIcons.circle()(), 'terminals', permission: 'business.read'),
-    _NavItem('/settings/storefront', PhosphorPhosphorIcons.circle()(), 'storefront', permission: 'sales.read'),
-    _NavItem('/customer', PhosphorPhosphorIcons.circle()()_search_outlined, 'customer_portal'),
-    _NavItem('/business', PhosphorPhosphorIcons.circle()(), 'business_profile', permission: 'business.read'),
-    _NavItem('/sync', PhosphorPhosphorIcons.circle()(), 'sync', permission: 'sync.read'),
-    _NavItem('/settings', PhosphorPhosphorIcons.circle()(), 'settings', permission: 'settings.read'),
+    _NavItem('/dashboard', Icons.dashboard_outlined, 'dashboard'),
+    _NavItem('/advanced-cycles', Icons.loop_outlined, 'advanced_cycles', permission: 'advanced.cycle.run'),
+    _NavItem('/pos', Icons.point_of_sale_outlined, 'pos', permission: 'sales.write'),
+    _NavItem('/customers', Icons.people_outline, 'customers', permission: 'customers.read'),
+    _NavItem('/vendors', Icons.store_outlined, 'vendors', permission: 'vendors.read'),
+    _NavItem('/catalog', Icons.category_outlined, 'catalog', permission: 'catalog.read'),
+    _NavItem('/pending', Icons.receipt_long_outlined, 'pending_invoices', permission: 'sales.read'),
+    _NavItem('/production', Icons.precision_manufacturing_outlined, 'production', permission: 'sales.read'),
+    _NavItem('/equipment', Icons.build_outlined, 'equipment', permission: 'advanced.equipment.manage'),
+    _NavItem('/operators', Icons.badge_outlined, 'operator_certifications', permission: 'advanced.equipment.manage'),
+    _NavItem('/rfid', Icons.sensors_outlined, 'rfid_tracking', permission: 'advanced.equipment.manage'),
+    _NavItem('/sterilization', Icons.medical_services_outlined, 'sterilization', permission: 'advanced.cycle.run'),
+    _NavItem('/delivery', Icons.local_shipping_outlined, 'delivery', permission: 'delivery.read'),
+    _NavItem('/challans', Icons.description_outlined, 'challans', permission: 'challans.read'),
+    _NavItem('/purchasing', Icons.shopping_cart_outlined, 'purchasing', permission: 'purchasing.read'),
+    _NavItem('/expenses', Icons.payments_outlined, 'expenses', permission: 'expenses.read'),
+    _NavItem('/reports', Icons.bar_chart_outlined, 'reports', permission: 'reports.read'),
+    _NavItem('/analytics', Icons.insights_outlined, 'analytics', permission: 'reports.read'),
+    _NavItem('/notifications', Icons.notifications_outlined, 'notifications', permission: 'notifications.read'),
+    _NavItem('/admin/branches', Icons.hub_outlined, 'branches', permission: 'business.read'),
+    _NavItem('/admin/terminals', Icons.devices_outlined, 'terminals', permission: 'business.read'),
+    _NavItem('/settings/storefront', Icons.storefront_outlined, 'storefront', permission: 'sales.read'),
+    _NavItem('/customer', Icons.person_search_outlined, 'customer_portal'),
+    _NavItem('/business', Icons.business_outlined, 'business_profile', permission: 'business.read'),
+    _NavItem('/sync', Icons.cloud_sync_outlined, 'sync', permission: 'sync.read'),
+    _NavItem('/settings', Icons.settings_outlined, 'settings', permission: 'settings.read'),
   ];
 
   static const _hrRoutes = [
@@ -99,7 +98,7 @@ class _AppShellState extends State<AppShell> {
         appBar: AppBar(
           title: Row(
             children: [
-              Icon(PhosphorPhosphorIcons.circle()(), color: Theme.of(context).colorScheme.primary, size: 24),
+              Icon(Icons.local_laundry_service, color: Theme.of(context).colorScheme.primary, size: 24),
               const SizedBox(width: 8),
               Text(
                 l10n.t('app_name'),
@@ -131,7 +130,7 @@ class _AppShellState extends State<AppShell> {
                 padding: const EdgeInsetsDirectional.only(end: 16.0),
                 child: Row(
                   children: [
-                    Icon(PhosphorPhosphorIcons.circle()(), size: 18),
+                    const Icon(Icons.person_outline, size: 18),
                     const SizedBox(width: 4),
                     Text(auth.user?.fullName ?? auth.user?.username ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                   ],
@@ -143,7 +142,7 @@ class _AppShellState extends State<AppShell> {
                 final current = Localizations.localeOf(context).languageCode;
                 context.read<LocaleProvider>().setLocale(current == 'ar' ? 'en' : 'ar');
               },
-              icon: const Icon(PhosphorIcons.circle(), size: 18),
+              icon: const Icon(Icons.language, size: 18),
               label: Text(Localizations.localeOf(context).languageCode.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(width: 8),
@@ -180,15 +179,15 @@ class _AppShellState extends State<AppShell> {
                               dense: true,
                               title: Text(l10n.t('hr'), style: Theme.of(context).textTheme.titleSmall),
                               trailing: IconButton(
-                                icon: Icon(_hrExpanded ? PhosphorIcons.circle() : PhosphorIcons.circle()),
+                                icon: Icon(_hrExpanded ? Icons.expand_less : Icons.expand_more),
                                 onPressed: () => setState(() => _hrExpanded = !_hrExpanded),
                               ),
                             ),
                             if (_hrExpanded) ...[
-                              _hrTile(context, l10n.t('employees'), '/hr/employees', location, PhosphorPhosphorIcons.circle()()),
-                              _hrTile(context, l10n.t('attendance'), '/hr/attendance', location, PhosphorPhosphorIcons.circle()()),
-                              _hrTile(context, l10n.t('leave'), '/hr/leave', location, PhosphorPhosphorIcons.circle()()),
-                              _hrTile(context, l10n.t('payroll'), '/hr/payroll', location, PhosphorPhosphorIcons.circle()()),
+                              _hrTile(context, l10n.t('employees'), '/hr/employees', location, Icons.badge_outlined),
+                              _hrTile(context, l10n.t('attendance'), '/hr/attendance', location, Icons.schedule_outlined),
+                              _hrTile(context, l10n.t('leave'), '/hr/leave', location, Icons.event_busy_outlined),
+                              _hrTile(context, l10n.t('payroll'), '/hr/payroll', location, Icons.account_balance_wallet_outlined),
                             ],
                           ],
                         ),
@@ -209,7 +208,7 @@ class _AppShellState extends State<AppShell> {
               child: Row(
                 children: [
                   Icon(
-                    auth.apiHealthy ? PhosphorPhosphorIcons.circle()() : PhosphorPhosphorIcons.circle()(),
+                    auth.apiHealthy ? Icons.check_circle : Icons.error_outline,
                     color: auth.apiHealthy ? Colors.green : Colors.red,
                     size: 14,
                   ),
@@ -226,8 +225,8 @@ class _AppShellState extends State<AppShell> {
                         children: [
                           Icon(
                             syncProvider.isSyncing
-                                ? PhosphorPhosphorIcons.circle()()
-                                : (syncProvider.pendingCount > 0 ? PhosphorPhosphorIcons.circle()() : PhosphorPhosphorIcons.circle()()),
+                                ? Icons.cloud_sync_outlined
+                                : (syncProvider.pendingCount > 0 ? Icons.cloud_queue_outlined : Icons.cloud_done_outlined),
                             size: 14,
                             color: syncProvider.isSyncing
                                 ? Colors.blue
@@ -243,15 +242,15 @@ class _AppShellState extends State<AppShell> {
                       );
                     },
                   ),
-                  Icon(PhosphorPhosphorIcons.circle()(), size: 14, color: Colors.blueGrey),
+                  const Icon(Icons.print_outlined, size: 14, color: Colors.blueGrey),
                   const SizedBox(width: 4),
                   Text(l10n.t('printers_ready'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
                   const SizedBox(width: 16),
-                  Icon(PhosphorPhosphorIcons.circle()(), size: 14, color: Colors.blueGrey),
+                  const Icon(Icons.qr_code_scanner, size: 14, color: Colors.blueGrey),
                   const SizedBox(width: 4),
                   Text(l10n.t('scanner_ready'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
                   const Spacer(),
-                  const Icon(PhosphorPhosphorIcons.circle()(), size: 14, color: Colors.green),
+                  const Icon(Icons.storage_outlined, size: 14, color: Colors.green),
                   const SizedBox(width: 4),
                   Text(l10n.t('disk_ok'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
                   const SizedBox(width: 16),

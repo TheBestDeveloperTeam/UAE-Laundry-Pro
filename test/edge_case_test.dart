@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:laundrypro_uae/core/localization.dart';
 import 'peripherals_test_support.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
+import 'package:laundrypro_uae/models/customer_model.dart';
+import 'package:laundrypro_uae/models/order_model.dart';
+import 'package:laundrypro_uae/models/service_model.dart';
 import 'package:laundrypro_uae/services/auth_service.dart';
 import 'package:laundrypro_uae/services/catalog_service.dart';
 import 'package:laundrypro_uae/services/customer_service.dart';
@@ -19,18 +22,18 @@ class FakeSalesService extends SalesService {
     this.partial = const [],
   });
 
-  final List<Map<String, dynamic>> services;
-  final List<Map<String, dynamic>> pending;
-  final List<Map<String, dynamic>> partial;
+  final List<ServiceModel> services;
+  final List<OrderModel> pending;
+  final List<OrderModel> partial;
 
   @override
-  Future<List<Map<String, dynamic>>> loadServices() async => services;
+  Future<List<ServiceModel>> loadServices() async => services;
 
   @override
-  Future<List<Map<String, dynamic>>> listPending() async => pending;
+  Future<List<OrderModel>> listPending() async => pending;
 
   @override
-  Future<List<Map<String, dynamic>>> listPartial() async => partial;
+  Future<List<OrderModel>> listPartial() async => partial;
 
   @override
   Future<Map<String, dynamic>> getBusiness() async => {'display_name': 'Test Laundry'};
@@ -43,7 +46,7 @@ class FakeCatalogService extends CatalogService {
 
 class FakeCustomerService extends CustomerService {
   @override
-  Future<List<Map<String, dynamic>>> list({String? query}) async => [];
+  Future<List<CustomerModel>> list({String? query}) async => [];
 }
 
 class FakeLicenseService extends LicenseService {

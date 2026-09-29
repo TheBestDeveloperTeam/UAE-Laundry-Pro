@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:laundrypro_uae/peripherals/core/printer/network_printer_discovery.dart';
@@ -68,7 +67,7 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: Icon(PhosphorPhosphorIcons.circle()()),
+                    icon: const Icon(Icons.refresh),
                     onPressed: scan.scanning
                         ? null
                         : () => ref
@@ -76,7 +75,7 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
                             .scan(port: _port),
                   ),
                   IconButton(
-                    icon: Icon(PhosphorPhosphorIcons.circle()()),
+                    icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -107,11 +106,11 @@ class _NetworkScanDialogState extends ConsumerState<NetworkScanDialog> {
                         itemBuilder: (context, index) {
                           final candidate = scan.candidates[index];
                           return ListTile(
-                            leading: const Icon(PhosphorIcons.circle()),
+                            leading: const Icon(Icons.lan),
                             title: Text('${candidate.host}:${candidate.port}'),
                             subtitle:
                                 Text('Latency: ${candidate.responseMs} ms'),
-                            trailing: Icon(PhosphorPhosphorIcons.circle()()),
+                            trailing: const Icon(Icons.chevron_right),
                             onTap: () => Navigator.of(context).pop(candidate),
                           );
                         },

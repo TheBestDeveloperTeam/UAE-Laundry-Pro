@@ -4,86 +4,90 @@ declare(strict_types=1);
 
 namespace LaundryPro\Api\Controllers;
 
+use LaundryPro\Api\Core\Container;
 use LaundryPro\Api\Core\Request;
-use LaundryPro\Api\Core\Response;
-use LaundryPro\Api\Core\Validator;
+use LaundryPro\Api\Helpers\ApiResponse;
+use LaundryPro\Api\Repositories\AuditLogRepository;
 use LaundryPro\Api\Repositories\DeliveryRepository;
-use PDO;
 
-class DeliveryController
+final class DeliveryController
 {
-    public function __construct(
-        private readonly DeliveryRepository $repository,
-        private readonly PDO $db
-    ) {
+  public function __construct(
+    private readonly ApiResponse $response,
+    private readonly DeliveryRepository $delivery,
+    private readonly AuditLogRepository $audit,
+  ) {
+  }
+
+  public function index(Request $request, Container $container): void
+  {
+    $status = $request->query('status');
+    $orderId = $request->query('sales_order_id');
+    $items = $this->delivery->list(
+      is_string($status) ? $status : null,
+      $orderId !== null ? (int) $orderId : null,
+    );
+    $this->response->success($request, ['delivery_tasks' => $items], 'DELIVERY_TASKS', 'delivery.list');
+  }
+
+  public function show(Request $request, Container $container): void
+  {
+    $id = (int) $request->route('id', 0);
+    $item = $this->delivery->findById($id);
+    if ($item === null) {
+      $this->response->error($request, 'NOT_FOUND', 'delivery.not_found', 404);
+      return;
+    }
+    $this->response->success($request, ['delivery_task' => $item], 'DELIVERY_TASK', 'delivery.detail');
+  }
+
+  public function update(Request $request, Container $container): void
+  {
+    $id = (int) $request->route('id', 0);
+    $item = $this->delivery->update($id, $request->all());
+    if ($item === null) {
+      $this->response->error($request, 'NOT_FOUND', 'delivery.not_found', 404);
+      return;
     }
 
-    public function schedule(Request $request, Response $response): void
-    {
-        $adminId = $request->getAttribute('admin_id');
-        if (!$adminId) {
-            $response->error(401, 'Unauthorized tenant access');
-            return;
-        }
+    $userId = (int) $container->get('auth.user_id');
+    $this->audit->log($userId, 'delivery.update', 'delivery_task', $id, json_encode(['status' => $item['status']]));
+    $this->response->success($request, ['task' => $item, 'delivery_task' => $item], 'DELIVERY_UPDATED', 'delivery.updated');
+  }
 
-        $data = $request->getBody();
-        $validator = new Validator($data, $this->db);
-
-        $rules = [
-            'task_type' => 'required|enum:pickup,delivery',
-            'customer_id' => 'required|int',
-            'scheduled_date' => 'required',
-            'address' => 'required'
-        ];
-
-        if (!$validator->validate($rules)) {
-            $response->error(400, 'Validation failed', $validator->getErrors());
-            return;
-        }
-
-        try {
-            $task = $this->repository->scheduleTask(
-                (int)$adminId,
-                $data,
-                $data['lines'] ?? []
-            );
-            $response->success($task, 'Task scheduled successfully', null, 201);
-        } catch (\InvalidArgumentException $e) {
-            $response->error(422, $e->getMessage());
-        } catch (\Exception $e) {
-            $response->error(500, 'Internal Server Error', [$e->getMessage()]);
-        }
+  public function complete(Request $request, Container $container): void
+  {
+    $id = (int) $request->route('id', 0);
+    $item = $this->delivery->update($id, [
+      'status' => 'completed',
+      'notes' => $request->input('notes'),
+    ]);
+    if ($item === null) {
+      $this->response->error($request, 'NOT_FOUND', 'delivery.not_found', 404);
+      return;
     }
 
-    public function updateStatus(Request $request, Response $response, array $args): void
-    {
-        $adminId = $request->getAttribute('admin_id');
-        if (!$adminId) {
-            $response->error(401, 'Unauthorized tenant access');
-            return;
-        }
+    $userId = (int) $container->get('auth.user_id');
+    $this->audit->log($userId, 'delivery.complete', 'delivery_task', $id, null);
+    $this->response->success($request, ['task' => $item, 'delivery_task' => $item], 'DELIVERY_TASK_COMPLETED', 'delivery.completed');
+  }
 
-        $taskId = (int) ($args['id'] ?? 0);
-        $data = $request->getBody();
-
-        $status = $data['status'] ?? null;
-        if (!$status) {
-            $response->error(400, 'Status is required');
-            return;
-        }
-
-        try {
-            $this->repository->updateStatus(
-                (int)$adminId,
-                $taskId,
-                $status,
-                $data['failure_reason'] ?? null
-            );
-            $response->success(null, 'Task status updated successfully');
-        } catch (\InvalidArgumentException $e) {
-            $response->error(422, $e->getMessage());
-        } catch (\Exception $e) {
-            $response->error(500, 'Internal Server Error', [$e->getMessage()]);
-        }
+  public function store(Request $request, Container $container): void
+  {
+    $orderId = (int) ($request->input('sales_order_id') ?? 0);
+    if ($orderId <= 0) {
+      $this->response->error($request, 'VALIDATION_ERROR', 'delivery.validation_failed', 422);
+      return;
     }
+
+    $userId = (int) $container->get('auth.user_id');
+    $task = $this->delivery->create($orderId, $request->all(), $userId);
+    if ($task === null) {
+      $this->response->error($request, 'NOT_FOUND', 'delivery.order_not_found', 404);
+      return;
+    }
+
+    $this->audit->log($userId, 'delivery.create', 'delivery_task', (int) $task['id'], null);
+    $this->response->success($request, ['task' => $task, 'delivery_task' => $task], 'DELIVERY_TASK_SCHEDULED', 'delivery.scheduled', 201);
+  }
 }

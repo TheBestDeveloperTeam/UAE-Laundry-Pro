@@ -4,125 +4,148 @@ declare(strict_types=1);
 
 namespace LaundryPro\Api\Repositories;
 
-use LaundryPro\Api\Core\EventBus;
-use LaundryPro\Api\Core\Uuid;
 use PDO;
-use RuntimeException;
-use InvalidArgumentException;
 
-class DeliveryRepository
+final class DeliveryRepository
 {
-    public function __construct(
-        private readonly PDO $db,
-        private readonly EventBus $eventBus
-    ) {
+  public function __construct(
+    private readonly PDO $pdo,
+    private readonly int $businessOwnerId = 1,
+  ) {
+  }
+
+  /** @return array<int, array<string, mixed>> */
+  public function list(?string $status = null, ?int $salesOrderId = null, int $limit = 50): array
+  {
+    $sql = 'SELECT dt.*, so.order_no, e.full_name AS assigned_employee_name
+            FROM delivery_tasks dt
+            JOIN sales_orders so ON so.id = dt.sales_order_id
+            LEFT JOIN employees e ON e.id = dt.assigned_employee_id
+            WHERE dt.business_owner_id = :owner';
+    $params = ['owner' => $this->businessOwnerId];
+
+    if ($status !== null && $status !== '') {
+      $sql .= ' AND dt.status = :status';
+      $params['status'] = $status;
+    }
+    if ($salesOrderId !== null) {
+      $sql .= ' AND dt.sales_order_id = :order';
+      $params['order'] = $salesOrderId;
     }
 
-    /**
-     * Schedule a new pickup or delivery task
-     */
-    public function scheduleTask(int $adminId, array $taskData, array $lines = []): array
-    {
-        try {
-            $this->db->beginTransaction();
+    $sql .= ' ORDER BY dt.scheduled_at IS NULL, dt.scheduled_at ASC, dt.id DESC LIMIT ' . (int) $limit;
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
 
-            $taskUuid = Uuid::v4();
-            $rowUuid = Uuid::v4();
+    return $stmt->fetchAll() ?: [];
+  }
 
-            $taskType = $taskData['task_type'];
-            if (!in_array($taskType, ['pickup', 'delivery'])) {
-                throw new InvalidArgumentException("Invalid task_type");
-            }
+  public function findById(int $id): ?array
+  {
+    $stmt = $this->pdo->prepare(
+      'SELECT dt.*, so.order_no FROM delivery_tasks dt
+       JOIN sales_orders so ON so.id = dt.sales_order_id
+       WHERE dt.id = :id AND dt.business_owner_id = :owner LIMIT 1'
+    );
+    $stmt->execute(['id' => $id, 'owner' => $this->businessOwnerId]);
 
-            $sql = "INSERT INTO delivery_tasks (uuid, admin_id, row_uuid, task_type, order_id, customer_id, driver_id, scheduled_date, scheduled_time_slot, address, latitude, longitude, notes)
-                    VALUES (:uuid, :admin_id, :row_uuid, :task_type, :order_id, :customer_id, :driver_id, :scheduled_date, :scheduled_time_slot, :address, :latitude, :longitude, :notes)";
+    return $stmt->fetch() ?: null;
+  }
 
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                'uuid' => $taskUuid,
-                'admin_id' => $adminId,
-                'row_uuid' => $rowUuid,
-                'task_type' => $taskType,
-                'order_id' => $taskData['order_id'] ?? null,
-                'customer_id' => $taskData['customer_id'],
-                'driver_id' => $taskData['driver_id'] ?? null,
-                'scheduled_date' => $taskData['scheduled_date'],
-                'scheduled_time_slot' => $taskData['scheduled_time_slot'] ?? null,
-                'address' => $taskData['address'],
-                'latitude' => $taskData['latitude'] ?? null,
-                'longitude' => $taskData['longitude'] ?? null,
-                'notes' => $taskData['notes'] ?? null,
-            ]);
+  /** @return array<int, array<string, mixed>> */
+  public function listForOrder(int $salesOrderId): array
+  {
+    return $this->list(null, $salesOrderId);
+  }
 
-            $taskId = (int) $this->db->lastInsertId();
-
-            if (!empty($lines)) {
-                $lineSql = "INSERT INTO delivery_task_lines (uuid, admin_id, row_uuid, task_id, item_description, quantity)
-                            VALUES (:uuid, :admin_id, :row_uuid, :task_id, :item_description, :quantity)";
-                $lineStmt = $this->db->prepare($lineSql);
-
-                foreach ($lines as $line) {
-                    $lineStmt->execute([
-                        'uuid' => Uuid::v4(),
-                        'admin_id' => $adminId,
-                        'row_uuid' => Uuid::v4(),
-                        'task_id' => $taskId,
-                        'item_description' => $line['item_description'],
-                        'quantity' => (int)($line['quantity'] ?? 1)
-                    ]);
-                }
-            }
-
-            $this->eventBus->publish('delivery.task.scheduled', [
-                'admin_id' => $adminId,
-                'task_id' => $taskId,
-                'row_uuid' => $rowUuid
-            ]);
-
-            $this->db->commit();
-
-            return ['id' => $taskId, 'uuid' => $taskUuid];
-
-        } catch (\Exception $e) {
-            $this->db->rollBack();
-            throw new RuntimeException("Task scheduling failed: " . $e->getMessage(), 0, $e);
-        }
+  /** @param array<string, mixed> $data */
+  public function create(int $salesOrderId, array $data, int $userId): ?array
+  {
+    if (!$this->orderExists($salesOrderId)) {
+      return null;
     }
 
-    /**
-     * Update Task Status
-     */
-    public function updateStatus(int $adminId, int $taskId, string $status, ?string $failureReason = null): void
-    {
-        $allowed = ['pending', 'assigned', 'in_transit', 'completed', 'failed', 'cancelled'];
-        if (!in_array($status, $allowed)) {
-            throw new InvalidArgumentException("Invalid status");
-        }
+    $stmt = $this->pdo->prepare(
+      'INSERT INTO delivery_tasks (uuid, business_owner_id, sales_order_id, task_type, scheduled_at, address, notes, assigned_employee_id, created_by, created_at)
+       VALUES (:uuid, :owner, :order, :type, :scheduled, :address, :notes, :employee, :user, UTC_TIMESTAMP())'
+    );
+    $stmt->execute([
+      'uuid' => $this->uuid(),
+      'owner' => $this->businessOwnerId,
+      'order' => $salesOrderId,
+      'type' => $data['task_type'] ?? 'delivery',
+      'scheduled' => $data['scheduled_at'] ?? null,
+      'address' => $data['address'] ?? null,
+      'notes' => $data['notes'] ?? null,
+      'employee' => isset($data['assigned_employee_id']) ? (int) $data['assigned_employee_id'] : null,
+      'user' => $userId,
+    ]);
 
-        try {
-            $this->db->beginTransaction();
+    return $this->findById((int) $this->pdo->lastInsertId());
+  }
 
-            $stmt = $this->db->prepare("SELECT status FROM delivery_tasks WHERE id = ? AND admin_id = ? FOR UPDATE");
-            $stmt->execute([$taskId, $adminId]);
-            $currentStatus = $stmt->fetchColumn();
-
-            if (!$currentStatus) throw new InvalidArgumentException("Task not found");
-
-            $completedAt = ($status === 'completed' || $status === 'failed') ? date('Y-m-d H:i:s') : null;
-
-            $upd = $this->db->prepare("UPDATE delivery_tasks SET status = ?, failure_reason = ?, completed_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
-            $upd->execute([$status, $failureReason, $completedAt, $taskId]);
-
-            $this->eventBus->publish('delivery.task.status_updated', [
-                'admin_id' => $adminId,
-                'task_id' => $taskId,
-                'status' => $status
-            ]);
-
-            $this->db->commit();
-        } catch (\Exception $e) {
-            $this->db->rollBack();
-            throw $e;
-        }
+  /** @param array<string, mixed> $data */
+  public function update(int $id, array $data): ?array
+  {
+    $existing = $this->findById($id);
+    if ($existing === null) {
+      return null;
     }
+
+    $status = $data['status'] ?? $existing['status'];
+    $completedAt = $existing['completed_at'];
+    if ($status === 'completed' && $completedAt === null) {
+      $completedAt = gmdate('Y-m-d H:i:s');
+    }
+
+    $stmt = $this->pdo->prepare(
+      'UPDATE delivery_tasks SET task_type = :type, scheduled_at = :scheduled, address = :address, notes = :notes,
+       assigned_employee_id = :employee, status = :status, completed_at = :completed, failed_reason = :failed, updated_at = UTC_TIMESTAMP()
+       WHERE id = :id AND business_owner_id = :owner'
+    );
+    $stmt->execute([
+      'id' => $id,
+      'owner' => $this->businessOwnerId,
+      'type' => $data['task_type'] ?? $existing['task_type'],
+      'scheduled' => $data['scheduled_at'] ?? $existing['scheduled_at'],
+      'address' => $data['address'] ?? $existing['address'],
+      'notes' => $data['notes'] ?? $existing['notes'],
+      'employee' => $data['assigned_employee_id'] ?? $existing['assigned_employee_id'],
+      'status' => $status,
+      'completed' => $completedAt,
+      'failed' => $data['failed_reason'] ?? $existing['failed_reason'],
+    ]);
+
+    return $this->findById($id);
+  }
+
+  public function scheduleTask(int $adminId, array $taskData, array $lines = []): array
+  {
+    $salesOrderId = (int) ($taskData['sales_order_id'] ?? 1);
+    return $this->create($salesOrderId, $taskData, $adminId) ?? [];
+  }
+
+  public function updateStatus(int $adminId, int $taskId, string $status, ?string $failureReason = null): void
+  {
+    $this->update($taskId, ['status' => $status, 'failed_reason' => $failureReason]);
+  }
+
+  private function orderExists(int $salesOrderId): bool
+  {
+    $stmt = $this->pdo->prepare(
+      'SELECT 1 FROM sales_orders WHERE id = :id AND business_owner_id = :owner LIMIT 1'
+    );
+    $stmt->execute(['id' => $salesOrderId, 'owner' => $this->businessOwnerId]);
+
+    return (bool) $stmt->fetchColumn();
+  }
+
+  private function uuid(): string
+  {
+    $data = random_bytes(16);
+    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+  }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:laundrypro_uae/models/dashboard_metrics_model.dart';
+import 'package:laundrypro_uae/models/report_config_model.dart';
 import 'package:laundrypro_uae/services/expense_service.dart';
 import 'package:laundrypro_uae/services/notification_service.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
@@ -26,11 +28,13 @@ class FakeNotificationService extends NotificationService {
 
 class FakeReportsService extends ReportsService {
   @override
-  Future<Map<String, dynamic>> salesSummary({String? from, String? to, int? branchId, int? userId, int? customerId}) async => {
-        'summary': {'total_sales': 12000, 'order_count': 45},
+  Future<DashboardMetricsModel> salesSummary({String? from, String? to, int? branchId, int? userId, int? customerId}) async =>
+      DashboardMetricsModel.fromJson({
+        'total_sales': 12000.0,
+        'order_count': 45,
         'from': '2026-08-01',
         'to': '2026-09-01',
-      };
+      });
 
   @override
   Future<Map<String, dynamic>> expensesSummary({String? from, String? to}) async => {
@@ -43,9 +47,8 @@ class FakeReportsService extends ReportsService {
       };
 
   @override
-  Future<Map<String, dynamic>> inventoryValuation() async => {
-        'valuation': {'total_value': 8000},
-      };
+  Future<DashboardMetricsModel> inventoryValuation() async =>
+      DashboardMetricsModel.fromJson({'valuation': {'total_value': 8000}});
 
   @override
   Future<Map<String, dynamic>> productionThroughput({String? from, String? to}) async => {
@@ -83,10 +86,10 @@ class FakeReportsService extends ReportsService {
       };
 
   @override
-  Future<Map<String, dynamic>> purchasingReport({String? from, String? to}) async => {};
+  Future<Map<String, dynamic>> purchasingReport(ReportConfigModel config) async => {};
 
   @override
-  Future<Map<String, dynamic>> deliveryReport({String? from, String? to}) async => {};
+  Future<Map<String, dynamic>> deliveryReport(ReportConfigModel config) async => {};
 }
 
 void main() {

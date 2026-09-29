@@ -21,6 +21,10 @@ class DeliveryModel {
   final DateTime? deliveryDate;
   final DateTime createdAt;
 
+  int get salesOrderId => orderId;
+  String? get deliveryAddress => address;
+  String? get driverName => 'Driver #$driverId';
+
   factory DeliveryModel.fromJson(Map<String, dynamic> json) {
     return DeliveryModel(
       id: SafeParser.parseInt(json['id']),
@@ -47,6 +51,12 @@ class DeliveryModel {
       if (deliveryDate != null) 'delivery_date': deliveryDate!.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
+  }
+
+  dynamic operator [](String key) {
+    if (key == 'sales_order_id') return orderId;
+    if (key == 'delivery_address') return address;
+    return toJson()[key];
   }
 
   DeliveryModel copyWith({

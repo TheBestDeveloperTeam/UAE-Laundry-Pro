@@ -44,14 +44,25 @@ final class BranchRepository
   public function create(array $data): array
   {
     $businessId = $this->businessId();
+    $code = strtoupper((string) $data['code']);
+
+    $existing = $this->pdo->prepare('SELECT id FROM branches WHERE business_id = :bid AND code = :code LIMIT 1');
+    $existing->execute(['bid' => $businessId, 'code' => $code]);
+    $existingId = $existing->fetchColumn();
+    if ($existingId) {
+      $this->update((int)$existingId, $data);
+      return $this->findById((int)$existingId) ?? [];
+    }
+
     $uuid = $this->uuid();
     $stmt = $this->pdo->prepare(
-      'INSERT INTO branches (uuid, business_id, code, name, is_active) VALUES (:uuid, :bid, :code, :name, 1)'
+      'INSERT INTO branches (uuid, business_id, admin_id, code, name, is_active) VALUES (:uuid, :bid, :owner, :code, :name, 1)'
     );
     $stmt->execute([
       'uuid' => $uuid,
       'bid' => $businessId,
-      'code' => strtoupper((string) $data['code']),
+      'owner' => $this->businessOwnerId,
+      'code' => $code,
       'name' => (string) $data['name'],
     ]);
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/dashboard_metrics_model.dart';
+import 'package:laundrypro_uae/models/report_config_model.dart';
 import 'package:laundrypro_uae/services/analytics_service.dart';
 
 class AnalyticsScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('analytics')),
-        actions: [IconButton(icon: Icon(PhosphorPhosphorIcons.circle()()), onPressed: _load)],
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

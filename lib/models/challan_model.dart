@@ -49,4 +49,15 @@ class ChallanModel {
       lines: rawLines.map((e) => ChallanLine.fromMap(Map<String, dynamic>.from(e as Map))).toList(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'challan_no': challanNo,
+    'challan_type': challanType,
+    'status': status,
+    if (notes != null) 'notes': notes,
+    if (referenceType != null) 'reference_type': referenceType,
+    if (referenceId != null) 'reference_id': referenceId,
+  };
+
+  dynamic operator [](String key) => toJson()[key];
 }

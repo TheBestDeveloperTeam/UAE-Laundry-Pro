@@ -22,6 +22,19 @@ class AppTheme {
   static const Color infoBlue = Color(0xFF1890FF);
   static const Color successGreen = Color(0xFF52C41A);
 
+  // Semantic Aliases
+  static const Color success = successGreen;
+  static const Color info = infoBlue;
+  static const Color pending = coolGray;
+  static const Color warning = warningOrange;
+  static const Color danger = errorRed;
+  static const Color primary = primaryNavy;
+  static const Color secondary = accentCyan;
+  static const Color background = lightMist;
+  static const Color cardColor = pureWhite;
+  static const Color primaryDark = primaryNavy;
+  static const Color primaryBlue = primaryNavyLight;
+
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
@@ -114,10 +127,10 @@ class AppTheme {
       ),
 
       // Cards
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: pureWhite,
         elevation: 2,
-        shadowColor: primaryNavy.withOpacity(0.1),
+        shadowColor: primaryNavy.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),

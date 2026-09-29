@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/branch_model.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
@@ -53,7 +52,7 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.t('terminals'))),
-      floatingActionButton: FloatingActionButton(onPressed: _add, child: Icon(PhosphorPhosphorIcons.circle()())),
+      floatingActionButton: FloatingActionButton(onPressed: _add, child: const Icon(Icons.add)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -61,7 +60,7 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
               itemBuilder: (_, i) {
                 final t = _items[i];
                 return ListTile(
-                  leading: Icon(PhosphorPhosphorIcons.circle()()),
+                  leading: const Icon(Icons.computer),
                   title: Text(t['name']?.toString() ?? ''),
                   subtitle: Text('${t['code']} — ${t['branch_code'] ?? ''}'),
                 );

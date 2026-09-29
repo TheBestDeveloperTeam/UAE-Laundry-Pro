@@ -3,6 +3,7 @@ import 'package:laundrypro_uae/core/safe_parser.dart';
 class InvoiceModel {
   const InvoiceModel({
     required this.id,
+    this.localId,
     required this.uuid,
     required this.invoiceNumber,
     required this.orderId,

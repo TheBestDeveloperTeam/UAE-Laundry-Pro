@@ -4,60 +4,55 @@ declare(strict_types=1);
 
 namespace LaundryPro\Api\Controllers;
 
+use LaundryPro\Api\Core\Container;
 use LaundryPro\Api\Core\Request;
-use LaundryPro\Api\Core\Response;
-use PDO;
+use LaundryPro\Api\Helpers\ApiResponse;
+use LaundryPro\Api\Repositories\CustomerPortalRepository;
+use LaundryPro\Api\Repositories\SalesRepository;
 
-class CustomerPortalController
+final class CustomerPortalController
 {
-    public function __construct(private readonly PDO $db)
-    {
+  public function __construct(
+    private readonly ApiResponse $response,
+    private readonly CustomerPortalRepository $portal,
+    private readonly SalesRepository $sales,
+  ) {
+  }
+
+  public function createToken(Request $request, Container $container): void
+  {
+    $salesOrderId = (int) $request->input('sales_order_id', 0);
+    if ($salesOrderId <= 0) {
+      $this->response->error($request, 'VALIDATION_ERROR', 'portal.sales_order_id_required', 422);
+      return;
     }
 
-    /**
-     * Get consumer's orders
-     */
-    public function getMyOrders(Request $request, Response $response): void
-    {
-        $adminId = $request->getAttribute('admin_id');
-        $customerId = $request->getAttribute('customer_id');
+    $token = $this->portal->createToken($salesOrderId);
+    $this->response->success($request, ['portal' => $token], 'PORTAL_TOKEN_CREATED', 'portal.token_created', 201);
+  }
 
-        if (!$adminId || !$customerId) {
-            $response->error(401, 'Unauthorized consumer token required');
-            return;
-        }
-
-        $stmt = $this->db->prepare("SELECT * FROM sales_orders WHERE admin_id = ? AND customer_id = ? ORDER BY created_at DESC");
-        $stmt->execute([$adminId, $customerId]);
-        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $response->success($orders, 'Orders retrieved');
+  public function orderStatus(Request $request, Container $container): void
+  {
+    $token = (string) ($request->query('token') ?? $request->input('token') ?? '');
+    if ($token === '') {
+      $this->response->error($request, 'VALIDATION_ERROR', 'portal.token_required', 422);
+      return;
     }
 
-    /**
-     * Get consumer's invoices and ledger
-     */
-    public function getMyLedger(Request $request, Response $response): void
-    {
-        $adminId = $request->getAttribute('admin_id');
-        $customerId = $request->getAttribute('customer_id');
-
-        if (!$adminId || !$customerId) {
-            $response->error(401, 'Unauthorized consumer token required');
-            return;
-        }
-
-        $invStmt = $this->db->prepare("SELECT * FROM invoices WHERE admin_id = ? AND customer_id = ? ORDER BY created_at DESC");
-        $invStmt->execute([$adminId, $customerId]);
-        $invoices = $invStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $ledgStmt = $this->db->prepare("SELECT * FROM customer_ledger WHERE admin_id = ? AND customer_id = ? ORDER BY id DESC LIMIT 50");
-        $ledgStmt->execute([$adminId, $customerId]);
-        $ledger = $ledgStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $response->success([
-            'invoices' => $invoices,
-            'ledger' => $ledger
-        ], 'Financials retrieved');
+    $order = $this->portal->findByToken($token);
+    if ($order === null) {
+      $this->response->error($request, 'NOT_FOUND', 'portal.not_found', 404);
+      return;
     }
+
+    $this->response->success($request, [
+      'order' => $order,
+      'status' => $order['status'] ?? 'unknown',
+    ], 'PORTAL_ORDER_STATUS', 'portal.order_status');
+  }
+
+  public function getOrders(Request $request, Container $container): void
+  {
+    $this->response->success($request, ['orders' => []], 'PORTAL_ORDERS', 'portal.orders');
+  }
 }

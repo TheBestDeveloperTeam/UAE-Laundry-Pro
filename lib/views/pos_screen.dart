@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
@@ -352,7 +351,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             itemBuilder: (context, i) {
               final c = _customers[i];
               return ListTile(
-                leading: const CircleAvatar(child: Icon(PhosphorPhosphorIcons.circle()(), size: 18)),
+                leading: const CircleAvatar(child: Icon(Icons.person, size: 18)),
                 title: Text(c.name ?? ''),
                 subtitle: Text(c.phone ?? ''),
                 onTap: () {
@@ -386,7 +385,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               const SizedBox(width: 16),
               // Customer Selection Chip
               ActionChip(
-                avatar: Icon(PhosphorPhosphorIcons.circle()(), size: 16),
+                avatar: const Icon(Icons.person, size: 16),
                 label: Text(
                   _selectedCustomer != null
                       ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
@@ -397,13 +396,13 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               ),
               if (_selectedCustomer != null)
                 IconButton(
-                  icon: Icon(PhosphorPhosphorIcons.circle()(), size: 16),
+                  icon: const Icon(Icons.close, size: 16),
                   onPressed: () => setState(() => _selectedCustomer = null),
                 ),
             ],
           ),
           actions: [
-            IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()())),
+            IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
           ],
         ),
         body: _loading
@@ -433,10 +432,10 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                             controller: _searchController,
                             decoration: InputDecoration(
                               hintText: 'Search services, garments, or barcodes...',
-                              prefixIcon: Icon(PhosphorPhosphorIcons.circle()(), size: 20),
+                              prefixIcon: const Icon(Icons.search, size: 20),
                               suffixIcon: _searchFilter.isNotEmpty
                                   ? IconButton(
-                                      icon: Icon(PhosphorPhosphorIcons.circle()(), size: 18),
+                                      icon: const Icon(Icons.clear, size: 18),
                                       onPressed: () {
                                         setState(() {
                                           _searchController.clear();
@@ -470,7 +469,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(PhosphorPhosphorIcons.circle()()_off_rounded, size: 40, color: Colors.grey.shade400),
+                                        Icon(Icons.search_off_rounded, size: 40, color: Colors.grey.shade400),
                                         const SizedBox(height: 8),
                                         Text(l10n.t('pos_no_services')),
                                       ],
@@ -534,7 +533,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                               Text(l10n.t('pos_cart'), style: Theme.of(context).textTheme.titleMedium),
                               if (_cart.isNotEmpty)
                                 TextButton.icon(
-                                  icon: Icon(PhosphorPhosphorIcons.circle()(), size: 16),
+                                  icon: const Icon(Icons.delete_outline, size: 16),
                                   label: const Text('Clear'),
                                   onPressed: () => setState(() => _cart.clear()),
                                 ),
@@ -562,7 +561,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                               style: const TextStyle(fontWeight: FontWeight.bold),
                                             ),
                                             IconButton(
-                                              icon: Icon(PhosphorPhosphorIcons.circle()()),
+                                              icon: const Icon(Icons.remove_circle_outline),
                                               onPressed: () {
                                                 setState(() {
                                                   if (line.quantity > 1) {

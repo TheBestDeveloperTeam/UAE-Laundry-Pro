@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AppFormDialog extends StatelessWidget {
   final String title;
   final Widget content;
   final VoidCallback onSave;
-  final VoidCallback onCancel;
+  final VoidCallback? onCancel;
   final bool isLoading;
   final String? errorText;
 
-  const AppFormDialog({
+  AppFormDialog({
     super.key,
     required this.title,
     required this.content,
-    required this.onSave,
-    required this.onCancel,
+    VoidCallback? onSave,
+    VoidCallback? onSuccess,
+    this.onCancel,
     this.isLoading = false,
     this.errorText,
-  });
+  }) : onSave = onSave ?? onSuccess ?? (() {});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class AppFormDialog extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(PhosphorPhosphorIcons.circle()(), color: Colors.red.shade700, size: 20),
+                    Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -61,7 +61,7 @@ class AppFormDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: isLoading ? null : onCancel,
+                  onPressed: isLoading ? null : (onCancel ?? () => Navigator.of(context).pop()),
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 12),

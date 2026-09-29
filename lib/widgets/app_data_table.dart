@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/widgets/empty_state.dart';
 
 class AppDataTableColumn {
@@ -40,7 +39,7 @@ class AppDataTable extends StatelessWidget {
 
     if (data.isEmpty) {
       return EmptyState(
-        icon: PhosphorPhosphorIcons.circle()(),
+        icon: Icons.table_chart_outlined,
         message: emptyMessage,
       );
     }

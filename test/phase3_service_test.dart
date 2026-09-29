@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:laundrypro_uae/models/branch_model.dart';
+import 'package:laundrypro_uae/models/dashboard_metrics_model.dart';
+import 'package:laundrypro_uae/models/report_config_model.dart';
 import 'package:laundrypro_uae/services/analytics_service.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
 import 'package:laundrypro_uae/services/channel_service.dart';
@@ -8,12 +11,13 @@ import 'package:laundrypro_uae/services/terminal_service.dart';
 
 class FakeBranchService extends BranchService {
   @override
-  Future<List<Map<String, dynamic>>> list() async => [
-        {'id': 1, 'code': 'MAIN', 'name': 'Main Branch'},
-        {'id': 2, 'code': 'JBR', 'name': 'JBR Branch'},
+  Future<List<BranchModel>> list() async => [
+        BranchModel.fromJson({'id': 1, 'uuid': 'MAIN', 'name': 'Main Branch', 'location': 'Dubai', 'is_active': 1, 'created_at': '2026-01-01'}),
+        BranchModel.fromJson({'id': 2, 'uuid': 'JBR', 'name': 'JBR Branch', 'location': 'JBR', 'is_active': 1, 'created_at': '2026-01-01'}),
       ];
   @override
-  Future<Map<String, dynamic>> create(Map<String, dynamic> body) async => {'id': 3, ...body};
+  Future<BranchModel> create(Map<String, dynamic> body) async =>
+      BranchModel.fromJson({'id': 3, 'uuid': body['code'] ?? 'X', 'name': body['name'] ?? 'X', 'location': 'Dubai', 'is_active': 1, 'created_at': '2026-01-01'});
 }
 
 class FakeTerminalService extends TerminalService {
@@ -25,15 +29,10 @@ class FakeTerminalService extends TerminalService {
 
 class FakeAnalyticsService extends AnalyticsService {
   @override
-  Future<Map<String, dynamic>> summary({int? branchId}) async =>
-      {'sales_total': 1500.0, 'order_count': 12};
+  Future<DashboardMetricsModel> summary({int? branchId}) async =>
+      DashboardMetricsModel.fromJson({'sales_total': 1500.0, 'order_count': 12});
   @override
-  Future<List<Map<String, dynamic>>> trends({
-    required String metric,
-    required String from,
-    required String to,
-    int? branchId,
-  }) async =>
+  Future<List<Map<String, dynamic>>> trends(ReportConfigModel config) async =>
       [{'snapshot_date': '2026-09-01', 'metric_value': 500}];
 }
 
@@ -87,7 +86,7 @@ void main() {
       expect(s['sales_total'], 1500.0);
     });
     test('trends returns series', () async {
-      final t = await FakeAnalyticsService().trends(metric: 'sales_total', from: '2026-08-01', to: '2026-09-05');
+      final t = await FakeAnalyticsService().trends(ReportConfigModel(metric: 'sales_total', fromDate: '2026-08-01', toDate: '2026-09-05'));
       expect(t.first['metric_value'], 500);
     });
     test('summary with branch', () async {

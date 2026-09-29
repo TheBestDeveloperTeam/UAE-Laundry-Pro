@@ -54,4 +54,6 @@ class PurchaseOrderModel {
       'updated_at': updatedAt.toIso8601String(),
     };
   }
+
+  dynamic operator [](String key) => toJson()[key];
 }

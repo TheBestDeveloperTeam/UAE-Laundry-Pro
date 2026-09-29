@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
@@ -23,7 +22,7 @@ class PrintQueuePanel extends ConsumerWidget {
             ),
             IconButton(
               tooltip: 'Refresh',
-              icon: Icon(PhosphorPhosphorIcons.circle()()),
+              icon: const Icon(Icons.refresh),
               onPressed: () => ref.invalidate(printQueueStreamProvider),
             ),
           ],
@@ -94,7 +93,7 @@ class _QueueRow extends ConsumerWidget {
               if (status != 'printed')
                 IconButton(
                   tooltip: 'Retry',
-                  icon: const Icon(PhosphorIcons.circle()),
+                  icon: const Icon(Icons.replay),
                   onPressed: () async {
                     await ref
                         .read(printerManagerProvider)
@@ -104,7 +103,7 @@ class _QueueRow extends ConsumerWidget {
                 ),
               IconButton(
                 tooltip: 'Delete',
-                icon: Icon(PhosphorPhosphorIcons.circle()()),
+                icon: const Icon(Icons.delete_outline),
                 onPressed: () async {
                   await ref
                       .read(printerManagerProvider)

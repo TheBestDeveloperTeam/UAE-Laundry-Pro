@@ -11,7 +11,7 @@ class MockApiClient extends ApiClient {
   List<Map<String, dynamic>> cloudDatabase = [];
   
   @override
-  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body, bool auth = true}) async {
+  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body, dynamic data, bool auth = true, Map<String, String>? customHeaders}) async {
     if (isNetworkDisconnected) {
       throw Exception('SocketException: Failed host lookup');
     }
@@ -19,7 +19,7 @@ class MockApiClient extends ApiClient {
       cloudDatabase.add(body ?? {});
       return {'success': true};
     }
-    return super.post(path, body: body, auth: auth);
+    return super.post(path, body: body, data: data, auth: auth, customHeaders: customHeaders);
   }
 }
 
@@ -65,7 +65,9 @@ void main() {
     
     // Create offline order
     final order = OrderModel(
-      id: 'mock',
+      id: 1,
+      uuid: 'mock',
+      status: 'pending',
       localId: 1,
       orderNo: 'ORD-123',
       customerId: 1,

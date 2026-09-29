@@ -136,7 +136,7 @@ class ReceiptPreviewWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black87, width: 2),
               ),
-              child: const Icon(PhosphorIcons.circle(), size: 72),
+              child: const Icon(Icons.qr_code_2, size: 72),
             ),
             const SizedBox(height: 4),
             Text(

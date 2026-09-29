@@ -4,13 +4,14 @@ import 'package:laundrypro_uae/services/sync_service.dart';
 import 'package:laundrypro_uae/providers/sync_provider.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockApiClient extends ApiClient {
   bool failWith503 = false;
   int retryCount = 0;
   
   @override
-  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body, bool auth = true}) async {
+  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body, dynamic data, bool auth = true, Map<String, String>? customHeaders}) async {
     if (path == '/api/v1/sync/push' || path == '/sync/push') {
       if (failWith503 && retryCount < 2) {
         retryCount++;
@@ -18,18 +19,18 @@ class MockApiClient extends ApiClient {
       }
       return {'success': true};
     }
-    return super.post(path, body: body, auth: auth);
+    return super.post(path, body: body, data: data, auth: auth, customHeaders: customHeaders);
   }
 
   @override
-  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, dynamic>? queryParameters}) async {
+  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, dynamic>? queryParameters, Map<String, String>? customHeaders}) async {
     if (path == '/sync/status') {
       return {'success': true, 'data': {'enabled': true, 'pending_count': 1}};
     }
     if (path.contains('/sync/pull')) {
       return {'success': true, 'data': {'records': []}};
     }
-    return super.get(path, auth: auth, queryParameters: queryParameters);
+    return super.get(path, auth: auth, queryParameters: queryParameters, customHeaders: customHeaders);
   }
 }
 
@@ -38,6 +39,11 @@ class MockAppDatabase extends AppDatabase {
 }
 
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('QA-001: Verify SyncProvider UI states (isSyncing)', (WidgetTester tester) async {
     final mockApi = MockApiClient();
     final mockDb = MockAppDatabase();
@@ -56,6 +62,7 @@ void main() {
     
     // UI state should flip back
     expect(syncProvider.isSyncing, false);
+    syncProvider.dispose();
   });
   
   test('QA-004: Verify SyncService exponential backoff on 503', () async {

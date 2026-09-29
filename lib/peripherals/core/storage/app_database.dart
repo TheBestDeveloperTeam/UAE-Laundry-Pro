@@ -6,7 +6,7 @@ final appDatabaseProvider = Provider<AppDatabase>((_) {
 });
 
 class AppDatabase {
-  AppDatabase({required this.dbPath});
+  AppDatabase({this.dbPath = ':memory:'});
 
   static const int schemaVersion = 3;
 
@@ -90,6 +90,8 @@ CREATE TABLE IF NOT EXISTS sync_queue(
 )
 ''');
   }
+
+  bool get isOpen => _db != null;
 
   Database get db {
     final current = _db;

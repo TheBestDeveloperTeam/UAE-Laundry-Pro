@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/payroll_model.dart';
 import 'package:laundrypro_uae/services/payroll_service.dart';
 
 class PayrollScreen extends StatefulWidget {
@@ -78,11 +78,11 @@ class _PayrollScreenState extends State<PayrollScreen> {
         title: Text(l10n.t('payroll')),
         actions: [
           IconButton(
-            icon: const Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.money_off_csred_outlined),
             tooltip: 'Salary Advances',
             onPressed: () => context.push('/hr/salary-advances'),
           ),
-          IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))
+          IconButton(onPressed: _load, icon: const Icon(Icons.refresh))
         ],
       ),
       body: _loading
@@ -106,7 +106,7 @@ class _PayrollScreenState extends State<PayrollScreen> {
                     );
                   },
                 ),
-      floatingActionButton: FloatingActionButton(onPressed: _createPeriod, child: Icon(PhosphorPhosphorIcons.circle()())),
+      floatingActionButton: FloatingActionButton(onPressed: _createPeriod, child: const Icon(Icons.add)),
     );
   }
 }

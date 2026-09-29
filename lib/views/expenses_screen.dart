@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/expense_service.dart';
@@ -98,7 +97,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     children: [
                       FilledButton.tonalIcon(
                         onPressed: () async {
-                          final result = await FilePicker.platform.pickFiles(
+                          final result = await FilePicker.pickFiles(
                             type: FileType.custom,
                             allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
                           );
@@ -109,12 +108,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                             });
                           }
                         },
-                        icon: const Icon(PhosphorIcons.circle()),
+                        icon: const Icon(Icons.attach_file),
                         label: Text(attachmentName ?? 'Attach Receipt (Optional)'),
                       ),
                       if (attachmentPath != null)
                         IconButton(
-                          icon: Icon(PhosphorPhosphorIcons.circle()(), color: Colors.red),
+                          icon: const Icon(Icons.clear, color: Colors.red),
                           onPressed: () => setDialogState(() {
                             attachmentPath = null;
                             attachmentName = null;
@@ -141,7 +140,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       'category_id': selectedCatId,
       if (descController.text.isNotEmpty) 'description': descController.text.trim(),
     });
-
+    
     final expenseId = int.tryParse(created['id']?.toString() ?? '0') ?? 0;
     if (expenseId > 0 && attachmentPath != null) {
       try {
@@ -152,7 +151,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         }
       }
     }
-
+    
     await _load();
   }
 
@@ -176,7 +175,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('expenses')),
-        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
+        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -201,7 +200,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 ),
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
                     ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
                     ButtonSegment(value: 'approved', label: Text('Approved')),
@@ -238,8 +237,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                   : (isPending ? Colors.amber.shade100 : Colors.red.shade100),
                               child: Icon(
                                 isApproved
-                                    ? PhosphorPhosphorIcons.circle()()
-                                    : (isPending ? PhosphorIcons.circle() : PhosphorPhosphorIcons.circle()()),
+                                    ? Icons.check
+                                    : (isPending ? Icons.hourglass_top : Icons.close),
                                 color: isApproved
                                     ? Colors.green.shade800
                                     : (isPending ? Colors.amber.shade900 : Colors.red.shade800),
@@ -257,12 +256,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                 if (isPending) ...[
                                   const SizedBox(width: 8),
                                   IconButton(
-                                    icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()Circle(), color: Colors.green),
+                                    icon: const Icon(Icons.check_circle, color: Colors.green),
                                     tooltip: 'Approve',
                                     onPressed: id > 0 ? () => _approve(id) : null,
                                   ),
                                   IconButton(
-                                    icon: const Icon(PhosphorIcons.circle(), color: Colors.red),
+                                    icon: const Icon(Icons.cancel, color: Colors.red),
                                     tooltip: 'Reject',
                                     onPressed: id > 0 ? () => _reject(id) : null,
                                   ),
@@ -275,7 +274,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: Icon(PhosphorPhosphorIcons.circle()())),
+      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
     );
   }
 }

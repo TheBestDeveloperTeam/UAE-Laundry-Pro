@@ -63,31 +63,35 @@ class SyncService {
   /// Resolves FLUTTER-SYNC-004: Add automatic retry with exponential backoff on HTTP 503
   Future<void> pushUpstream(Map<String, dynamic>? extraPayload) async {
     // 1. Process local sync queue first
-    final pending = await _db.db.query(
-      'sync_queue',
-      where: 'status = ?',
-      whereArgs: ['pending'],
-      orderBy: 'created_at ASC',
-    );
+    if (_db.isOpen) {
+      try {
+        final pending = await _db.db.query(
+          'sync_queue',
+          where: 'status = ?',
+          whereArgs: ['pending'],
+          orderBy: 'created_at ASC',
+        );
 
-    for (var row in pending) {
-       final id = row['id'] as String;
-       final payload = {
-          'entity_type': row['entity_type'],
-          'entity_local_id': row['entity_local_id'],
-          'operation': row['operation'],
-          'data': jsonDecode(row['payload'] as String),
-       };
-       try {
-         await _pushSingle(payload);
-         await _db.db.update('sync_queue', {'status': 'completed'}, where: 'id = ?', whereArgs: [id]);
-       } catch (e) {
-         if (e.toString().contains('503') || e.toString().contains('SERVICE_UNAVAILABLE') || e.toString().contains('connectionError')) {
-            break; // Stop processing queue if server is down
-         }
-         // Otherwise mark failed
-         await _db.db.update('sync_queue', {'status': 'failed', 'retry_count': (row['retry_count'] as int) + 1}, where: 'id = ?', whereArgs: [id]);
-       }
+        for (var row in pending) {
+           final id = row['id'] as String;
+           final payload = {
+              'entity_type': row['entity_type'],
+              'entity_local_id': row['entity_local_id'],
+              'operation': row['operation'],
+              'data': jsonDecode(row['payload'] as String),
+           };
+           try {
+             await _pushSingle(payload);
+             await _db.db.update('sync_queue', {'status': 'completed'}, where: 'id = ?', whereArgs: [id]);
+           } catch (e) {
+             if (e.toString().contains('503') || e.toString().contains('SERVICE_UNAVAILABLE') || e.toString().contains('connectionError')) {
+                break; // Stop processing queue if server is down
+             }
+             // Otherwise mark failed
+             await _db.db.update('sync_queue', {'status': 'failed', 'retry_count': (row['retry_count'] as int) + 1}, where: 'id = ?', whereArgs: [id]);
+           }
+        }
+      } catch (_) {}
     }
 
     if (extraPayload != null && extraPayload.isNotEmpty) {

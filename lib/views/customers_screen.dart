@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/customer_model.dart';
 import 'package:laundrypro_uae/services/customer_service.dart';
@@ -95,14 +94,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     controller: _searchController,
                     decoration: const InputDecoration(
                       labelText: 'Search phone or name...',
-                      prefixIcon: Icon(PhosphorPhosphorIcons.circle()()),
+                      prefixIcon: Icon(Icons.search),
                     ),
                   ),
                 ),
                 const Spacer(),
                 FilledButton.icon(
                   onPressed: () => _showForm(),
-                  icon: Icon(PhosphorPhosphorIcons.circle()()_add),
+                  icon: const Icon(Icons.person_add),
                   label: const Text('Add Customer'),
                 ),
               ],

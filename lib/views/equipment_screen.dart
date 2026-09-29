@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/inventory_model.dart';
 import '../services/equipment_service.dart';
 
 class EquipmentScreen extends ConsumerStatefulWidget {
@@ -39,12 +39,12 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         title: const Text('Equipment Calibration'),
         actions: [
           IconButton(
-            icon: Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.refresh),
             onPressed: _loadEquipment,
           )
         ],
       ),
-      body: _isLoading
+      body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
             itemCount: _equipmentList.length,
@@ -64,3 +64,4 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
     );
   }
 }
+

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
@@ -168,7 +167,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         actions: [
           IconButton(
             tooltip: 'Export CSV',
-            icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()()),
+            icon: const Icon(Icons.download),
             onPressed: () {
               // Export CSV placeholder (for desktop file writing)
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export CSV saved to C:/LaundryPro/exports/')));
@@ -176,7 +175,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
           ),
           IconButton(
             tooltip: 'Export PDF',
-            icon: Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.picture_as_pdf),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export PDF saved to C:/LaundryPro/exports/')));
             },
@@ -184,7 +183,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
           IconButton(onPressed: () {
              _loadTab(force: true);
              _loadKpis();
-          }, icon: Icon(PhosphorPhosphorIcons.circle()())),
+          }, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: Column(

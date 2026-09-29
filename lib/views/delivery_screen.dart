@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/delivery_model.dart';
 import 'package:laundrypro_uae/services/delivery_service.dart';
@@ -50,7 +49,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('delivery')),
-        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
+        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -67,7 +66,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Delivery Tasks (${_items.length} active)', style: const TextStyle(fontWeight: FontWeight.w600)),
-                          const Icon(PhosphorPhosphorIcons.circle()()),
+                          const Icon(Icons.local_shipping_outlined),
                         ],
                       ),
                     ),
@@ -75,7 +74,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                 ),
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
                     ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
                     ButtonSegment(value: 'in_transit', label: Text('Transit')),
@@ -112,8 +111,8 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                                   : (isInTransit ? Colors.blue.shade100 : Colors.amber.shade100),
                               child: Icon(
                                 isDelivered
-                                    ? PhosphorPhosphorIcons.circle()()
-                                    : (isInTransit ? PhosphorIcons.circle() : PhosphorIcons.circle()),
+                                    ? Icons.check_circle
+                                    : (isInTransit ? Icons.directions_bike : Icons.schedule),
                                 color: isDelivered
                                     ? Colors.green.shade900
                                     : (isInTransit ? Colors.blue.shade900 : Colors.amber.shade900),

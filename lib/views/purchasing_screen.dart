@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/purchase_order_model.dart';
 import 'package:laundrypro_uae/services/purchase_service.dart';
 
 class PurchasingScreen extends StatefulWidget {
@@ -117,7 +117,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           FilledButton.icon(
-            icon: Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.inventory_2),
             onPressed: () => Navigator.pop(ctx, true),
             label: const Text('Confirm GRN'),
           ),
@@ -153,7 +153,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('purchasing')),
-        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
+        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -170,7 +170,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Purchase Orders (${_items.length} records)', style: const TextStyle(fontWeight: FontWeight.w600)),
-                          Icon(PhosphorPhosphorIcons.circle()()),
+                          const Icon(Icons.shopping_bag_outlined),
                         ],
                       ),
                     ),
@@ -210,7 +210,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                             leading: CircleAvatar(
                               backgroundColor: isReceived ? Colors.green.shade100 : Colors.blue.shade100,
                               child: Icon(
-                                isReceived ? PhosphorPhosphorIcons.circle()() : PhosphorPhosphorIcons.circle()(),
+                                isReceived ? Icons.inventory_2 : Icons.receipt_long,
                                 color: isReceived ? Colors.green.shade900 : Colors.blue.shade900,
                               ),
                             ),
@@ -221,7 +221,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                               children: [
                                 if (!isReceived)
                                   FilledButton.tonalIcon(
-                                    icon: Icon(PhosphorPhosphorPhosphorIcons.circle()()(), size: 16),
+                                    icon: const Icon(Icons.download, size: 16),
                                     label: const Text('Receive GRN'),
                                     onPressed: () => _receiveGoods(po),
                                   ),
@@ -233,7 +233,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: Icon(PhosphorPhosphorIcons.circle()())),
+      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
     );
   }
 }

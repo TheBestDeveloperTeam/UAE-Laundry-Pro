@@ -51,6 +51,8 @@ class AttendanceModel {
     };
   }
 
+  dynamic operator [](String key) => toJson()[key];
+
   AttendanceModel copyWith({
     int? id,
     String? uuid,

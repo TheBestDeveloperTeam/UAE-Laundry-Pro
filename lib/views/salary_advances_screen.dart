@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/models/salary_advance_model.dart';
 import 'package:laundrypro_uae/services/payroll_service.dart';
 
 class SalaryAdvancesScreen extends StatefulWidget {
@@ -70,7 +70,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('salary_advances')),
-        actions: [IconButton(onPressed: _load, icon: Icon(PhosphorPhosphorIcons.circle()()))],
+        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -86,7 +86,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                     );
                   },
                 ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: Icon(PhosphorPhosphorIcons.circle()())),
+      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
     );
   }
 }

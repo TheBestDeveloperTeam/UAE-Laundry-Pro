@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/operator_service.dart';
 
@@ -26,7 +25,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
       final list = await s.listCertifications();
       if (mounted) setState(() => _certs = list);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -39,24 +38,25 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         title: const Text('Operator Certifications'),
         actions: [
           IconButton(
-            icon: Icon(PhosphorPhosphorIcons.circle()()),
+            icon: const Icon(Icons.refresh),
             onPressed: _loadCerts,
           )
         ],
       ),
-      body: _isLoading
+      body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
             itemCount: _certs.length,
             itemBuilder: (context, index) {
               final c = _certs[index];
               return ListTile(
-                title: Text('\ (\)'),
-                subtitle: Text('\ - Expires: \'),
-                leading: const Icon(PhosphorIcons.circle()),
+                title: Text("${c['employee_name'] ?? 'Operator'} (${c['badge_id'] ?? ''})"),
+                subtitle: Text("${c['certification_type'] ?? ''} - Expires: ${c['expiry_date'] ?? 'N/A'}"),
+                leading: const Icon(Icons.badge),
               );
             },
           ),
     );
   }
 }
+

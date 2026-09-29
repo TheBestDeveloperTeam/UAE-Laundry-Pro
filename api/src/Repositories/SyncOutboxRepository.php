@@ -18,18 +18,17 @@ class SyncOutboxRepository
      */
     public function enqueue(int $adminId, string $entityType, ?int $entityId, string $operation, array $payload, string $terminalId = 'local'): void
     {
-        $sql = "INSERT INTO sync_outbox (uuid, admin_id, terminal_id, entity_type, entity_id, operation, payload, next_retry_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+        $sql = "INSERT INTO sync_outbox (business_owner_id, admin_id, entity_type, entity_local_id, operation, payload, status, sync_attempts, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, UTC_TIMESTAMP())";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
-            Uuid::v4(),
             $adminId,
-            $terminalId,
+            $adminId,
             $entityType,
             $entityId,
             $operation,
-            json_encode($payload)
+            json_encode($payload, JSON_THROW_ON_ERROR)
         ]);
     }
 
@@ -63,11 +62,11 @@ class SyncOutboxRepository
     /**
      * Mark sync failure and apply exponential backoff
      */
-    public function markFailed(int $id, int $currentAttempts, string $error): void
+    public function markFailed(int $id, int $currentAttempts, string $error = ''): void
     {
         $attempts = $currentAttempts + 1;
         if ($attempts >= 10) {
-            $status = 'dead_letter';
+            $status = 'failed';
             $nextRetry = null;
         } else {
             $status = 'failed';
@@ -78,8 +77,31 @@ class SyncOutboxRepository
             $nextRetry = date('Y-m-d H:i:s', time() + $delay);
         }
 
-        $sql = "UPDATE sync_outbox SET status = ?, attempts = ?, last_error = ?, next_retry_at = ? WHERE id = ?";
+        $sql = "UPDATE sync_outbox SET status = ?, sync_attempts = ?, last_error = ?, next_retry_at = ? WHERE id = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$status, $attempts, $error, $nextRetry, $id]);
+    }
+
+    public function pendingCount(int $businessOwnerId): int
+    {
+        $stmt = $this->db->prepare(
+            'SELECT COUNT(*) FROM sync_outbox WHERE (admin_id = :id OR business_owner_id = :id) AND status = "pending" AND (next_retry_at IS NULL OR next_retry_at <= UTC_TIMESTAMP())'
+        );
+        $stmt->execute(['id' => $businessOwnerId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function pending(int $businessOwnerId, int $limit = 100): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT * FROM sync_outbox WHERE (admin_id = :id OR business_owner_id = :id) AND status = "pending" AND (next_retry_at IS NULL OR next_retry_at <= UTC_TIMESTAMP()) ORDER BY id ASC LIMIT :limit'
+        );
+        $stmt->bindValue('id', $businessOwnerId, PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll() ?: [];
     }
 }

@@ -3,6 +3,7 @@ import 'package:laundrypro_uae/core/safe_parser.dart';
 class CustomerModel {
   const CustomerModel({
     required this.id,
+    this.localId,
     required this.uuid,
     required this.name,
     this.phone,
@@ -23,6 +24,9 @@ class CustomerModel {
   final double balance;
   final DateTime createdAt;
   final String? syncStatus;
+
+  String? get customerCode => uuid;
+  String get customerType => 'Retail';
 
   factory CustomerModel.fromJson(Map<String, dynamic> json) {
     return CustomerModel(

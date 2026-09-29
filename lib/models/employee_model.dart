@@ -55,6 +55,8 @@ class EmployeeModel {
     };
   }
 
+  dynamic operator [](String key) => toJson()[key];
+
   EmployeeModel copyWith({
     int? id,
     String? uuid,

@@ -35,7 +35,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> {
       }
     } catch (e) {
       if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -52,7 +52,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> {
       }
     } catch (e) {
       if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -61,7 +61,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(context.l10n.t('advanced_cycles')),
+        title: Text(context.l10n.t('advanced_cycles')),
       ),
       body: DefaultTabController(
         length: 3,
@@ -92,7 +92,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> {
   Widget _buildRunningCyclesTab() {
     return const Center(
       child: EmptyState(
-        icon: PhosphorIcons.circle(),
+        icon: Icons.loop,
         title: 'No Running Cycles',
         message: 'There are no active advanced cycles running right now.',
       ),

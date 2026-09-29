@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:laundrypro_uae/peripherals/core/printer/receipt_template.dart';
@@ -38,11 +37,11 @@ class TemplatePickerDialog extends ConsumerWidget {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(PhosphorPhosphorIcons.circle()()),
+                    icon: const Icon(Icons.refresh),
                     onPressed: () => ref.invalidate(receiptTemplatesProvider),
                   ),
                   IconButton(
-                    icon: Icon(PhosphorPhosphorIcons.circle()()),
+                    icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -70,7 +69,7 @@ class TemplatePickerDialog extends ConsumerWidget {
                           ),
                           trailing: IconButton(
                             tooltip: 'Delete template',
-                            icon: Icon(PhosphorPhosphorIcons.circle()()),
+                            icon: const Icon(Icons.delete_outline),
                             onPressed: () async {
                               await ref
                                   .read(printerManagerProvider)
