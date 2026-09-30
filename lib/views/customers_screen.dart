@@ -60,7 +60,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           if (isNew) {
             await _service.create(data);
           } else {
-            await _service.update(existing!.id!, data);
+            await _service.update(existing.id, data);
           }
         },
         onSuccess: _load,

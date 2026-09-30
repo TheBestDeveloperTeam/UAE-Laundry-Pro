@@ -3,7 +3,6 @@ import 'package:laundrypro_uae/services/api_client.dart';
 import 'package:laundrypro_uae/services/sync_service.dart';
 import 'package:laundrypro_uae/providers/sync_provider.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockApiClient extends ApiClient {

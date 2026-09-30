@@ -9,15 +9,25 @@
     <link rel="stylesheet" href="/assets/css/adminlte.min.css" />
     <style>
       body {
-        background: linear-gradient(135deg, #112233 0%, #0D6E6E 100%);
+        background: linear-gradient(135deg, #0d0f17 0%, #1b1035 50%, #4c1d95 100%);
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-family: 'Source Sans 3', 'Inter', sans-serif;
       }
       .login-card {
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border-radius: 16px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .btn-primary {
+        background-color: #7c3aed !important;
+        border-color: #7c3aed !important;
+      }
+      .btn-primary:hover {
+        background-color: #6d28d9 !important;
+        border-color: #6d28d9 !important;
       }
     </style>
   </head>
@@ -26,10 +36,10 @@
       <div class="card login-card card-outline card-primary bg-white">
         <div class="card-header text-center py-4 border-bottom-0">
           <div class="d-flex align-items-center justify-content-center mb-2">
-            <i class="bi bi-cloud-check-fill fs-1 text-primary me-2"></i>
-            <h2 class="mb-0 fw-bold">Laundry<span class="text-primary">Pro</span></h2>
+            <i class="bi bi-cloud-check-fill fs-1 me-2" style="color: #7c3aed;"></i>
+            <h2 class="mb-0 fw-bold">Laundry<span style="color: #7c3aed;">Pro</span></h2>
           </div>
-          <span class="badge bg-secondary text-uppercase px-3 py-1">Super-Admin Central Cloud</span>
+          <span class="badge bg-dark text-uppercase px-3 py-1" style="background-color: #1e1145 !important;">Super-Admin Central Cloud</span>
         </div>
 
         <div class="card-body p-4 pt-2">
@@ -42,6 +52,7 @@
           <p class="login-box-msg text-muted small text-center mb-4">Enter credentials to authenticate into the super-admin console</p>
 
           <form action="/admin/login" method="POST">
+            <?= \LaundryPro\Cloud\Middleware\CsrfMiddleware::field() ?>
             <div class="mb-3">
               <label class="form-label small fw-semibold">Username</label>
               <div class="input-group">

@@ -63,7 +63,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
-              ? Center(child: Text(l10n.t('notifications_empty') ?? 'No notifications'))
+              ? Center(child: Text(l10n.t('notifications_empty')))
               : ListView.separated(
                   itemCount: _items.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),

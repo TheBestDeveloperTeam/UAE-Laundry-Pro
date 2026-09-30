@@ -55,18 +55,9 @@ final class AdminPortalController
 
         $pdo = Database::connect();
         if ($pdo === null) {
-            // Fallback development credentials if DB is offline
-            if ($username === 'superadmin' && $password === 'SuperAdmin@LaundryPro2026!') {
-                $_SESSION['cloud_super_admin_id'] = 1;
-                $_SESSION['cloud_super_admin_user'] = [
-                    'id' => 1,
-                    'username' => 'superadmin',
-                    'full_name' => 'Master Super Administrator',
-                    'role' => 'super_admin'
-                ];
-                Response::redirect('/admin');
-            }
-            $_SESSION['flash_error'] = 'Database connection failure.';
+            // SECURITY: Never allow login when database is unavailable.
+            // All credentials must be verified against the database.
+            $_SESSION['flash_error'] = 'Service temporarily unavailable. Database connection failed.';
             Response::redirect('/admin/login');
         }
 

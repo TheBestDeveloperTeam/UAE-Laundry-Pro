@@ -106,28 +106,28 @@ class ReceiptModel {
   }
 
   factory ReceiptModel.fromOrderModel(OrderModel order) {
-    final lines = order.lines?.map((e) => ReceiptLine(
-      description: e.description ?? '',
-      quantity: double.tryParse(e.quantity?.toString() ?? '0') ?? 0.0,
-      rate: double.tryParse(e.rate?.toString() ?? '0') ?? 0.0,
-      amount: double.tryParse(e.amount?.toString() ?? '0') ?? 0.0,
-      discount: double.tryParse(e.discount?.toString() ?? '0') ?? 0.0,
+    final lines = order.lines.map((e) => ReceiptLine(
+      description: e.description,
+      quantity: e.quantity.toDouble(),
+      rate: e.rate,
+      amount: e.amount,
+      discount: e.discount,
       modifiers: [], // simplified for now
-    )).toList() ?? [];
+    )).toList();
 
     return ReceiptModel(
-      orderNo: order.orderNo ?? '',
+      orderNo: order.orderNo,
       lines: lines,
-      subtotal: double.tryParse(order.subtotal?.toString() ?? '0') ?? 0.0,
-      discount: double.tryParse(order.discount?.toString() ?? '0') ?? 0.0,
-      tax: double.tryParse(order.tax?.toString() ?? '0') ?? 0.0,
-      grandTotal: double.tryParse(order.grandTotal?.toString() ?? '0') ?? 0.0,
-      amountPaid: double.tryParse(order.amountPaid?.toString() ?? '0') ?? 0.0,
-      balanceDue: double.tryParse(order.balanceDue?.toString() ?? '0') ?? 0.0,
+      subtotal: order.subtotal ?? 0.0,
+      discount: order.discount,
+      tax: order.tax,
+      grandTotal: order.grandTotal,
+      amountPaid: order.amountPaid ?? 0.0,
+      balanceDue: order.balanceDue ?? 0.0,
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       trn: order.trn,
-      createdAt: order.createdAt?.toIso8601String(),
+      createdAt: order.createdAt.toIso8601String(),
       promisedDate: order.promisedDate?.toIso8601String(),
       status: order.status,
       paymentStatus: order.paymentStatus,

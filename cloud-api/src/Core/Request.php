@@ -13,21 +13,29 @@ final class Request
     private array $parsedBody;
     private string $rawBody;
 
-    public function __construct()
-    {
-        $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    public function __construct(
+        ?string $method = null,
+        ?string $path = null,
+        array $headers = [],
+        array $parsedBody = []
+    ) {
+        $this->method = strtoupper($method ?? ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+        $uri = $path ?? ($_SERVER['REQUEST_URI'] ?? '/');
         $this->path = parse_url($uri, PHP_URL_PATH) ?: '/';
         $this->queryParams = $_GET;
-        $this->headers = $this->captureHeaders();
+        $this->headers = !empty($headers) ? $headers : $this->captureHeaders();
         $this->rawBody = file_get_contents('php://input') ?: '';
 
-        $contentType = $this->header('Content-Type') ?? '';
-        if (str_contains($contentType, 'application/json') && $this->rawBody !== '') {
-            $decoded = json_decode($this->rawBody, true);
-            $this->parsedBody = is_array($decoded) ? $decoded : [];
+        if (!empty($parsedBody)) {
+            $this->parsedBody = $parsedBody;
         } else {
-            $this->parsedBody = $_POST;
+            $contentType = $this->header('Content-Type') ?? '';
+            if (str_contains($contentType, 'application/json') && $this->rawBody !== '') {
+                $decoded = json_decode($this->rawBody, true);
+                $this->parsedBody = is_array($decoded) ? $decoded : [];
+            } else {
+                $this->parsedBody = $_POST;
+            }
         }
     }
 
@@ -80,6 +88,11 @@ final class Request
             return $this->parsedBody;
         }
         return $this->parsedBody[$key] ?? $default;
+    }
+
+    public function json(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->body($key, $default);
     }
 
     public function bearerToken(): ?string

@@ -57,20 +57,23 @@ cloud-api/
 
 ## 3. Deployment Guide (cPanel / Shared Hosting / VPS)
 
-1. Upload the entire cloud-api/ directory to your web server (e.g., public_html/cloud-api or dedicate a subdomain laundrypro-cloudapi.magnificentsolution.co.in).
-2. Point the Document Root to cloud-api/public/ (or rely on root .htaccess).
-3. Create database laundrypro_cloud in cPanel MySQL Database Wizard.
-4. Import schema and seeds:
-   - cloud-api/database/001_cloud_schema.sql
-   - cloud-api/database/002_cloud_seeds.sql
-5. Configure database credentials in cloud-api/config/database.php or set environment variables:
-   - DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_PORT.
+1. Upload the entire `cloud-api/` directory to your web server:
+   - **Target Path:** `public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api/`
+   - **Document Root:** `public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api/public`
+2. Configure database credentials (or copy `.env.production` to `.env`):
+   - **Host:** `localhost`
+   - **Port:** `3306`
+   - **Database:** `ihgzplwh_laundrypro`
+   - **Username:** `ihgzplwh_laundrypro`
+   - **Password:** `n33d@L0v3#0786`
+3. Point subdomain `laundrypro-cloudapi.magnificentsolution.co.in` directly to the `public/` folder.
 
 ---
 
 ## 4. Super-Admin Portal Access
 
-- **Portal URL:** http://localhost/cloud-api/public/admin or http://cloud-api/admin
+- **Production Portal URL:** https://laundrypro-cloudapi.magnificentsolution.co.in/admin
+- **Local Dev Portal URL:** https://cloud-api/admin
 - **Default Username:** superadmin
 - **Default Password:** SuperAdmin@LaundryPro2026!
 

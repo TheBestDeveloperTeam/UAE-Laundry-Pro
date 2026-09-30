@@ -52,8 +52,8 @@ class _BranchesScreenState extends State<BranchesScreen> {
                     final b = _items[i];
                     return ListTile(
                       leading: const Icon(Icons.store),
-                      title: Text(b.name ?? ''),
-                      subtitle: Text(b.code ?? ''),
+                      title: Text(b.name),
+                      subtitle: Text(b.code),
                     );
                   },
                 ),

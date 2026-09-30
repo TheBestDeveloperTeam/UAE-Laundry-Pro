@@ -65,7 +65,7 @@ class BarcodeScannerManager {
           _hidStreamController.add(_hidBuffer.toString());
           _hidBuffer.clear();
         }
-      } else if (keyLabel != null && keyLabel.length == 1) {
+      } else if (keyLabel.length == 1) {
         _hidBuffer.write(keyLabel);
       }
     }

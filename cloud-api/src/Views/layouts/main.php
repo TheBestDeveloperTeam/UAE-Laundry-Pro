@@ -12,16 +12,48 @@
     <!-- AdminLTE CSS -->
     <link rel="stylesheet" href="/assets/css/adminlte.min.css" />
     <style>
+      :root {
+        --lp-bg-canvas: #0d0f17;
+        --lp-bg-surface: #161926;
+        --lp-bg-surface-elevated: #1e2235;
+        --lp-primary-purple: #7c3aed;
+        --lp-primary-purple-hover: #6d28d9;
+        --lp-accent-cyan: #06b6d4;
+      }
+      body {
+        background-color: var(--lp-bg-canvas) !important;
+        font-family: 'Source Sans 3', 'Inter', sans-serif;
+      }
       .brand-image-custom {
         max-height: 36px;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.4));
       }
       .app-sidebar {
-        background-color: #112233 !important;
+        background-color: var(--lp-bg-surface) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      .app-header {
+        background-color: var(--lp-bg-surface) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
       }
       .nav-link.active {
-        background-color: #0D6E6E !important;
+        background: linear-gradient(135deg, var(--lp-primary-purple), var(--lp-primary-purple-hover)) !important;
         color: #fff !important;
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35) !important;
+        border-radius: 8px !important;
+      }
+      .card {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      }
+      .btn-primary {
+        background-color: var(--lp-primary-purple) !important;
+        border-color: var(--lp-primary-purple) !important;
+      }
+      .btn-primary:hover {
+        background-color: var(--lp-primary-purple-hover) !important;
+        border-color: var(--lp-primary-purple-hover) !important;
       }
     </style>
   </head>
@@ -35,7 +67,7 @@
               <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button"><i class="bi bi-list fs-4"></i></a>
             </li>
             <li class="nav-item d-none d-md-block">
-              <span class="navbar-text fw-bold text-teal">Central Cloud Portal &bull; Multi-Tenant Core</span>
+              <span class="navbar-text fw-bold" style="color: #7c3aed;"><i class="bi bi-clouds-fill me-1"></i>Central Cloud Portal &bull; Multi-Tenant Core</span>
             </li>
           </ul>
 
@@ -47,16 +79,17 @@
             </li>
             <li class="nav-item dropdown user-menu">
               <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-person-circle fs-5 text-primary"></i>
+                <i class="bi bi-person-circle fs-5" style="color: #7c3aed;"></i>
                 <span class="d-none d-md-inline ms-1 fw-bold"><?= htmlspecialchars($user['full_name'] ?? 'Super Admin') ?></span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow">
-                <li class="user-header bg-primary text-white p-3 text-center">
+                <li class="user-header bg-primary text-white p-3 text-center" style="background: linear-gradient(135deg, #7c3aed, #4c1d95) !important;">
                   <p class="mb-0 fw-bold"><?= htmlspecialchars($user['username'] ?? 'superadmin') ?></p>
                   <small class="text-white-50">Role: <?= htmlspecialchars($user['role'] ?? 'super_admin') ?></small>
                 </li>
                 <li class="p-2 text-center">
                   <form action="/admin/logout" method="POST">
+                    <?= \LaundryPro\Cloud\Middleware\CsrfMiddleware::field() ?>
                     <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i>Sign Out</button>
                   </form>
                 </li>

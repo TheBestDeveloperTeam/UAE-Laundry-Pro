@@ -6,14 +6,29 @@ namespace LaundryPro\Cloud\Core;
 
 final class Response
 {
+    public static bool $shouldExit = true;
+
     public static function json(array $data, int $status = 200): void
     {
         http_response_code($status);
-        header('Content-Type: application/json; charset=utf-8');
-        header('X-Content-Type-Options: nosniff');
-        header('X-Frame-Options: DENY');
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+            header('X-Content-Type-Options: nosniff');
+            header('X-Frame-Options: DENY');
+        }
+
+        if (!isset($data['meta'])) {
+            $data['meta'] = [
+                'request_id' => bin2hex(random_bytes(16)),
+                'server_time' => gmdate('c'),
+                'version' => '2.0.0',
+            ];
+        }
+
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        exit;
+        if (self::$shouldExit) {
+            exit;
+        }
     }
 
     public static function view(string $viewPath, array $data = [], string $layout = 'main'): void

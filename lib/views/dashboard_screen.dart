@@ -67,9 +67,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ]);
       if (mounted) {
         setState(() {
-          _today = results[0] as DashboardMetricsModel;
-          _period = results[1] as DashboardMetricsModel;
-          _inventory = results[2] as DashboardMetricsModel;
+          _today = results[0];
+          _period = results[1];
+          _inventory = results[2];
           _unreadCount = notifs.length;
           _loading = false;
         });

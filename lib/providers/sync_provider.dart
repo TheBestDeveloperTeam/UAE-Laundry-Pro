@@ -48,9 +48,10 @@ class SyncProvider extends ChangeNotifier {
     _isSyncing = true;
     notifyListeners();
     try {
-      if (_syncService != null) {
-         await _syncService!.pushUpstream({});
-         await _syncService!.pullDownstream();
+      final syncService = _syncService;
+      if (syncService != null) {
+         await syncService.pushUpstream({});
+         await syncService.pullDownstream();
       } else {
          await _api.post('/sync/push', body: {});
       }

@@ -159,8 +159,9 @@ class SalesService {
   }
 
   Future<void> _queueSync(String entityType, Map<String, dynamic> payload, {required String operation, required String localId}) async {
-    if (_database == null) return;
-    await _database!.db.insert('sync_queue', {
+    final database = _database;
+    if (database == null) return;
+    await database.db.insert('sync_queue', {
       'id': const Uuid().v4(),
       'entity_type': entityType,
       'entity_local_id': localId,

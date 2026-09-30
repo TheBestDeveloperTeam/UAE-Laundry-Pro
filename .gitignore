@@ -116,7 +116,7 @@ coverage/
 # Marketing large binaries (code-only repo)
 **/marketing/
 
-# PHP API
+# PHP API — Local
 api/.env
 api/storage/logs/*
 !api/storage/logs/.gitkeep
@@ -126,6 +126,26 @@ api/storage/installed.lock
 api/storage/backups/*
 !api/storage/backups/.gitkeep
 api/tests/output/*
+
+# PHP API — Cloud
+cloud-api/.env
+cloud-api/.env.production
+cloud-api/.env.local
+cloud-api/.env.staging
+cloud-api/logs/*
+!cloud-api/logs/.gitkeep
+cloud-api/storage/backups/*
+!cloud-api/storage/backups/.gitkeep
+cloud-api/storage/rate_limits/*
+!cloud-api/storage/rate_limits/.gitkeep
+cloud-api/storage/sessions/*
+
+# Environment files (global safety net)
+.env.production
+.env.staging
+.env.local
+!.env.example
+!.env.production.example
 
 # Symbols
 app.*.symbols

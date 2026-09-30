@@ -63,7 +63,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
       };
 
       for (final order in allOrders) {
-        final status = order.status ?? 'received';
+        final status = order.status;
         if (newBoard.containsKey(status)) {
           newBoard[status]!.add(order);
         }
@@ -81,7 +81,6 @@ class _ProductionScreenState extends State<ProductionScreen> {
 
   Future<void> _changeStatus(OrderModel order, String newStatus, {String? notes}) async {
     final id = order.id;
-    if (id == null) return;
 
     try {
       await _sales.updateStatus(id, newStatus);
@@ -96,7 +95,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
   }
 
   Future<void> _showStatusDialog(OrderModel order) async {
-    final current = order.status ?? '';
+    final current = order.status;
     final notesController = TextEditingController();
 
     final result = await showDialog<String>(
@@ -232,7 +231,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
         children: _kanbanStages.map((stage) {
           final orders = (_boardData[stage] ?? []).where((o) {
             if (_searchFilter.isEmpty) return true;
-            final no = (o.orderNo ?? '').toLowerCase();
+            final no = o.orderNo.toLowerCase();
             return no.contains(_searchFilter);
           }).toList();
 
@@ -305,7 +304,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(color: stageColor),
                                       ),
-                                      child: Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      child: Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold)),
                                     ),
                                   ),
                                   childWhenDragging: Opacity(
@@ -341,7 +340,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 IconButton(
                   icon: const Icon(Icons.more_horiz, size: 18),
                   padding: EdgeInsets.zero,
@@ -364,7 +363,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'AED ${o.grandTotal ?? '0.00'}',
+                  'AED ${o.grandTotal.toStringAsFixed(2)}',
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                 ),
                 if (next != null)
@@ -398,7 +397,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
     }
     final filtered = all.where((o) {
       if (_searchFilter.isEmpty) return true;
-      return (o.orderNo ?? '').toLowerCase().contains(_searchFilter);
+      return o.orderNo.toLowerCase().contains(_searchFilter);
     }).toList();
 
     return ListView.separated(
@@ -406,12 +405,12 @@ class _ProductionScreenState extends State<ProductionScreen> {
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, i) {
         final o = filtered[i];
-        final current = o.status ?? '';
+        final current = o.status;
         final next = _nextStatus[current];
 
         return ListTile(
-          title: Text(o.orderNo ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text('Stage: ${current.toUpperCase()} · Total: AED ${o.grandTotal ?? '0.00'}'),
+          title: Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text('Stage: ${current.toUpperCase()} · Total: AED ${o.grandTotal.toStringAsFixed(2)}'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

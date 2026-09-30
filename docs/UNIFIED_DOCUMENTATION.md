@@ -1,5716 +1,4087 @@
-# Unified Documentation: docs
+# LaundryPro UAE — Unified Documentation Master Manual
 
-
-
-## --- FILE: ALGORITHMS_AND_FEATURE_REVIEW.md ---
-
-﻿# LaundryPro UAE: Algorithms & Feature Review
-
-## 1. Core Algorithms
-
-### 1.1 Financial Precision Engine (`bcmath`)
-All financial aggregations in the API strictly avoid native floating-point math to prevent IEEE-754 precision drift.
-
-**Algorithm:**
-1. Fetch lines from DB as `DECIMAL(18,2)` strings.
-2. Initialize `grand_total = '0.00'`.
-3. Loop lines:
-   - `line_total = bcmul(qty_string, price_string, 2)`
-   - `line_total = bcsub(line_total, discount_string, 2)`
-   - `grand_total = bcadd(grand_total, line_total, 2)`
-4. Apply VAT (5%):
-   - `tax_amount = bcmul(grand_total, '0.05', 2)`
-   - `final_grand_total = bcadd(grand_total, tax_amount, 2)`
-5. Return JSON payload encapsulating values as strings.
-
-### 1.2 Offline-First Sync Backoff Algorithm
-When pushing local changes to the cloud from `sync_outbox`, network failures trigger an exponential backoff to preserve system resources.
-
-**Algorithm:**
-1. Daemon queries `SELECT * FROM sync_outbox WHERE status IN ('pending', 'failed') AND next_retry_at <= NOW() LIMIT 100`.
-2. For each record, `POST` to cloud.
-3. If `200 OK`, `UPDATE status = 'synced'`.
-4. If Network Timeout or `5xx`:
-   - `attempts = attempts + 1`
-   - If `attempts > 10`: `status = 'dead_letter'`
-   - Else: `delay = power(2, attempts) * 60` seconds.
-   - `next_retry_at = NOW() + delay`
-
-### 1.3 Inventory Concurrency Lock
-To prevent negative inventory when two terminals sell the same product simultaneously.
-
-**Algorithm:**
-1. `BEGIN TRANSACTION;`
-2. `SELECT qty_on_hand FROM products WHERE id = X FOR UPDATE;` (Locks row)
-3. If `qty_on_hand - req_qty < 0`: Rollback & throw `InsufficientStockException`.
-4. `UPDATE products SET qty_on_hand = qty_on_hand - req_qty;`
-5. `INSERT INTO inventory_movements ...`
-6. `COMMIT;` (Releases lock)
+> **Generated:** 2026-09-30 11:05:19 UTC | **Platform Version:** 2.0.0 Enterprise
+> **Status:** 100% Architecture & API Parity Across All 35 Domains
 
 ---
 
-## 2. Feature Review & Screen Index
+## Table of Contents
 
-| UI Screen | Feature Set | State |
-|---|---|---|
-| **AppShell** | Navigation rail, localized RTL/LTR, sync status indicator, dynamic theming. | Production Ready |
-| **Dashboard** | 60s auto-refresh, top KPIs, financial trend arrows, quick actions. | Production Ready |
-| **POS Screen** | Barcode scanning integration, split payments panel, `bcmath` mirrored calculations. | Production Ready |
-| **Catalog** | `AppDataTable` integration, 2000+ item pagination, image attachment mapping. | Production Ready |
-| **Customers** | CRM tracking, outstanding balance calculations, WhatsApp quick-link integration. | Production Ready |
-| **Peripherals** | Epson/Citizen thermal printer integration via ESC/POS protocol, cash drawer pulse testing. | Production Ready |
-| **Shift Close** | Blind cash entry, variance calculation logic, forced Z-Report printing. | Production Ready |
-| **Settings** | UI bindings to `system_settings` table, dynamic VAT adjustments, licensing UMAC verifications. | Production Ready |
+- [BLUEPRINT WORKFLOWS USE CASES (BLUEPRINT_WORKFLOWS_USE_CASES.md)](#file-blueprint-workflows-use-cases-md)
+- [CLOUD API REFERENCE (api\CLOUD_API_REFERENCE.md)](#file-api-cloud-api-reference-md)
+- [LOCAL API REFERENCE (api\LOCAL_API_REFERENCE.md)](#file-api-local-api-reference-md)
+- [RESPONSE CODES (api\RESPONSE_CODES.md)](#file-api-response-codes-md)
+- [INDEX (appendices\INDEX.md)](#file-appendices-index-md)
+- [COMPONENT MAP (architecture\COMPONENT_MAP.md)](#file-architecture-component-map-md)
+- [SYSTEM ARCHITECTURE (architecture\SYSTEM_ARCHITECTURE.md)](#file-architecture-system-architecture-md)
+- [ENTERPRISE DEPLOYMENT BLUEPRINT (blueprints\ENTERPRISE_DEPLOYMENT_BLUEPRINT.md)](#file-blueprints-enterprise-deployment-blueprint-md)
+- [UAE COMPLIANCE (compliance\UAE_COMPLIANCE.md)](#file-compliance-uae-compliance-md)
+- [DATA DICTIONARY (data\DATA_DICTIONARY.md)](#file-data-data-dictionary-md)
+- [DEPENDENCY MATRIX (dependencies\DEPENDENCY_MATRIX.md)](#file-dependencies-dependency-matrix-md)
+- [OFFLINE FAILURE MODES (edge-cases\OFFLINE_FAILURE_MODES.md)](#file-edge-cases-offline-failure-modes-md)
+- [ORDER LIFECYCLE (flows\ORDER_LIFECYCLE.md)](#file-flows-order-lifecycle-md)
+- [PAYMENT FLOW (flows\PAYMENT_FLOW.md)](#file-flows-payment-flow-md)
+- [FORM SPECIFICATIONS (forms\FORM_SPECIFICATIONS.md)](#file-forms-form-specifications-md)
+- [ERP GATEWAY INTEGRATIONS (integrations\ERP_GATEWAY_INTEGRATIONS.md)](#file-integrations-erp-gateway-integrations-md)
+- [LICENSE ARCHITECTURE (licensing\LICENSE_ARCHITECTURE.md)](#file-licensing-license-architecture-md)
+- [FEATURE MATRIX (marketing\FEATURE_MATRIX.md)](#file-marketing-feature-matrix-md)
+- [TENANT ISOLATION (multitenancy\TENANT_ISOLATION.md)](#file-multitenancy-tenant-isolation-md)
+- [BACKUP RESTORE (operations\BACKUP_RESTORE.md)](#file-operations-backup-restore-md)
+- [DEPLOYMENT GUIDE (operations\DEPLOYMENT_GUIDE.md)](#file-operations-deployment-guide-md)
+- [PRINTER INTEGRATION (peripherals\PRINTER_INTEGRATION.md)](#file-peripherals-printer-integration-md)
+- [GLOSSARY (reference\GLOSSARY.md)](#file-reference-glossary-md)
+- [PRD FUNCTIONAL REQUIREMENTS (requirements\PRD_FUNCTIONAL_REQUIREMENTS.md)](#file-requirements-prd-functional-requirements-md)
+- [SECURITY MODEL (security\SECURITY_MODEL.md)](#file-security-security-model-md)
+- [THREAT MODEL (security\THREAT_MODEL.md)](#file-security-threat-model-md)
+- [CONFLICT RESOLUTION (sync\CONFLICT_RESOLUTION.md)](#file-sync-conflict-resolution-md)
+- [SYNC ARCHITECTURE (sync\SYNC_ARCHITECTURE.md)](#file-sync-sync-architecture-md)
+- [TEST PLAN (testing\TEST_PLAN.md)](#file-testing-test-plan-md)
+- [UAT SCRIPTS (testing\UAT_SCRIPTS.md)](#file-testing-uat-scripts-md)
+- [ADMIN GUIDE (training\ADMIN_GUIDE.md)](#file-training-admin-guide-md)
+- [CASHIER GUIDE (training\CASHIER_GUIDE.md)](#file-training-cashier-guide-md)
+- [THEME SPECIFICATION (ui\THEME_SPECIFICATION.md)](#file-ui-theme-specification-md)
+- [ENTERPRISE USE CASES (use-cases\ENTERPRISE_USE_CASES.md)](#file-use-cases-enterprise-use-cases-md)
+- [CUSTOMER JOURNEYS (user-journeys\CUSTOMER_JOURNEYS.md)](#file-user-journeys-customer-journeys-md)
+- [BUSINESS WORKFLOWS (workflows\BUSINESS_WORKFLOWS.md)](#file-workflows-business-workflows-md)
 
-### Final Readiness Assessment
-The runtime features operate accurately. The frontend is fully decoupled from the backend state via offline repositories. All components meet strict deployment specifications.
+---
 
-
-## --- FILE: API_DOCS.md ---
-
-# LaundryPro UAE - API Documentation
-
-This document outlines the architecture and endpoints of the LaundryPro UAE PHP 8.2 micro-framework backend.
-
-## Framework Architecture
-
-The backend is a custom, zero-dependency PHP micro-framework designed for maximum performance and explicit control.
-
-- **Routing**: Regex-based URI matching mapped to controller methods.
-- **Dependency Injection**: Custom `Container` mapping interfaces to implementations via closures.
-- **Middleware Pipeline**: Request/Response lifecycle intercepted by a chain (e.g., `CorsMiddleware`, `RateLimitMiddleware`, `AuthMiddleware`, `PermissionMiddleware`, `AuditMiddleware`).
-- **Standardized Envelope**: All JSON responses adhere to a strict envelope format:
-  ```json
-  {
-    "success": true,
-    "code": "OPERATION_SUCCESS_CODE",
-    "message_key": "localization.key",
-    "data": { ... },
-    "errors": [],
-    "meta": {
-      "request_id": "hex_string",
-      "server_time": "ISO8601",
-      "version": "1.2.0"
-    }
-  }
-  ```
-
-## Security & Authentication
-
-- **JWT Bearer Auth**: Stateless authentication using short-lived Access Tokens and long-lived Refresh Tokens.
-- **RBAC (Role-Based Access Control)**: Enforced via `PermissionMiddleware`. Users require specific permissions (e.g., `sales.create`, `reports.view`) encoded in their JWT scope.
-- **Rate Limiting**: IP-based limiting enforced on sensitive routes (e.g., `/auth/login` is limited to 5 attempts per minute).
-- **Prepared Statements**: Absolute prevention of SQL injection via PDO.
-- **Data Integrity**: Monetary values processed via `bcmath` and stored as `DECIMAL(18,2)`.
-
-## Sync Engine Mechanics
-
-The offline-first architecture relies on the **Sync Outbox Pattern**:
-1. When the client executes an offline mutation, it writes to a local outbox.
-2. The `SyncService` polls the outbox and pushes changes to the `/sync/push` endpoint.
-3. The server processes the mutation and returns a synchronized state.
-4. Failed syncs implement **Exponential Backoff**, incrementing the `sync_attempts` counter up to a hard limit, preventing network storms.
-
-## Endpoint Reference
-
-### Health & Installation (`HealthController`, `InstallController`)
-- `GET /api/v1/health` - Basic connectivity and database health check.
-- `GET /api/v1/install/status` - Returns installation and configuration state.
-- `POST /api/v1/install/migrate` - Executes SQL schema migrations (Requires `X-Install-Token`).
-- `POST /api/v1/install/seed` - Seeds database with default roles, branches, and admin user.
-- `POST /api/v1/install/complete` - Finalizes installation and locks the system.
-
-### Authentication (`AuthController`)
-- `POST /api/v1/auth/login` - Authenticates user and returns JWT pair. Rate limited.
-- `POST /api/v1/auth/refresh` - Issues a new access token using a valid refresh token.
-- `POST /api/v1/auth/logout` - Revokes current refresh token.
-- `GET /api/v1/auth/me` - Retrieves authenticated user profile.
-
-### Sales & Point of Sale (`SalesController`)
-- `GET /api/v1/sales` - Lists sales orders with pagination and filtering.
-- `POST /api/v1/sales/draft` - Creates a draft sales order.
-- `PUT /api/v1/sales/{id}/confirm` - Confirms a draft order, finalizing prices.
-- `POST /api/v1/sales/{id}/payment` - Records a payment against an order.
-- `PUT /api/v1/sales/{id}/status` - Updates order processing status (e.g., Ready for Collection).
-- `GET /api/v1/sales/summary` - Retrieves aggregated sales data for reports.
-
-### Catalog & Pricing (`CatalogController`)
-- `GET /api/v1/catalog/services` - Lists available services and modifiers.
-- `POST /api/v1/catalog/services` - Creates a new service definition.
-- `PUT /api/v1/catalog/services/{id}` - Updates a service definition.
-- `GET /api/v1/catalog/products` - Lists retail products.
-- `POST /api/v1/catalog/products` - Creates a new retail product.
-
-### Inventory (`InventoryController`)
-- `GET /api/v1/inventory/movements` - Lists stock movements.
-- `POST /api/v1/inventory/receipt` - Records a stock receipt against a purchase order.
-- `POST /api/v1/inventory/adjustment` - Processes manual stock adjustments.
-
-### Human Resources (`HrController`, `PayrollController`)
-- `GET /api/v1/hr/employees` - Lists employees.
-- `POST /api/v1/hr/employees` - Registers a new employee.
-- `POST /api/v1/hr/attendance` - Records clock-in/out events.
-- `POST /api/v1/hr/leave` - Submits a leave request.
-- `POST /api/v1/payroll/advance` - Issues a salary advance.
-- `POST /api/v1/payroll/run` - Generates payroll run for a period, deducting advances automatically.
-
-### Delivery & Logistics (`DeliveryController`, `ChallanController`)
-- `GET /api/v1/delivery/tasks` - Lists active delivery tasks.
-- `POST /api/v1/delivery/tasks/{id}/complete` - Marks a task as completed.
-- `POST /api/v1/challans` - Generates a batch transfer document (Challan) for factory processing.
-
-### Reporting & Analytics (`ReportsController`, `AnalyticsController`)
-- `GET /api/v1/reports/inventory` - Current stock valuation.
-- `GET /api/v1/reports/payroll` - Payroll summary.
-- `GET /api/v1/reports/expenses` - Expense breakdown.
-- `GET /api/v1/reports/production` - Factory output metrics.
-- `GET /api/v1/analytics/summary` - High-level executive dashboard metrics.
-
-### System Settings & Backup (`SettingsController`, `BackupController`)
-- `GET /api/v1/settings` - Retrieves global configurations.
-- `PUT /api/v1/settings` - Bulk updates settings.
-- `GET /api/v1/backup/history` - Lists available backups.
-- `POST /api/v1/backup/run` - Triggers an encrypted ZIP backup of the database and files.
-
-### Synchronization (`SyncController`)
-- `GET /api/v1/sync/status` - Returns unpushed outbox counts and sync health.
-- `POST /api/v1/sync/push` - Receives offline mutations from the client and applies them.
-- `GET /api/v1/sync/pull` - Returns changes originating from the server since the last sync.
-
-## Error Handling
-
-Standard HTTP status codes are used alongside domain-specific error keys:
-- `401 Unauthorized` - Missing or expired JWT.
-- `403 Forbidden` - Insufficient RBAC permissions.
-- `404 Not Found` - Resource does not exist.
-- `422 Unprocessable Entity` - Validation failure.
-- `429 Too Many Requests` - Rate limit exceeded.
-- `500 Internal Server Error` - Unhandled exception (safely obfuscated in production).
-
-## Hardware Integration
-
-### RFID HardwareAdapterInterface Fallback
-The `HardwareAdapterInterface` provides an abstraction layer for RFID scanners. In cases where the primary hardware bridge (e.g., native SDK or COM port) becomes unavailable or disconnected:
-1. **Fallback to Keyboard Wedge**: The interface automatically degrades to accept standard HID keyboard inputs if a scanner supports it.
-2. **Offline Buffering**: Scans captured while the network is offline are buffered locally in the Flutter app's internal queue.
-3. **Reconciliation**: Once connection restores, buffered scans are pushed through the standard sync outbox to ensure no tags are missed during brief disconnects.
-
+<a id="file-blueprint-workflows-use-cases-md"></a>
 
 ## --- FILE: BLUEPRINT_WORKFLOWS_USE_CASES.md ---
 
+# Operational Use Cases & Workflow Blueprints
 
+**Product:** LaundryPro UAE / LaundraCore Local  
+**Standard:** Enterprise POS/ERP Operational Standard  
+**Version:** 1.2.1+4 � PHP 8.2 � MariaDB  
 
-## --- FILE: CHANGELOG.md ---
+---
 
-﻿# Changelog - LaundryPro UAE
+## 1. Primary Use-Case Index
 
-All notable changes to this project will be documented in this file.
-Format follows [Keep a Changelog](https://keepachangelog.com/).
+| Use Case ID | Name | Primary Actor | Success Criteria |
+|---|---|---|---|
+| **UC-01** | Splash Screen Self-Healing Boot | Workstation / Cashier | Environment checked, migrations auto-applied, login ready |
+| **UC-02** | Walk-In Instant Sale & Payment | Front-Desk Cashier | Customer billed, receipt printed, cash drawer opened, outbox queued |
+| **UC-03** | Existing Customer Phone Search | Front-Desk Cashier | History and balances retrieved under 300 ms |
+| **UC-04** | Express Surcharge & Garment Modifiers | Front-Desk Cashier | Dynamic line calculation with 50% urgency premium |
+| **UC-05** | Production Status Movement | Laundry Operator | Order transitions from Received ? Processing ? Ready |
+| **UC-06** | Factory Challan Batch Transfer | Plant Dispatcher | Batch transfer slip printed with item count verification |
+| **UC-07** | Driver Dispatch & Delivery Handover | Driver / Cashier | Task dispatched, cash on delivery collected, order marked Delivered |
+| **UC-08** | Staff Shift Clock-In & WPS Payroll | Employee / HR | Shifts captured, monthly WPS statement generated with UAE Labour Law |
+| **UC-09** | Hardware UMAC Anti-Tamper & Lockout | System Guard | Hardware mismatch or clock rollback immediately halted |
+| **UC-10** | Offline-to-Cloud Delta Sync | Background Daemon | Delta outbox pushed to central cloud when connection is active |
+| **UC-11** | Split Payment Workflow | Cashier | Process Cash + Card seamlessly |
+| **UC-12** | Refund & Correction Memo | Manager | Immutable correction memo generated |
+| **UC-13** | Daily Shift Close | Cashier | Z-Report printed and variance logged |
+| **UC-14** | Low-Stock Reorder | System | Alert triggered and PO generated |
+| **UC-15** | Client Onboarding Wizard | Admin | 8-step initialization completed |
+| **UC-11** | Split Payment (Multi-Tender) | Front-Desk Cashier | Invoice settled across = 2 tender types, change calculated correctly, single receipt issued |
+| **UC-12** | Refund / Correction Memo | Cashier / Manager | Credit memo raised against original invoice; original invoice never mutated; ledger balanced |
+| **UC-13** | Shift Close / Cash Reconciliation | Shift Supervisor | Declared cash vs. system cash variance logged; Z-Report printed; drawer sealed |
+| **UC-14** | Inventory Low-Stock Reorder | Store Manager / System | Consumable stock falls below threshold; PO draft auto-generated; supplier notified |
+| **UC-15** | 8-Step Onboarding Wizard | Super-Admin / New Tenant | New branch node fully configured: business profile, hardware, license, services, and first test order |
 
-## [Unreleased]
+---
 
-### Added
-- Complete .ai/ agent ecosystem (181 files)
-- Complete docs/ documentation universe
-- Initial project scaffolding
+## 2. Detailed Workflow Diagrams & Logic Sequences
 
-## [0.1.0] - 2026-09-21
-
-### Added
-- Project initialization
-- Database baseline schema (001_baseline.sql)
-- Flutter project structure
-- PHP API project structure
-
-## --- FILE: CLOSEOUT_CHECKLIST.md ---
-
-# LaundryPro UAE — Final Closeout Checklist
-
-**Version:** 1.2.1+4  
-**Date:** 2026-09-05  
-**Quality gate:** `powershell scripts\dev.ps1 gate`
-
-## Consolidation
-
-| Item | Status |
-|------|--------|
-| `001_baseline.sql` greenfield migration | Done |
-| Incremental migrations archived | Done |
-| `001_all_seeds.sql` + `run_dev_seed.php` | Done |
-| `scripts/dev.ps1` unified CLI | Done |
-| API tests → 4 phase suites (182 cases) | Done |
-| Legacy DB baseline shim in MigrationService | Done |
-
-## Test evidence
-
-| Suite | Pass | Skip |
-|-------|------|------|
-| API (`run_api_tests.php`) | 173 | 9 |
-| Flutter (`flutter test`) | 116 | 0 |
-| OpenAPI routes | 148 | — |
-
-## Phase gap audit
-
-| Track | Status | Notes |
-|-------|--------|-------|
-| Phase 0 | VERIFIED | Platform + quality gate |
-| Phase 1 | VERIFIED | CRM, catalog, POS, sales, sync local |
-| Phase 1C | VERIFIED | License, backup verify/restore |
-| Phase 2 | VERIFIED | Production, delivery, challans, purchasing, HR, payroll, expenses, reports, notifications |
-| Phase 2 P2-13 | DEFERRED | Print template designer UI — peripheral template DB exists, no visual designer |
-| Phase 3 | VERIFIED | Branches, terminals, LAN, analytics, KSA, channels, accounting, storefront, portal |
-| CR-2026-09-02-001 | PARALLEL | Cloud scaffold; tenant tests optional (skip on 404) |
-| CR-2026-09-05-002 | VERIFIED | Phase 3 completion |
-| CR-2026-09-05-003 | VERIFIED | POS peripheral framework merge |
-| POS hardware | VERIFIED | Print, scan, drawer; printer must be selected in Peripherals |
-
-## Documentation synced
-
-| Document | Updated |
-|----------|---------|
-| CR-2026-09-05-003.md | Yes |
-| EDGE_CASES.md (AC-031..035) | Yes |
-| QUALITY_GATE.md | Yes |
-| api-contract.md | Yes |
-| docs/peripherals/README.md | Yes |
-| Roadmap (key sections) | Yes |
-
-## Git closeout
-
-- [x] Commit 1: `feat(peripherals): merge POS peripheral framework`
-- [x] Commit 2: `chore: consolidate artifacts and sync v1.2.1 docs`
-- [x] Quality gate green
-- [x] `git push origin main` (`9a3eeb2`)
-
-## Known optional skips (not blockers)
-
-- Cloud tenant registration tests (cloud-api not on localhost)
-- `p3_branch_create` / `p3_terminal_create` optional 500 in some envs
-- MSIX build requires VS C++ ATL + `scripts/peripherals/stage_missing_dlls.ps1`
-
-
-## --- FILE: DATABASE_ER_DIAGRAM.md ---
-
-﻿# LaundryPro UAE: Database Entity-Relationship (ER) Diagram
-
-This document defines the core relational data model underpinning the LaundryPro UAE offline-first system.
-
-## Core Schema
+### UC-01: Splash Screen Self-Healing Boot Sequence
 
 ```mermaid
-erDiagram
-    BUSINESS ||--o{ BRANCHES : "owns"
-    BRANCHES ||--o{ TERMINALS : "contains"
-    
-    ROLES ||--o{ USERS : "defines permissions for"
-    USERS ||--o{ REFRESH_TOKENS : "issues"
-    USERS ||--o{ AUDIT_LOGS : "performs"
-    
-    CUSTOMERS ||--o{ SALES_ORDERS : "places"
-    
-    CATEGORIES ||--o{ SERVICES : "groups"
-    SERVICES ||--o{ SERVICE_PRODUCT_MAP : "consumes"
-    PRODUCTS ||--o{ SERVICE_PRODUCT_MAP : "is consumed by"
-    
-    SALES_ORDERS ||--o{ SALES_ORDER_LINES : "contains"
-    SALES_ORDERS ||--o{ PAYMENT_TRANSACTIONS : "paid via"
-    
-    PRODUCTS ||--o{ INVENTORY_MOVEMENTS : "tracked by"
-    VENDORS ||--o{ PURCHASE_ORDERS : "receives"
-    PURCHASE_ORDERS ||--o{ INVENTORY_MOVEMENTS : "restocks via"
-    
-    TERMINALS ||--o{ SYNC_OUTBOX : "queues data to"
-    SYNC_OUTBOX ||--o{ SYNC_STATE : "monitored by"
-    
-    BUSINESS {
-        int id PK
-        string name
-        string trn
-        boolean is_active
-    }
-    
-    USERS {
-        int id PK
-        string uuid
-        int role_id FK
-        string username
-        string password_hash
-    }
-    
-    ROLES {
-        int id PK
-        string name
-        json permissions
-    }
-    
-    CUSTOMERS {
-        int id PK
-        string uuid
-        string name
-        string phone
-        decimal outstanding_balance
-    }
-    
-    SALES_ORDERS {
-        int id PK
-        string uuid
-        int customer_id FK
-        string status
-        string payment_status
-        decimal grand_total
-        decimal balance_due
-    }
-    
-    SALES_ORDER_LINES {
-        int id PK
-        int sales_order_id FK
-        int service_id FK
-        int quantity
-        decimal unit_price
-        decimal subtotal
-    }
-    
-    PRODUCTS {
-        int id PK
-        string sku
-        string name
-        int qty_on_hand
-        int reorder_point
-    }
-    
-    INVENTORY_MOVEMENTS {
-        int id PK
-        int product_id FK
-        string type
-        int quantity_change
-    }
-    
-    SYNC_OUTBOX {
-        int id PK
-        string entity_type
-        string entity_uuid
-        string action
-        json payload
-        string status
-        int attempts
-        timestamp next_retry_at
-    }
+sequenceDiagram
+    autonumber
+    actor User as Cashier / Operator
+    participant App as Flutter Desktop
+    participant Guard as SystemGuardService
+    participant LocalAPI as Local PHP API (http://laundrypro-localapi)
+    participant CloudAPI as Central Cloud API
+
+    User->>App: Launch laundrypro_uae.exe
+    App->>App: Render SplashScreen UI (Animated Brand + Progress Bar)
+    App->>Guard: Verify Registry Pulse & Hardware UMAC
+    alt System Clock Tampered or Invalid
+        Guard-->>App: Return EvaluationStatus::TAMPERED
+        App->>User: Display Security Alert & Halts POS
+    else Hardware Valid
+        App->>LocalAPI: GET /api/v1/health
+        alt Local API / MySQL Down
+            LocalAPI-->>App: Connection Refused
+            App->>User: Display Non-Technical Fix Instructions (Check XAMPP)
+            User->>App: Click Exit Application or Retry
+        else Local API Healthy
+            App->>LocalAPI: GET /api/v1/install/status
+            opt Migrations Pending
+                App->>LocalAPI: POST /api/v1/install/migrate
+                LocalAPI-->>App: 200 OK (Migrations applied)
+            end
+            App->>CloudAPI: Background Async Ping (non-blocking)
+            App->>App: Navigate to Login / Dashboard
+        end
+    end
 ```
 
-## Design Constraints
-- All primary keys (`id`) are unsigned integers auto-incremented for local database speed.
-- All replicated tables possess a `uuid` `CHAR(36)` used as the global primary key when synchronizing to the central cloud.
-- Monetary values (`grand_total`, `subtotal`, etc.) are STRICTLY typed as `DECIMAL(18,2)`.
-- The `sync_outbox` acts as an event-store for the offline-first replication engine.
+**Business Rules**
 
-
-## --- FILE: DESIGN_BRIEF.md ---
-
-# Professional Design Brief & Prompt: Laundry Pro UAE — Icon Set, Logo & Visual Identity
-
-**Document Version:** 1.0  
-**Date:** September 2026  
-**Prepared For:** Magnificent Solution — Brand, Product, Engineering  
-**Project:** Laundry Pro UAE — Commercial Laundry Management Platform  
-**Deliverable:** Complete asset icon set, logo suite, and visual identity system  
-**Style Direction:** Elegant, Futuristic, Professional, Clear, Premium, Fully Furnished  
-**Output Formats:** SVG, PNG (multiple resolutions), PDF, AI/EPS, Figma/Sketch libraries  
-**Purpose:** To provide a single, comprehensive, production-ready design brief and prompt that can be handed to a world-class brand identity designer or used to drive AI-assisted asset generation for the entire Laundry Pro UAE ecosystem.
+- Hardware UMAC check runs before any network call; a mismatch blocks all POS operations.
+- Clock rollback of > 5 minutes triggers `EvaluationStatus::TAMPERED` and halts login.
+- Migration script is idempotent; running it on an up-to-date schema is a no-op.
 
 ---
 
-## 1. Brand Overview & Context
+### UC-02: Walk-In Instant Sale & Payment Workflow
 
-**Brand Name:** Laundry Pro UAE  
-**Tagline (optional):** *Professional Laundry Management Platform for the UAE*  
-**Industry:** Commercial Laundry, Dry Cleaning, Garment Care, POS/ERP for Laundry Businesses  
-**Target Audience:** Laundry owners, franchise operators, store managers, cashiers, delivery drivers, advanced garment-care specialists, QA/compliance officers, super-admins.  
-**Platform:** Flutter desktop (Windows/Linux), Android, iOS; web portal; cloud API; local XAMPP API.  
-**Brand Attributes:**
-- **Elegant:** Refined, premium, sophisticated, not cartoonish.
-- **Futuristic:** Forward-looking, tech-savvy, subtle sci-fi touches (glassmorphism, soft glow, geometric precision) without being gimmicky.
-- **Professional:** Trustworthy, enterprise-grade, reliable, clean.
-- **Clear:** Highly legible at small sizes, unambiguous iconography, strong silhouette recognition.
-- **Furnished:** Complete, comprehensive, every possible icon and variant is provided; no gaps.
-- **Localized:** Works in English (LTR) and Arabic (RTL); culturally neutral but with subtle UAE-inspired geometric motifs (optional).
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cashier as Cashier
+    participant UI as POS Cart Screen
+    participant Peripherals as Thermal Printer & Drawer
+    participant API as Local PHP API
+    participant DB as MariaDB
 
----
-
-## 2. Visual Identity Principles
-
-1. **Minimalist Geometry:** Icons built from simple geometric primitives (circles, squares, lines, arcs) with a consistent 2px stroke on a 24×24 grid.
-2. **Consistent Stroke & Corner Radius:** All icons share the same stroke weight, cap style (rounded), join style (rounded), and corner radius (2px).
-3. **Duotone & Monochrome Variants:** Every icon has a monochrome version and a duotone version using the primary and accent colors.
-4. **Subtle Depth:** Icons may use very subtle gradients (linear, 2-stop) to add a futuristic feel, but must remain flat when reduced to monochrome.
-5. **Negative Space:** Clever use of negative space to imply motion, cleanliness, or fabric flow.
-6. **Optical Alignment:** Icons are optically balanced, not just mathematically centered.
-7. **Pixel Perfect:** Icons align to the pixel grid at 24×24, 32×32, 48×48, and 64×64.
-8. **Semantic Clarity:** Each icon has a single, unambiguous meaning; no abstract shapes that require a label to understand.
-9. **Futuristic Accents:** Optional subtle glow, thin outer ring, or micro-dot patterns on active/selected states.
-10. **Brand Consistency:** All icons feel like they belong to the same family; no outliers.
-
----
-
-## 3. Color Palette
-
-| Role | Hex | Usage |
-|---|---|---|
-| **Primary** | `#0A2540` (Deep Navy) | Backgrounds, headers, primary text |
-| **Primary Gradient** | `#0A2540` → `#1B4B6B` | Hero sections, active states |
-| **Accent 1** | `#00D4FF` (Electric Cyan) | Highlights, active icons, futuristic glow |
-| **Accent 2** | `#00E5A0` (Aqua Green) | Success, cleanliness, water |
-| **Accent 3** | `#FFB800` (Warm Gold) | Premium accents, loyalty, warnings |
-| **Neutral 1** | `#FFFFFF` (Pure White) | Backgrounds, icon fills |
-| **Neutral 2** | `#F5F7FA` (Light Mist) | Cards, surfaces |
-| **Neutral 3** | `#B0BEC5` (Cool Gray) | Secondary text, inactive icons |
-| **Neutral 4** | `#263238` (Dark Slate) | Body text, dark mode backgrounds |
-| **Error** | `#FF4D4F` | Errors, destructive actions |
-| **Warning** | `#FAAD14` | Warnings, pending states |
-| **Info** | `#1890FF` | Informational states |
-| **Success** | `#52C41A` | Success, synced, completed |
-
-**Gradients:**
-- **Primary Gradient:** Linear 135°, `#0A2540` → `#1B4B6B`
-- **Accent Gradient:** Linear 135°, `#00D4FF` → `#00E5A0`
-- **Glass Gradient:** Linear 135°, `rgba(255,255,255,0.15)` → `rgba(255,255,255,0.05)`
-
-**Futuristic Glow:** Use `#00D4FF` at 20% opacity as a soft outer glow on active icons.
-
----
-
-## 4. Typography
-
-| Usage | Font | Weight | Notes |
-|---|---|---|---|
-| **Logo Wordmark** | Custom geometric sans (e.g., Poppins, Montserrat, or custom) | Bold (700) | Tight letter-spacing, clean |
-| **Headings** | Poppins / Inter | Semi-Bold (600) | Clear, modern |
-| **Body** | Inter / Roboto | Regular (400) | Highly legible |
-| **Arabic** | Cairo / Tajawal | Regular/Bold | RTL support |
-| **Monospace** | JetBrains Mono | Regular | For codes, IDs |
-
-**Logo Typography:** The wordmark should use a custom or highly refined geometric sans-serif. Letters should have consistent stroke width, subtle rounded terminals, and a futuristic feel. Consider a subtle ligature or custom cut on the "L" and "P".
-
----
-
-## 5. Logo Suite
-
-### 5.1 Primary Logo (Horizontal)
-- **Composition:** Icon mark on the left, wordmark "LAUNDRY PRO" on the right, with "UAE" as a smaller tagline or integrated.
-- **Icon Mark:** Abstract, geometric representation of a washing machine drum combined with a water droplet and a subtle sparkle/star to imply cleanliness and premium service. Futuristic: the drum could be a hexagon or circular ring with segmented arcs.
-- **Wordmark:** "LAUNDRY PRO" in bold geometric sans, with "UAE" in a lighter weight or smaller size, possibly in accent color.
-- **Clear Space:** Minimum clear space equal to the height of the "L" on all sides.
-- **Minimum Size:** 120px wide for digital, 30mm for print.
-
-### 5.2 Secondary Logo (Vertical/Stacked)
-- Icon mark centered above the wordmark.
-- Used for app icons, social media profiles, merchandise.
-
-### 5.3 Icon-Only Mark (App Icon / Favicon)
-- The icon mark alone, simplified for small sizes.
-- Must be recognizable at 16×16.
-- Use a solid background with the mark in white or accent gradient.
-
-### 5.4 Monogram (LP)
-- A stylized "LP" ligature that can be used as a watermark, pattern, or compact identifier.
-- Futuristic: geometric, sharp, with a subtle cut or overlap.
-
-### 5.5 Color Variants
-- **Full Color:** Primary gradient + accent.
-- **Monochrome Dark:** All dark navy.
-- **Monochrome Light:** All white.
-- **Inverted:** White mark on dark background.
-- **Gold Premium:** For loyalty/premium tier.
-
-### 5.6 Usage Guidelines
-- Do not stretch, rotate, or alter proportions.
-- Do not change colors outside the palette.
-- Do not add effects (drop shadows, bevels) except the defined subtle glow.
-- Always use the provided SVG for digital, EPS/AI for print.
-
----
-
-## 6. Icon Set Specification
-
-### 6.1 Grid & Construction
-- **Grid:** 24×24 px, with 1px padding (live area 22×22).
-- **Stroke:** 2px, rounded caps, rounded joins.
-- **Corner Radius:** 2px for rectangles, full round for circles.
-- **Alignment:** Snap to pixel grid; use half-pixel for curves if needed.
-- **Optical Corrections:** Slightly overshoot curves for optical balance.
-
-### 6.2 Style Variants
-- **Outline (default):** 2px stroke, no fill.
-- **Filled:** Solid fill, no stroke, for active states.
-- **Duotone:** Two colors (primary + accent) with 20% opacity for secondary shapes.
-- **Glass/Futuristic:** Subtle gradient fill + thin white stroke + soft glow for hero/active states.
-
-### 6.3 Icon Categories & Complete List
-
-#### A. Navigation & Shell (20 icons)
-1. Dashboard  
-2. POS / Sales  
-3. Catalog  
-4. Inventory  
-5. Customers  
-6. HR  
-7. Delivery  
-8. Challans  
-9. Reports  
-10. Analytics  
-11. Settings  
-12. Admin  
-13. Advanced (garment care)  
-14. Sync  
-15. Backup  
-16. Storefront  
-17. Channels  
-18. Branches  
-19. Terminals  
-20. Logout  
-
-#### B. Core Actions (30 icons)
-21. Add / Create  
-22. Edit  
-23. Delete / Trash  
-24. Search  
-25. Filter  
-26. Sort  
-27. Export  
-28. Import  
-29. Print  
-30. Share  
-31. Sync / Refresh  
-32. Save  
-33. Cancel  
-34. Back  
-35. Next  
-36. Home  
-37. Menu  
-38. Login  
-39. Lock  
-40. Unlock  
-41. User / Profile  
-42. Notifications  
-43. Help  
-44. Info  
-45. Warning  
-46. Error  
-47. Success  
-48. Copy  
-49. Paste  
-50. Undo  
-
-#### C. POS & Payment (20 icons)
-51. Cash  
-52. Credit Card  
-53. Split Payment  
-54. Refund / Correction Memo  
-55. Invoice  
-56. Receipt  
-57. Barcode Scanner  
-58. RFID  
-59. Cash Drawer  
-60. Thermal Printer  
-61. Scale  
-62. Express Service  
-63. Fragrance  
-64. Starch  
-65. Stain Treatment  
-66. Loyalty Points  
-67. Discount  
-68. Tax / VAT  
-69. Change Due  
-70. Hold Cart  
-
-#### D. Inventory & Purchasing (20 icons)
-71. Stock / Box  
-72. Receipt of Goods  
-73. Transfer  
-74. Adjustment  
-75. Low Stock Alert  
-76. Purchase Order  
-77. Vendor / Supplier  
-78. Warehouse  
-79. Barcode  
-80. QR Code  
-81. Chemical / Detergent  
-82. Reagent  
-83. PPE  
-84. Consumable  
-85. Expiry Date  
-86. Lot Number  
-87. Reorder Point  
-88. Shrinkage  
-89. Damage  
-90. Cycle Count  
-
-#### E. HR & Payroll (20 icons)
-91. Employee  
-92. Attendance / Clock  
-93. Leave  
-94. Payroll  
-95. Salary Advance  
-96. Shift  
-97. Clock In  
-98. Clock Out  
-99. Overtime  
-100. WPS / Bank  
-101. Payslip  
-102. Contract  
-103. Certification  
-104. Training  
-105. ID Card  
-106. Department  
-107. Designation  
-108. Joining Date  
-109. Resignation  
-110. Appraisal  
-
-#### F. Delivery & Challans (15 icons)
-111. Delivery Truck  
-112. Driver  
-113. Route  
-114. Package  
-115. Handover  
-116. Signature  
-117. Proof of Delivery  
-118. Cold Chain  
-119. Temperature Log  
-120. Challan  
-121. Dispatch  
-122. Receive  
-123. Batch Transfer  
-124. Factory  
-125. Storefront  
-
-#### G. Advanced Garment Care (30 icons)
-126. Advanced Cycle  
-127. Washing Machine  
-128. Dry Cleaning  
-129. Ironing  
-130. Folding  
-131. Packaging  
-132. Sterilization  
-133. Autoclave  
-134. Cleanroom  
-135. Garment  
-136. Gowning  
-137. Degowning  
-138. ISO Class  
-139. pH Level  
-140. Temperature  
-141. Pressure  
-142. Detergent Ratio  
-143. Spin Speed  
-144. Chemical Dosage  
-145. Equipment  
-146. Calibration  
-147. Maintenance  
-148. Out of Service  
-149. Certificate  
-150. Compliance  
-151. GMP  
-152. Validation  
-153. Electronic Signature  
-154. Audit Trail  
-155. Batch / Lot  
-
-#### H. Reports & Analytics (15 icons)
-156. Chart / Graph  
-157. Bar Chart  
-158. Pie Chart  
-159. Line Chart  
-160. Trend  
-161. KPI  
-162. Aging Report  
-163. P&L  
-164. Sales Summary  
-165. Payment Breakdown  
-166. Employee Report  
-167. Branch Performance  
-168. Top Services  
-169. Top Customers  
-170. Export to Excel  
-
-#### I. System & Infrastructure (25 icons)
-171. Cloud  
-172. Server  
-173. Database  
-174. API  
-175. License  
-176. Security / Shield  
-177. Key  
-178. Backup  
-179. Restore  
-180. Migration  
-181. Log  
-182. Health Check  
-183. Connectivity  
-184. Offline  
-185. Online  
-186. LAN  
-187. Terminal  
-188. Branch  
-189. Tenant  
-190. Super Admin  
-191. Data Explorer  
-192. Services Control  
-193. Registry  
-194. UMAC  
-195. Clock Tamper  
-
-#### J. Status & Feedback (15 icons)
-196. Pending  
-197. In Progress  
-198. Completed  
-199. Cancelled  
-200. Failed  
-201. Synced  
-202. Offline  
-203. Online  
-204. Warning  
-205. Error  
-206. Success  
-207. Info  
-208. Loading / Spinner  
-209. Empty State  
-210. No Data  
-
-#### K. Miscellaneous (20 icons)
-211. Calendar  
-212. Time  
-213. Location / Map  
-214. Phone  
-215. Email  
-216. WhatsApp  
-217. SMS  
-218. Notification Bell  
-219. Chat  
-220. Attachment  
-221. Image  
-222. File  
-223. Folder  
-224. Link  
-225. QR Code  
-226. Barcode  
-227. Printer  
-228. Scanner  
-229. Camera  
-230. Microphone  
-
-**Total Icons:** 230+ unique icons, each with 4 style variants (Outline, Filled, Duotone, Glass) = 920+ assets.
-
-### 6.4 Icon Naming Convention
-- `lp_icon_{category}_{name}_{variant}.svg`
-- Example: `lp_icon_nav_dashboard_outline.svg`, `lp_icon_action_add_filled.svg`
-
-### 6.5 Icon Delivery Formats
-- **SVG:** Optimized, minified, with `viewBox="0 0 24 24"`.
-- **PNG:** 24, 32, 48, 64, 128, 256, 512 px, transparent background.
-- **PDF:** Vector, for print.
-- **Figma/Sketch Library:** Organized by category, with components and variants.
-- **Icon Font:** Optional, for web usage.
-
----
-
-## 7. Futuristic & Elegant Accents
-
-- **Subtle Glow:** Active icons may have a soft outer glow using `#00D4FF` at 20% opacity, 4px blur.
-- **Glassmorphism:** For hero icons, use a translucent white fill (`rgba(255,255,255,0.1)`) with a 1px white stroke and backdrop blur.
-- **Micro-Dots:** Optional pattern of tiny dots (1px) in the background of hero icons.
-- **Gradient Strokes:** For premium icons (e.g., loyalty, advanced), use a gradient stroke from `#00D4FF` to `#00E5A0`.
-- **Motion:** Icons should be designed with potential for subtle animation (e.g., rotating drum, pulsing glow) in mind, but static versions must stand alone.
-
----
-
-## 8. Logo & Icon Usage Guidelines
-
-- **Clear Space:** Minimum clear space around logo = height of the "L" in the wordmark.
-- **Minimum Sizes:** Digital: 120px wide (horizontal), 32px (icon-only). Print: 30mm wide (horizontal), 10mm (icon-only).
-- **Backgrounds:** Use the full-color logo on light backgrounds; use the inverted (white) logo on dark backgrounds. Ensure sufficient contrast.
-- **Do Not:** Distort, rotate, recolor, add effects, outline, or place on busy backgrounds without a solid container.
-- **Accessibility:** Ensure icons have a contrast ratio of at least 4.5:1 against their background. Provide text labels where possible.
-
----
-
-## 9. Deliverables Checklist
-
-- [ ] Primary logo (horizontal, full color)
-- [ ] Secondary logo (vertical/stacked)
-- [ ] Icon-only mark (app icon, favicon)
-- [ ] Monogram (LP)
-- [ ] Color variants (monochrome dark, monochrome light, inverted, gold premium)
-- [ ] Logo usage guidelines (PDF)
-- [ ] 230+ unique icons in 4 variants each (Outline, Filled, Duotone, Glass)
-- [ ] SVG, PNG, PDF, AI/EPS for all assets
-- [ ] Figma/Sketch library with organized components
-- [ ] Icon font (optional)
-- [ ] Brand guidelines document (PDF) covering logo, colors, typography, iconography, spacing, motion, and usage examples
-- [ ] Mockups: App UI, web portal, print collateral, merchandise, vehicle branding
-
----
-
-## 10. Prompt for AI Image Generation (Midjourney / DALL-E / Stable Diffusion)
-
-If using an AI image generator to create initial concepts, use the following prompt (adapt as needed):
-
+    Cashier->>UI: Select Items (e.g., 2x Kandora Dry Clean, 1x Suit Steam Press)
+    UI->>UI: Calculate Line Totals + 5% UAE VAT
+    Cashier->>UI: Click Checkout (Total: 73.50 AED)
+    Cashier->>UI: Input Tender (100.00 AED Cash)
+    UI->>UI: Calculate Change (26.50 AED)
+    Cashier->>UI: Confirm Transaction
+    UI->>API: POST /api/v1/sales/orders (Lines, Customer, Payment)
+    API->>DB: Begin Transaction
+    API->>DB: INSERT sales_orders & freeze price snapshots
+    API->>DB: INSERT payment_transactions
+    API->>DB: INSERT sync_outbox (status='pending')
+    API->>DB: COMMIT
+    API-->>UI: 200 OK (Order LP-2026-00109 Created)
+    UI->>Peripherals: Send Raw ESC/POS Stream
+    Peripherals->>Peripherals: Print 80 mm Receipt
+    Peripherals->>Peripherals: Send Pin-2 Drawer Pulse (Drawer Opens)
+    UI->>UI: Clear Cart for Next Customer
 ```
-Professional brand identity design for "Laundry Pro UAE", a premium commercial laundry management platform. Elegant, futuristic, clear, and professional. Create a comprehensive icon set and logo. Style: minimalist geometric, 2px stroke, rounded caps, 24x24 grid, consistent visual weight. Color palette: deep navy #0A2540, electric cyan #00D4FF, aqua green #00E5A0, warm gold #FFB800, white, light mist #F5F7FA, cool gray #B0BEC5, dark slate #263238. Logo: abstract washing machine drum combined with water droplet and sparkle, geometric, futuristic. Wordmark "LAUNDRY PRO" in bold geometric sans, "UAE" smaller. Icons: navigation, POS, inventory, customers, HR, delivery, challans, reports, settings, admin, advanced garment care (cycles, sterilization, cleanroom, calibration, certification, e-signature), sync, backup, licensing, status, actions. Include duotone and monochrome variants. Futuristic accents: subtle glow, glassmorphism, gradients. Deliver as SVG, PNG, PDF. Ultra-detailed, high resolution, vector style, clear silhouettes, premium enterprise look. --ar 16:9 --v 6
+
+**Business Rules**
+
+- Price snapshots are stored at order time; subsequent service price changes never retroactively alter historical invoices.
+- VAT is calculated at 5% on the taxable subtotal using bcmath to avoid floating-point rounding errors.
+- The sync_outbox record ensures cloud replication even when the network is unavailable at sale time.
+
+---
+
+### UC-03: Existing Customer Phone Search
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cashier as Cashier
+    participant UI as Customer Search Bar
+    participant API as Local PHP API
+    participant DB as MariaDB
+
+    Cashier->>UI: Type "+971 50 123 4567" (or partial "123 4567")
+    UI->>API: GET /api/v1/customers?search=0501234567 (debounced 200 ms)
+    API->>DB: SELECT with LIKE on mobile_normalized
+    DB-->>API: Customer record (id, name, balance, loyalty_points)
+    API-->>UI: 200 OK (JSON customer list)
+    UI->>UI: Render customer card with order history badge
+    Cashier->>UI: Select customer ? auto-attach to active cart
+```
+
+**Business Rules**
+
+- Search is normalised (leading zeros, country prefix stripped) before querying.
+- Response target: = 300 ms on local MariaDB; index on `mobile_normalized` column is mandatory.
+- Walk-in customers use a system placeholder record (id = 1); no personal data stored.
+
+---
+
+### UC-04: Express Surcharge & Garment Modifiers
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cashier as Cashier
+    participant UI as POS Line Editor
+    participant API as Local PHP API
+
+    Cashier->>UI: Add "Kandora - Dry Clean" @ 35.00 AED
+    Cashier->>UI: Toggle "Express Service" modifier
+    UI->>UI: Apply +50% surcharge ? line total 52.50 AED
+    Cashier->>UI: Toggle "Fragrance" add-on @ +2.00 AED flat
+    UI->>UI: Recalculate line: 52.50 + 2.00 = 54.50 AED
+    UI->>UI: Recalculate cart VAT (5%) and grand total
+    Cashier->>UI: Confirm Checkout
+    UI->>API: POST /api/v1/sales/orders (lines with modifier metadata)
+    API-->>UI: 200 OK
+```
+
+**Business Rules**
+
+- Express surcharge is always 50% of the base service rate, never compounded on other modifiers.
+- Flat add-on modifiers (Fragrance, Starch, Stain Treatment) are added after the percentage surcharge.
+- All modifier choices are stored in `order_line_modifiers` for audit and reporting.
+
+---
+
+### UC-05: Production Status Movement
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Laundry Operator
+    participant UI as Order Board
+    participant API as Local PHP API
+    participant DB as MariaDB
+
+    Op->>UI: Open Order #LP-2026-00109 (Status: Received)
+    Op->>UI: Click "Move to Processing"
+    UI->>API: PUT /api/v1/orders/109/status {status: "processing"}
+    API->>DB: UPDATE sales_orders SET status='processing', updated_at=NOW()
+    API->>DB: INSERT order_status_history (order_id, from, to, changed_by, changed_at)
+    API-->>UI: 200 OK
+    UI->>UI: Refresh order card to "In Processing" badge
+    Op->>UI: Click "Mark Ready for Pickup"
+    UI->>API: PUT /api/v1/orders/109/status {status: "ready"}
+    API->>DB: UPDATE & INSERT history
+    API-->>UI: 200 OK
+```
+
+**Business Rules**
+
+- Status transitions are enforced server-side: `received ? processing ? ready ? delivered`.
+- Skipping a state (e.g., `received ? delivered`) is rejected with HTTP 422.
+- Every transition is logged in `order_status_history` with operator identity and timestamp.
+
+---
+
+### UC-06: Factory Challan Batch Transfer
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Disp as Plant Dispatcher
+    participant UI as Challan Screen
+    participant API as Local PHP API
+    participant Printer as Thermal Printer
+
+    Disp->>UI: Select orders for factory run (tick checkboxes)
+    UI->>API: POST /api/v1/challans {order_ids: [109, 110, 111]}
+    API->>API: Validate all orders are in "processing" status
+    API->>API: Generate Challan #CH-2026-0042 with item count
+    API-->>UI: 200 OK (challan_id, item_count: 14, barcode)
+    UI->>Printer: Print Challan slip (80 mm) with barcode
+    Disp->>UI: Confirm physical handover to transport driver
+    UI->>API: PUT /api/v1/challans/42/confirm
+    API-->>UI: 200 OK (status: dispatched)
+```
+
+**Business Rules**
+
+- A Challan can only include orders in `processing` status; mixing statuses is rejected.
+- Item count on the printed slip must match the digital count; driver verifies and signs.
+- Challans are immutable once confirmed; corrections require a new Challan with a note referencing the prior one.
+
+---
+
+### UC-07: Driver Dispatch & Delivery Handover Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Driver as Driver
+    actor Customer as Customer
+    participant App as Workstation / Tablet
+    participant API as Local PHP API
+
+    Driver->>Customer: Arrive at Residence with Packaged Laundry
+    Customer->>Driver: Inspect Garments & Pay 150 AED Cash
+    Driver->>App: Mark Order #LP-1082 Delivered
+    App->>API: PUT /api/v1/delivery/tasks/45/complete (collected: 150 AED)
+    API->>API: Update sales_orders status to 'delivered'
+    API->>API: Insert payment record
+    API-->>App: 200 OK
+    Driver->>Customer: Provide Printed or Digital Receipt
+```
+
+**Business Rules**
+
+- Cash-on-delivery amount collected must equal the outstanding invoice balance; partial payments trigger a credit-note workflow (see UC-12).
+- Delivery tasks are assigned to a named driver record; anonymous delivery is not permitted.
+- GPS timestamp is recorded (if device location service is active) for proof of delivery.
+
+---
+
+### UC-08: Staff Shift Clock-In & WPS Payroll
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Staff as Employee
+    actor HR as HR Manager
+    participant UI as Attendance Screen
+    participant API as Local PHP API
+    participant DB as MariaDB
+
+    Staff->>UI: Select profile / scan employee barcode
+    UI->>API: POST /api/v1/attendance/clock-in {employee_id, timestamp}
+    API->>DB: INSERT attendance_records (clock_in=NOW())
+    API-->>UI: 200 OK (session started)
+    Note over Staff,UI: Shift ends
+    Staff->>UI: Tap Clock Out
+    UI->>API: POST /api/v1/attendance/clock-out {employee_id}
+    API->>DB: UPDATE attendance_records SET clock_out=NOW(), hours_worked=TIMEDIFF(...)
+    API-->>UI: 200 OK (hours: 8.5)
+    HR->>UI: Navigate to Payroll > Generate WPS Statement (month)
+    UI->>API: GET /api/v1/payroll/wps?month=2026-09
+    API->>DB: Aggregate attendance + salary rates
+    API-->>UI: WPS-compliant CSV/PDF
+```
+
+**Business Rules**
+
+- Overtime (> 8 h/day) is calculated at 1.25� base rate per UAE Labour Law Article 67.
+- WPS file format follows the UAE Central Bank SIF specification.
+- Clock-in without a preceding clock-out on the same calendar day triggers an HR alert.
+
+---
+
+### UC-09: Hardware UMAC Anti-Tamper & Lockout
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as Flutter Desktop
+    participant Guard as SystemGuardService
+    participant Registry as Windows Registry
+    participant API as Local PHP API
+
+    App->>Guard: Evaluate() on every boot
+    Guard->>Registry: Read stored UMAC hash
+    Guard->>Guard: Compute live UMAC from network adapters
+    alt Hash mismatch (hardware changed)
+        Guard-->>App: EvaluationStatus::HARDWARE_MISMATCH
+        App->>App: Block login, display lockout screen
+    else Clock rollback detected
+        Guard-->>App: EvaluationStatus::CLOCK_TAMPERED
+        App->>App: Block login, display security alert
+    else All checks pass
+        Guard-->>App: EvaluationStatus::VALID
+        App->>API: Continue boot sequence
+    end
+```
+
+**Business Rules**
+
+- UMAC is derived from the primary network adapter MAC + Windows machine GUID; both must match the stored hash.
+- System clock must be within �5 minutes of the last recorded timestamp stored in the Registry.
+- After 3 consecutive lockout events, a flag is set in `system_events` and a cloud notification is sent to the super-admin.
+
+---
+
+### UC-10: Offline-to-Cloud Delta Sync Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant LocalOutbox as sync_outbox Table
+    participant Daemon as sync_scheduler.php
+    participant Cloud as Central Cloud Gateway (cloud-api)
+    participant CloudDB as laundrypro_cloud
+
+    loop Every 60 Seconds
+        Daemon->>LocalOutbox: SELECT * WHERE status='pending' LIMIT 50
+        alt Has Pending Records
+            Daemon->>Cloud: POST /api/v1/sync/push (Batch + Bearer Token)
+            alt Cloud Ingest Successful
+                Cloud->>CloudDB: INSERT INTO sync_records (tenant_id, entity, payload)
+                Cloud-->>Daemon: 200 OK (synced_ids: [1, 2, 3...])
+                Daemon->>LocalOutbox: UPDATE status='synced', synced_at=NOW()
+            else Network Error / Offline
+                Daemon->>LocalOutbox: Increment retry_count, sleep with exponential backoff
+            end
+        end
+    end
+```
+
+**Business Rules**
+
+- Batch size is capped at 50 records per cycle to avoid cloud gateway timeouts.
+- Exponential back-off starts at 60 s and caps at 30 minutes after 5 consecutive failures.
+- Records that fail > 20 retries are flagged `status='dead_letter'` and trigger an admin alert.
+
+---
+
+### UC-11: Split Payment (Multi-Tender)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cashier as Cashier
+    participant UI as POS Payment Screen
+    participant API as Local PHP API
+    participant DB as MariaDB
+    participant Printer as Thermal Printer & Drawer
+
+    Cashier->>UI: Confirm cart (Total: 210.00 AED)
+    Cashier->>UI: Click "Split Payment"
+    Cashier->>UI: Enter Cash tender: 100.00 AED
+    UI->>UI: Remaining balance: 110.00 AED
+    Cashier->>UI: Select "Card / Terminal" for remaining 110.00 AED
+    Cashier->>UI: Confirm card approved on terminal
+    UI->>UI: Validate: sum of tenders = 210.00 AED (no gap, no overpay on card)
+    Cashier->>UI: Click "Finalize Split Payment"
+    UI->>API: POST /api/v1/sales/orders (lines + split_payments array)
+    API->>DB: BEGIN TRANSACTION
+    API->>DB: INSERT sales_orders (total: 210.00)
+    API->>DB: INSERT payment_transactions (method: cash, amount: 100.00)
+    API->>DB: INSERT payment_transactions (method: card, amount: 110.00)
+    API->>DB: INSERT sync_outbox (pending)
+    API->>DB: COMMIT
+    API-->>UI: 200 OK (Order LP-2026-00241 Created)
+    UI->>Printer: Print single consolidated receipt (both tender lines shown)
+    Printer->>Printer: Cash drawer pulse (cash portion only)
+    UI->>UI: Clear Cart
+```
+
+**Business Rules**
+
+- The sum of all split tender amounts must equal the invoice total exactly; the API rejects any discrepancy with HTTP 422.
+- Cash-over-tender (change) applies only to the cash leg; card amounts are exact.
+- A single receipt is printed showing every payment leg; the receipt header reads "Split Payment � 2 Methods".
+- Split tenders are stored as separate rows in `payment_transactions` all linked to the same `sales_order_id`.
+- Credit (Account) can be one leg of a split; the credit limit check fires before the transaction is committed.
+
+---
+
+### UC-12: Refund / Correction Memo
+
+> **Policy:** Original invoices are immutable. All corrections use a Credit Memo (negative invoice) that references the original order number.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Manager as Manager / Cashier
+    participant UI as Order Detail Screen
+    participant API as Local PHP API
+    participant DB as MariaDB
+    participant Printer as Thermal Printer
+
+    Manager->>UI: Open original Order #LP-2026-00109
+    Manager->>UI: Click "Issue Refund / Correction Memo"
+    UI->>UI: Display refund dialog (full or partial line selection)
+    Manager->>UI: Select lines to refund (e.g., 1x Kandora @ 52.50 AED)
+    Manager->>UI: Enter reason: "Garment returned unsatisfactory"
+    Manager->>UI: Confirm
+    UI->>API: POST /api/v1/credit-memos {original_order_id: 109, lines: [...], reason: "..."}
+    API->>DB: BEGIN TRANSACTION
+    API->>DB: INSERT credit_memos (ref_order_id=109, total=-52.50, reason, created_by)
+    API->>DB: INSERT credit_memo_lines (negative quantities)
+    API->>DB: UPDATE customer_ledger (credit += 52.50) OR INSERT refund payment record
+    API->>DB: INSERT sync_outbox (entity: credit_memo, pending)
+    API->>DB: COMMIT
+    API-->>UI: 200 OK (Credit Memo #CM-2026-00019 created)
+    UI->>Printer: Print Credit Memo receipt (headed "CORRECTION MEMO - NOT AN INVOICE")
+    Manager->>Manager: Return cash to customer or apply as account credit
+```
+
+**Business Rules**
+
+- `sales_orders` rows are never updated or deleted for correction purposes; the original record is the immutable source of truth.
+- Credit memos carry a negative total and reference `ref_order_id`; financial reports net them against gross sales.
+- A memo can be full (entire invoice) or partial (selected lines only); quantity refunded cannot exceed quantity originally sold.
+- Refund method choices: **Cash Return**, **Account Credit**, or **Voucher**; method is stored on the memo record.
+- Manager-level role (`role >= manager`) is required to issue a credit memo; cashier-only accounts are blocked.
+- Every memo creation is logged in `audit_log` with operator ID, original order ID, and refund amount.
+
+---
+
+### UC-13: Shift Close / Cash Reconciliation
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Supervisor as Shift Supervisor
+    participant UI as Shift Close Screen
+    participant API as Local PHP API
+    participant DB as MariaDB
+    participant Printer as Thermal Printer
+
+    Supervisor->>UI: Navigate to Reports > Shift Close
+    UI->>API: GET /api/v1/reports/shift-summary?shift_date=2026-09-10&cashier_id=7
+    API->>DB: Aggregate cash transactions, opening float, card totals for shift
+    API-->>UI: Summary (System Cash: 4,250.00 AED, Card: 1,800.00 AED)
+    Supervisor->>UI: Enter physically counted cash: 4,220.00 AED
+    UI->>UI: Compute variance: -30.00 AED (short)
+    Supervisor->>UI: Enter variance reason: "Customer change error"
+    Supervisor->>UI: Click "Close Shift & Print Z-Report"
+    UI->>API: POST /api/v1/shifts/close {declared_cash, variance, reason, cashier_id}
+    API->>DB: INSERT shift_closures (system_cash, declared_cash, variance, closed_by, closed_at)
+    API->>DB: INSERT audit_log (action: shift_close, details)
+    API->>DB: INSERT sync_outbox (entity: shift_closure, pending)
+    API-->>UI: 200 OK (Shift #SC-2026-0087 closed)
+    UI->>Printer: Print Z-Report (totals, variance, supervisor signature line)
+    UI->>UI: Lock POS for current shift; prompt for new shift opening float
+```
+
+**Business Rules**
+
+- A shift cannot be closed if any order remains in `pending_payment` status.
+- Variance within �5 AED auto-flags as "Minor"; variance > 50 AED requires a mandatory reason comment.
+- Z-Report is the authoritative end-of-shift document; it cannot be reprinted or modified after closure.
+- Opening float for the next shift must be declared before the first sale of the new shift can proceed.
+- Shift closure record syncs to cloud so that franchise head office can monitor branch variances in real-time.
+
+---
+
+### UC-14: Inventory Low-Stock Reorder
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Cron as Inventory Monitor (cron / scheduled task)
+    participant DB as MariaDB
+    participant API as Local PHP API
+    participant UI as Notifications Panel
+    participant WhatsApp as WhatsApp Business API
+
+    loop Every 6 Hours
+        Cron->>DB: SELECT items WHERE qty_on_hand <= reorder_point
+        alt Low-stock items found
+            Cron->>API: POST /api/v1/purchase-orders/draft (supplier_id, items)
+            API->>DB: INSERT purchase_orders (status='draft', items, created_at)
+            API->>DB: INSERT notifications (type='low_stock', severity='warning')
+            API-->>Cron: 200 OK (PO #PO-2026-0031 drafted)
+            Cron->>WhatsApp: Send template message to supplier (item list, quantities)
+        end
+    end
+    UI->>API: GET /api/v1/notifications?unread=true
+    API-->>UI: Notification list with PO link
+    UI->>UI: Display badge on Inventory nav item
+```
+
+**Business Rules**
+
+- Reorder point and reorder quantity are configurable per inventory item in the stock master.
+- Draft POs require manager approval before converting to confirmed orders sent to suppliers.
+- The WhatsApp notification is non-blocking; if the API call fails the PO draft is still created locally.
+- Consumables tracked include: plastic bags, hangers, garment covers, detergents, dry-clean solvent (Perc).
+- Stock quantities are decremented automatically when a sales order is confirmed (if item-to-service mapping exists).
+
+---
+
+### UC-15: 8-Step Onboarding Wizard
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor SA as Super-Admin
+    actor Tenant as New Tenant Owner
+    participant Wizard as Onboarding Wizard (Flutter)
+    participant LocalAPI as Local PHP API
+    participant CloudAPI as Central Cloud API
+
+    SA->>CloudAPI: Create Tenant record (business name, trade license, contact)
+    CloudAPI-->>SA: Tenant ID + Bearer token
+    Tenant->>Wizard: Step 1 - Enter Bearer token (from SA)
+    Wizard->>LocalAPI: POST /api/v1/setup/token-verify
+    LocalAPI-->>Wizard: Token valid - proceed
+    Tenant->>Wizard: Step 2 - Business Profile (name, address, TRN, logo upload)
+    Tenant->>Wizard: Step 3 - Hardware Registration (UMAC auto-read)
+    Wizard->>CloudAPI: POST /api/v1/licenses/request {umac, tenant_id}
+    CloudAPI-->>Wizard: License key LP-XXXX-XXXX
+    Wizard->>LocalAPI: POST /api/v1/setup/license-activate
+    LocalAPI-->>Wizard: License active
+    Tenant->>Wizard: Step 4 - Printer & Drawer Setup (test print)
+    Tenant->>Wizard: Step 5 - Service Price Catalogue (import CSV or manual entry)
+    Tenant->>Wizard: Step 6 - Staff & Role Creation (add at least 1 cashier)
+    Tenant->>Wizard: Step 7 - Opening Float Declaration (cash in drawer)
+    Tenant->>Wizard: Step 8 - Test Order (guided walk-through of first sale)
+    Wizard->>LocalAPI: POST /api/v1/setup/complete
+    LocalAPI-->>Wizard: Onboarding flag set; redirect to live Dashboard
+```
+
+**Business Rules**
+
+- Steps must be completed in sequence; the wizard enforces linear progression with back-navigation allowed.
+- Step 3 (Hardware Registration) auto-reads the UMAC from the local machine; manual entry is available for edge cases only.
+- Step 5 supports bulk import via a CSV template (downloadable from the wizard); individual manual entry is capped at 200 services for wizard performance.
+- Step 8 test order is flagged `is_test=true` and excluded from all financial reports; it can be voided without a credit memo.
+- Wizard completion sets `onboarding_complete=1` in `system_settings`; subsequent boots skip the wizard entirely.
+- Incomplete onboarding (steps 1-6 done, steps 7-8 not) allows limited read-only access; POS transactions are blocked until the wizard is fully completed.
+
+---
+
+<a id="file-api-cloud-api-reference-md"></a>
+
+## --- FILE: api\CLOUD_API_REFERENCE.md ---
+
+# LaundryPro UAE — Cloud API Reference
+
+> **Version:** 2.0.0 | **Authoritative Specification** | **Base URL:** `https://api.cloud.laundrypro.ae/v1`
+
+---
+
+## 1. Authentication & Tenant Resolution
+
+Requests to the Cloud Central API authenticate via one of two mechanisms:
+
+### 1.1 Tenant API Authentication (Node-to-Cloud Sync)
+Workstations and local servers communicate with Cloud API using the tenant's provisioned Cloud Token:
+```http
+Authorization: Bearer <tenant_cloud_token>
+```
+The Cloud API extracts the Bearer token, validates it against `businesses.cloud_token`, and binds the corresponding `tenant_id` to the request execution scope.
+
+### 1.2 Super-Admin Portal Authentication
+Super-Administrators authenticate via session cookies generated by `/admin/login` or via JWT Bearer tokens for programmatic access:
+```http
+Authorization: Bearer <superadmin_jwt_token>
 ```
 
 ---
 
-## 11. Conclusion
-
-This brief provides a complete, production-ready specification for the Laundry Pro UAE logo and icon set. The resulting visual identity will be elegant, futuristic, professional, and clear, fully furnished with every icon needed across the entire platform. It will scale from app icons to large-format print, support both English and Arabic, and reinforce the brand's premium, enterprise-grade positioning.
-
-
-## --- FILE: DEVELOPMENT_ROADMAP.md ---
-
-﻿# Unified Development Roadmap â€” LaundryPro UAE
-> **Version:** 1.0.0 | **Last Updated:** 2026-09-21
-> **Owner:** LP-AGENT-EXEC-PM (Program Manager)
-> **Status:** Active â€” Sprint 1 Ready
-
----
-
-## Phase 1: Foundation (Sprints 1-3) â€” Weeks 1-6
-
-### Sprint 1: Core Infrastructure (Weeks 1-2)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 1.1 | XAMPP server setup and configuration | ENG-DEVOPS | To Do | P0 |
-| 1.2 | Run baseline migration (001_baseline.sql) | ENG-DB | To Do | P0 |
-| 1.3 | Flutter project scaffold (MVVM + Riverpod) | ENG-FLUTTER | To Do | P0 |
-| 1.4 | PHP API scaffold (Slim/Lumen + Repository) | ENG-PHP | To Do | P0 |
-| 1.5 | JWT auth middleware implementation | ENG-PHP | To Do | P0 |
-| 1.6 | RBAC PermissionChecker middleware | ENG-PHP | To Do | P0 |
-| 1.7 | API error handling and envelope structure | ENG-API | To Do | P0 |
-| 1.8 | .env configuration for dev/staging/prod | ENG-DEVOPS | To Do | P0 |
-| 1.9 | Localization setup (en.json + ar.json skeleton) | PROD-UID | To Do | P0 |
-| 1.10 | Design system tokens (colors, typography, spacing) | PROD-UID | To Do | P0 |
-
-### Sprint 2: Auth & User Management (Weeks 3-4)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 2.1 | Login screen (Flutter) | ENG-FLUTTER | To Do | P0 |
-| 2.2 | Login API endpoint (POST /auth/login) | ENG-PHP | To Do | P0 |
-| 2.3 | Token refresh endpoint (POST /auth/refresh) | ENG-PHP | To Do | P0 |
-| 2.4 | Logout endpoint (POST /auth/logout) | ENG-PHP | To Do | P0 |
-| 2.5 | User management CRUD (API) | ENG-PHP | To Do | P0 |
-| 2.6 | User management screens (Flutter) | ENG-FLUTTER | To Do | P0 |
-| 2.7 | RBAC scope enforcement on all auth routes | SEC-APPSEC | To Do | P0 |
-| 2.8 | JWT token storage (secure local storage) | ENG-FLUTTER | To Do | P1 |
-| 2.9 | Unit tests for auth services | QA-AUTO | To Do | P0 |
-| 2.10 | UMAC license validation (basic) | SEC-UMAC | To Do | P1 |
-
-### Sprint 3: Dashboard & Navigation Shell (Weeks 5-6)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 3.1 | App shell with sidebar navigation | ENG-FLUTTER | To Do | P0 |
-| 3.2 | go_router route configuration (all 42+ routes) | ENG-FLUTTER | To Do | P0 |
-| 3.3 | Dashboard screen with KPI placeholders | ENG-FLUTTER | To Do | P0 |
-| 3.4 | Dashboard API endpoints (summary data) | ENG-PHP | To Do | P1 |
-| 3.5 | LTR/RTL toggle and locale switching | ENG-FLUTTER | To Do | P0 |
-| 3.6 | Theme implementation (design system tokens) | ENG-FLUTTER | To Do | P0 |
-| 3.7 | Sidebar role-based menu filtering | ENG-FLUTTER | To Do | P0 |
-| 3.8 | SQLite local database setup (drift) | ENG-FLUTTER | To Do | P1 |
-| 3.9 | API client service (dio + interceptors) | ENG-FLUTTER | To Do | P0 |
-| 3.10 | Integration tests for auth flow | QA-AUTO | To Do | P0 |
-
----
-
-## Phase 2: Core Business Modules (Sprints 4-8) â€” Weeks 7-16
-
-### Sprint 4: Customer Management (Weeks 7-8)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 4.1 | Customer CRUD API | ENG-PHP | To Do | P0 |
-| 4.2 | Customer list screen (search, pagination) | ENG-FLUTTER | To Do | P0 |
-| 4.3 | Customer detail/edit screen | ENG-FLUTTER | To Do | P0 |
-| 4.4 | Corporate account support | ENG-PHP | To Do | P1 |
-| 4.5 | Customer form validation (UAE phone format) | ENG-FLUTTER | To Do | P0 |
-| 4.6 | Customer API integration tests | QA-AUTO | To Do | P0 |
-
-### Sprint 5: Service Catalog & Pricing (Weeks 9-10)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 5.1 | Service CRUD API | ENG-PHP | To Do | P0 |
-| 5.2 | Price list management API | ENG-PHP | To Do | P0 |
-| 5.3 | Service catalog screen | ENG-FLUTTER | To Do | P0 |
-| 5.4 | Price list configuration screen | ENG-FLUTTER | To Do | P0 |
-| 5.5 | Per-item, per-kg, per-piece pricing logic | ENG-PHP | To Do | P0 |
-| 5.6 | DECIMAL(18,2) validation for all prices | FIN-BILLING | To Do | P0 |
-
-### Sprint 6: Order Management (Weeks 11-12)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 6.1 | Order CRUD API | ENG-PHP | To Do | P0 |
-| 6.2 | Order item management API | ENG-PHP | To Do | P0 |
-| 6.3 | Order list screen | ENG-FLUTTER | To Do | P0 |
-| 6.4 | Order detail screen | ENG-FLUTTER | To Do | P0 |
-| 6.5 | New order screen (walk-in flow) | ENG-FLUTTER | To Do | P0 |
-| 6.6 | Order status tracking API | ENG-PHP | To Do | P0 |
-| 6.7 | Sequential order numbering (ORD-YYYY-NNNNNN) | ENG-PHP | To Do | P0 |
-| 6.8 | Line-item discount calculation | ENG-PHP | To Do | P1 |
-| 6.9 | Order management tests | QA-AUTO | To Do | P0 |
-
-### Sprint 7: POS & Payments (Weeks 13-14)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 7.1 | POS screen (quick order creation) | ENG-FLUTTER | To Do | P0 |
-| 7.2 | Payment processing API | ENG-PHP | To Do | P0 |
-| 7.3 | Cash, card, split payment support | ENG-PHP | To Do | P0 |
-| 7.4 | VAT calculation (5% on subtotal after discounts) | FIN-VAT | To Do | P0 |
-| 7.5 | Invoice generation API | FIN-BILLING | To Do | P0 |
-| 7.6 | Sequential invoice numbering (INV-YYYY-NNNNNN) | FIN-BILLING | To Do | P0 |
-| 7.7 | Payment confirmation screen | ENG-FLUTTER | To Do | P0 |
-| 7.8 | POS flow tests (< 30s end-to-end) | QA-MANUAL | To Do | P0 |
-| 7.9 | Financial precision tests (DECIMAL) | QA-EDGE | To Do | P0 |
-
-### Sprint 8: Invoicing & Receipts (Weeks 15-16)
-| # | Task | Owner | Status | Priority |
-|---|------|-------|--------|----------|
-| 8.1 | Invoice detail screen | ENG-FLUTTER | To Do | P0 |
-| 8.2 | Invoice list screen | ENG-FLUTTER | To Do | P0 |
-| 8.3 | Immutable posted invoice enforcement | FIN-BILLING | To Do | P0 |
-| 8.4 | Correction memo workflow | FIN-BILLING | To Do | P1 |
-| 8.5 | Receipt print template (57mm + 80mm) | ENG-HW | To Do | P0 |
-| 8.6 | Print preview screen | ENG-FLUTTER | To Do | P1 |
-| 8.7 | TRN display on all invoices | FIN-VAT | To Do | P0 |
-
----
-
-## Phase 3: Operations Modules (Sprints 9-12) â€” Weeks 17-24
-
-### Sprint 9: Inventory Management (Weeks 17-18)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 9.1 | Inventory CRUD API | ENG-PHP | P0 |
-| 9.2 | Stock-in/stock-out transaction API | ENG-PHP | P0 |
-| 9.3 | Inventory list screen | ENG-FLUTTER | P0 |
-| 9.4 | Stock transaction screens | ENG-FLUTTER | P0 |
-| 9.5 | Low stock threshold alerts | ENG-PHP | P1 |
-
-### Sprint 10: Production Management (Weeks 19-20)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 10.1 | Production stage tracking API | ENG-PHP | P0 |
-| 10.2 | Production queue screen | ENG-FLUTTER | P0 |
-| 10.3 | Quality check pass/fail workflow | ENG-PHP | P0 |
-| 10.4 | Rewash/reclean workflow | ENG-PHP | P1 |
-| 10.5 | Operator assignment | ENG-PHP | P0 |
-
-### Sprint 11: Delivery Management (Weeks 21-22)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 11.1 | Delivery CRUD API | ENG-PHP | P0 |
-| 11.2 | Delivery list and detail screens | ENG-FLUTTER | P0 |
-| 11.3 | Driver assignment workflow | ENG-PHP | P0 |
-| 11.4 | Delivery confirmation | ENG-FLUTTER | P0 |
-| 11.5 | Route view screen | ENG-FLUTTER | P1 |
-
-### Sprint 12: HR & Payroll (Weeks 23-24)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 12.1 | Employee CRUD API | ENG-PHP | P0 |
-| 12.2 | Attendance tracking API | HR-ATTEND | P0 |
-| 12.3 | Payroll calculation with UAE overtime rules | HR-PAYROLL | P0 |
-| 12.4 | SIF file export for WPS | HR-PAYROLL | P0 |
-| 12.5 | Leave management | HR-ATTEND | P1 |
-| 12.6 | HR screens (employee, attendance, payroll) | ENG-FLUTTER | P0 |
-
----
-
-## Phase 4: Hardware & Sync (Sprints 13-15) â€” Weeks 25-30
-
-### Sprint 13: Printer Integration (Weeks 25-26)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 13.1 | ESC/POS adapter (thermal printers) | ENG-HW | P0 |
-| 13.2 | Windows Spooler adapter (inkjet/laser) | ENG-HW | P0 |
-| 13.3 | Auto-discovery algorithm | ENG-HW | P0 |
-| 13.4 | Print template engine | ENG-HW | P0 |
-| 13.5 | Cash drawer control (RJ11) | ENG-HW | P0 |
-| 13.6 | Hardware config screen | ENG-FLUTTER | P0 |
-
-### Sprint 14: Scanner & RFID (Weeks 27-28)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 14.1 | USB HID barcode scanner adapter | ENG-HW | P0 |
-| 14.2 | Keyboard wedge input detection | ENG-FLUTTER | P0 |
-| 14.3 | RFID UHF reader adapter (basic) | ENG-HW | P2 |
-| 14.4 | Garment tag management | ENG-PHP | P1 |
-| 14.5 | Hardware health monitoring | ENG-HW | P1 |
-
-### Sprint 15: Sync Engine (Weeks 29-30)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 15.1 | Sync outbox table and local SQLite mirror | ENG-SYNC | P0 |
-| 15.2 | Push protocol (local to cloud) | ENG-SYNC | P0 |
-| 15.3 | Pull protocol (cloud to local) | ENG-SYNC | P0 |
-| 15.4 | Conflict resolution (LWW) | ENG-SYNC | P0 |
-| 15.5 | Dead-letter queue | ENG-SYNC | P1 |
-| 15.6 | Sync status screen | ENG-FLUTTER | P0 |
-| 15.7 | Idempotency middleware | ENG-PHP | P0 |
-
----
-
-## Phase 5: Reports, Security & Polish (Sprints 16-18) â€” Weeks 31-36
-
-### Sprint 16: Reports & Analytics (Weeks 31-32)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 16.1 | Dashboard KPI calculations | DATA-ANALYTICS | P0 |
-| 16.2 | Sales report API and screen | DATA-REPORT | P0 |
-| 16.3 | Financial reports (P&L, cash flow) | DATA-REPORT | P0 |
-| 16.4 | Production reports | DATA-REPORT | P1 |
-| 16.5 | HR reports (attendance, payroll) | DATA-REPORT | P1 |
-| 16.6 | PDF/CSV export | DATA-REPORT | P0 |
-
-### Sprint 17: Security Hardening & Licensing (Weeks 33-34)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 17.1 | UMAC full implementation | SEC-UMAC | P0 |
-| 17.2 | Audit trail hash chaining | SEC-AUDIT | P0 |
-| 17.3 | Input validation hardening (all forms) | SEC-APPSEC | P0 |
-| 17.4 | Full RBAC endpoint audit | QA-SECTEST | P0 |
-| 17.5 | Tenant isolation verification | QA-SECTEST | P0 |
-| 17.6 | Backup automation and SHA-256 verification | DATA-BACKUP | P0 |
-| 17.7 | License management screen | ENG-FLUTTER | P0 |
-
-### Sprint 18: Polish, UAT & Release Prep (Weeks 35-36)
-| # | Task | Owner | Priority |
-|---|------|-------|----------|
-| 18.1 | Full regression suite execution | QA-REGRESS | P0 |
-| 18.2 | WCAG 2.1 AA accessibility audit | QA-A11Y | P0 |
-| 18.3 | Performance profiling and optimization | ENG-PERF | P0 |
-| 18.4 | Edge case testing (all 5 categories) | QA-EDGE | P0 |
-| 18.5 | LTR/RTL full audit (all 42+ screens) | QA-A11Y | P0 |
-| 18.6 | MSIX package build and signing | ENG-MSIX | P0 |
-| 18.7 | Install/uninstall testing | QA-MANUAL | P0 |
-| 18.8 | Training materials finalization | OPS-TRAIN | P1 |
-| 18.9 | UAT with pilot customer | QA-MANUAL | P0 |
-| 18.10 | Go-live authorization (CTO + CEO) | Program Manager | P0 |
-
----
-
-## Release Milestones
-| Milestone | Sprint | Target | Deliverable |
-|-----------|--------|--------|-------------|
-| Alpha | Sprint 8 | Week 16 | Core business modules functional |
-| Beta | Sprint 15 | Week 30 | Hardware + sync operational |
-| RC1 | Sprint 17 | Week 34 | Security hardened, licensed |
-| GA 1.0 | Sprint 18 | Week 36 | Production release |
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial unified development roadmap |
-
-## --- FILE: GLOSSARY.md ---
-
-﻿# Glossary - LaundryPro UAE
-
-| Term | Definition |
-|------|-----------|
-| AED | United Arab Emirates Dirham (currency) |
-| BPMN | Business Process Model and Notation |
-| CDO | Chief Data Officer |
-| CISO | Chief Information Security Officer |
-| CQO | Chief Quality Officer |
-| CRUD | Create, Read, Update, Delete |
-| DTO | Data Transfer Object |
-| ERP | Enterprise Resource Planning |
-| ESC/POS | Epson Standard Code for Point of Sale (thermal printer protocol) |
-| FTA | Federal Tax Authority (UAE) |
-| HMAC | Hash-based Message Authentication Code |
-| JWT | JSON Web Token |
-| LTR | Left-to-Right (text direction) |
-| MSIX | Modern Windows installer package format |
-| MVVM | Model-View-ViewModel |
-| PDPL | Personal Data Protection Law (UAE) |
-| POS | Point of Sale |
-| RBAC | Role-Based Access Control |
-| RFID | Radio-Frequency Identification |
-| RTL | Right-to-Left (text direction) |
-| SIF | Salary Information File (UAE WPS) |
-| SLA | Service Level Agreement |
-| TRN | Tax Registration Number (UAE) |
-| UMAC | Unique Machine Authentication Code |
-| UHF | Ultra High Frequency (RFID band) |
-| UUID | Universally Unique Identifier |
-| VAT | Value Added Tax |
-| WPS | Wage Protection System (UAE) |
-| XAMPP | Cross-platform Apache MariaDB PHP Perl stack |
-
-## --- FILE: LAUNDRYPRO_MANUAL.md ---
-
-# LaundryPro UAE: Comprehensive Application Manual & Walkthrough
-
-Welcome to the **LaundryPro UAE Complete Handbook**. This manual is designed for owners, managers, cashiers, and technical staff to understand the complete functionality, architecture, workflows, and rules of the system. 
-
-LaundryPro UAE is an offline-first POS (Point of Sale) and ERP (Enterprise Resource Planning) system explicitly tailored for modern laundry businesses.
-
-## 1. System Overview and Assumptions
-
-### What is LaundryPro UAE?
-LaundryPro UAE is designed for environments where the internet might be unstable. It operates on a Windows Desktop machine locally. 
-- The **backend** is powered by a high-performance PHP 8.2 micro-framework with a local MariaDB database.
-- The **frontend** is a responsive Flutter application designed for touch screens and keyboard/mouse setups.
-- A **cloud synchronization engine** works in the background to push data to the main server when the internet is restored.
-
-### Core Assumptions & Non-Negotiable Rules
-- **No Monetary Data Loss:** The system calculates money using high-precision decimal math. No floats are used anywhere.
-- **Audit Trails:** Everything from deleting an invoice to changing the temperature on a washing cycle is logged.
-- **Additive Migrations:** The database is designed so data is never truly "lost" when updates happen.
-- **Offline First:** The cashier must be able to ring up customers, print invoices, and open the cash drawer even if the internet is completely disconnected.
-
-### UI & Brand Identity
-The platform features a premium, futuristic, glassmorphic UI characterized by Deep Navy, Electric Cyan, and Aqua Green. With an extensive set of minimalist geometric icons and highly legible typography (Poppins and Inter), the interface ensures efficient high-density data management without cognitive overload.
-
-## 2. User Roles and Permissions
-
-LaundryPro uses a robust Role-Based Access Control (RBAC) system. Every user logs in with an explicit token. 
-
-### Roles
-1. **Admin / Owner** 
-   - *Permissions:* Can access all settings, create new users, modify inventory, run backups, and override prices.
-   - *Use Case:* Setting up the business initially, closing the register at the end of the day, reviewing the Profit & Loss (P&L) statements.
-
-2. **Manager**
-   - *Permissions:* Can approve expenses, manage employees, view payroll, and refund customers. Cannot alter the core settings or run database migrations.
-   - *Use Case:* Overseeing daily operations, managing customer complaints, handling cash drop-offs.
-
-3. **Cashier**
-   - *Permissions:* Can create sales drafts, confirm orders, accept payments, and add new customers. 
-   - *Restrictions:* Cannot view business analytics, cannot delete invoices, cannot perform backups.
-   - *Use Case:* The person standing at the front desk greeting customers and taking clothes.
-
-4. **Operator / Driver**
-   - *Permissions:* Specifically tailored for managing production cycles or delivery routes. 
-   - *Use Case:* The delivery driver checking off "Challans" (delivery batches) on their tablet or the washing machine operator recording the pH levels of a wash.
-
-## 3. Core Workflows with Examples
-
-### A. The Front-Desk Workflow: Creating a Sale
-*Scenario:* A customer walks in with 3 shirts for dry cleaning.
-
-1. **Customer Selection:** The cashier clicks "New Order." They search for the customer by phone number. If the customer is new, they quickly add them (Name and Phone required).
-2. **Item Entry:** The cashier taps "Dry Cleaning" -> "Shirt". They change the quantity to 3.
-3. **Drafting:** The system creates a "Sales Draft." The items are not yet confirmed, allowing the cashier to modify quantities or apply a discount if the manager approves.
-4. **Confirmation:** The cashier hits "Confirm Order." The system locks the prices. The order is now an official invoice.
-5. **Payment:** The customer hands over cash. The cashier enters the amount received. The system calculates change, records a "Payment Transaction," and triggers the receipt printer.
-
-### B. The Production Workflow: Advanced Garment Care
-*Scenario:* The 3 shirts need to go through a specialized "Delicate Wash" cycle.
-
-![Advanced Cycles Dashboard](docs/assets/advanced_cycles_dashboard.png)
-
-1. **Starting the Cycle:** The Operator goes to the "Advanced Cycles" screen. They scan the barcode on the garment tag (Sale ID). They select "Delicate Wash Preset" and the specific washing machine (Equipment ID).
-2. **Recording Metrics:** Halfway through the wash, the system prompts for a quality check. The operator checks the water and logs a "pH Level" of 7.2 in the "Process Logs" tab.
-3. **Completion:** The wash is done. The operator marks the cycle as "Completed." The system automatically logs who did the wash, on what machine, and the exact timestamp.
-
-### C. The Inventory Workflow: Receiving Detergent
-*Scenario:* A vendor drops off 10 bottles of specialized detergent.
-
-1. **Purchase Order (PO):** The Manager goes to "Purchasing" and creates a PO for the vendor.
-2. **Receiving Items:** When the delivery arrives, the Manager clicks "Receive Items" against the PO. 
-3. **Stock Update:** The system adds 10 bottles to the local inventory. This transaction is permanently recorded in the "Inventory Movements" ledger.
-4. **Usage:** As cycles are run, detergent is automatically deducted from stock based on the preset configurations. 
-
-## 4. Feature Deep Dives
-
-### Multi-Branch and Cloud Sync
-- **How it works:** The `sync_outbox` table securely queues every transaction. When the background sync worker runs (every few minutes), it securely pushes these to the central cloud.
-- **Example:** If branch A creates a new customer, Branch B will see that customer once both branches sync with the cloud.
-
-### Deliveries & Challans
-- **Challans:** A Challan is a manifest of items being moved. If you are sending 50 garments to a central factory for washing, you create a Challan. The driver signs it, and the factory acknowledges receipt. This ensures zero lost garments.
-- **Route Delivery:** Drivers use the "Delivery Tasks" feature to see a prioritized list of customer locations for drop-offs, optimized by the system.
-
-### Payroll & HR
-- **Attendance:** Staff clock in and out using a PIN or RFID card.
-- **Salary Advances:** If an employee requests an advance, the manager can approve it. 
-- **Payroll Run:** At the end of the month, the system automatically calculates salaries, deducts the approved advances, adds overtime, and generates a payroll report.
-
-### Offline Resilience & Backups
-- **Local Database:** You never see a "Connecting to server..." loading spinner when ringing up a customer. 
-- **Automatic Backups:** The system creates encrypted `.zip` backups locally. If the computer crashes, a new computer can be restored instantly using this file.
-- **Verification:** The "Backup Verify" feature ensures the backup file isn't corrupted before relying on it.
-
-## 5. Security & Licensing
-
-- **Tamper Protection:** If a user tries to modify the local SQLite/MariaDB database directly using a third-party tool, the sync engine will detect the signature mismatch and flag the branch for an audit.
-- **Rate Limiting:** To prevent brute-force attacks on the manager's password, the system locks login attempts after 5 failures in 1 minute.
-- **Licensing:** The software requires a valid license key (checked against the cloud). If the license expires, the system drops into a "Read-Only" mode where sales are blocked but historical data is still accessible.
-
-## 6. End-to-End Walkthrough (The "Perfect Day")
-
-1. **8:00 AM:** The manager opens the store, turns on the computer. The system boots in 2 seconds. The manager checks the **Health Screen** to ensure the receipt printer and cloud sync are green.
-2. **8:15 AM - 12:00 PM:** Cashiers take 50 orders. The system works flawlessly offline even when the local ISP goes down at 10 AM.
-3. **1:00 PM:** The driver arrives. The manager generates a **Challan** for 100 dirty garments. The driver takes them to the factory.
-4. **3:00 PM:** The factory receives the garments, runs **Advanced Cycles**, and logs the metrics.
-5. **5:00 PM:** The clean garments return. They are scanned in via the **Barcode Scanner**. The system automatically sends a WhatsApp/SMS notification to the 50 customers: "Your clothes are ready!"
-6. **6:00 PM - 8:00 PM:** Customers pick up their clothes and pay the remaining balances.
-7. **9:00 PM:** The manager runs the **End of Day Report**. It matches the cash drawer perfectly. The manager triggers a **Manual Backup** to a USB drive and closes the store.
-
----
-*Generated by Antigravity AI - System Documentation Module*
-
-
-## --- FILE: MANIFEST.md ---
-
-﻿# Documentation Manifest - LaundryPro UAE
-> **Version:** 1.0.0 | **Total Documents:** 200+
-
-## Document Standards
-- Every document has: Title, Version, Last Updated, Owner
-- Markdown format (.md) for all documentation
-- No placeholders, no TODOs, no stubs
-- Cross-referenced via relative links
-- Version controlled alongside source code
-
-## --- FILE: MANUAL_ADMIN_SUPERADMIN_BOOK.md ---
-
-﻿# LaundryPro UAE — Super-Admin & Cloud Portal Guide
-
-**Document Version:** 2.0 (Production Release)  
-**Target Audience:** Magnificent Solution System Administrators, Cloud Operators, Franchise IT Heads  
-
----
-
-## Table of Contents
-1. [Cloud Architecture & Security Overview](#1-cloud-architecture--security-overview)
-2. [Accessing the Super-Admin Web Portal](#2-accessing-the-super-admin-web-portal)
-3. [Dashboard Metrics & Operational Telemetry](#3-dashboard-metrics--operational-telemetry)
-4. [Tenant & Client Laundry Node Management](#4-tenant--client-laundry-node-management)
-5. [Cryptographic License Issuance & Management](#5-cryptographic-license-issuance--management)
-6. [Offline License Request Processing (laundrypro_req.lic)](#6-offline-license-request-processing-laundrypro_reqlic)
-7. [Remote Revocation & Kill-Switch](#7-remote-revocation--kill-switch)
-8. [Real-time Sync Payload Stream Inspector](#8-real-time-sync-payload-stream-inspector)
-9. [System Audit Trail & Security Logs](#9-system-audit-trail--security-logs)
-10. [Database Backup & Maintenance](#10-database-backup--maintenance)
-11. [Backup & Restore Procedures](#11-backup--restore-procedures)
-12. [Rate Limiting & Security Monitoring](#12-rate-limiting--security-monitoring)
-13. [Sync Engine Monitoring](#13-sync-engine-monitoring)
-14. [RBAC Role Management](#14-rbac-role-management)
-15. [Financial Precision Notes (bcmath)](#15-financial-precision-notes-bcmath)
-
----
-
-## 1. Cloud Architecture & Security Overview
-
-The Central Cloud API & Super-Admin Web Portal resides in cloud-api/ and is designed for standard cPanel shared hosting or Linux Apache servers:
-- **Framework:** Pure PHP 8.2 with PDO MariaDB/MySQL.
-- **Frontend UI:** AdminLTE v4 (Bootstrap 5, FontAwesome/Bootstrap Icons).
-- **Public Root:** cloud-api/public/ (accessible via VirtualHost or sub-folder).
-- **Database:** laundrypro_cloud.
-
----
-
-## 2. Accessing the Super-Admin Web Portal
-
-1. Navigate to:
-   http://localhost/cloud-api/public/admin or http://cloud-api/admin  
-   (Production URL: https://www.laundrypro-cloudapi.magnificentsolution.co.in/admin)
-2. Enter your super-admin credentials:
-   - **Username:** superadmin
-   - **Password:** SuperAdmin@LaundryPro2026!
-3. The session is protected by cryptographic cookie signatures and CSRF tokens.
-
----
-
-## 3. Dashboard Metrics & Operational Telemetry
-
-The executive dashboard displays:
-- **Total Registered Tenants:** Count of laundry business nodes.
-- **Active Licenses:** Count of valid, unexpired licenses.
-- **Total Sync Events:** All-time ingested data records.
-- **24-Hour Telemetry:** Pushes, orders, and pings received in the last 24 hours.
-- **Recent Tenants Table:** Quick links to client profiles and activation statuses.
-
----
-
-## 4. Tenant & Client Laundry Node Management
-
-Navigate to **Tenants** in the sidebar:
-1. **View Tenants:** View all registered laundry owners, trade license numbers, contact info, and node status.
-2. **Cloud Tokens:** Each tenant has an auto-generated high-entropy Bearer token (	oken_...) used by their local XAMPP node for authentication.
-3. **Status Control:** Toggle status between **Active**, **Suspended**, or **Archived**.
-
----
-
-## 5. Cryptographic License Issuance & Management
-
-Navigate to **Licenses** in the sidebar:
-1. Click **Issue New License**.
-2. Select the client **Tenant / Business**.
-3. Choose Plan:
-   - **Standard** (Full features, 1 year validity)
-   - **Enterprise** (Multi-branch, unlimited terminals)
-   - **Trial / Evaluation** (7 days, 9 invoices quota)
-4. Enter target hardware **UMAC Code** (e.g., UMAC-8F2A-49C1-77B0).
-5. Click **Generate License**.
-6. The system generates a cryptographically signed license key:
-   LP-1A2B3C4D-5E6F-7G8H
-   which is returned to the client.
-
----
-
-## 6. Offline License Request Processing (laundrypro_req.lic)
-
-For client machines without internet access:
-1. Client generates laundrypro_req.lic from the Flutter License Screen.
-2. Client sends this file to Magnificent Solution support.
-3. Super-Admin opens the License Generator, inputs the client details and hardware UMAC from the file.
-4. Download the signed laundrypro_license.lic file and return it to the client.
-5. Client imports the file into their desktop app to unlock permanent operation.
-
----
-
-## 7. Remote Revocation & Kill-Switch
-
-If a client terminates their contract or fails payment:
-1. Navigate to **Licenses**.
-2. Locate the client license and click **Revoke License**.
-3. On the next cloud handshake (or sync attempt), the local node receives the revocation signal and locks POS transaction capabilities.
-
----
-
-## 8. Real-time Sync Payload Stream Inspector
-
-Navigate to **Sync Records** in the sidebar:
-- Inspect inbound JSON payloads stream pushed by client workstations.
-- Filter by Tenant, Entity Type (customer, sales_order, payment, expense).
-- View exact timestamps, local record IDs, and payload snapshots for technical troubleshooting.
-
----
-
-## 9. System Audit Trail & Security Logs
-
-Navigate to **Audit Logs**:
-- Every super-admin login, tenant creation, license issuance, and revocation is recorded with:
-  - Admin User ID
-  - Action Name
-  - Timestamp
-  - Client IP Address
-  - Action Details
-
----
-
-## 10. Database Backup & Maintenance
-
-The cloud database laundrypro_cloud should be backed up using mysqldump:
-`ash
-mysqldump -u root -p laundrypro_cloud > laundrypro_cloud_backup_.sql
-`
-
----
-
-## 11. Backup & Restore Procedures
-
-All system backups are executed via the local PHP API to ensure consistency.
-
-1. **Creating a Backup:** 
-   - A cron job or manual trigger calls POST /api/v1/backup/run.
-   - The system executes mysqldump, packages the .sql file into a .zip, and generates a SHA-256 cryptographic manifest.
-2. **Restoring a Backup:**
-   - Call POST /api/v1/backup/restore.
-   - The system unpacks the .zip, validates the SHA-256 signature against the manifest to prevent payload tampering, and overwrites the active database.
-   - **Never manually restore a raw SQL dump** in a production environment as it bypasses the audit and integrity checks.
-
----
-
-## 12. Rate Limiting & Security Monitoring
-
-The RateLimitMiddleware protects all /auth/* endpoints against brute-force attacks using an IP-based sliding window throttle.
-
-- **Rule:** Maximum 5 attempts per 1-minute window per IP.
-- **Enforcement:** If exceeded, the API returns 429 Too Many Requests.
-- **Monitoring:** Check the system_settings table for keys prefixed with 
-ate_limit:. These keys store the hit count and expiry timestamp. Admins can manually clear these rows if a legitimate terminal is locked out.
-
----
-
-## 13. Sync Engine Monitoring
-
-The offline-first sync engine relies on the sync_outbox table and the SyncService background daemon.
-
-- **Monitoring:** Call GET /api/v1/sync/status to check the outbox depth.
-- **Outbox States:**
-  - pending: Record is queued for the next push cycle.
-  - synced: Record successfully received by the cloud.
-  - ailed: Push failed. The engine applies an exponential backoff (up to 10 attempts) before parking the record.
-- **Alerts:** Set up a monitoring threshold. If pending records exceed 500, or if any record is stuck in ailed for more than 24 hours, an alert should be dispatched to the IT team.
-
----
-
-## 14. RBAC Role Management
-
-The system uses granular Role-Based Access Control (RBAC). Roles are strictly defined in the 
-oles and 
-ole_permissions tables.
-
-- **Creating Roles:** Use the **Role Editor Screen** in the Flutter UI or POST /api/v1/roles to create custom roles (e.g., "Junior Cashier", "Inventory Manager").
-- **Granular Permissions:** Permissions follow the 
-esource.action convention (e.g., sales.read, sales.write, catalog.write, users.manage).
-- **Enforcement:** All permissions are validated server-side by the PHP controllers using the JWT payload claims.
-
----
-
-## 15. Financial Precision Notes (bcmath)
-
-**CRITICAL:** LaundryPro UAE entirely forbids the use of native PHP floating-point numbers (loat / double) for monetary calculations.
-
-- **Why?** Native floats introduce precision loss (e.g.,  .1 + 0.2 = 0.30000000000000004), which compounds into massive discrepancies over thousands of sales and tax calculations.
-- **The Standard:** All monetary values are strictly cast to DECIMAL(18,2) in MariaDB and transported as **strings** in JSON payloads.
-- **PHP Calculations:** Whenever the API must perform math (e.g., tax calculation, discounts), it strictly uses the cmath extension (cadd, csub, cmul, cdiv) with a scale of 2.
-- **Admin Action:** Ensure extension=bcmath is enabled in php.ini on all edge terminals. If disabled, the API will crash on any financial mutation.
-
-
-
-## --- FILE: MANUAL_OPERATOR_BOOK.md ---
-
-# LaundryPro UAE — Operator & Cashier User Manual
-
-**Document Version:** 2.1 (Production Release)
-**Product Version:** 1.2.1+4
-**Target Audience:** Front-desk Cashiers, Store Operators, Laundry Floor Staff, Delivery Drivers
-
----
-
-## Table of Contents
-1. [Starting the Application](#1-starting-the-application)
-2. [Splash Screen & Self-Healing Boot](#2-splash-screen--self-healing-boot)
-3. [Logging In & Profile Switching](#3-logging-in--profile-switching)
-4. [Instant Sale / Counter Point of Sale (POS)](#4-instant-sale--counter-point-of-sale-pos)
-5. [Customer CRM & Walk-In Customers](#5-customer-crm--walk-in-customers)
-6. [Thermal Receipt Printing & Cash Drawer](#6-thermal-receipt-printing--cash-drawer)
-7. [Order Tracking & Processing Movement](#7-order-tracking--processing-movement)
-8. [Factory Challans & Delivery Tasks](#8-factory-challans--delivery-tasks)
-9. [Staff Attendance Clock-In / Clock-Out](#9-staff-attendance-clock-in--clock-out)
-10. [End of Day Closing & Reports](#10-end-of-day-closing--reports)
-11. [Offline Resilience & Recovery](#11-offline-resilience--recovery)
-12. [Split Payments (Multi-Tender)](#12-split-payments-multi-tender)
-13. [Hold & Resume Sales](#13-hold--resume-sales)
-14. [Refunds & Correction Memos](#14-refunds--correction-memos)
-15. [Keyboard Shortcuts](#15-keyboard-shortcuts)
-16. [WhatsApp Receipt Sharing](#16-whatsapp-receipt-sharing)
-
----
-
-## 1. Starting the Application
-
-Launch LaundryPro UAE from your Windows Desktop shortcut or executable:
-
-`
-build\\windows\\x64\\runner\\Release\\laundrypro_uae.exe
-`
-
-Ensure that XAMPP (Apache and MySQL) is running on the computer before launching.
-
----
-
-## 2. Splash Screen & Self-Healing Boot
-
-When the program opens, a modern splash screen validates the system environment:
-
-1. **Verifying Local Node Connectivity:** Checks if the local database and local web server are active.
-   - *If offline:* The screen clearly displays: *Unable to connect to local database engine. Please verify XAMPP is running.* You can click **Retry** or **Exit Application**.
-2. **Applying Database Upgrades:** Silently checks for pending database migrations and executes them automatically without operator intervention.
-3. **Evaluating License & Machine ID:** Checks hardware UMAC and active license quotas.
-4. **Cloud Background Handshake:** In the background, contacts the central cloud server to check for sync updates (never blocks offline usage).
-5. **Dashboard Transition:** Opens the Login screen smoothly.
-
----
-
-## 3. Logging In & Profile Switching
-
-1. Enter your operator username and password:
-   - **Default Admin:** dmin / dmin123
-   - Passwords are case-sensitive. Contact your system administrator if locked out.
-2. Select your preferred language:
-   - **English (LTR)** or **العربية (Arabic RTL)**.
-   - You can toggle language at any time from the top navigation bar.
-3. To switch operator profiles mid-shift, click your name avatar in the top-right corner and select **Switch User** without closing the application.
-
----
-
-## 4. Instant Sale / Counter Point of Sale (POS)
-
-The POS interface is optimised for keyboard, mouse, and touchscreen operation:
-
-1. **Select or Scan Customer:**
-   - Use the Customer Search bar (by phone number, name, or code) or click **Walk-in Customer**.
-2. **Add Laundry Items:**
-   - Tap category buttons (Dry Clean, Wash & Fold, Steam Press, Curtain Care).
-   - Click services or scan item barcodes.
-   - Adjust quantities using the on-screen keypad (+ / -).
-3. **Apply Modifiers & Urgency:**
-   - Express Service (+50%), Fragrance, Stiff Starch, Stain Treatment.
-4. **Collect Payment:**
-   - Choose Payment Method: **Cash**, **Card / Terminal**, **Credit (Account)**, or **Split** (see Section 12).
-   - If paying Cash, enter tender amount; the system calculates exact change in AED & Fils.
-5. **Finalize Order:**
-   - Click **Confirm & Print**. The thermal receipt prints immediately and the cash drawer kicks open.
-
----
-
-## 5. Customer CRM & Walk-In Customers
-
-1. Navigate to **Customers** on the left navigation rail.
-2. Click **New Customer** (F2):
-   - Enter Full Name, UAE Mobile Number (+971 50 ...), TRN (if corporate), Delivery Address, Villa/Flat No.
-3. View order history, unpaid ledger balances, and loyalty points.
-
----
-
-## 6. Thermal Receipt Printing & Cash Drawer
-
-- **Printer Models Supported:** Standard 80 mm and 58 mm ESC/POS thermal receipt printers (Epson, Citizen, Bixolon, Xprinter).
-- **Cash Drawer:** Automatically pops open via RJ11 pulse on cash transactions.
-- **Reprint Receipt:** Open any past order and click **Reprint Receipt** (Ctrl+P).
-- **Test Print:** Navigate to **Settings > Peripherals > Test Print** to verify printer alignment.
-
----
-
-## 7. Order Tracking & Processing Movement
-
-Track order progress through 4 standard stages:
-
-1. **Received (Counter):** Items tagged and bagged.
-2. **In Processing (Washing/Dry Cleaning):** Items in wash or dry clean cycle.
-3. **Ready for Pickup / Delivery:** Ironed, packaged, and inspected by QC.
-4. **Delivered / Completed:** Customer collected or driver delivered.
-
-Status changes are logged with operator name and timestamp for full auditability.
-
----
-
-## 8. Factory Challans & Delivery Tasks
-
-- **Challans:** For laundries with an off-site central factory, generate a batch transfer Challan with line counts and barcodes for the transport driver.
-- **Home Deliveries:** View scheduled deliveries, assign to drivers, and mark completed upon drop-off.
-
----
-
-## 9. Staff Attendance Clock-In / Clock-Out
-
-1. Navigate to **HR & Attendance**.
-2. Staff member selects their profile or scans their employee barcode badge.
-3. Tap **Clock In** at the start of shift and **Clock Out** at the end of shift.
-4. Records are automatically compiled for monthly UAE Labour Law compliant payroll.
-
----
-
-## 10. End of Day Closing & Reports
-
-At the end of your shift:
-1. Navigate to **Reports** > **Daily Sales Summary**.
-2. Verify:
-   - Total Cash in Drawer
-   - Total Card Payments
-   - Total Outstanding Invoices
-3. Print the **Shift End / Z-Report** for the store manager.
-4. For full shift reconciliation with variance logging, see Section 13: Hold & Resume Sales actually see Shift Close (UC-13 in Blueprint).
-
----
-
-## 11. Offline Resilience & Recovery
-
-- **Zero Cloud Dependence:** You can continue booking orders, printing receipts, and collecting payments even if the internet is completely disconnected.
-- When internet returns, the background sync engine seamlessly uploads records to the central cloud.
-- The status bar at the bottom of every screen shows a **Sync Status** indicator:
-  - Green dot: All records synced.
-  - Amber dot: Pending records in outbox (syncing shortly).
-  - Red dot: Offline; records queued locally.
-
----
-
-## 12. Split Payments (Multi-Tender)
-
-Use Split Payment when a customer wants to settle an invoice with more than one payment method (e.g., part cash, part card).
-
-**Steps:**
-
-1. Build the cart and proceed to **Checkout** as normal.
-2. Instead of selecting a single payment method, click **Split Payment**.
-3. The Split Payment panel opens showing the full invoice total.
-4. Enter the **Cash amount** the customer is paying (e.g., 100.00 AED).
-   - The panel automatically shows the **Remaining Balance** (e.g., 110.00 AED).
-5. Select the second method for the remaining balance: **Card / Terminal**, **Credit (Account)**, or a third split.
-6. For Card: confirm the physical terminal has approved the charge, then click **Card Approved**.
-7. Verify the running total matches the invoice total (the **Finalize** button only activates when fully balanced).
-8. Click **Finalize Split Payment**.
-9. A **single consolidated receipt** prints listing all payment legs.
-10. The cash drawer opens only if a cash leg was included.
-
-> **Note:** Change is only calculated and given on the **cash leg**. Card and account legs must be exact amounts.
-
----
-
-## 13. Hold & Resume Sales
-
-Hold an in-progress cart without losing its contents — useful when a customer needs to step aside or fetch more items.
-
-**To Hold a Sale:**
-
-1. While on the active cart screen, press **Ctrl+H** or click the **Hold Cart** icon (pause symbol) in the toolbar.
-2. Enter an optional **Hold Note** (e.g., “customer fetching more garments”).
-3. Click **Hold**. The cart is saved and the POS clears to accept a new customer.
-
-**To Resume a Held Sale:**
-
-1. Click the **Held Orders** tray icon in the top navigation bar (shows count badge).
-2. Select the held cart from the list.
-3. Click **Resume** — the cart reloads with all items, customer details, and modifiers intact.
-4. Continue checkout as normal.
-
-> **Important:** Held carts do not generate an invoice or reserve stock. They are session-level holds. If the application is closed, held carts are discarded.
-
----
-
-## 14. Refunds & Correction Memos
-
-LaundryPro UAE never modifies or deletes an original invoice. All refunds and corrections are handled through a **Correction Memo** (Credit Memo) that links back to the original order.
-
-**Steps to Issue a Correction Memo:**
-
-1. Navigate to **Orders** and search for the original order by number, customer name, or date.
-2. Open the order detail view.
-3. Click **Issue Correction Memo** (requires Manager role or above).
-4. In the dialog:
-   - Select the line items to refund (full or partial lines).
-   - Enter the **refund reason** (mandatory field).
-   - Choose the **refund method**: Cash Return, Account Credit, or Voucher.
-5. Click **Confirm Memo**.
-6. The system creates a **Credit Memo** (e.g., #CM-2026-00019) with a negative total referencing the original order.
-7. A **Correction Memo receipt** prints automatically, clearly headed:
-
-   `
-   CORRECTION MEMO — NOT AN INVOICE
-   Ref. Original Order: LP-2026-00109
-   `
-
-8. Return cash to the customer or apply the credit to their account.
-
-> **Key Rules:**
-> - The original invoice remains unchanged and visible in history.
-> - Only managers and above can issue correction memos.
-> - Partial refunds are allowed; you cannot refund more than the original line quantity.
-
----
-
-## 15. Keyboard Shortcuts
-
-Keyboard shortcuts accelerate high-volume counter operations. All shortcuts are active when the POS or Orders screen is in focus.
-
-| Shortcut | Action |
-|---|---|
-| **F1** | Open Help / This Manual |
-| **F2** | New Customer |
-| **F3** | Customer Search |
-| **F4** | New Order / Open Cart |
-| **F5** | Refresh Current Screen |
-| **F6** | Apply Express (+50%) modifier to selected line |
-| **F8** | Void / Remove selected cart line |
-| **F9** | Open Cash Drawer (manual pulse) |
-| **F10** | Proceed to Checkout |
-| **F11** | Toggle Full-Screen Mode |
-| **F12** | Reprint Last Receipt |
-| **Ctrl+H** | Hold Current Cart |
-| **Ctrl+P** | Print / Reprint Receipt |
-| **Ctrl+R** | Open Refund / Correction Memo |
-| **Ctrl+Z** | Undo Last Item Add (cart only) |
-| **Ctrl+S** | Save Draft (hold cart silently) |
-| **Ctrl+Shift+S** | Shift Close Screen |
-| **Ctrl+W** | Send WhatsApp Receipt (see Section 16) |
-| **Escape** | Cancel current dialog / close panel |
-| **Enter** | Confirm active dialog / proceed |
-| **+** / **-** | Increase / Decrease selected item quantity |
-| **Numpad 0–9** | Quick quantity entry on focused line |
-
----
-
-## 16. WhatsApp Receipt Sharing
-
-Send a digital receipt directly to the customer\'s WhatsApp number immediately after payment.
-
-**After completing a sale:**
-
-1. The post-payment confirmation screen shows a **Send WhatsApp Receipt** button (or press **Ctrl+W**).
-2. Verify the customer\'s UAE mobile number displayed (pre-filled from the customer record).
-3. Click **Send via WhatsApp**.
-4. The system constructs a WhatsApp deep-link with the receipt summary pre-filled in the message body:
-   `
-   https://wa.me/971501234567?text=LaundryPro+UAE+Receipt+%23LP-2026-00109...
-   `
-5. Windows opens the WhatsApp Desktop app (or WhatsApp Web in browser).
-6. Review the pre-filled message and click **Send** in WhatsApp.
-
-**To share a receipt for a past order:**
-
-1. Open the order in **Orders > Order Detail**.
-2. Click the **WhatsApp** icon in the action bar.
-3. Follow steps 2–6 above.
-
-> **Note:** WhatsApp sharing uses the standard wa.me deep-link protocol and requires WhatsApp Desktop or WhatsApp Web to be installed and logged in on the workstation. An active internet connection is required for WhatsApp delivery; the local POS operates fully without it.
-
-
-## --- FILE: README.md ---
-
-﻿# LaundryPro UAE - Documentation Universe
-> **Version:** 1.0.0 | **Last Updated:** 2026-09-21
-> **Company:** Magnificent Solution
-> **Product:** LaundryPro UAE Multi-Tenant Offline-First ERP/CRM/POS
-
-## Purpose
-This documentation covers every aspect of LaundryPro UAE: requirements, architecture, data models, workflows, API specifications, UI/UX, testing, deployment, security, compliance, and operational procedures.
-
-## Directory Structure
-| Directory | Contents |
-|-----------|----------|
-| requirements/ | Business and functional requirements |
-| architecture/ | System architecture and design patterns |
-| blueprints/ | Module blueprints and feature specifications |
-| data/ | Database schema, ER diagrams, data dictionary |
-| workflows/ | Business workflow documentation |
-| use-cases/ | Actor-based use case documentation |
-| user-journeys/ | End-to-end user journey maps |
-| ui/ | Screen specifications and design system |
-| api/ | REST API documentation and specifications |
-| forms/ | Form specifications and validation rules |
-| edge-cases/ | Edge case catalog and boundary conditions |
-| testing/ | Test plans, strategies, and reports |
-| dependencies/ | Technology stack and dependency documentation |
-| flows/ | Data flow and process flow diagrams |
-| integrations/ | Hardware and third-party integration docs |
-| operations/ | Deployment, backup, monitoring, runbooks |
-| security/ | Security architecture and policies |
-| compliance/ | UAE regulatory compliance documentation |
-| marketing/ | Product marketing and sales materials |
-| training/ | User training materials and guides |
-| licensing/ | UMAC licensing documentation |
-| multitenancy/ | Multi-tenant architecture documentation |
-| sync/ | Offline-first sync engine documentation |
-| reference/ | Quick reference cards and cheat sheets |
-| appendices/ | Glossary, acronyms, bibliography |
-
-## --- FILE: SPRINT_ROADMAP.md ---
-
-# Full Project Audit & Unified Sprint Roadmap — LaundryPro UAE
-> **Audit Date:** 2026-09-21 | **Auditor:** AI Principal Architect
-> **Status:** Production Development — Sprint 1 Ready
-
----
-
-## Part 1: Complete Project Audit
-
-### 1.1 Source Code Inventory
-
-| Layer | Files | Lines | Status |
-|-------|-------|-------|--------|
-| Flutter (lib/) | 148 .dart | 16,026 | Active development |
-| PHP API (api/) | 120 .php | 11,065 | Active development |
-| Cloud API (cloud-api/) | 16 .php | 1,360 | Basic scaffold |
-| SQL Migrations | 66 .sql | ~7,500 | Baseline + 30 archived |
-| Tests | 22 .dart | ~1,200 | Peripherals only |
-| .ai/ Ecosystem | 182 .md | ~15,000 | **COMPLETE** |
-| docs/ Universe | 115 .md | ~8,000 | **COMPLETE** |
-| Scripts | 12 | ~800 | Utility scripts |
-| **TOTAL** | **681** | **~60,000** | |
-
-### 1.2 Flutter Architecture Audit
-
-#### Existing Screens (42 views) ✅
-| Screen | File | Status |
-|--------|------|--------|
-| Login | login_screen.dart | ✅ Built |
-| Dashboard | dashboard_screen.dart | ✅ Built |
-| POS | pos_screen.dart | ✅ Built |
-| Customers | customers_screen.dart | ✅ Built |
-| Catalog/Services | catalog_screen.dart | ✅ Built |
-| Orders/Sales | (via pos_screen) | ✅ Built |
-| Employees | employees_screen.dart | ✅ Built |
-| Attendance | attendance_screen.dart | ✅ Built |
-| Payroll | payroll_screen.dart | ✅ Built |
-| Leave | leave_screen.dart | ✅ Built |
-| Delivery | delivery_screen.dart | ✅ Built |
-| Branches | branches_screen.dart | ✅ Built |
-| Invoices | pending_invoices_screen.dart | ✅ Built |
-| Inventory/Equipment | equipment_screen.dart | ✅ Built |
-| Expenses | expenses_screen.dart | ✅ Built |
-| Reports | reports_screen.dart | ✅ Built |
-| Analytics | analytics_screen.dart | ✅ Built |
-| Settings | settings_screen.dart | ✅ Built |
-| Production | production_screen.dart | ✅ Built |
-| Operators | operator_screen.dart | ✅ Built |
-| License | license_screen.dart | ✅ Built |
-| Peripherals | peripherals_screen.dart | ✅ Built |
-| Sync Settings | sync_settings_screen.dart | ✅ Built |
-| Vendors | vendors_screen.dart | ✅ Built |
-| Purchasing | purchasing_screen.dart | ✅ Built |
-| Challans | challans_screen.dart | ✅ Built |
-| Notifications | notifications_screen.dart | ✅ Built |
-| Channels | channels_screen.dart | ✅ Built |
-| RFID Tracking | rfid_tracking_screen.dart | ✅ Built |
-| Sterilization | sterilization_screen.dart | ✅ Built |
-| Storefront | storefront_screen.dart | ✅ Built |
-| Customer Portal | customer_portal_screen.dart | ✅ Built |
-| Accounting | accounting_screen.dart | ✅ Built |
-| Setup Wizard | setup_wizard_screen.dart | ✅ Built |
-| App Shell | app_shell.dart | ✅ Built |
-| Splash | splash_screen.dart | ✅ Built |
-| Business | business_screen.dart | ✅ Built |
-| Localization | localization_screen.dart | ✅ Built |
-| Role Editor | role_editor_screen.dart | ✅ Built |
-| Terminals | terminals_screen.dart | ✅ Built |
-| Global Config | global_config_screen.dart | ✅ Built |
-| Salary Advances | salary_advances_screen.dart | ✅ Built |
-| Advanced Cycle | advanced_cycle_screen.dart | ✅ Built |
-
-#### Existing Services (37 services) ✅
-All 37 API service clients are built covering auth, sales, customers, employees, payroll, delivery, inventory, reports, sync, and more.
-
-#### Existing Core (9 files) ✅
-Theme, localization, receipt model/renderer, document renderer, phone normalizer, constants, API exception.
-
----
-
-### 1.3 PHP API Architecture Audit
-
-#### Controllers (37) ✅
-Full CRUD controllers for all modules including Auth, Sales, Customers, HR, Delivery, Inventory, Reports, Sync, License, Settings, and specialized controllers (RFID, Sterilization, Storefront, Portal).
-
-#### Repositories (34) ✅
-Complete repository layer with data access for all entities.
-
-#### Security (4 files) ✅
-- JwtService.php ✅
-- PasswordHasher.php ✅
-- PermissionChecker.php ✅
-- UmacService.php ✅
-
-#### Middleware (2 files)
-- Middleware.php ✅
-- RateLimitMiddleware.php ✅
-
-#### Services (11 files)
-- AuthService ✅, BackupService ✅, InstallService ✅, LicenseService ✅
-- MessagingService ✅, MigrationService ✅, SeedService ✅, SyncService ✅
-- AccountingExportService ✅, TwilioSmsAdapter ✅, SmsAdapterInterface ✅
-
----
-
-### 1.4 Critical Gap Analysis
-
-> [!IMPORTANT]
-> The following items are **MISSING** and required for production readiness.
-
-#### Flutter — Missing Models (14 files)
-| Model | Purpose | Priority |
-|-------|---------|----------|
-| order_model.dart | Order data class with fromJson/toJson | P0 |
-| customer_model.dart | Customer data class | P0 |
-| invoice_model.dart | Invoice data class (immutable posted) | P0 |
-| product_model.dart | Service/product catalog model | P0 |
-| employee_model.dart | Employee data class | P0 |
-| payment_model.dart | Payment transaction model | P0 |
-| branch_model.dart | Branch data class | P0 |
-| service_model.dart | Laundry service type model | P0 |
-| delivery_model.dart | Delivery assignment model | P1 |
-| inventory_model.dart | Inventory item model | P1 |
-| attendance_model.dart | Attendance record model | P1 |
-| payroll_model.dart | Payroll calculation model | P1 |
-| sync_entry_model.dart | Sync outbox entry model | P1 |
-| garment_tag_model.dart | Garment barcode/RFID tag model | P2 |
-
-#### Flutter — Missing Core Utilities (6 files)
-| File | Purpose | Priority |
-|------|---------|----------|
-| validators.dart | Form validation functions (UAE phone, TRN, email) | P0 |
-| formatters.dart | Currency, date, number formatters | P0 |
-| money_utils.dart | Decimal-safe money arithmetic | P0 |
-| date_utils.dart | Date helpers, business day calc | P1 |
-| database/local_database.dart | SQLite local DB setup (drift) | P1 |
-| sync/sync_engine.dart | Offline sync outbox engine | P1 |
-
-#### Flutter — Missing Localization (2 files)
-| File | Purpose | Priority |
-|------|---------|----------|
-| l10n/en.json | English locale strings | P0 |
-| l10n/ar.json | Arabic locale strings | P0 |
-
-#### PHP — Missing Business Services (5 files)
-| Service | Purpose | Priority |
-|---------|---------|----------|
-| VatCalculator.php | UAE VAT 5% calculation (bcmath) | P0 |
-| InvoiceNumberGenerator.php | Sequential INV-YYYY-NNNNNN | P0 |
-| OrderNumberGenerator.php | Sequential ORD-YYYY-NNNNNN | P0 |
-| PayrollCalculator.php | UAE overtime rules (1.25x/1.5x/2x) | P1 |
-| SifExporter.php | WPS SIF file generation | P1 |
-
-#### PHP — Missing Middleware (2 files)
-| Middleware | Purpose | Priority |
-|-----------|---------|----------|
-| IdempotencyMiddleware.php | Prevent duplicate writes via UUID key | P0 |
-| AuditLogMiddleware.php | Auto-log all state changes | P0 |
-
-#### Configuration — Missing (2 files)
-| File | Purpose | Priority |
-|------|---------|----------|
-| .env.example | Environment variable template | P0 |
-| api/.env.example | API environment template | P0 |
-
----
-
-### 1.5 Module Readiness Matrix
-
-| Module | Screen | Service | Controller | Repository | Model | Tests | **Ready** |
-|--------|:------:|:-------:|:----------:|:----------:|:-----:|:-----:|:---------:|
-| Auth | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 80% |
-| Dashboard | ✅ | ✅ | ✅ | ✅ | N/A | ❌ | 80% |
-| POS/Sales | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Customers | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Catalog | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Employees | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Attendance | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Payroll | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 60% |
-| Leave | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Delivery | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Inventory | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Production | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 70% |
-| Invoicing | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 60% |
-| Reports | ✅ | ✅ | ✅ | ✅ | N/A | ❌ | 75% |
-| Sync | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | 50% |
-| License/UMAC | ✅ | ✅ | ✅ | N/A | N/A | ❌ | 70% |
-| Peripherals | ✅ | ✅ | N/A | N/A | N/A | ✅ | 85% |
-| Settings | ✅ | ✅ | ✅ | ✅ | N/A | ❌ | 80% |
-
-### 1.6 Architecture Compliance
-
-| Rule | Status | Notes |
-|------|--------|-------|
-| DECIMAL(18,2) for money | ✅ | Enforced in 001_baseline.sql |
-| business_owner_id on data tables | ✅ | Present in baseline schema |
-| RBAC PermissionChecker | ✅ | api/src/Security/PermissionChecker.php exists |
-| JWT Auth | ✅ | JwtService.php + auth middleware |
-| MVVM + Riverpod | ⚠️ | Screens exist but models layer is thin (only user_model) |
-| Clean Architecture (PHP) | ✅ | Controller -> Service -> Repository -> PDO |
-| Offline-first sync outbox | ⚠️ | Table exists, SyncService.php exists, Flutter sync_engine missing |
-| LTR/RTL support | ⚠️ | Localization core exists but en.json/ar.json missing |
-| Audit logging | ⚠️ | AuditLogRepository exists, auto-middleware missing |
-| Sequential numbering | ❌ | InvoiceNumberGenerator + OrderNumberGenerator missing |
-| UMAC licensing | ✅ | UmacService.php + license_screen.dart exist |
-| SHA-256 backups | ✅ | BackupService.php exists |
-
----
-
-## Part 2: Unified Sprint Roadmap — Remaining Development
-
-> [!NOTE]
-> Based on the audit, the project is approximately **65-70% complete**. The remaining work focuses on: models, utilities, localization, missing middleware/services, comprehensive tests, and production hardening.
-
----
-
-### Sprint R1: Models & Core Utilities (Week 1-2)
-> **Goal:** Complete the data model layer and core utilities that every module depends on.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R1.01 | Create `customer_model.dart` with fromJson/toJson, Equatable, copyWith | lib/models/customer_model.dart | ENG-FLUTTER | 2h | P0 | — |
-| R1.02 | Create `order_model.dart` + `order_item_model.dart` | lib/models/order_model.dart, lib/models/order_item_model.dart | ENG-FLUTTER | 3h | P0 | — |
-| R1.03 | Create `invoice_model.dart` with immutability flag | lib/models/invoice_model.dart | ENG-FLUTTER | 2h | P0 | — |
-| R1.04 | Create `payment_model.dart` | lib/models/payment_model.dart | ENG-FLUTTER | 1h | P0 | — |
-| R1.05 | Create `employee_model.dart` | lib/models/employee_model.dart | ENG-FLUTTER | 2h | P0 | — |
-| R1.06 | Create `branch_model.dart` | lib/models/branch_model.dart | ENG-FLUTTER | 1h | P0 | — |
-| R1.07 | Create `service_model.dart` (catalog) | lib/models/service_model.dart | ENG-FLUTTER | 1h | P0 | — |
-| R1.08 | Create `delivery_model.dart` | lib/models/delivery_model.dart | ENG-FLUTTER | 2h | P1 | — |
-| R1.09 | Create `inventory_model.dart` | lib/models/inventory_model.dart | ENG-FLUTTER | 1h | P1 | — |
-| R1.10 | Create `attendance_model.dart` | lib/models/attendance_model.dart | ENG-FLUTTER | 1h | P1 | — |
-| R1.11 | Create `payroll_model.dart` | lib/models/payroll_model.dart | ENG-FLUTTER | 2h | P1 | — |
-| R1.12 | Create `sync_entry_model.dart` | lib/models/sync_entry_model.dart | ENG-FLUTTER | 2h | P1 | — |
-| R1.13 | Create `garment_tag_model.dart` | lib/models/garment_tag_model.dart | ENG-FLUTTER | 1h | P2 | — |
-| R1.14 | Create `money_utils.dart` (Decimal-safe math, ROUND_HALF_UP) | lib/core/money_utils.dart | ENG-FLUTTER | 3h | P0 | — |
-| R1.15 | Create `validators.dart` (UAE phone +971, TRN 15-digit, email, required) | lib/core/validators.dart | ENG-FLUTTER | 3h | P0 | — |
-| R1.16 | Create `formatters.dart` (currency AED, date DD/MM/YYYY, number) | lib/core/formatters.dart | ENG-FLUTTER | 2h | P0 | — |
-| R1.17 | Create `date_utils.dart` (business days, overtime calc support) | lib/core/date_utils.dart | ENG-FLUTTER | 2h | P1 | — |
-| R1.18 | Create `.env.example` at project root | .env.example | ENG-DEVOPS | 1h | P0 | — |
-| R1.19 | Create `api/.env.example` | api/.env.example | ENG-DEVOPS | 1h | P0 | — |
-| R1.20 | Update all 37 services to use typed models instead of raw Maps | lib/services/*.dart | ENG-FLUTTER | 8h | P0 | R1.01-R1.13 |
-
-> **Sprint R1 Total: ~38 hours | 20 tasks | Exit: All models compile, all services typed**
-
----
-
-### Sprint R2: Localization & RTL (Week 3-4)
-> **Goal:** Full bilingual support (English + Arabic) across all 42 screens.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R2.01 | Create `en.json` with all UI strings (~500+ keys) | lib/l10n/en.json | PROD-UID | 6h | P0 | — |
-| R2.02 | Create `ar.json` with Arabic translations (~500+ keys) | lib/l10n/ar.json | PROD-UID | 8h | P0 | R2.01 |
-| R2.03 | Integrate flutter_localizations + intl in pubspec.yaml | pubspec.yaml | ENG-FLUTTER | 1h | P0 | — |
-| R2.04 | Create localization delegate and app_localizations.dart | lib/core/app_localizations.dart | ENG-FLUTTER | 3h | P0 | R2.01 |
-| R2.05 | Replace all hardcoded strings in 42 screens with locale keys | lib/views/*.dart | ENG-FLUTTER | 12h | P0 | R2.04 |
-| R2.06 | Add RTL layout testing for all screens | test/l10n/ | QA-A11Y | 6h | P0 | R2.05 |
-| R2.07 | Add Arabic font (Noto Sans Arabic) to assets | pubspec.yaml, fonts/ | PROD-UID | 1h | P0 | — |
-| R2.08 | Implement locale toggle in app shell (EN/AR switch) | lib/views/app_shell.dart | ENG-FLUTTER | 2h | P0 | R2.04 |
-| R2.09 | Ensure all padding/margin uses start/end (not left/right) | lib/views/*.dart | ENG-FLUTTER | 4h | P0 | — |
-| R2.10 | Ensure number display stays LTR in RTL context | lib/core/formatters.dart | ENG-FLUTTER | 2h | P1 | R2.04 |
-
-> **Sprint R2 Total: ~45 hours | 10 tasks | Exit: App fully usable in Arabic RTL**
-
----
-
-### Sprint R3: PHP Business Services & Middleware (Week 5-6)
-> **Goal:** Complete missing server-side business logic and security middleware.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R3.01 | Create `VatCalculator.php` (5% VAT, bcmath, ROUND_HALF_UP) | api/src/Services/VatCalculator.php | FIN-VAT | 3h | P0 | — |
-| R3.02 | Create `InvoiceNumberGenerator.php` (INV-YYYY-NNNNNN, gap-free) | api/src/Services/InvoiceNumberGenerator.php | FIN-BILLING | 4h | P0 | — |
-| R3.03 | Create `OrderNumberGenerator.php` (ORD-YYYY-NNNNNN, gap-free) | api/src/Services/OrderNumberGenerator.php | ENG-PHP | 3h | P0 | — |
-| R3.04 | Create `PayrollCalculator.php` (UAE overtime 1.25x/1.5x/2x, gratuity) | api/src/Services/PayrollCalculator.php | HR-PAYROLL | 6h | P0 | — |
-| R3.05 | Create `SifExporter.php` (WPS SIF file format) | api/src/Services/SifExporter.php | HR-PAYROLL | 4h | P1 | R3.04 |
-| R3.06 | Create `IdempotencyMiddleware.php` (UUID dedup on write ops) | api/src/Middleware/IdempotencyMiddleware.php | ENG-PHP | 4h | P0 | — |
-| R3.07 | Create `AuditLogMiddleware.php` (auto-log all POST/PATCH/DELETE) | api/src/Middleware/AuditLogMiddleware.php | SEC-AUDIT | 4h | P0 | — |
-| R3.08 | Integrate VatCalculator into SalesController + InvoiceController | api/src/Controllers/ | ENG-PHP | 3h | P0 | R3.01 |
-| R3.09 | Integrate sequential numbering into Sales + Invoice flows | api/src/Controllers/ | ENG-PHP | 3h | P0 | R3.02, R3.03 |
-| R3.10 | Register IdempotencyMiddleware on all write endpoints | api/src/routes.php or equivalent | ENG-PHP | 2h | P0 | R3.06 |
-| R3.11 | Register AuditLogMiddleware on all state-changing endpoints | api/src/routes.php or equivalent | ENG-PHP | 2h | P0 | R3.07 |
-| R3.12 | Implement immutable invoice enforcement (block UPDATE on status=posted) | api/src/Services/ | FIN-BILLING | 3h | P0 | — |
-| R3.13 | Add correction memo endpoint (POST /invoices/:id/correction) | api/src/Controllers/SalesController.php | FIN-BILLING | 4h | P1 | R3.12 |
-| R3.14 | Implement hash-chained audit logs (SHA-256 chain) | api/src/Repositories/AuditLogRepository.php | SEC-AUDIT | 4h | P1 | — |
-
-> **Sprint R3 Total: ~49 hours | 14 tasks | Exit: All business services operational, middleware enforced**
-
----
-
-### Sprint R4: Offline Sync Engine (Week 7-8)
-> **Goal:** Complete offline-first sync between Flutter SQLite and PHP/MariaDB.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R4.01 | Setup drift (SQLite ORM) in Flutter project | pubspec.yaml, lib/core/database/ | ENG-FLUTTER | 4h | P0 | — |
-| R4.02 | Create local database schema mirroring key MariaDB tables | lib/core/database/local_database.dart | ENG-FLUTTER | 6h | P0 | R4.01 |
-| R4.03 | Create `sync_outbox.dart` (local outbox table + CRUD) | lib/core/sync/sync_outbox.dart | ENG-SYNC | 4h | P0 | R4.01 |
-| R4.04 | Create `sync_engine.dart` (push/pull coordinator) | lib/core/sync/sync_engine.dart | ENG-SYNC | 8h | P0 | R4.03 |
-| R4.05 | Implement connectivity detection (online/offline status) | lib/core/sync/connectivity_monitor.dart | ENG-SYNC | 3h | P0 | — |
-| R4.06 | Implement push protocol (batch POST to /sync/push) | lib/core/sync/push_protocol.dart | ENG-SYNC | 4h | P0 | R4.04 |
-| R4.07 | Implement pull protocol (GET /sync/pull?since=) | lib/core/sync/pull_protocol.dart | ENG-SYNC | 4h | P0 | R4.04 |
-| R4.08 | Implement conflict resolution (LWW by updated_at) | lib/core/sync/conflict_resolver.dart | ENG-SYNC | 4h | P0 | R4.06, R4.07 |
-| R4.09 | Create sync status UI widget (pending/synced/failed counts) | lib/widgets/sync_status_widget.dart | ENG-FLUTTER | 3h | P1 | R4.04 |
-| R4.10 | Integrate sync engine into all write operations across services | lib/services/*.dart | ENG-SYNC | 6h | P0 | R4.04 |
-| R4.11 | Dead-letter queue management screen | lib/views/sync_settings_screen.dart | ENG-FLUTTER | 3h | P1 | R4.04 |
-| R4.12 | Sync engine unit tests (offline, online, conflict scenarios) | test/sync/ | QA-AUTO | 6h | P0 | R4.04 |
-
-> **Sprint R4 Total: ~55 hours | 12 tasks | Exit: App works 30+ days offline, syncs correctly**
-
----
-
-### Sprint R5: Unit Tests — Auth, Models, Core (Week 9-10)
-> **Goal:** 80%+ test coverage on models, core utilities, and auth flow.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R5.01 | Unit tests for all 14 model classes (fromJson, toJson, equality) | test/models/ | QA-AUTO | 8h | P0 | R1 |
-| R5.02 | Unit tests for money_utils.dart (precision, rounding, edge cases) | test/core/money_utils_test.dart | QA-AUTO | 4h | P0 | R1.14 |
-| R5.03 | Unit tests for validators.dart (UAE phone, TRN, email) | test/core/validators_test.dart | QA-AUTO | 3h | P0 | R1.15 |
-| R5.04 | Unit tests for formatters.dart (currency, date, number) | test/core/formatters_test.dart | QA-AUTO | 3h | P0 | R1.16 |
-| R5.05 | Unit tests for VatCalculator.php (5% calc, rounding, zero, max) | test/php/VatCalculatorTest.php | QA-AUTO | 3h | P0 | R3.01 |
-| R5.06 | Unit tests for InvoiceNumberGenerator.php (sequential, no gaps) | test/php/InvoiceNumberTest.php | QA-AUTO | 3h | P0 | R3.02 |
-| R5.07 | Unit tests for OrderNumberGenerator.php (sequential, no gaps) | test/php/OrderNumberTest.php | QA-AUTO | 2h | P0 | R3.03 |
-| R5.08 | Unit tests for PayrollCalculator.php (overtime, gratuity) | test/php/PayrollCalculatorTest.php | QA-AUTO | 4h | P0 | R3.04 |
-| R5.09 | Unit tests for auth_service.dart (login, refresh, logout, error) | test/services/auth_service_test.dart | QA-AUTO | 4h | P0 | — |
-| R5.10 | Unit tests for AuthService.php + JwtService.php | test/php/AuthServiceTest.php | QA-AUTO | 4h | P0 | — |
-| R5.11 | Unit tests for PermissionChecker.php (all 6 roles, scope combos) | test/php/PermissionCheckerTest.php | QA-AUTO | 4h | P0 | — |
-| R5.12 | Unit tests for UmacService.php (hash, validate, grace period) | test/php/UmacServiceTest.php | QA-AUTO | 3h | P1 | — |
-| R5.13 | Unit tests for SyncService.php (push, pull, conflict, idempotency) | test/php/SyncServiceTest.php | QA-AUTO | 4h | P0 | — |
-| R5.14 | Unit tests for AuditLogRepository (hash chain integrity) | test/php/AuditLogTest.php | QA-AUTO | 3h | P1 | R3.14 |
-| R5.15 | Run flutter test with coverage report, verify >= 80% | — | QA-AUTO | 2h | P0 | R5.01-R5.04 |
-
-> **Sprint R5 Total: ~52 hours | 15 tasks | Exit: 80%+ unit test coverage, all tests green**
-
----
-
-### Sprint R6: Integration Tests & API Tests (Week 11-12)
-> **Goal:** End-to-end API testing and cross-module integration verification.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R6.01 | API integration test: Auth flow (login -> token -> refresh -> logout) | test/integration/auth_flow_test.dart | QA-AUTO | 4h | P0 | R5 |
-| R6.02 | API integration test: Order lifecycle (create -> update -> complete) | test/integration/order_flow_test.dart | QA-AUTO | 6h | P0 | R5 |
-| R6.03 | API integration test: Invoice lifecycle (create -> post -> immutable) | test/integration/invoice_flow_test.dart | QA-AUTO | 4h | P0 | R5 |
-| R6.04 | API integration test: Payment flow (full, partial, split) | test/integration/payment_flow_test.dart | QA-AUTO | 4h | P0 | R5 |
-| R6.05 | API integration test: Tenant isolation (cross-tenant blocked) | test/integration/tenant_isolation_test.dart | QA-SECTEST | 4h | P0 | — |
-| R6.06 | API integration test: RBAC enforcement (6 roles x key endpoints) | test/integration/rbac_test.dart | QA-SECTEST | 6h | P0 | — |
-| R6.07 | API integration test: Sync push/pull (batch, idempotency, conflict) | test/integration/sync_test.dart | QA-AUTO | 6h | P0 | R4 |
-| R6.08 | API integration test: Payroll + SIF export | test/integration/payroll_test.dart | QA-AUTO | 4h | P1 | R3.04 |
-| R6.09 | API integration test: Backup + SHA-256 verify + restore | test/integration/backup_test.dart | QA-AUTO | 3h | P1 | — |
-| R6.10 | Widget integration test: POS flow (select -> pay -> receipt) | test/widget/pos_flow_test.dart | QA-AUTO | 6h | P0 | R1, R2 |
-| R6.11 | Widget integration test: Login -> Dashboard -> Navigate | test/widget/navigation_test.dart | QA-AUTO | 4h | P0 | R2 |
-| R6.12 | Edge case test suite: monetary precision (zero, max, negative) | test/edge/monetary_edge_test.dart | QA-EDGE | 4h | P0 | R1.14 |
-| R6.13 | Edge case test suite: offline 30-day scenario | test/edge/offline_edge_test.dart | QA-EDGE | 4h | P0 | R4 |
-| R6.14 | PHPUnit test suite setup and CI runner script | scripts/run_php_tests.ps1 | QA-AUTO | 3h | P0 | — |
-
-> **Sprint R6 Total: ~62 hours | 14 tasks | Exit: All integration tests green, edge cases validated**
-
----
-
-### Sprint R7: Production Hardening & Security (Week 13-14)
-> **Goal:** Security hardening, performance optimization, and production readiness.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R7.01 | SQL injection audit: verify all queries use prepared statements | api/src/Repositories/*.php | SEC-APPSEC | 6h | P0 | — |
-| R7.02 | XSS prevention: sanitize all user inputs in API responses | api/src/Controllers/*.php | SEC-APPSEC | 4h | P0 | — |
-| R7.03 | RBAC endpoint coverage: verify every route has PermissionChecker | api/src/routes.php | SEC-APPSEC | 4h | P0 | — |
-| R7.04 | Rate limiting configuration for auth endpoints (brute-force) | api/src/Middleware/RateLimitMiddleware.php | SEC-APPSEC | 2h | P0 | — |
-| R7.05 | Account lockout after 5 failed login attempts | api/src/Services/AuthService.php | SEC-APPSEC | 3h | P0 | — |
-| R7.06 | UMAC full flow test (bind, validate, grace period, read-only) | test/security/ | QA-SECTEST | 4h | P0 | — |
-| R7.07 | PII encryption at rest for sensitive fields | api/src/Core/Encryption.php | SEC-APPSEC | 6h | P1 | — |
-| R7.08 | Database query optimization: add missing composite indexes | api/database/migrations/003_indexes.sql | ENG-DB | 4h | P0 | — |
-| R7.09 | API response time profiling (target P95 < 500ms) | scripts/api_benchmark.ps1 | ENG-PERF | 4h | P0 | — |
-| R7.10 | Flutter widget rebuild profiling (eliminate unnecessary rebuilds) | lib/views/*.dart | ENG-PERF | 6h | P1 | — |
-| R7.11 | Memory leak detection and fix | — | ENG-PERF | 4h | P1 | — |
-| R7.12 | Create SECURITY.md (vulnerability disclosure process) | SECURITY.md | SEC-APPSEC | 2h | P1 | — |
-| R7.13 | Dependency vulnerability scan (pub audit, composer audit) | — | SEC-APPSEC | 2h | P0 | — |
-
-> **Sprint R7 Total: ~51 hours | 13 tasks | Exit: Security audit clean, perf targets met**
-
----
-
-### Sprint R8: MSIX Packaging & Release (Week 15-16)
-> **Goal:** Production MSIX build, code signing, install testing, go-live.
-
-| # | Task | File(s) | Owner | Est. | Priority | Depends On |
-|---|------|---------|-------|------|----------|------------|
-| R8.01 | Configure msix_config.yaml with production values | msix_config.yaml | ENG-MSIX | 2h | P0 | — |
-| R8.02 | Code signing certificate setup (.pfx) | — | ENG-MSIX | 4h | P0 | — |
-| R8.03 | Build release Flutter Windows executable | — | ENG-MSIX | 2h | P0 | R7 |
-| R8.04 | Build and sign MSIX package | — | ENG-MSIX | 2h | P0 | R8.02, R8.03 |
-| R8.05 | Install test on clean Windows 10 machine | — | QA-MANUAL | 3h | P0 | R8.04 |
-| R8.06 | Install test on clean Windows 11 machine | — | QA-MANUAL | 3h | P0 | R8.04 |
-| R8.07 | Uninstall + reinstall test (data preservation) | — | QA-MANUAL | 2h | P0 | R8.04 |
-| R8.08 | Auto-update mechanism via AppInstaller | — | ENG-MSIX | 4h | P1 | R8.04 |
-| R8.09 | Full regression suite on release build | — | QA-REGRESS | 8h | P0 | R8.04 |
-| R8.10 | WCAG 2.1 AA accessibility audit (all 42 screens) | — | QA-A11Y | 6h | P0 | R2 |
-| R8.11 | Create CHANGELOG.md with v1.0.0 release notes | CHANGELOG.md | PROD-PO | 2h | P0 | — |
-| R8.12 | Create README.md install/quickstart guide | README.md | OPS-TRAIN | 3h | P0 | — |
-| R8.13 | Version bump: pubspec.yaml, msix_config.yaml (1.0.0) | — | ENG-MSIX | 1h | P0 | — |
-| R8.14 | CTO + CEO sign-off for GA release | — | EXEC | 2h | P0 | R8.09 |
-| R8.15 | Tag v1.0.0 in Git and push release | — | ENG-DEVOPS | 1h | P0 | R8.14 |
-
-> **Sprint R8 Total: ~45 hours | 15 tasks | Exit: v1.0.0 MSIX signed, tested, released**
-
----
-
-## Part 3: Summary Dashboard
-
-### Sprint Overview
-
-| Sprint | Focus | Tasks | Hours | Weeks | Deps |
-|--------|-------|-------|-------|-------|------|
-| **R1** | Models & Core Utilities | 20 | 38h | 1-2 | — |
-| **R2** | Localization & RTL | 10 | 45h | 3-4 | R1 |
-| **R3** | PHP Business Services | 14 | 49h | 5-6 | — |
-| **R4** | Offline Sync Engine | 12 | 55h | 7-8 | R1 |
-| **R5** | Unit Tests | 15 | 52h | 9-10 | R1,R3 |
-| **R6** | Integration Tests | 14 | 62h | 11-12 | R4,R5 |
-| **R7** | Security & Performance | 13 | 51h | 13-14 | R6 |
-| **R8** | MSIX & Release | 15 | 45h | 15-16 | R7 |
-| **TOTAL** | | **113 tasks** | **397h** | **16 weeks** | |
-
-### Parallel Execution Opportunities
-- **R1 + R3** can run in parallel (Flutter models + PHP services, different developers)
-- **R2** can start once R1 is 50% done (screens exist, just need locale keys)
-- **R4** can start once R1 is complete (needs models)
-- **R5 + R6** sequential (unit before integration)
-
-### Optimized Timeline (with parallelism)
-```
-Week 1-2:  R1 (Models)  +  R3 (PHP Services)     [PARALLEL]
-Week 3-4:  R2 (L10n)    +  R3 cont.               [PARALLEL]
-Week 5-6:  R4 (Sync)    +  R2 cont.               [PARALLEL]
-Week 7-8:  R5 (Unit Tests)
-Week 9-10: R6 (Integration Tests)
-Week 11-12: R7 (Security & Perf)
-Week 13-14: R8 (MSIX & Release)
-```
-**Optimized: 14 weeks to GA v1.0.0**
-
-### Milestone Gates
-
-| Milestone | Sprint | Criteria |
-|-----------|--------|----------|
-| **M1: Feature Complete** | R4 | All models, services, sync, localization operational |
-| **M2: Test Complete** | R6 | 80%+ coverage, all integration tests green |
-| **M3: Release Candidate** | R7 | Security clean, perf targets met |
-| **M4: GA v1.0.0** | R8 | MSIX signed, install tested, CTO approved |
-
-
-## --- FILE: UNIFIED_REMAINING_TASKS.md ---
-
-# LaundryPro UAE — Unified Remaining Tasks & Development Plan
-
-*Consolidated master plan for the final sprint to production.*
-
-## 1. Flutter Frontend (Desktop + Android)
-- [x] **API Integration:** Connect the `ApiClient` (Dio) to the Local PHP API.
-- [x] **State Management:** Map Riverpod providers to real API responses (e.g., `CatalogProvider`, `PosCartProvider`).
-- [x] **Hardware Abstraction Layer:** Implement native ESC/POS thermal printing over Bluetooth/LAN.
-- [x] **Offline Resilience:** Implement SQLite local caching for offline POS capabilities when the local server is unreachable (or ensure the local XAMPP server runs seamlessly on the same machine).
-- [x] **UI Polish:** Complete the data-table implementations for historical records (Invoices, Customers, HR).
-
-## 2. Local Micro-Services (PHP API)
-- [x] **Controller Logic:** Flesh out the CRUD operations in `HrController`, `SalesController`, and `InventoryController`.
-- [x] **POS Checkout Engine:** Implement the complex `bcmath` taxation and discount calculations within `SalesRepository->createOrder()`.
-- [x] **Sync Outbox:** Ensure every single repository modification triggers a `SyncOutboxRepository::insert()` call to queue the change for the cloud.
-- [x] **Local Web Admin:** Wire the newly created `dashboard.php` AdminLTE portal to read actual database metrics.
-
-## 3. Cloud Super-Admin (PHP API)
-- [x] **Ingestion Engine:** Implement `SyncController->push()` to accept and merge local tenant data into the master cloud database.
-- [x] **Conflict Resolution:** Implement Last-Write-Wins (LWW) or version-based merging for sync conflicts.
-- [x] **Global Dashboard:** Wire the `dashboard.php` Super-Admin portal to aggregate metrics across all `admin_id` tenants.
-- [x] **License Manager:** Build the API to issue and revoke RSA-signed license keys for local nodes.
-
-## 4. Infrastructure & CI/CD
-- [x] **Windows Installer:** Package the XAMPP stack + Local API + Flutter Desktop app into a single MSIX installer using InnoSetup or MSIX packaging tools.
-- [x] **Cron Jobs:** Configure the Windows Task Scheduler to run `sync_scheduler.php` every 5 minutes.
-- [x] **Android APK:** Generate the signed release bundle for Google Play.
-- [x] **Security:** Finalize JWT rotation and ensure complete multi-tenant (`admin_id`) isolation on the cloud server.
-
----
-**Status:** Unified schemas (`schema.sql`) and seeds (`seed.sql`) are at the project root. All legacy archives have been purged. The codebase is clean and ready for final execution.
-
-
-## --- FILE: README.md ---
-
-﻿# API Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Base URL
-`http://localhost/api/v1/`
-
-## Authentication
-All endpoints (except login/refresh) require: `Authorization: Bearer {access_token}`
-
-## Response Format
+## 2. Cloud Endpoint Catalog
+
+### 2.1 Health & Diagnostics
+#### `GET /api/v1/health`
+Returns cloud platform health, database connectivity, and timestamp.
+- **Auth:** Public
+- **Response:**
 ```json
 {
   "success": true,
-  "data": { ... },
-  "meta": { "page": 1, "limit": 20, "total": 100 },
-  "error": null
-}
-```
-
-## Error Format
-```json
-{
-  "success": false,
-  "data": null,
-  "meta": null,
-  "error": {
-    "code": "LP-ERR-AUTH-1001",
-    "message": "Invalid credentials",
-    "details": []
+  "code": "HEALTH_OK",
+  "data": {
+    "status": "healthy",
+    "service": "laundrypro-cloud-gateway",
+    "timestamp": "2026-09-30T10:30:00Z"
   }
 }
 ```
 
-## Common Headers
-| Header | Required | Description |
-|--------|----------|-------------|
-| Authorization | Yes* | Bearer JWT access token |
-| X-Idempotency-Key | Yes (writes) | UUID for write operations |
-| Content-Type | Yes | application/json |
-| Accept-Language | No | en or ar (default: en) |
+---
 
-## Endpoint Groups
-| Group | Base Path | Description |
-|-------|-----------|-------------|
-| Auth | /auth | Login, refresh, logout |
-| Orders | /orders | Order CRUD and status |
-| Customers | /customers | Customer CRUD |
-| Services | /services | Service catalog |
-| Inventory | /inventory | Stock management |
-| Invoices | /invoices | Invoice management |
-| Payments | /payments | Payment processing |
-| Employees | /employees | Employee management |
-| Attendance | /attendance | Clock in/out |
-| Payroll | /payroll | Payroll calculations |
-| Reports | /reports | Report generation |
-| Sync | /sync | Push/pull sync |
-| Settings | /settings | System configuration |
-
-## --- FILE: acronyms.md ---
-
-﻿# Acronyms - LaundryPro UAE
-> **Version:** 1.0.0
-
-| Acronym | Expansion |
-|---------|-----------|
-| AED | UAE Dirham |
-| API | Application Programming Interface |
-| BA | Business Analyst |
-| BPMN | Business Process Model and Notation |
-| CDO | Chief Data Officer |
-| CEO | Chief Executive Officer |
-| CFO | Chief Financial Officer |
-| CHRO | Chief Human Resources Officer |
-| CISO | Chief Information Security Officer |
-| COO | Chief Operating Officer |
-| CPO | Chief Product Officer |
-| CQO | Chief Quality Officer |
-| CRO | Chief Revenue Officer |
-| CTO | Chief Technology Officer |
-| ER | Entity-Relationship |
-| ERP | Enterprise Resource Planning |
-| FK | Foreign Key |
-| FTA | Federal Tax Authority |
-| JWT | JSON Web Token |
-| LTR | Left-to-Right |
-| MSIX | Modern Windows App Package |
-| MVVM | Model-View-ViewModel |
-| PDPL | Personal Data Protection Law |
-| PK | Primary Key |
-| POS | Point of Sale |
-| RBAC | Role-Based Access Control |
-| REST | Representational State Transfer |
-| RFID | Radio-Frequency Identification |
-| RTL | Right-to-Left |
-| SIF | Salary Information File |
-| TRN | Tax Registration Number |
-| UAT | User Acceptance Testing |
-| UHF | Ultra High Frequency |
-| UMAC | Unique Machine Authentication Code |
-| UUID | Universally Unique Identifier |
-| VAT | Value Added Tax |
-| WPS | Wage Protection System |
-| XAMPP | Cross-Platform Apache MariaDB PHP Perl |
-
-## --- FILE: README.md ---
-
-﻿# Appendices - LaundryPro UAE
-> **Version:** 1.0.0
-
-Glossary, acronyms, and supplementary reference.
-
-## --- FILE: design_patterns.md ---
-
-﻿# Design Patterns - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Architectural Patterns
-| Pattern | Where Used | Description |
-|---------|-----------|-------------|
-| MVVM | Flutter frontend | Model-View-ViewModel with Riverpod |
-| Clean Architecture | PHP backend | Controller -> Service -> Repository layers |
-| Repository Pattern | PHP + Flutter | Abstract data access behind interfaces |
-| Adapter Pattern | Hardware layer | Generic interfaces for all hardware |
-| Offline-First | System-wide | Local-first with sync outbox |
-| Sync Outbox | Sync engine | Append-only queue for offline writes |
-
-## Design Patterns
-| Pattern | Where Used | Description |
-|---------|-----------|-------------|
-| Factory Pattern | DTOs, Models | fromJson/toJson data transformation |
-| Observer Pattern | Riverpod | Reactive state management |
-| Middleware Pattern | PHP API | Request pipeline (auth, RBAC, idempotency) |
-| Strategy Pattern | Pricing | Different pricing strategies (per-item, per-kg) |
-| Template Method | Reports | Common report structure with variable content |
-| Singleton Pattern | Database | Single DB connection per request |
-
-## Anti-Patterns Explicitly Forbidden
-| Anti-Pattern | Why Forbidden | Guard |
-|-------------|---------------|-------|
-| Floating-point money | Precision loss | money_precision_guard bot |
-| God Object | Maintainability | Clean Architecture enforcement |
-| N+1 Queries | Performance | Performance agent review |
-| Raw SQL in controllers | Testability | Repository Pattern enforcement |
-| Client-only auth | Security | rbac_enforcer bot |
-
-## --- FILE: README.md ---
-
-﻿# Architecture - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Documents
-| Document | Description |
-|----------|-------------|
-| system_overview.md | High-level system architecture |
-| technology_stack.md | Complete technology stack details |
-| design_patterns.md | Architectural and design patterns used |
-| data_flow.md | System data flow diagrams |
-| deployment_architecture.md | Deployment topology and configuration |
-
-## --- FILE: system_overview.md ---
-
-﻿# System Architecture Overview - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Architecture Layers
-
+### 2.2 Tenant Onboarding
+#### `POST /api/v1/businesses/register`
+Registers a new franchisee or independent laundry business node.
+- **Auth:** Public / Onboarding Key
+- **Request Body:**
+```json
+{
+  "name": "Al Barsha Premium Laundry LLC",
+  "cloud_token": "ct_9f81a7b64c20d41e8f23",
+  "trade_license_no": "CN-1029384",
+  "contact_email": "admin@albarshalaundry.ae",
+  "contact_phone": "+971501234567",
+  "country_code": "AE",
+  "city": "Dubai",
+  "max_branches": 3,
+  "max_devices": 10
+}
 ```
-+------------------------------------------+
-|        PRESENTATION LAYER                |
-|  Flutter Windows Desktop (Dart)          |
-|  MVVM + Riverpod + go_router             |
-|  LTR/RTL + Offline-capable UI            |
-+------------------------------------------+
-           |                |
-     [REST API]        [SQLite]
-           |           (local cache)
-+------------------------------------------+
-|        APPLICATION LAYER                 |
-|  PHP 8.2 REST API (Slim/Lumen)           |
-|  Controllers -> Services -> Repositories |
-|  JWT Auth + RBAC + Idempotency           |
-+------------------------------------------+
-           |
-+------------------------------------------+
-|        DATA LAYER                        |
-|  MariaDB 10.4 (InnoDB)                  |
-|  Multi-tenant (business_owner_id)        |
-|  DECIMAL(18,2) for money                 |
-+------------------------------------------+
-
-+------------------------------------------+
-|        SYNC LAYER                        |
-|  Sync Outbox (append-only)               |
-|  Push/Pull Protocols                     |
-|  Conflict Resolution (LWW)              |
-+------------------------------------------+
-
-+------------------------------------------+
-|        HARDWARE LAYER                    |
-|  ESC/POS Printers | Barcode Scanners    |
-|  Cash Drawers | RFID Readers | Scales   |
-|  Auto-Discovery + Adapter Pattern        |
-+------------------------------------------+
-
-+------------------------------------------+
-|        SECURITY LAYER                    |
-|  UMAC Licensing | RBAC Scopes           |
-|  Audit Trail (hash-chained)             |
-|  AES-256 Encryption | SHA-256 Backup    |
-+------------------------------------------+
+- **Response (201 Created):**
+```json
+{
+  "success": true,
+  "code": "TENANT_REGISTERED",
+  "data": {
+    "tenant_id": 14,
+    "uuid": "4f9d012e-73cb-4f81-9b1d-c5a4d91e320f",
+    "name": "Al Barsha Premium Laundry LLC",
+    "status": "active"
+  }
+}
 ```
 
-## Key Architectural Decisions
-1. **Offline-First**: Local XAMPP server is primary; cloud sync is secondary.
-2. **Multi-Tenant**: business_owner_id on all data tables; strict isolation.
-3. **Zero-Float Money**: DECIMAL(18,2) everywhere; bcmath in PHP.
-4. **Clean Architecture**: Presentation -> Domain -> Data layer separation.
-5. **Adapter Pattern**: All hardware behind generic interfaces.
-
-## --- FILE: technology_stack.md ---
-
-﻿# Technology Stack - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Frontend
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Flutter | >= 3.3 | Windows desktop UI framework |
-| Dart | >= 3.0 | Programming language |
-| Riverpod | latest | State management |
-| go_router | latest | Navigation and routing |
-| sqflite/drift | latest | Local SQLite database |
-| intl | latest | Internationalization |
-
-## Backend
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| PHP | 8.2 | Server-side language |
-| Slim/Lumen | 4.x | Micro-framework for REST API |
-| PDO | built-in | Database access (prepared statements) |
-| bcmath | built-in | Decimal arithmetic |
-| Firebase JWT | latest | JWT token handling |
-
-## Database
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| MariaDB | 10.4 | Primary relational database |
-| SQLite | 3.x | Local client-side cache |
-
-## Server
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| XAMPP | latest | Apache + MariaDB + PHP bundle |
-| Apache | 2.4 | HTTP server |
-
-## Packaging
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| MSIX | latest | Windows installer format |
-
-## Hardware Protocols
-| Protocol | Purpose |
-|----------|---------|
-| ESC/POS | Thermal printer communication |
-| ESC/P | Dot-matrix printer communication |
-| Windows Spooler | Inkjet/laser PDF printing |
-| USB HID | Barcode scanner input |
-| RS-232 Serial | Cash drawer, scale, scanner |
-| RFID UHF | Garment/linen tracking |
-
-## --- FILE: auth_blueprint.md ---
-
-﻿# Blueprint: auth Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Authentication & Authorization module. JWT-based login with access/refresh tokens. RBAC with 6 roles and scope-based permissions. UMAC machine-bound licensing. Session management with forced logout. Password hashing with bcrypt. Account locking after 5 failed attempts.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: customers_blueprint.md ---
-
-﻿# Blueprint: customers Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Customer Management module. Customer profile (name, phone, email, address, TRN for corporate). Order history and spending analysis. Corporate account management with monthly billing. Customer preferences (starch level, fold style, packaging). Loyalty/credit balance. Customer notes and communication log.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: delivery_blueprint.md ---
-
-﻿# Blueprint: delivery Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Delivery Management module. Route planning with customer addresses. Driver assignment and reassignment. Delivery status tracking (assigned, en-route, delivered, failed). Delivery confirmation (signature capture or photo). Customer notification on delivery. Route optimization suggestions. Return pickup support.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: finance_blueprint.md ---
-
-﻿# Blueprint: finance Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Finance and Invoicing module. Invoice generation with TRN and VAT (5%). Immutable posted invoices (correction memo only). Sequential invoice numbering (INV-YYYY-NNNNNN). Payment tracking (cash, card, bank transfer). Daily cash register reconciliation. Expense tracking. Financial reports (P&L, cash flow, aging, VAT return).
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: hr_payroll_blueprint.md ---
-
-﻿# Blueprint: hr_payroll Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-HR and Payroll module. Employee master records (personal info, employment details, salary). Attendance tracking (check-in/check-out, late, absent, overtime). Leave management (annual 30 days, sick, unpaid). Payroll calculation with UAE overtime rules (1.25x, 1.5x, 2x). SIF file export for WPS compliance. End-of-service gratuity calculation.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: inventory_blueprint.md ---
-
-﻿# Blueprint: inventory Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Inventory Management module. Supply tracking (detergent, hangers, bags, starch, packaging). Stock-in transactions with supplier and invoice reference. Stock-out transactions linked to production consumption. Minimum threshold alerts. Garment inventory by status and location. Inventory valuation reports.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: orders_blueprint.md ---
-
-﻿# Blueprint: orders Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Order Management module. Walk-in, pickup, and corporate order intake. Sequential numbering (ORD-YYYY-NNNNNN). Barcode/RFID garment tagging. Status tracking (received, sorting, processing, quality-check, ready, out-for-delivery, delivered). Express/same-day/next-day/standard turnaround. Per-item, per-kg, per-piece pricing. Line-item and order-level discounts. Special instructions and notes.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: pos_blueprint.md ---
-
-﻿# Blueprint: pos Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Point of Sale module. Service catalog display with search. Barcode scanner integration for quick item add. Subtotal, discount, VAT (5%), total calculation. Cash, card, split payment methods. Thermal receipt printing (57mm/80mm). Cash drawer auto-open on cash payment. Quick customer lookup. Express checkout flow optimized for < 30 seconds.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: production_blueprint.md ---
-
-﻿# Blueprint: production Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Production Management module. Garment processing stages (sorting, washing, drying, ironing, folding, packaging). Operator assignment per stage. Quality check pass/fail with defect codes. Rewash/reclean workflow. Production performance tracking by operator. Batch processing support.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: README.md ---
-
-﻿# Module Blueprints - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Each blueprint provides a complete feature specification for a module including purpose, user stories, data model, API endpoints, UI screens, and business rules.
-
-## Module Index
-| Module | Blueprint | Status |
-|--------|-----------|--------|
-| Authentication | auth_blueprint.md | Complete |
-| Orders | orders_blueprint.md | Complete |
-| POS | pos_blueprint.md | Complete |
-| Inventory | inventory_blueprint.md | Complete |
-| Production | production_blueprint.md | Complete |
-| Delivery | delivery_blueprint.md | Complete |
-| Customers | customers_blueprint.md | Complete |
-| HR & Payroll | hr_payroll_blueprint.md | Complete |
-| Finance | finance_blueprint.md | Complete |
-| Reports | reports_blueprint.md | Complete |
-
-## --- FILE: reports_blueprint.md ---
-
-﻿# Blueprint: reports Module - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-Reports and Analytics module. Dashboard KPIs (daily revenue, orders, production throughput). Sales reports (by period, branch, service, employee). Production reports (by operator, service type, turnaround). Financial reports (P&L, cash flow, accounts receivable aging). HR reports (attendance, payroll, leave balances). Export to PDF and CSV.
-
-## Key Business Rules
-- All monetary values use DECIMAL(18,2).
-- All operations scoped to business_owner_id.
-- All state changes logged to audit_logs.
-- All screens support LTR (English) and RTL (Arabic).
-- All operations available in offline mode.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial blueprint |
-
-## --- FILE: README.md ---
-
-﻿# Compliance Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-UAE regulatory compliance documentation.
-
-## --- FILE: uae_vat_compliance.md ---
-
-﻿# UAE VAT Compliance - LaundryPro UAE
-> **Version:** 1.0.0
-
-## VAT Rules
-- Standard rate: 5% on all taxable services.
-- Calculation: VAT = (Subtotal - Line Discounts) * 0.05.
-- Rounding: ROUND_HALF_UP to 2 decimal places.
-- TRN: Displayed on all invoices.
-- Invoice requirements: Sequential numbering, date, TRN, line items, VAT amount, total.
-- Returns: Quarterly VAT return filing.
-
-## --- FILE: backup_strategy.md ---
-
-﻿# Backup Strategy - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Backup Types
-| Type | Frequency | Retention |
-|------|-----------|-----------|
-| Full | Daily 02:00 AM | 30 days |
-| Incremental | Every 4 hours | 7 days |
-| Pre-migration | Before schema changes | Permanent |
-| Manual | On-demand | 90 days |
-
-## Backup Verification
-- SHA-256 hash generated for every backup file.
-- Hash stored alongside backup file.
-- Automated verification on backup completion.
-- Monthly restore test on isolated environment.
-
-## Storage
-- Local: XAMPP backup directory.
-- External: USB/network drive (recommended).
-- Cloud: Sync to cloud when connectivity available (optional).
-
-## Restore SLA
-- Full restore: < 30 minutes for databases up to 10 GB.
-- Point-in-time restore: Via incremental backups within 4-hour window.
-
-## --- FILE: data_dictionary.md ---
-
-﻿# Data Dictionary - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Naming Conventions
-- Tables: snake_case, plural (e.g., orders, order_items)
-- Columns: snake_case (e.g., business_owner_id, created_at)
-- PKs: id (BIGINT UNSIGNED AUTO_INCREMENT)
-- FKs: {referenced_table_singular}_id (e.g., order_id, customer_id)
-- Booleans: is_{adjective} (e.g., is_active, is_paid)
-- Timestamps: {action}_at (e.g., created_at, deleted_at)
-- Money: DECIMAL(18,2) with descriptive name (e.g., unit_price, total_amount)
-
-## Core Tables
-| Table | Description | Tenant-Scoped |
-|-------|-------------|:---:|
-| business_owners | Tenant registration and profile | No (is tenant) |
-| branches | Branch locations per tenant | Yes |
-| users | System users (employees) | Yes |
-| roles | RBAC role definitions | No (global) |
-| permissions | RBAC permission definitions | No (global) |
-| role_permissions | Role-permission mapping | No (global) |
-| customers | Customer profiles | Yes |
-| services | Service catalog (wash, dry-clean, etc.) | Yes |
-| price_lists | Pricing tiers and schedules | Yes |
-| orders | Order headers | Yes |
-| order_items | Order line items | Yes |
-| order_status_history | Order status transitions | Yes |
-| invoices | Invoice headers | Yes |
-| invoice_items | Invoice line items | Yes |
-| payments | Payment transactions | Yes |
-| inventory_items | Supply inventory | Yes |
-| inventory_transactions | Stock in/out records | Yes |
-| employees | Employee master records | Yes |
-| attendance | Check-in/check-out records | Yes |
-| payroll | Payroll calculation records | Yes |
-| deliveries | Delivery assignments | Yes |
-| delivery_items | Items in a delivery | Yes |
-| garment_tags | Barcode/RFID tag assignments | Yes |
-| production_stages | Garment processing stages | Yes |
-| audit_logs | All state change audit entries | Yes |
-| sync_outbox | Offline sync queue | Yes |
-| machine_licenses | UMAC license bindings | No (system) |
-| system_settings | Global system configuration | No (system) |
-| migrations | Schema migration tracking | No (system) |
-
-## Standard Columns (all tenant-scoped tables)
-| Column | Type | Description |
-|--------|------|-------------|
-| id | BIGINT UNSIGNED AUTO_INCREMENT | Primary key |
-| business_owner_id | BIGINT UNSIGNED FK | Tenant isolation |
-| created_at | DATETIME DEFAULT CURRENT_TIMESTAMP | Creation timestamp |
-| updated_at | DATETIME ON UPDATE CURRENT_TIMESTAMP | Last update timestamp |
-| created_by | BIGINT UNSIGNED FK (users) | Creator user |
-| updated_by | BIGINT UNSIGNED FK (users) | Last updater user |
-| is_active | TINYINT(1) DEFAULT 1 | Soft delete flag |
-| deleted_at | DATETIME NULL | Soft delete timestamp |
-
-## --- FILE: er_diagram.md ---
-
-﻿# ER Diagram - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Core Entity Relationships
+---
+
+### 2.3 Delta Sync Ingestion
+#### `POST /api/v1/sync/push`
+Receives an ordered batch of delta mutations from a local workstation.
+- **Auth:** `Bearer <tenant_cloud_token>`
+- **Request Body:**
+```json
+{
+  "batch": [
+    {
+      "entity_type": "sales_orders",
+      "entity_uuid": "e81d4a21-c3b8-4982-9e23-7a91c8413b52",
+      "entity_local_id": 1042,
+      "operation": "INSERT",
+      "payload": {
+        "order_number": "DXB-2026-0042",
+        "customer_id": 15,
+        "total_amount": 150.00,
+        "vat_amount": 7.14,
+        "status": "confirmed"
+      },
+      "entity_version": 1,
+      "source_umac": "a1b2c3d4e5f60718293a4b5c6d7e8f90"
+    }
+  ]
+}
+```
+- **Response (200 OK):**
+```json
+{
+  "success": true,
+  "code": "SYNC_PUSH_SUCCESS",
+  "data": {
+    "accepted": ["e81d4a21-c3b8-4982-9e23-7a91c8413b52"],
+    "conflicts": [],
+    "rejected": []
+  }
+}
+```
+
+---
+
+### 2.4 Delta Sync Extraction
+#### `GET /api/v1/sync/pull`
+Streams changes originating from the Cloud Admin portal or cross-branch updates down to the workstation.
+- **Auth:** `Bearer <tenant_cloud_token>`
+- **Query Parameters:**
+  - `cursor` (string): ISO8601 timestamp or change sequence ID
+  - `limit` (int, default 100): Maximum records returned per batch
+- **Response (200 OK):**
+```json
+{
+  "success": true,
+  "code": "SYNC_PULL_SUCCESS",
+  "data": {
+    "records": [
+      {
+        "id": 501,
+        "entity_type": "catalog_services",
+        "entity_uuid": "3b29c1e0-41ab-40df-9821-bc7291a1829e",
+        "operation": "UPDATE",
+        "payload": {
+          "service_code": "DC-KANDORA",
+          "price": 25.00
+        },
+        "created_at": "2026-09-30T09:12:00Z"
+      }
+    ],
+    "next_cursor": "2026-09-30T09:12:00Z",
+    "has_more": false
+  }
+}
+```
+
+---
+
+### 2.5 Disaster Recovery & Backup Ingestion
+#### `POST /api/v1/sync/backup`
+Ingests an AES-256 encrypted database snapshot file from a local branch.
+- **Auth:** `Bearer <tenant_cloud_token>`
+- **Request Body:**
+```json
+{
+  "backup_data": "<base64_encoded_encrypted_blob>",
+  "filename": "backup_branch1_2026-09-30_0200.sql.enc",
+  "checksum": "sha256_hash_value"
+}
+```
+
+---
+
+---
+
+## 3. Comprehensive 35-Domain Parity Catalog
+
+The LaundryPro UAE Cloud API achieves **100% parity** across all 35 enterprise operational domains, providing 189 registered endpoints corresponding to the 178 Local Station endpoints plus central control-plane and franchise synchronization endpoints.
+
+| # | Domain | Endpoints | Authentication | Description |
+|---|---|---|---|---|
+| 1 | **Health/Docs/Platform** | `/api/v1/health`, `/api/v1/docs`, `/api/v1/docs/openapi.json` | Public | System health checks, Swagger UI, and OpenAPI 3.0.3 JSON schema |
+| 2 | **Auth** | `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/logout`, `/api/v1/auth/me` | Public / Bearer | JWT & Tenant token generation, verification, and session control |
+| 3 | **Settings** | `/api/v1/settings`, `/api/v1/settings/update` | Bearer Token | Tenant business configuration, VAT defaults, receipt styles |
+| 4 | **Roles/Permissions** | `/api/v1/roles`, `/api/v1/roles/{id}`, `/api/v1/roles/permissions` | Bearer Token | RBAC roles (Admin, Cashier, Driver, Operator) & access control |
+| 5 | **Business** | `/api/v1/business`, `/api/v1/business/update`, `/api/v1/businesses/register` | Bearer Token | Multi-branch company profile, TRN, trade license, branding |
+| 6 | **Install/Setup** | `/api/v1/install`, `/api/v1/install/verify`, `/api/v1/install/database`, `/api/v1/install/admin` | Install Token | Cloud node initialization, DB migration execution, admin seeding |
+| 7 | **Customers** | `/api/v1/customers`, `/api/v1/customers/{id}`, `/api/v1/customers/create`, `/api/v1/customers/update` | Bearer Token | CRM client profiles, credit limits, outstanding balances, WhatsApp |
+| 8 | **Vendors** | `/api/v1/vendors`, `/api/v1/vendors/{id}`, `/api/v1/vendors/create`, `/api/v1/vendors/update` | Bearer Token | Supplier profiles, contact info, supply category, payment terms |
+| 9 | **Catalog** | `/api/v1/services`, `/api/v1/products`, `/api/v1/modifiers`, `/api/v1/categories`, `/api/v1/price-lists` | Bearer Token | 15 catalog routes: garment dry clean, press, wash, retail products |
+| 10 | **Sales/Orders** | `/api/v1/sales`, `/api/v1/sales/{id}`, `/api/v1/sales/draft`, `/api/v1/sales/confirm`, `/api/v1/sales/{id}/pay` | Bearer Token | 20 order lifecycle routes, split payments, status transitions, VAT 5% |
+| 11 | **Invoices** | `/api/v1/invoices`, `/api/v1/invoices/{id}`, `/api/v1/invoices/unpaid`, `/api/v1/invoices/{id}/pay` | Bearer Token | FTA-compliant tax invoices, credit notes, payment receipts |
+| 12 | **Delivery** | `/api/v1/delivery-tasks`, `/api/v1/delivery-tasks/{id}`, `/api/v1/delivery-tasks/create`, `/api/v1/delivery-tasks/{id}/patch` | Bearer Token | Van dispatch, pickup/delivery route tracking, proof of delivery |
+| 13 | **Challans** | `/api/v1/challans`, `/api/v1/challans/{id}`, `/api/v1/challans/create`, `/api/v1/challans/{id}/cancel` | Bearer Token | Gate pass delivery challans, item reconciliation, thermal prints |
+| 14 | **Inventory** | `/api/v1/inventory/movements`, `/api/v1/inventory/receipt`, `/api/v1/inventory/adjustment`, `/api/v1/inventory/stock` | Bearer Token | Stock tracking, batch movements, low-stock threshold triggers |
+| 15 | **Purchasing** | `/api/v1/purchase-orders`, `/api/v1/purchase-orders/{id}`, `/api/v1/purchase-orders/create` | Bearer Token | PO issuance, supplier goods receipt, invoice matching |
+| 16 | **Expenses** | `/api/v1/expenses`, `/api/v1/expense-categories`, `/api/v1/expenses/create`, `/api/v1/expenses/{id}/approve` | Bearer Token | OPEX categorization, VAT recovery on expenses, receipt attachments |
+| 17 | **Employees/HR** | `/api/v1/employees`, `/api/v1/employees/{id}`, `/api/v1/employees/create`, `/api/v1/employees/update` | Bearer Token | Staff directory, labor card numbers, passport expiries, roles |
+| 18 | **Payroll** | `/api/v1/payroll/runs`, `/api/v1/payroll/calculate`, `/api/v1/payroll/wps-sif` | Bearer Token | UAE WPS-compliant SIF generator (MOL ID, IBAN, allowances) |
+| 19 | **Leave Management** | `/api/v1/leave-requests`, `/api/v1/leave-requests/{id}`, `/api/v1/leave-requests/create` | Bearer Token | Annual leave, sick leave, maternity leave balance & approval |
+| 20 | **Attendance** | `/api/v1/attendance`, `/api/v1/attendance/punch` | Bearer Token | Biometric/PIN clock-in, overtime tracking, shifts |
+| 21 | **Salary Advances** | `/api/v1/salary-advances`, `/api/v1/salary-advances/create` | Bearer Token | Advance requests, repayment deductions linked to payroll |
+| 22 | **Notifications** | `/api/v1/notifications`, `/api/v1/notifications/mark-read`, `/api/v1/notifications/send` | Bearer Token | System alerts, customer WhatsApp/SMS updates, email notices |
+| 23 | **Channels** | `/api/v1/channels`, `/api/v1/channels/{id}`, `/api/v1/channels/create` | Bearer Token | Omni-channel order sources: POS, Mobile App, Web, Hotel Concierge |
+| 24 | **Reports/Analytics** | `/api/v1/reports/dashboard-kpis`, `/api/v1/reports/pnl`, `/api/v1/reports/sales`, `/api/v1/reports/vat` | Bearer Token | 18 report endpoints: FTA VAT returns, driver metrics, aging, PnL |
+| 25 | **License** | `/api/v1/license/status`, `/api/v1/license/activate`, `/api/v1/license/validate` | Bearer / Public | 3-way hardware handshake, MAC binding, offline grace periods |
+| 26 | **Sync** | `/api/v1/sync/status`, `/api/v1/sync/push`, `/api/v1/sync/pull`, `/api/v1/sync/config`, `/api/v1/sync/conflict` | Bearer Token | Outbox/inbox bi-directional delta synchronization pipeline |
+| 27 | **Backup** | `/api/v1/backup/run`, `/api/v1/backup/verify`, `/api/v1/backup/restore`, `/api/v1/backup/history` | Bearer Token | Encrypted SQLite/MariaDB automated snapshots and recovery |
+| 28 | **Terminals** | `/api/v1/terminals`, `/api/v1/terminals/{id}`, `/api/v1/terminals/register` | Bearer Token | POS workstation registration, cash drawer binding, ESC/POS setup |
+| 29 | **Equipment/Operators** | `/api/v1/equipment`, `/api/v1/operators`, `/api/v1/equipment/maintenance` | Bearer Token | Washing machines, dry clean stills, boiler maintenance cycles |
+| 30 | **RFID** | `/api/v1/rfid/tags`, `/api/v1/rfid/scan` | Bearer Token | Linen UHF RFID tag tracking, bulk laundry bundle scan-in/out |
+| 31 | **Advanced Cycles/Sterilization** | `/api/v1/cycles`, `/api/v1/sterilization/batches`, `/api/v1/sterilization/create` | Bearer Token | Healthcare/hotel sterilization compliance batch records & temp logs |
+| 32 | **Storefront/Customer Portal** | `/api/v1/storefront/catalog`, `/api/v1/storefront/order`, `/api/v1/portal/track` | Public / Customer | Self-service customer booking, status tracking, online catalog |
+| 33 | **LAN** | `/api/v1/lan/discover`, `/api/v1/lan/sync`, `/api/v1/lan/nodes` | Local / Token | Local network peer-to-peer failover discovery |
+| 34 | **Accounting** | `/api/v1/accounting/chart-of-accounts`, `/api/v1/accounting/journal-entries` | Bearer Token | Double-entry general ledger, balance sheet, trial balance |
+| 35 | **Localization** | `/api/v1/localization/profiles`, `/api/v1/localization/currencies` | Public / Token | UAE (AED, 5% VAT, Hijri/Gregorian), KSA (SAR, 15% VAT) profiles |
+
+---
+
+## 4. Verification & Testing
+
+Every endpoint in this catalog is verified via automated test suites:
+- **Core Architecture Tests:** [`cloud-api/tests/cloud_core_test.php`](file:///e:/Projects/Flutter/UAE-Laundry-Pro/cloud-api/tests/cloud_core_test.php) (11/11 passing)
+- **Domain Parity Suite:** [`cloud-api/tests/cloud_domain_parity_test.php`](file:///e:/Projects/Flutter/UAE-Laundry-Pro/cloud-api/tests/cloud_domain_parity_test.php) (16/16 domain assertions passing)
+- **Full Route Registry Parity:** [`scripts/verify_route_parity.php`](file:///e:/Projects/Flutter/UAE-Laundry-Pro/scripts/verify_route_parity.php) (35/35 domains covered, 189 routes)
+- **Syntax Integrity:** [`scripts/lint_all.php`](file:///e:/Projects/Flutter/UAE-Laundry-Pro/scripts/lint_all.php) (192 PHP files checked, 0 errors)
+- **OpenAPI Schema:** Generated at [`docs/swagger/cloud-api.yaml`](file:///e:/Projects/Flutter/UAE-Laundry-Pro/docs/swagger/cloud-api.yaml), [`docs/swagger/cloud-api.json`](file:///e:/Projects/Flutter/UAE-Laundry-Pro/docs/swagger/cloud-api.json), and [`docs/swagger/UNIFIED_SWAGGER.yaml`](file:///e:/Projects/Flutter/UAE-Laundry-Pro/docs/swagger/UNIFIED_SWAGGER.yaml)
+
+---
+
+<a id="file-api-local-api-reference-md"></a>
+
+## --- FILE: api\LOCAL_API_REFERENCE.md ---
+
+# LaundryPro UAE — Local API Reference
+
+> **Version:** 2.0.0 | **Authoritative Specification** | **Base URL:** `http://127.0.0.1:8080/api/v1`
+
+---
+
+## 1. Authentication & Security Headers
+
+All protected endpoints require the HTTP `Authorization` header containing a valid Bearer JWT:
+```http
+Authorization: Bearer <jwt_access_token>
+```
+
+For first-time installation and provisioning endpoints:
+```http
+X-Install-Token: <install_setup_token>
+```
+
+For mutation requests requiring idempotency (Order Creation, Invoice Settlement, Payments):
+```http
+X-Idempotency-Key: <unique_client_uuid>
+```
+
+---
+
+## 2. Standard Response Envelope
+
+Every endpoint returns a standardized JSON envelope:
+
+```json
+{
+  "success": true,
+  "code": "OK",
+  "message_key": "sales.order_created",
+  "data": { ... },
+  "errors": [],
+  "meta": {
+    "request_id": "a9f3b20c-4e81-4231-b519-74351b6ce952",
+    "server_time": "2026-09-30T10:15:30Z",
+    "version": "2.0.0",
+    "page": 1,
+    "per_page": 50,
+    "total": 128
+  }
+}
+```
+
+---
+
+## 3. Core Endpoint Catalog
+
+### 3.1 Platform & Infrastructure
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `GET` | `/health` | None | Returns database connectivity, disk space, and daemon status |
+| `GET` | `/docs/openapi.json` | None | Live-generated OpenAPI 3.0.3 specification JSON |
+| `GET` | `/docs` | None | Embedded Swagger UI interactive documentation page |
+
+### 3.2 Authentication & Identity (`/auth`)
+| Method | Path | Auth | Request Body | Description |
+|---|---|:---:|---|---|
+| `POST` | `/auth/login` | None | `{username, password}` | Issues JWT access token (15m) & refresh token (30d) |
+| `POST` | `/auth/refresh` | None | `{refresh_token}` | Rotates refresh token and issues fresh access token |
+| `POST` | `/auth/logout` | JWT | None | Revokes refresh token and terminates session |
+| `GET` | `/auth/me` | JWT | None | Returns active user profile, assigned branch, and RBAC permissions |
+
+### 3.3 Sales & POS Intake (`/sales`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `POST` | `/sales/draft` | JWT | Creates a new order draft; calculates itemized VAT and totals |
+| `POST` | `/sales/orders` | JWT | Confirms order draft into booked order; prints thermal garment tags |
+| `GET` | `/sales/orders` | JWT | Paginated order list (supports `?status=`, `?customer_id=`, `?from=`, `?to=`) |
+| `GET` | `/sales/orders/{id}` | JWT | Complete order detail including line items, tags, and payment history |
+| `PATCH`| `/sales/orders/{id}/status` | JWT | Updates order workflow stage (`processing`, `ready`, `delivered`) |
+| `POST` | `/sales/orders/{id}/cancel` | JWT | Cancels unfulfilled order; restores stock; issues credit note if paid |
+
+### 3.4 Invoicing & UAE VAT Compliance (`/invoices`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `POST` | `/invoices/generate` | JWT | Creates official FTA-compliant tax invoice with QR code and TRN |
+| `GET` | `/invoices/{id}` | JWT | Retrieves tax invoice details and line item breakdown |
+| `GET` | `/invoices/{id}/pdf` | JWT | Downloads standard A4 or 80mm thermal bilingual PDF invoice |
+| `POST` | `/invoices/{id}/refund` | JWT | Processes full or partial refund; generates FTA credit note |
+
+### 3.5 Catalog Management (`/catalog`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `GET` | `/catalog/categories` | JWT | List laundry service categories (Dry Clean, Wash & Fold, Pressing) |
+| `POST` | `/catalog/categories` | JWT | Create new service category |
+| `GET` | `/catalog/services` | JWT | List all services with base price and turn-around hours |
+| `POST` | `/catalog/services` | JWT | Create or update service item and garment type |
+| `GET` | `/catalog/modifiers` | JWT | Starch level, hanger type, scent, stain treatment options |
+
+### 3.6 Customers & CRM (`/customers`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `GET` | `/customers` | JWT | Search customers by phone number, name, or customer code |
+| `POST` | `/customers` | JWT | Register new customer with address, TRN, and credit limit |
+| `GET` | `/customers/{id}` | JWT | Customer ledger, pending garments, outstanding balance |
+| `PUT` | `/customers/{id}` | JWT | Update customer profile and delivery preferences |
+
+### 3.7 Inventory & Purchasing (`/inventory`, `/purchases`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `GET` | `/inventory/stock` | JWT | Stock on hand for consumables (detergents, poly rolls, hangers) |
+| `POST` | `/inventory/adjust` | JWT | Record manual stock intake, wastage, or physical audit adjustment |
+| `POST` | `/purchases/orders` | JWT | Create vendor Purchase Order (PO) |
+| `POST` | `/purchases/grn` | JWT | Receive Goods Receipt Note (GRN); updates inventory and ledger |
+
+### 3.8 Logistics & Factory Challans (`/delivery`, `/challans`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `POST` | `/challans/dispatch` | JWT | Dispatches garment batch to central cleaning plant with manifest |
+| `POST` | `/challans/receive` | JWT | Re-intakes clean garments returned from factory; checks missing items |
+| `GET` | `/delivery/tasks` | JWT | Van driver pickup and delivery schedule for the day |
+| `PATCH`| `/delivery/tasks/{id}` | JWT | Driver updates task: `collected`, `attempted`, `delivered` |
+
+### 3.9 Human Resources & Payroll (`/hr`, `/payroll`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `GET` | `/hr/employees` | JWT | List branch staff, job titles, and labor contract details |
+| `POST` | `/hr/attendance` | JWT | Clock-in / clock-out logging with terminal hardware ID |
+| `POST` | `/payroll/run` | JWT | Generates monthly salary breakdown with allowances and deductions |
+| `GET` | `/payroll/wps` | JWT | Exports UAE Wages Protection System (WPS) SIF file |
+
+### 3.10 Sync Engine Operations (`/sync`)
+| Method | Path | Auth | Description |
+|---|---|:---:|---|
+| `GET` | `/sync/outbox/pending`| JWT | Lists pending local mutations awaiting cloud push |
+| `PATCH`| `/sync/outbox/ack` | JWT | Marks records as successfully pushed with cloud sequence IDs |
+| `POST` | `/sync/inbox/apply` | JWT | Executes 3-way merge on incoming changes pulled from cloud |
+| `GET` | `/sync/health` | JWT | Returns outbox lag, failure counts, and last sync timestamp |
+| `POST` | `/sync/trigger` | JWT | Forces an immediate push/pull sync cycle |
+
+---
+
+<a id="file-api-response-codes-md"></a>
+
+## --- FILE: api\RESPONSE_CODES.md ---
+
+# LaundryPro UAE — API Response Codes
+
+> **Version:** 2.0.0 | **Last Updated:** 2026-09-30
+
+---
+
+## Standard Envelope
+
+All API responses use this envelope format:
+
+```json
+{
+  "success": true|false,
+  "code": "RESPONSE_CODE",
+  "message_key": "localization.key",
+  "data": {},
+  "errors": [],
+  "meta": {
+    "request_id": "hex",
+    "server_time": "ISO8601",
+    "version": "1.2.0"
+  }
+}
+```
+
+## Response Code Registry
+
+### Platform
+
+| Code | HTTP | Description |
+|---|---|---|
+| `HEALTH_OK` | 200 | API and database healthy |
+| `SERVICE_UNAVAILABLE` | 503 | Database or service down |
+| `SERVER_ERROR` | 500 | Unhandled internal error |
+| `NOT_FOUND` | 404 | Route or resource not found |
+| `METHOD_NOT_ALLOWED` | 405 | HTTP method not supported |
+| `VALIDATION_ERROR` | 422 | Request body validation failed |
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
+
+### Authentication
+
+| Code | HTTP | Description |
+|---|---|---|
+| `AUTH_LOGIN_SUCCESS` | 200 | Login successful, tokens issued |
+| `AUTH_REFRESH_SUCCESS` | 200 | Token refresh successful |
+| `AUTH_LOGOUT_SUCCESS` | 200 | Logout and token revocation complete |
+| `AUTH_INVALID_CREDENTIALS` | 401 | Wrong username or password |
+| `AUTH_SESSION_EXPIRED` | 401 | JWT expired or revoked |
+| `AUTH_FORBIDDEN` | 403 | Insufficient permissions |
+| `AUTH_ACCOUNT_LOCKED` | 403 | Account locked after failed attempts |
+
+### Customers
+
+| Code | HTTP | Description |
+|---|---|---|
+| `CUSTOMER_LIST` | 200 | Customer list retrieved |
+| `CUSTOMER_DETAIL` | 200 | Single customer retrieved |
+| `CUSTOMER_CREATED` | 201 | Customer created |
+| `CUSTOMER_UPDATED` | 200 | Customer updated |
+| `CUSTOMER_NOT_FOUND` | 404 | Customer ID not found |
+| `CUSTOMER_DUPLICATE` | 409 | Duplicate phone/email |
+
+### Sales / Orders
+
+| Code | HTTP | Description |
+|---|---|---|
+| `ORDER_DRAFT_CREATED` | 201 | Draft order created |
+| `ORDER_CONFIRMED` | 200 | Order confirmed |
+| `ORDER_PAYMENT_RECORDED` | 200 | Payment recorded |
+| `ORDER_STATUS_UPDATED` | 200 | Status changed |
+| `ORDER_NOT_FOUND` | 404 | Order ID not found |
+| `ORDER_INVALID_STATUS` | 422 | Invalid status transition |
+| `INSUFFICIENT_STOCK` | 422 | Product stock below required qty |
+
+### Catalog
+
+| Code | HTTP | Description |
+|---|---|---|
+| `SERVICE_LIST` | 200 | Services list retrieved |
+| `SERVICE_CREATED` | 201 | Service created |
+| `SERVICE_UPDATED` | 200 | Service updated |
+| `PRODUCT_LIST` | 200 | Products list retrieved |
+| `PRODUCT_CREATED` | 201 | Product created |
+| `PRODUCT_UPDATED` | 200 | Product updated |
+| `MODIFIER_CREATED` | 201 | Modifier created |
+
+### Inventory
+
+| Code | HTTP | Description |
+|---|---|---|
+| `STOCK_LEVELS` | 200 | Current stock levels |
+| `MOVEMENT_RECORDED` | 201 | Inventory movement recorded |
+| `ADJUSTMENT_APPLIED` | 200 | Stock adjustment applied |
+| `TRANSFER_COMPLETED` | 200 | Inter-branch transfer done |
+| `RECEIPT_RECORDED` | 201 | Goods receipt recorded |
+| `RECONCILE_COMPLETED` | 200 | Reconciliation completed |
+
+### HR / Payroll
+
+| Code | HTTP | Description |
+|---|---|---|
+| `EMPLOYEE_LIST` | 200 | Employee list retrieved |
+| `EMPLOYEE_CREATED` | 201 | Employee created |
+| `ATTENDANCE_RECORDED` | 201 | Attendance entry recorded |
+| `LEAVE_REQUESTED` | 201 | Leave request submitted |
+| `LEAVE_APPROVED` | 200 | Leave request approved |
+| `LEAVE_REJECTED` | 200 | Leave request rejected |
+| `PAYROLL_RUN_STARTED` | 200 | Payroll run initiated |
+| `PAYROLL_RUN_COMPLETE` | 200 | Payroll run completed |
+
+### Expenses
+
+| Code | HTTP | Description |
+|---|---|---|
+| `EXPENSE_CREATED` | 201 | Expense created |
+| `EXPENSE_APPROVED` | 200 | Expense approved |
+| `EXPENSE_REJECTED` | 200 | Expense rejected |
+| `EXPENSE_ATTACHMENT_UPLOADED` | 201 | Attachment uploaded |
+
+### Sync
+
+| Code | HTTP | Description |
+|---|---|---|
+| `SYNC_STATUS` | 200 | Sync status retrieved |
+| `SYNC_PUSH_SUCCESS` | 200 | Records pushed to cloud |
+| `SYNC_PULL_SUCCESS` | 200 | Records pulled from cloud |
+| `SYNC_RECEIVED` | 200 | Cloud received push batch |
+| `SYNC_CONFLICT` | 409 | Merge conflict detected |
+| `SYNC_FAILED` | 500 | Sync operation failed |
+
+### License
+
+| Code | HTTP | Description |
+|---|---|---|
+| `LICENSE_STATUS` | 200 | License status retrieved |
+| `LICENSE_ACTIVATED` | 200 | License activated |
+| `LICENSE_EXPIRED` | 401 | License has expired |
+| `LICENSE_INVALID` | 401 | Invalid license key |
+| `LICENSE_LIMIT_EXCEEDED` | 403 | Device/branch limit exceeded |
+| `LICENSE_REVOKED` | 403 | License has been revoked |
+
+### Cloud-Only Codes
+
+| Code | HTTP | Description |
+|---|---|---|
+| `TENANT_REQUIRED` | 401 | Missing X-Business-Owner-Id header |
+| `TENANT_NOT_FOUND` | 401 | Tenant not registered |
+| `INVALID_TOKEN` | 401 | Invalid cloud auth token |
+| `BUSINESS_REGISTERED` | 201 | New tenant registered |
+| `REPORTS_AGGREGATION` | 200 | Cross-tenant report generated |
+| `BACKUP_UPLOADED` | 200 | Backup file received |
+
+### Notifications
+
+| Code | HTTP | Description |
+|---|---|---|
+| `NOTIFICATION_LIST` | 200 | Notifications retrieved |
+| `NOTIFICATION_READ` | 200 | Notification marked as read |
+| `NOTIFICATION_ALL_READ` | 200 | All notifications marked read |
+
+### Backup
+
+| Code | HTTP | Description |
+|---|---|---|
+| `BACKUP_STARTED` | 200 | Backup process started |
+| `BACKUP_COMPLETED` | 200 | Backup completed |
+| `BACKUP_RESTORE_STARTED` | 200 | Restore started |
+| `BACKUP_VALIDATION_OK` | 200 | Backup file validated |
+
+---
+
+*This document is the authoritative response code reference. All new endpoints MUST use codes from this registry.*
+
+---
+
+<a id="file-appendices-index-md"></a>
+
+## --- FILE: appendices\INDEX.md ---
+
+# LaundryPro UAE — Master Documentation Index & ADRs
+
+> **Version:** 2.0.0 | **Authoritative Documentation Sitemap** | **Status:** Active
+
+---
+
+## 1. Documentation Library Sitemap
+
+```
+docs/
+├── architecture/
+│   ├── SYSTEM_ARCHITECTURE.md        # Comprehensive architecture & request lifecycles
+│   └── COMPONENT_MAP.md              # File-level component inventory & responsibility matrix
+├── api/
+│   ├── LOCAL_API_REFERENCE.md        # Local Station REST API endpoints & envelopes
+│   ├── CLOUD_API_REFERENCE.md        # Central Cloud Multi-Tenant REST API endpoints
+│   └── RESPONSE_CODES.md             # Standard error codes & HTTP response glossary
+├── sync/
+│   ├── SYNC_ARCHITECTURE.md          # Outbox/Inbox delta synchronization pipeline
+│   └── CONFLICT_RESOLUTION.md        # 3-Way merge algorithm & dead-letter queue rules
+├── licensing/
+│   └── LICENSE_ARCHITECTURE.md       # 3-Way hardware handshake (UMAC & Windows Registry)
+├── security/
+│   ├── SECURITY_MODEL.md             # Cryptographic tokens, RBAC & server authorization
+│   └── THREAT_MODEL.md               # STRIDE threat matrix & hardening controls
+├── compliance/
+│   └── UAE_COMPLIANCE.md             # UAE FTA 5% VAT, bilingual e-invoicing & WPS SIF
+├── flows/
+│   ├── ORDER_LIFECYCLE.md            # Intake, heat-seal tagging, factory dispatch & rack staging
+│   └── PAYMENT_FLOW.md               # Multi-tender settlement, split payments & credit notes
+├── testing/
+│   ├── TEST_PLAN.md                  # Unit, integration, contract & sync stress test plans
+│   └── UAT_SCRIPTS.md                # Cashier & manager step-by-step validation scripts
+├── operations/
+│   ├── DEPLOYMENT_GUIDE.md           # Local Apache/XAMPP, Windows daemon & Docker cloud setup
+│   └── BACKUP_RESTORE.md             # 3-2-1 backup strategy & disaster recovery runbook
+├── peripherals/
+│   └── PRINTER_INTEGRATION.md        # 80mm ESC/POS thermal printers, care tags & cash drawers
+├── ui/
+│   └── THEME_SPECIFICATION.md        # "Purple Dark" enterprise theme tokens & AdminLTE overrides
+├── training/
+│   ├── ADMIN_GUIDE.md                # Store manager & portal administration manual
+│   └── CASHIER_GUIDE.md              # Front-desk POS cashier training guide
+├── multitenancy/
+│   └── TENANT_ISOLATION.md           # Cloud row-level isolation & tenant query scoping
+├── blueprints/
+│   └── ENTERPRISE_DEPLOYMENT_BLUEPRINT.md # Boutique, LAN branch & central factory topologies
+├── requirements/
+│   └── PRD_FUNCTIONAL_REQUIREMENTS.md# Product requirements document & non-functionals
+├── user-journeys/
+│   └── CUSTOMER_JOURNEYS.md          # Walk-in, home delivery & corporate contract journeys
+├── workflows/
+│   └── BUSINESS_WORKFLOWS.md         # Garment classification, chemical dosing & QC
+├── edge-cases/
+│   └── OFFLINE_FAILURE_MODES.md      # Outage recovery, SQLite lock contention & clock skew
+├── integrations/
+│   └── ERP_GATEWAY_INTEGRATIONS.md   # Tally/Zoho export, banking terminals & WhatsApp API
+├── data/
+│   └── DATA_DICTIONARY.md            # Master database table definitions & indexing schema
+├── forms/
+│   └── FORM_SPECIFICATIONS.md        # Field rules, input masks & bilingual error messages
+├── reference/
+│   └── GLOSSARY.md                   # Laundry, textile care & UAE fiscal glossary
+├── appendices/
+│   └── INDEX.md                      # Master documentation index & ADR records
+├── dependencies/
+│   └── DEPENDENCY_MATRIX.md          # Software requirements, PHP extensions & Flutter packages
+├── marketing/
+│   └── FEATURE_MATRIX.md             # Edition feature matrix: Standard vs Premium vs Enterprise
+└── swagger/
+    ├── UNIFIED_SWAGGER.yaml          # Authoritative unified OpenAPI 3.0.3 YAML spec
+    ├── local-api.yaml                # Local Station OpenAPI 3.0.3 YAML spec
+    └── cloud-api.yaml                # Cloud Gateway OpenAPI 3.0.3 YAML spec
+```
+
+---
+
+## 2. Architectural Decision Records (ADRs)
+
+### ADR-001: Separation of Local API and Cloud Multi-Tenant API
+- **Context**: A single monolithic codebase running both workstation POS operations and central cloud hosting led to tangled dependencies, insecure privilege boundaries, and database bloat.
+- **Decision**: Physically separate the repository into two clean PHP 8.2 projects:
+  1. `api/`: Local Station API running on localhost:8080.
+  2. `cloud-api/`: Central Multi-Tenant Cloud API running on central HTTPS servers.
+- **Status**: **Approved & Implemented**.
+
+### ADR-002: Dual-Database Schema Split
+- **Context**: A unified monolithic `schema.sql` contained duplicate table definitions (`businesses`, `sync_records`) and conflated local store data with central multi-tenant licenses.
+- **Decision**: Split into `database/local/schema.sql` (single-tenant per workstation) and `database/cloud/schema.sql` (central multi-tenant with `tenant_id` foreign keys).
+- **Status**: **Approved & Implemented**.
+
+### ADR-003: Pure Outbox/Inbox V2 Sync Architecture
+- **Context**: Direct synchronization between the Flutter UI client and Cloud API caused UI freezes, connection drops, and bypassed local business validation rules.
+- **Decision**: Enforce that the Flutter app communicates **exclusively with Local API**. Synchronization is handled strictly by the local PHP background daemon talking to Cloud API using an asynchronous outbox/inbox pipeline.
+- **Status**: **Approved & Implemented**.
+
+### ADR-004: Strict Server-Side Authorization
+- **Context**: Client-side role checking allowed malicious clients or rogue API calls to elevate privileges.
+- **Decision**: All authorization decisions, role evaluations, and tenant query scoping are executed strictly on the server via `AuthMiddleware`, `PermissionMiddleware`, and `TenantScopeMiddleware`.
+- **Status**: **Approved & Implemented**.
+
+### ADR-005: 3-Way Hardware Handshake Anti-Tamper
+- **Context**: Desktop POS installations were vulnerable to unauthorized copying and license piracy.
+- **Decision**: Implement a 3-way cryptographic handshake combining physical hardware UMAC, write-once Windows Registry flags, and Cloud API RSA verification.
+- **Status**: **Approved & Implemented**.
+
+### ADR-006: "Purple Dark" Unified Design System
+- **Context**: Inconsistent visual styling between Flutter desktop screens and web admin portals created a disjointed user experience.
+- **Decision**: Mandate the "Purple Dark" enterprise theme (`#0d0f17` canvas, `#161926` surface, `#7c3aed` violet accent) across all Flutter views and AdminLTE v4 portal views.
+- **Status**: **Approved & Implemented**.
+
+### ADR-007: Mandatory `bcmath` Precision for Financial Calculations
+- **Context**: Standard floating-point math (`float`) in PHP can produce IEEE-754 rounding inaccuracies in 5% UAE VAT calculations.
+- **Decision**: Enforce PHP `bcmath` arbitrary-precision mathematics across all monetary, discount, and tax calculations.
+- **Status**: **Approved & Implemented**.
+
+---
+
+<a id="file-architecture-component-map-md"></a>
+
+## --- FILE: architecture\COMPONENT_MAP.md ---
+
+# LaundryPro UAE — Component Map
+
+> **Version:** 2.0.0 | **Authoritative System Index** | **Last Updated:** 2026-09-30
+
+---
+
+## 1. Top-Level Directory Overview
+
+```
+UAE-Laundry-Pro/
+├── api/                    # Local Workstation REST API (PHP 8.2, MariaDB/SQLite)
+│   ├── config/             # App, Database, Security & Rate Limit Configurations
+│   ├── database/           # Local Database Migrations & Seeds
+│   ├── docs/               # Local OpenAPI 3.0 JSON specifications & Swagger UI
+│   ├── logs/               # Monolog / Local Request & Error Audit Logs
+│   ├── public/             # Apache DocumentRoot, index.php front controller, assets
+│   ├── routes/             # api.php authoritative route definitions (178 routes)
+│   ├── scripts/            # Background schedulers, sync workers, database seeders
+│   ├── src/                # Controllers, Repositories, Services, Middleware, Core
+│   └── storage/            # Backups, rate limit counters, installed.lock lockfile
+├── cloud-api/              # Central Cloud Multi-Tenant REST API & Super-Admin Portal
+│   ├── config/             # Cloud Database & Environment settings
+│   ├── database/           # Cloud MariaDB migrations (001_cloud_initial_schema.sql)
+│   ├── logs/               # Cloud access & error logs
+│   ├── public/             # Cloud DocumentRoot, AdminLTE portal assets, index.php
+│   ├── src/                # Cloud Controllers, Core Framework, Views (AdminLTE v4)
+│   └── storage/            # Tenant backup storage, session locks
+├── lib/                    # Standalone Flutter Desktop / Mobile Client App
+│   ├── core/               # App constants, themes, network config, router
+│   ├── models/             # Domain entity data classes with JSON serialization
+│   ├── providers/          # Riverpod state notifiers (Auth, Cart, Locale, Sync)
+│   ├── services/           # 38 Typed HTTP API clients & SQLite offline cache
+│   ├── views/              # 42 Desktop & POS screens (Bilingual EN/AR)
+│   └── widgets/            # Reusable enterprise UI components (Purple Dark theme)
+├── database/               # Master SQL Schemas
+│   ├── local/              # Clean de-duplicated Local Workstation schema (schema.sql)
+│   └── cloud/              # Multi-tenant Cloud Gateway schema (schema.sql)
+├── docs/                   # Authoritative Technical & Operational Documentation
+│   ├── architecture/       # System Architecture, Component Map, Topology
+│   ├── api/                # Local & Cloud API References, Response Codes
+│   ├── sync/               # Outbox/Inbox Delta Sync Engine, Conflict Resolution
+│   ├── licensing/          # 3-Way Hardware Handshake (UMAC / Registry / Cloud)
+│   ├── security/           # Threat Model, RBAC, JWT Lifecycle, Hardening
+│   ├── compliance/         # UAE VAT 5%, FTA E-Invoicing, Bilingual Receipts
+│   ├── flows/              # Order Processing Lifecycle, Split Payment Reconciliation
+│   ├── testing/            # Unit, Integration, UAT & Contract Test Plans
+│   ├── operations/         # Production Deployment & Backup/Disaster Recovery
+│   ├── peripherals/        # Thermal 80mm ESC/POS Printers, Cash Drawers, Scanners
+│   ├── ui/                 # "Purple Dark" Theme Tokens, AdminLTE v4 Palette
+│   ├── training/           # Administrator & POS Cashier Operational Manuals
+│   ├── multitenancy/       # Tenant Isolation & Data Boundary Enforcements
+│   ├── blueprints/         # Franchise Enterprise Topology & Central Plant Routing
+│   ├── requirements/       # Product Requirements Document (PRD) & Non-Functionals
+│   ├── user-journeys/      # Retail, Hotel Linen, Delivery & Corporate Customer Paths
+│   ├── workflows/          # Garment Sorting, Chemical Dosing, Dispatch Challans
+│   ├── edge-cases/         # Network Partitions, Crash Recovery, Offline Lockouts
+│   ├── integrations/       # Accounting Exports (Tally/Zoho), WhatsApp/SMS Gateways
+│   ├── data/               # Full Schema Data Dictionary & Column Cross-Reference
+│   ├── forms/              # UI Form Field Specifications & Validation Rules
+│   ├── reference/          # Enterprise Laundry & Textile Care Technical Glossary
+│   ├── appendices/         # Architectural Decision Records (ADRs) & Master Index
+│   ├── dependencies/       # Matrix of PHP Extensions, Flutter Packages, Drivers
+│   ├── marketing/          # Edition Matrix (Standard vs Premium vs Enterprise)
+│   └── swagger/            # OpenAPI 3.0.3 YAML Specs (Local, Cloud, Unified)
+└── scripts/                # Node deployment, setup, and orchestration scripts
+```
+
+---
+
+## 2. Local API Layer (`api/src/`)
+
+### 2.1 Controllers (`api/src/Controllers/`)
+| Controller | Domain Responsibility | Endpoint Count |
+|---|---|:---:|
+| `HealthController` | Health check, MariaDB ping, disk usage | 1 |
+| `DocsController` | Live Swagger UI and OpenAPI 3.0.3 JSON schema delivery | 2 |
+| `AuthController` | JWT token issuance, session refresh, logout, `/auth/me` | 4 |
+| `SettingsController` | Store-level config, tax rates, printer settings | 2 |
+| `InstallController` | First-time setup wizard, database verification, admin init | 4 |
+| `CustomerController` | CRM, customer balance ledger, loyalty points | 4 |
+| `VendorController` | Supplier catalog, contact information, purchase ledger | 4 |
+| `CatalogController` | Services, items, categories, pricing, modifiers | 15 |
+| `SalesController` | POS order draft, item modification, confirmation, cancellation | 9 |
+| `InvoiceController` | UAE VAT tax invoices, thermal receipt re-prints, refunds | 4 |
+| `PaymentController` | Cash, Card, Split tenders, advance deposits | 3 |
+| `DeliveryController` | Van driver assignment, pickup/delivery route management | 5 |
+| `ChallanController` | Factory dispatch manifests, garment handover tracking | 4 |
+| `InventoryController` | Stock level tracking, manual adjustments, reorder alerts | 6 |
+| `PurchaseController` | Vendor Purchase Orders (PO), Goods Receipt Notes (GRN) | 4 |
+| `ExpenseController` | Daily petty cash expenses, receipt image attachments | 7 |
+| `HrController` | Employee directory, biometric attendance, shift logs | 6 |
+| `PayrollController` | Monthly payroll calculation, WPS file generation, advances | 5 |
+| `LeaveController` | Vacation, sick, emergency leave requests & approvals | 4 |
+| `NotificationController`| SMS/WhatsApp message outbox, delivery status checks | 6 |
+| `ReportsController` | Sales summary, item profitability, cashier shift Z-report | 17 |
+| `AnalyticsController` | Daily dashboard KPIs, revenue trends, customer retention | 3 |
+| `LicenseController` | Local license validation, 3-way handshake activation | 2 |
+| `SyncController` | Local outbox push, inbox pull application, status health | 5 |
+| `BackupController` | Automated MariaDB mysqldump, restore verification | 4 |
+| `TerminalController` | Registered POS workstations, cash drawer hardware IDs | 2 |
+| `EquipmentController` | Commercial washers, dryers, ironers, maintenance logs | 4 |
+| `OperatorController` | Machine operator certifications and authorizations | 2 |
+| `RfidController` | Garment UHF RFID chip scanning and batch tracking | 1 |
+| `AdvancedCycleController`| Sterilization, cleanroom disinfection, chemical cycles | 4 |
+| `StorefrontController` | QR code order tracking for end-consumer status lookup | 5 |
+| `CustomerPortalController`| Customer account statements, invoice download links | 2 |
+| `LanController` | Local network terminal peer discovery and heartbeat | 2 |
+| `AccountingController` | General ledger batches, VAT return exports (FTA 201) | 3 |
+| `LocalizationController` | Bilingual Arabic/English string dictionaries | 2 |
+
+### 2.2 Middleware Pipeline (`api/src/Middleware/`)
+1. **`CORS Middleware`**: Evaluates origin, headers (`Authorization`, `X-Install-Token`), exposes rate limit headers.
+2. **`RateLimitMiddleware`**: Sliding window memory/file-backed rate limiter (default 120 req/min).
+3. **`AuthMiddleware`**: Cryptographic validation of RS256/HS256 Bearer JWT tokens.
+4. **`PermissionMiddleware`**: Evaluates RBAC role privileges against endpoint action.
+5. **`IdempotencyMiddleware`**: Enforces `X-Idempotency-Key` on payment and order creation mutations.
+6. **`AuditLogMiddleware`**: Persists mutation requests to `audit_logs` table with user and IP context.
+
+---
+
+## 3. Cloud API Layer (`cloud-api/src/`)
+
+### 3.1 Architecture Overview
+- **Multi-Tenant Gateway**: All requests are scoped by `tenant_id` derived from verified tenant credentials.
+- **Sync Receiver**: Ingestion pipeline (`/api/v1/sync/push`) accepting JSON delta batches with sequence idempotency.
+- **Super-Admin Control Plane**: Web management portal (`/admin`) for license generation, tenant quotas, and health analytics.
+
+### 3.2 Core Components
+- `CloudApiController`: 7 high-performance endpoints for health, tenant registration, sync push/pull, backups, reports.
+- `AdminPortalController`: Full MVC web portal controller managing Super-Admin sessions, tenant rosters, license keys, and sync failures.
+- `Database`: PDO connection manager with connection pooling and SSL encryption support.
+- `Router`: Fast regex route dispatcher supporting RESTful parameters and HTTP verb matching.
+
+---
+
+## 4. Flutter Client Layer (`lib/`)
+
+### 4.1 State Management Architecture
+- **Riverpod 2.x**: State notification with immutable state models.
+- **`AuthNotifier`**: Handles login tokens, active branch session, user permissions.
+- **`CartNotifier`**: In-memory high-speed POS cart with real-time VAT calculations, modifiers, and express turnaround surcharge logic.
+- **`SyncNotifier`**: Background synchronization status monitor displaying connectivity and pending queue counts.
+
+### 4.2 Local Persistence (`SQLite FFI`)
+- **Offline First**: All transactional records are written locally to SQLite first.
+- **Outbox Queue**: Local mutations trigger `sync_queue` inserts for async sync daemon transmission.
+- **Cache Invalidation**: Automatic TTL and delta-based invalidation upon incoming Cloud sync pulls.
+
+---
+
+<a id="file-architecture-system-architecture-md"></a>
+
+## --- FILE: architecture\SYSTEM_ARCHITECTURE.md ---
+
+# LaundryPro UAE — System Architecture
+
+> **Version:** 2.0.0 | **Last Updated:** 2026-09-30 | **Status:** Authoritative
+
+---
+
+## 1. System Overview
+
+LaundryPro UAE is a **dual-API, dual-portal, dual-database, offline-first** enterprise laundry management platform designed for the UAE market.
+
+### 1.1 Component Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          CLOUD INFRASTRUCTURE                          │
+│                                                                         │
+│  ┌──────────────────────┐    ┌─────────────────────────────────────┐   │
+│  │   Cloud Super-Admin  │    │         Cloud API (PHP 8.2)        │   │
+│  │    Portal (AdminLTE) │◄──►│  Multi-Tenant REST + Sync Receiver │   │
+│  │  ● Tenant Management │    │  ● License Validation              │   │
+│  │  ● License Issuance  │    │  ● Sync Push/Pull                  │   │
+│  │  ● Sync Inspector    │    │  ● Centralized Reports             │   │
+│  │  ● Audit Logs        │    │  ● Device Telemetry                │   │
+│  └──────────────────────┘    └─────────────────┬───────────────────┘   │
+│                                                 │                       │
+│                              ┌──────────────────┴──────────────────┐   │
+│                              │    Cloud MariaDB (Multi-Tenant)     │   │
+│                              │  ● businesses, cloud_licenses       │   │
+│                              │  ● sync_records, sync_inbox         │   │
+│                              │  ● cloud_telemetry, audit_logs      │   │
+│                              └──────────────────┬──────────────────┘   │
+└─────────────────────────────────────────────────┼──────────────────────┘
+                                                  │
+                         ╔════════════════════════╧═════════════════╗
+                         ║   SYNC CHANNEL (HTTPS, Outbox/Inbox)    ║
+                         ║   Local API ↔ Cloud API (background)    ║
+                         ║   Flutter NEVER sees sync internals     ║
+                         ╚════════════════════════╤═════════════════╝
+                                                  │
+┌─────────────────────────────────────────────────┼──────────────────────┐
+│                     LOCAL WORKSTATION (Per Store)│                      │
+│                                                 │                      │
+│  ┌────────────────────┐    ┌───────────────────┴────────────────┐    │
+│  │  Local Admin Portal │    │       Local API (PHP 8.2)         │    │
+│  │  (AdminLTE v4)      │◄──►│  Offline-First REST API           │    │
+│  │  ● Dashboard KPIs   │    │  ● 178 Endpoints                  │    │
+│  │  ● Sales/Orders     │    │  ● JWT Auth + RBAC                │    │
+│  │  ● HR/Payroll       │    │  ● Sync Outbox → Cloud            │    │
+│  │  ● Reports          │    │  ● License + UMAC Validation      │    │
+│  └────────────────────┘    └───────────────────┬────────────────┘    │
+│                                                 │                      │
+│  ┌────────────────────┐    ┌───────────────────┴────────────────┐    │
+│  │  Flutter Desktop   │    │    Local MariaDB (Single-Tenant)   │    │
+│  │  (Windows POS)     │◄──►│  ● ~90 Tables (full business data)│    │
+│  │  ● Offline-First   │    │  ● sync_outbox, sync_state         │    │
+│  │  ● SQLite Cache    │    │  ● audit_logs                      │    │
+│  │  ● ESC/POS Print   │    └────────────────────────────────────┘    │
+│  │  ● RFID/Barcode    │                                              │
+│  └────────────────────┘    ┌────────────────────────────────────┐    │
+│                            │  Windows Registry (Write-Once)     │    │
+│                            │  ● UMAC Hardware Fingerprint       │    │
+│                            │  ● Install Pulse (Anti-Tamper)     │    │
+│                            └────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Technology Stack
+
+| Layer | Technology | Version | Purpose |
+|---|---|---|---|
+| **Local API** | Pure PHP (no framework) | 8.2 | Zero-dependency micro-framework |
+| **Cloud API** | Pure PHP (no framework) | 8.2 | Multi-tenant REST + portal |
+| **Database** | MariaDB / MySQL | 10.6+ / 8.0+ | ACID-compliant RDBMS |
+| **Flutter App** | Flutter Desktop (Windows) | 3.x | Offline-first POS client |
+| **State Management** | Riverpod | 2.6.x | Reactive state management |
+| **HTTP Client** | Dio | 5.11.x | HTTP with interceptors |
+| **Local Storage** | SQLite (sqflite_common_ffi) | 2.3.x | Offline cache |
+| **Secure Storage** | flutter_secure_storage | 9.2.x | Token/credential storage |
+| **Printing** | ESC/POS + PDF | Various | Thermal + A4 receipt/invoice |
+| **Portal UI** | AdminLTE v4 | 4.x | Enterprise admin dashboard |
+
+---
+
+## 2. API Architecture
+
+### 2.1 Dual-API Design
+
+Both APIs share identical endpoint signatures but differ in scope:
+
+| Aspect | Local API (`api/`) | Cloud API (`cloud-api/`) |
+|---|---|---|
+| **Scope** | Single workstation/store | All tenants (multi-tenant) |
+| **Auth** | JWT (user-scoped) | JWT (tenant+user-scoped) |
+| **Database** | `laundrypro` (local) | `laundrypro_cloud` (centralized) |
+| **URL** | `https://laundrypro-api` | `https://laundrypro-cloudapi.magnificentsolution.co.in` |
+| **Parity Target** | Reference implementation | 99.99% identical surface |
+
+### 2.2 Request Lifecycle
+
+```
+Client Request
+    │
+    ▼
+┌────────────────┐
+│   CORS Check   │  ← CorsMiddleware
+└───────┬────────┘
+        ▼
+┌────────────────┐
+│  Rate Limiter  │  ← RateLimitMiddleware
+└───────┬────────┘
+        ▼
+┌────────────────┐
+│  JWT Decode    │  ← AuthMiddleware (extracts user_id, role_id)
+└───────┬────────┘
+        ▼
+┌────────────────┐
+│  Permission    │  ← PermissionMiddleware (checks role.permissions vs route)
+│  Check         │
+└───────┬────────┘
+        ▼
+┌────────────────┐
+│  Idempotency   │  ← IdempotencyMiddleware (POST/PUT dedup via X-Idempotency-Key)
+└───────┬────────┘
+        ▼
+┌────────────────┐
+│  Controller    │  ← Domain logic
+│  Method        │
+└───────┬────────┘
+        ▼
+┌────────────────┐
+│  Audit Log     │  ← AuditLogMiddleware (records action to audit_logs)
+└───────┬────────┘
+        ▼
+JSON Response Envelope
+```
+
+### 2.3 Standard Response Envelope
+
+Every API response follows this structure:
+
+```json
+{
+  "success": true,
+  "code": "OPERATION_SUCCESS_CODE",
+  "message_key": "localization.key",
+  "data": { },
+  "errors": [],
+  "meta": {
+    "request_id": "a1b2c3d4e5f6",
+    "server_time": "2026-09-30T14:00:00+04:00",
+    "version": "1.2.0"
+  }
+}
+```
+
+---
+
+## 3. Sync Architecture
+
+### 3.1 Core Principles
+
+1. **Sync = Local API ↔ Cloud API ONLY.** Flutter never sees sync.
+2. **Outbox pattern** — mutations are queued locally, pushed asynchronously.
+3. **Cursor-based pull** — global sequence IDs, not timestamps.
+4. **3-way merge** — conflict resolution uses base + local + cloud states.
+5. **Dead-letter queue** — unresolvable conflicts are quarantined for manual review.
+
+### 3.2 Sync State Machine (Per Row)
+
+```
+        ┌──────────────────────────────────────────────────────┐
+        │                                                      │
+        ▼                                                      │
+    ┌─────────┐    Push     ┌─────────┐   ACK    ┌─────────┐ │
+    │ pending │──────────►│ pushing │────────►│ synced  │ │
+    └─────────┘            └─────────┘          └─────────┘ │
+        │                      │                     │        │
+        │                      │ NACK/Timeout        │ Mutate │
+        │                      ▼                     │        │
+        │               ┌──────────┐                 │        │
+        │               │  failed  │                 │        │
+        │               └──────────┘                 │        │
+        │                    │ Retry                  │        │
+        │                    │ (backoff)              │        │
+        │                    ▼                        │        │
+        │            ┌──────────────┐                │        │
+        │            │ dead_letter  │                │        │
+        │            │ (attempts>10)│                │        │
+        │            └──────────────┘                │        │
+        │                                            │        │
+        └────────────────────────────────────────────┘        │
+                                                              │
+    ┌──────────┐                                              │
+    │ conflict │  ← 3-way merge detected divergence ──────────┘
+    └──────────┘
+```
+
+### 3.3 Conflict Resolution Rules
+
+| Field Category | Resolution Strategy |
+|---|---|
+| Structural data (name, address, config) | Cloud wins |
+| Operational status (order status, delivery) | Local wins (latest timestamp) |
+| Financial data (prices, totals) | Cloud wins (audit trail) |
+| Metadata (updated_at, sync_status) | Auto-resolved |
+
+---
+
+## 4. License Architecture
+
+### 4.1 3-Way Handshake
+
+```
+Flutter ──► Local API ──► Cloud API
+                │              │
+                ▼              ▼
+          Win Registry    Cloud DB
+          (UMAC + Pulse)  (License Record)
+```
+
+1. **Step 1:** Flutter requests activation via Local API
+2. **Step 2:** Local API generates UMAC (hardware fingerprint) from CPU ID + baseboard serial
+3. **Step 3:** UMAC written to Windows Registry (write-once, anti-tamper)
+4. **Step 4:** Local API sends `{license_key, umac}` to Cloud API
+5. **Step 5:** Cloud API validates key, checks device limits, returns plan details
+6. **Step 6:** Local API stores validated license in local `license` table
+
+### 4.2 Plan Types
+
+| Plan | Max Devices | Max Invoices | Max Customers | Features |
+|---|---|---|---|---|
+| Trial | 1 | 9 | 9 | Basic POS, 7-day limit |
+| Standard | 1 | Unlimited | Unlimited | Full POS + Reports |
+| Premium | 5 | Unlimited | Unlimited | Multi-branch + Sync |
+| Enterprise | 999 | Unlimited | Unlimited | Full platform + API |
+
+---
+
+## 5. Security Model
+
+### 5.1 Authentication
+
+- **Local API:** JWT Bearer tokens (short-lived access + long-lived refresh)
+- **Cloud API:** JWT Bearer tokens (tenant-scoped)
+- **Portal:** Session-based with CSRF tokens
+
+### 5.2 Authorization (RBAC)
+
+- Roles stored in `roles` table with JSON permissions array
+- PermissionMiddleware checks route requirements against user's role
+- Wildcard `*` permission grants full access (administrator role)
+
+### 5.3 Hardware Identity (UMAC)
+
+- Unique Machine Authentication Code
+- Generated from: `SHA256(hostname | CPU_ID | baseboard_serial)`
+- Format: `UMAC-XXXX-XXXX-XXXX`
+- Stored in Windows Registry at `HKCU\Software\LaundryProUAE\Evaluation`
+
+---
+
+## 6. Directory Structure
+
+```
+UAE-Laundry-Pro/
+├── api/                          # Local API (PHP 8.2)
+│   ├── config/                   # App, database, security config
+│   ├── database/                 # Migration runner
+│   ├── docs/                     # OpenAPI spec, QA checklists
+│   ├── logs/                     # Apache error/access logs
+│   ├── public/                   # Web root (index.php, .htaccess)
+│   ├── routes/                   # api.php (178 routes)
+│   ├── src/
+│   │   ├── Adapters/             # Hardware interface adapters
+│   │   ├── Controllers/          # 43 domain controllers
+│   │   ├── Core/                 # Router, Container, Request, Response
+│   │   ├── Docs/                 # OpenAPI generator
+│   │   ├── Helpers/              # ApiResponse, Logger
+│   │   ├── Middleware/           # Auth, CORS, RateLimit, Audit, Idempotency
+│   │   ├── Repositories/        # 39 data access repositories
+│   │   ├── Security/            # JWT, PasswordHasher, UMAC, Permissions
+│   │   ├── Services/            # 16 business services
+│   │   └── Views/               # Portal PHP templates
+│   └── storage/                  # Logs, rate limits, backups
+│
+├── cloud-api/                    # Cloud API (PHP 8.2)
+│   ├── config/                   # App, database config
+│   ├── database/                 # Migration runner + migrations/
+│   ├── logs/                     # Apache logs
+│   ├── public/                   # Web root
+│   ├── scripts/                  # Deployment scripts
+│   ├── src/
+│   │   ├── Controllers/          # Cloud API + Admin Portal controllers
+│   │   ├── Core/                 # Database, Env, Request, Response, Router
+│   │   └── Views/               # Portal PHP templates (AdminLTE)
+│   └── storage/                  # Backups, sessions
+│
+├── lib/                          # Flutter Desktop App
+│   ├── core/                     # Constants, theme, validators, formatters
+│   ├── features/                 # Auth, POS, Wizard feature modules
+│   ├── models/                   # 23 domain models
+│   ├── peripherals/              # Printers, scanners, hardware integration
+│   ├── providers/                # 5 Riverpod providers
+│   ├── router/                   # GoRouter navigation
+│   ├── services/                 # 38 API service wrappers
+│   ├── views/                    # 42 screen widgets
+│   └── widgets/                  # 4 shared UI widgets
+│
+├── database/
+│   ├── local/schema.sql          # Local-only schema (single-tenant)
+│   ├── cloud/schema.sql          # Cloud-only schema (multi-tenant)
+│   ├── schema.sql                # Legacy combined (deprecated)
+│   └── seed.sql                  # Seed data
+│
+├── docs/                         # Documentation root
+│   ├── architecture/             # System architecture docs
+│   ├── api/                      # API reference docs
+│   ├── sync/                     # Sync engine documentation
+│   ├── security/                 # Security model docs
+│   ├── swagger/                  # OpenAPI specifications
+│   └── ...                       # Other doc categories
+│
+├── assets/                       # Flutter assets
+│   ├── lang/                     # en.json, ar.json
+│   ├── images/                   # App images
+│   └── animations/               # Lottie animations
+│
+└── scripts/                      # Automation scripts
+    └── setup-client-node.ps1     # Workstation setup automation
+```
+
+---
+
+## 7. Environment Configuration
+
+### 7.1 Local Development
+
+| File | Purpose |
+|---|---|
+| `api/.env` | Local API database, JWT, paths |
+| `cloud-api/.env` | Cloud API database (dev) |
+| Windows `hosts` | `127.0.0.1 laundrypro-api` + `127.0.0.1 cloud-api` |
+| Apache vhosts | Virtual hosts for both APIs |
+
+### 7.2 Production
+
+| File | Purpose |
+|---|---|
+| `api/.env` | Production local API config |
+| `cloud-api/.env.production` | Production cloud credentials (NOT in git) |
+| DNS | `laundrypro-cloudapi.magnificentsolution.co.in` |
+
+---
+
+*This document is the authoritative architecture reference for the LaundryPro UAE platform.*
+
+---
+
+<a id="file-blueprints-enterprise-deployment-blueprint-md"></a>
+
+## --- FILE: blueprints\ENTERPRISE_DEPLOYMENT_BLUEPRINT.md ---
+
+# LaundryPro UAE — Enterprise Topology & Deployment Blueprint
+
+> **Version:** 2.0.0 | **Authoritative Infrastructure Blueprint**
+
+---
+
+## 1. Supported Deployment Topologies
+
+LaundryPro UAE accommodates three distinct enterprise operational topologies:
+
+---
+
+### Topology A: Standalone Boutique Store (All-in-One POS)
+For independent single-workstation dry cleaners and laundromats:
+
+```mermaid
+graph TD
+    subgraph "Single All-in-One Touch PC"
+        Flutter["Flutter POS Client UI"]
+        LocalAPI["Local PHP API (localhost:8080)"]
+        LocalDB[("Local MariaDB / SQLite")]
+        Daemon["Sync Daemon (Background Worker)"]
+    end
+    
+    Cloud[("LaundryPro Cloud Gateway<br/>(Central Multi-Tenant)")]
+    Printer["80mm Thermal Printer + Cash Drawer"]
+
+    Flutter -->|HTTP Loopback| LocalAPI
+    LocalAPI --> LocalDB
+    Daemon -->|Reads Outbox| LocalDB
+    Daemon -.->|HTTPS Delta Sync (Every 60s)| Cloud
+    Flutter -->|USB / ESC-POS| Printer
+```
+
+---
+
+### Topology B: Multi-Terminal Branch (Store LAN Server)
+For busy retail branches with 2–5 front-desk cashiers and a back-office manager:
+
+```mermaid
+graph TD
+    subgraph "Branch Local Area Network (LAN)"
+        Term1["POS Terminal 1 (Cashier Intake)"]
+        Term2["POS Terminal 2 (Collection & Checkout)"]
+        Term3["Manager Desktop / Tablet"]
+        
+        Server["Dedicated In-Store Server<br/>(Host: 192.168.1.100)"]
+        ServerDB[("Local MariaDB Engine")]
+        ServerDaemon["Background Sync Daemon"]
+    end
+    
+    Cloud[("LaundryPro Cloud Gateway")]
+
+    Term1 -->|LAN HTTP| Server
+    Term2 -->|LAN HTTP| Server
+    Term3 -->|LAN HTTP| Server
+    Server --> ServerDB
+    ServerDaemon --> ServerDB
+    ServerDaemon -.->|WAN HTTPS (Auto-Reconnect)| Cloud
+```
+
+---
+
+### Topology C: Hub-and-Spoke Franchise with Central Processing Plant
+For large laundry chains with retail pickup outlets and an industrial laundry processing factory:
+
+```mermaid
+graph TD
+    subgraph "Retail Outlet 1 (Al Barsha)"
+        Branch1["Branch 1 Local Node"]
+    end
+    
+    subgraph "Retail Outlet 2 (Jumeirah)"
+        Branch2["Branch 2 Local Node"]
+    end
+
+    subgraph "Central Industrial Laundry Plant (Al Quoz)"
+        PlantServer["Plant Central Node"]
+        Sorter["Bulk Sorter & Tag Verification"]
+        Washer["Tunnel Washers & Industrial Dryers"]
+        Packer["Automated Poly-Bagger & Racks"]
+    end
+    
+    Cloud[("LaundryPro Cloud API Gateway")]
+
+    Branch1 -->|Digital Challan Dispatch| PlantServer
+    Branch2 -->|Digital Challan Dispatch| PlantServer
+    
+    Sorter --> PlantServer
+    Packer --> PlantServer
+    
+    Branch1 -.->|Sync Push/Pull| Cloud
+    Branch2 -.->|Sync Push/Pull| Cloud
+    PlantServer -.->|Sync Push/Pull| Cloud
+```
+
+---
+
+## 2. Network & Bandwidth Specifications
+
+- **Offline Operational Buffer**: Local MariaDB can store **> 1,000,000 orders** offline indefinitely on a standard 256GB SSD without degradation.
+- **Bandwidth Consumption**: An individual delta sync batch of 50 orders consumes **< 15 KB** of compressed JSON data.
+- **Latency Tolerance**: The POS UI operates with 0ms network latency because all user actions execute against the local workstation database.
+
+---
+
+<a id="file-compliance-uae-compliance-md"></a>
+
+## --- FILE: compliance\UAE_COMPLIANCE.md ---
+
+# LaundryPro UAE — UAE Regulatory Compliance Guide
+
+> **Version:** 2.0.0 | **Jurisdiction:** United Arab Emirates (Federal Tax Authority & Ministry of Human Resources)
+
+---
+
+## 1. Value Added Tax (VAT 5%) & FTA Invoicing Standards
+
+Under UAE Federal Decree-Law No. 8 of 2017 on Value Added Tax, dry cleaning, laundering, tailoring, and garment preservation services are subject to the standard 5% VAT rate.
+
+### 1.1 Mandatory Tax Invoice Fields
+Every tax invoice generated by LaundryPro UAE (A4 or thermal 80mm) strictly includes:
+1. The words **"Tax Invoice" / "فاتورة ضريبية"** clearly displayed at the top.
+2. Legal business trade name, address, and **15-digit Tax Registration Number (TRN)**.
+3. Customer name and address (and customer TRN if B2B registered corporate client).
+4. Sequential unique tax invoice number from a non-resettable series.
+5. Date of invoice issuance and date of laundry service supply.
+6. Line-item description of laundry services rendered (e.g., "Dry Clean Men's Kandora").
+7. Unit price excluding tax, quantity, subtotal, 5% VAT rate, and gross payable amount in AED (Emirati Dirham).
+8. Dynamic FTA/ZATCA TLV Base64 QR Code.
+
+### 1.2 Mathematical Precision (`bcmath`)
+Floating-point arithmetic is prohibited in financial controllers. All tax calculations use PHP `bcmath` configured to 4 decimal places internally and rounded half-up to 2 decimal places for presentation:
+
+```php
+// Standard 5% VAT calculation
+$taxableAmount = bcdiv($lineSubtotal, '1.05', 4);
+$vatAmount = bcsub($lineSubtotal, $taxableAmount, 2);
+```
+
+### 1.3 QR Code TLV Encoding
+Thermal receipts encode a mandatory TLV (Tag-Length-Value) Base64 payload containing:
+- Tag 1: Seller's Name
+- Tag 2: Seller's TRN
+- Tag 3: Timestamp (ISO 8601 UTC)
+- Tag 4: Invoice Total (with VAT)
+- Tag 5: VAT Amount
+
+---
+
+## 2. UAE Wages Protection System (WPS) & Ministry of Human Resources
+
+For laundry chains employing drivers, ironers, dry cleaners, and counter staff, payroll must comply with MOHRE WPS guidelines.
+
+### 2.1 Salary Information File (SIF) Generation
+`PayrollController::wps()` generates the standardized electronic SIF format (.SIF text file) required by UAE central bank exchange houses and banks:
+
+```text
+SCR,1234567890,BANKAEAD,2026-09-30,1430,2026-09,15,45000.00,AED,LaundryPro Al Barsha
+EDR,784199012345678,BANKAEAD,01234567890123,2026-09-01,2026-09-30,30,3000.00,0.00,0,Mohammad Al Ansari
+```
+
+### 2.2 End of Service Gratuity (EOSG)
+Calculation complies with UAE Labor Law (Decree-Law No. 33 of 2021):
+- 21 days' basic wage for each year of the first five years of service.
+- 30 days' basic wage for each additional year thereafter.
+
+---
+
+## 3. Data Residency & Commercial Book Retention
+
+- **Record Retention Period**: In accordance with Article 78 of Federal Decree-Law No. 8 on VAT, all invoices, receipts, challans, and accounting records must be preserved for a minimum of **5 years** (extended to 7 years for commercial companies law).
+- **Data Sovereignty**: The central Cloud API database is hosted within UAE-based data centers (Dubai / Abu Dhabi regions) to satisfy local telecommunications and cybersecurity data residency guidelines.
+
+---
+
+<a id="file-data-data-dictionary-md"></a>
+
+## --- FILE: data\DATA_DICTIONARY.md ---
+
+# LaundryPro UAE — Database Schema Data Dictionary
+
+> **Version:** 2.0.0 | **Authoritative Data Architecture Reference**
+
+---
+
+## 1. Domain Entity Relationship Architecture
 
 ```mermaid
 erDiagram
-    business_owners ||--o{ branches : has
-    business_owners ||--o{ users : employs
-    business_owners ||--o{ customers : serves
-    business_owners ||--o{ services : offers
-    business_owners ||--o{ orders : receives
-
-    branches ||--o{ users : staffs
-    branches ||--o{ orders : processes
-
-    customers ||--o{ orders : places
-    orders ||--o{ order_items : contains
-    orders ||--|| invoices : generates
-    orders ||--o{ order_status_history : tracks
-    orders ||--o{ deliveries : schedules
-
-    services ||--o{ order_items : "priced as"
-    order_items ||--o{ garment_tags : tagged
-
-    invoices ||--o{ invoice_items : contains
-    invoices ||--o{ payments : receives
-
-    users ||--o{ attendance : logs
-    users ||--o{ payroll : "paid via"
-    users }o--|| roles : "assigned"
-
-    roles ||--o{ role_permissions : grants
-    role_permissions }o--|| permissions : references
-
-    deliveries ||--o{ delivery_items : contains
-    deliveries }o--|| users : "assigned to (driver)"
-
-    production_stages }o--|| order_items : processes
-    production_stages }o--|| users : "performed by"
-
-    inventory_items ||--o{ inventory_transactions : tracks
+    businesses ||--o{ branches : "operates"
+    branches ||--o{ terminals : "contains"
+    branches ||--o{ sales_orders : "originates"
+    customers ||--o{ sales_orders : "places"
+    sales_orders ||--|{ sales_order_lines : "contains"
+    services ||--o{ sales_order_lines : "referenced_by"
+    sales_orders ||--o{ payment_transactions : "settled_by"
+    sales_orders ||--o{ delivery_tasks : "dispatched_via"
+    sales_orders ||--o{ challan_lines : "manifested_in"
+    challans ||--|{ challan_lines : "groups"
+    branches ||--o{ inventory_movements : "tracks"
+    products ||--o{ inventory_movements : "adjusts"
+    sales_orders ||--o{ sync_outbox : "triggers"
 ```
 
-## --- FILE: migration_strategy.md ---
+---
 
-﻿# Migration Strategy - LaundryPro UAE
-> **Version:** 1.0.0
+## 2. Core Table Definitions & Indexing Strategy
 
-## Principles
-1. All migrations are sequential (001, 002, 003...).
-2. All migrations are idempotent (IF NOT EXISTS / IF EXISTS).
-3. All migrations have a corresponding rollback script.
-4. Pre-migration backup is mandatory.
-5. Migrations are tested on a copy of production data first.
+### 2.1 Sales & Financial Transaction Tables
 
-## Migration File Naming
-`{NNN}_{description}.sql`
-Example: `001_baseline.sql`, `002_add_rfid_columns.sql`
+#### `sales_orders` (Core Order Master)
+- **Primary Key**: `id INT UNSIGNED AUTO_INCREMENT`
+- **Identity UUID**: `uuid CHAR(36) NOT NULL UNIQUE` (Cross-database global identifier)
+- **Indexes**:
+  - `idx_order_customer (customer_id)`: Accelerates customer history lookup at POS.
+  - `idx_order_status_date (status, created_at)`: Optimizes kitchen/rack status board queries.
+  - `idx_order_number (order_number)`: Fast barcode scanner lookup.
+- **Key Columns**:
+  - `subtotal DECIMAL(18,2)`: Net taxable amount before tax.
+  - `vat_amount DECIMAL(18,2)`: Exact 5% UAE VAT.
+  - `total_amount DECIMAL(18,2)`: Gross payable amount including VAT.
+  - `status ENUM('draft', 'confirmed', 'in_process', 'ready', 'delivered', 'cancelled')`.
+  - `payment_status ENUM('unpaid', 'partially_paid', 'paid', 'refunded')`.
+  - `sync_status ENUM('local', 'pending', 'synced', 'conflict')`.
 
-## Migration Procedure
-1. Create migration file in `api/database/migrations/`.
-2. Create rollback file in `api/database/migrations/rollback/`.
-3. Test migration on development database.
-4. Take pre-migration backup (backup.protocol).
-5. Execute migration on production.
-6. Verify migration success (row counts, schema check).
-7. Log migration in `migrations` tracking table.
+#### `payment_transactions` (Ledger Entries)
+- **Primary Key**: `id INT UNSIGNED AUTO_INCREMENT`
+- **Foreign Keys**: `sales_order_id REFERENCES sales_orders(id)`
+- **Key Columns**:
+  - `tender_type ENUM('cash', 'card', 'store_credit', 'corporate_ledger')`.
+  - `amount DECIMAL(18,2)`: Amount tendered.
+  - `reference_no VARCHAR(100)`: Card authorization code or bank RRN.
+  - `shift_session_id INT UNSIGNED`: Links transaction to cashier's active Z-Report shift.
 
-## Current Migrations
-| Number | Description | Date |
-|--------|------------|------|
-| 001 | Baseline schema (50+ tables) | 2026-09-20 |
+---
 
-## --- FILE: README.md ---
+### 2.2 Synchronization Engine Tables
 
-﻿# Data Documentation - LaundryPro UAE
-> **Version:** 1.0.0
+#### `sync_outbox` (Local Outbound Queue)
+- **Primary Key**: `id BIGINT UNSIGNED AUTO_INCREMENT`
+- **Key Columns**:
+  - `entity_type VARCHAR(100)`: Target entity (e.g., `sales_orders`, `customers`).
+  - `entity_local_id INT UNSIGNED`: Local database auto-increment ID.
+  - `operation ENUM('create', 'update', 'delete')`: Mutation type.
+  - `payload JSON`: Full serialized snapshot of the entity at mutation time.
+  - `synced_at TIMESTAMP NULL`: Set to current time once Cloud ACK is received.
+  - `sync_attempts INT UNSIGNED`: Incremented on network failure; used for exponential backoff.
 
-## Documents
-| Document | Description |
-|----------|-------------|
-| data_dictionary.md | Complete data dictionary for all tables |
-| er_diagram.md | Entity-Relationship diagram (Mermaid) |
-| migration_strategy.md | Database migration approach and procedures |
-| backup_strategy.md | Backup and recovery procedures |
+#### `sync_inbox` (Local Inbound Queue)
+- **Primary Key**: `id BIGINT UNSIGNED AUTO_INCREMENT`
+- **Key Columns**:
+  - `entity_type VARCHAR(100)`, `entity_uuid CHAR(36)`.
+  - `payload JSON`: Inbound data from Cloud pull.
+  - `status ENUM('pending', 'applied', 'conflict', 'failed')`.
+  - `applied_at TIMESTAMP NULL`: Timestamp when 3-way merge completed.
 
-## --- FILE: flutter_dependencies.md ---
+#### `sync_conflicts` (Dispute & Dead-Letter Log)
+- **Primary Key**: `id BIGINT UNSIGNED AUTO_INCREMENT`
+- **Key Columns**:
+  - `local_payload JSON`, `cloud_payload JSON`, `resolved_payload JSON`.
+  - `status ENUM('pending', 'auto_resolved', 'manual_resolved', 'discarded')`.
+  - `resolution_notes TEXT`: Audit description of how the conflict was settled.
 
-﻿# Flutter Dependencies - LaundryPro UAE
-> **Version:** 1.0.0
+---
 
-## Core Dependencies (pubspec.yaml)
-| Package | Version | Purpose | License |
-|---------|---------|---------|---------|
-| flutter_riverpod | latest | State management | MIT |
-| go_router | latest | Navigation | BSD-3 |
-| sqflite | latest | SQLite local DB | MIT |
-| drift | latest | SQLite ORM | MIT |
-| dio | latest | HTTP client | MIT |
-| intl | latest | Internationalization | BSD-3 |
-| freezed | latest | Immutable data classes | MIT |
-| json_serializable | latest | JSON serialization | BSD-3 |
-| equatable | latest | Value equality | MIT |
-| window_manager | latest | Window control | MIT |
-| printing | latest | Print support | Apache-2.0 |
-| pdf | latest | PDF generation | Apache-2.0 |
-| flutter_barcode_scanner | latest | Barcode scanning | MIT |
+<a id="file-dependencies-dependency-matrix-md"></a>
 
-## --- FILE: php_dependencies.md ---
+## --- FILE: dependencies\DEPENDENCY_MATRIX.md ---
 
-﻿# PHP Dependencies - LaundryPro UAE
-> **Version:** 1.0.0
+# LaundryPro UAE — System Dependency & Compatibility Matrix
 
-## Core Dependencies (composer.json)
-| Package | Version | Purpose | License |
-|---------|---------|---------|---------|
-| slim/slim | ^4.0 | Micro-framework | MIT |
-| firebase/php-jwt | ^6.0 | JWT handling | Apache-2.0 |
-| vlucas/phpdotenv | ^5.0 | Environment variables | BSD-3 |
-| monolog/monolog | ^3.0 | Logging | MIT |
-| ramsey/uuid | ^4.0 | UUID generation | MIT |
+> **Version:** 2.0.0 | **Authoritative Engineering Reference**
 
-## --- FILE: README.md ---
+---
 
-﻿# Dependencies - LaundryPro UAE
-> **Version:** 1.0.0
+## 1. Local Workstation Backend Environment (`api/`)
 
-Third-party dependency documentation and management.
+| Component | Minimum Version | Recommended | Mandatory Extensions / Packages | Notes |
+|---|---|---|---|---|
+| **PHP Runtime** | 8.2.0 | 8.2.12+ | `pdo_mysql`, `bcmath`, `mbstring`, `curl`, `openssl`, `gd`, `fileinfo` | Pure PHP implementation; zero framework overhead |
+| **Web Server** | Apache 2.4.50+ | Apache 2.4.58 (XAMPP 8.2) | `mod_rewrite`, `mod_headers`, `mod_ssl` | Configured with `AllowOverride All` |
+| **Database** | MariaDB 10.6.0+ | MariaDB 10.11 LTS | InnoDB Engine, `utf8mb4_unicode_ci` collation | WAL journaling recommended |
+| **Operating System** | Windows 10 Pro (64-bit) | Windows 11 Pro 23H2 | PowerShell 5.1+ / 7.x, Windows Service Manager | Windows Home is NOT recommended |
 
-## --- FILE: hardware_edge_cases.md ---
+---
 
-﻿# Edge Cases: hardware - LaundryPro UAE
-> **Version:** 1.0.0
+## 2. Central Cloud Gateway Environment (`cloud-api/`)
 
-## Scenarios
-Printer disconnected mid-print, scanner sends invalid barcode, cash drawer already open, RFID reader reads multiple tags simultaneously, printer paper out mid-receipt, USB device hot-plug/unplug during operation.
+| Component | Minimum Version | Production Specification | Security & Configuration Requirements |
+|---|---|---|---|
+| **Container / Host OS**| Ubuntu 22.04 LTS | Debian 12 / Ubuntu 24.04 LTS | Hardened Linux kernel; UFW firewall active |
+| **PHP Runtime** | 8.2.0+ | PHP 8.2 FPM / Apache prefork | `opcache` enabled; memory limit $\ge 256\text{MB}$ |
+| **Cloud MariaDB** | 10.6.0+ | MariaDB 10.11 Galera Cluster | SSL client certificate verification; read replicas |
+| **SSL / TLS Certificate**| TLS 1.2 | TLS 1.3 Strict | Let's Encrypt / DigiCert wildcard; HSTS enabled |
 
-## Testing Strategy
-- Each scenario has a corresponding test case in the edge case test suite.
-- Edge Case Hunter agent is responsible for discovering new edge cases.
-- All edge cases are validated during regression testing.
+---
 
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial edge case catalog |
+## 3. Flutter POS Desktop Client (`lib/`)
 
-## --- FILE: locale_edge_cases.md ---
+| Package / SDK | Minimum Version | Purpose |
+|---|---|---|
+| **Flutter SDK** | 3.22.0 | Desktop Windows, macOS, Android cross-platform engine |
+| **Dart SDK** | 3.4.0 | Language runtime with sound null safety |
+| **`flutter_riverpod`** | 2.5.1 | Reactive state management & dependency injection |
+| **`dio`** | 5.4.3 | HTTP networking client with custom interceptors & token rotation |
+| **`sqflite_common_ffi`**| 2.3.3 | SQLite FFI native database engine for Windows desktop |
+| **`go_router`** | 14.1.4 | Declarative application routing and screen navigation |
+| **`esc_pos_utils_plus`**| 2.0.3 | ESC/POS binary command generator for 80mm thermal receipt printers |
+| **`pdf` & `printing`** | 3.10.8 | PDF document rasterization for A4 invoices and reports |
+| **`crypto`** | 3.0.3 | SHA-256 and HMAC cryptographic hash utilities |
 
-﻿# Edge Cases: locale - LaundryPro UAE
-> **Version:** 1.0.0
+---
 
-## Scenarios
-Switch locale mid-transaction (EN to AR), Arabic text in English fields, mixed LTR/RTL in same string (e.g., Arabic name with English product code), right-to-left numbers in invoice, very long Arabic text overflow.
+<a id="file-edge-cases-offline-failure-modes-md"></a>
 
-## Testing Strategy
-- Each scenario has a corresponding test case in the edge case test suite.
-- Edge Case Hunter agent is responsible for discovering new edge cases.
-- All edge cases are validated during regression testing.
+## --- FILE: edge-cases\OFFLINE_FAILURE_MODES.md ---
 
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial edge case catalog |
+# LaundryPro UAE — Offline Edge Cases & Failure Modes
 
-## --- FILE: monetary_edge_cases.md ---
+> **Version:** 2.0.0 | **Authoritative Resilience & Fault-Tolerance Manual**
 
-﻿# Edge Cases: monetary - LaundryPro UAE
-> **Version:** 1.0.0
+---
 
-## Scenarios
-Zero amount orders, maximum DECIMAL(18,2) value (9999999999999999.99), negative discount validation, VAT rounding (round half-up to 2 decimal places), split payment that doesn't sum to total, currency conversion edge at AED boundaries.
+## 1. Matrix of Critical Failure Modes & Self-Healing Behaviors
 
-## Testing Strategy
-- Each scenario has a corresponding test case in the edge case test suite.
-- Edge Case Hunter agent is responsible for discovering new edge cases.
-- All edge cases are validated during regression testing.
+| Failure Mode | Root Cause | System Immediate Reaction | Self-Healing / Recovery Path |
+|---|---|---|---|
+| **Abrupt Power Loss Mid-Checkout** | Store blackout or unplugged cord | OS ungraceful shutdown | SQLite / MariaDB WAL rollback ensures atomicity; uncommitted order is cleanly aborted; no partial financial records |
+| **Extended Offline Period (> 7 Days)** | Telecom ISP fiber cut | System continues 100% normal POS operations locally | Sync outbox queues mutations; upon reconnect, backoff throttles batch size to prevent saturating cloud link |
+| **Printer Cutter Jam / Out of Paper** | Paper roll depleted mid-print | Printer asserts offline status byte | POS displays "Printer Offline" modal; once paper is replaced, "Reprint Last Receipt" button executes without duplicating sales record |
+| **Clock Skew / Dead CMOS Battery** | BIOS battery fails; date reverts to year 2000 | System clock verification check fails | POS locks checkout to prevent invalid tax invoice timestamps; displays prompt to synchronize NTP or update Windows clock |
+| **SQLite Busy / Lock Contention** | Multiple background threads query DB simultaneously | SQLite database lock timeout | Retry policy with exponential jitter (max 5 retries, 250ms backoff); WAL mode enables concurrent readers while writing |
+| **Corrupted Local DB File** | Bad storage sector or sudden disk crash | SQLite reports `database disk image is malformed` | System alerts cashier; switches to emergency fallback DB and triggers automated restore from last nightly snapshot |
 
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial edge case catalog |
+---
 
-## --- FILE: offline_edge_cases.md ---
+## 2. Deep Dive: Handling Sync Outbox Buffer Overflow
 
-﻿# Edge Cases: offline - LaundryPro UAE
-> **Version:** 1.0.0
+If a store remains offline for months while processing thousands of transactions:
+1. **Queue Prioritization**:
+   - High Priority: Customer balance settlements, Invoices, Payments.
+   - Medium Priority: Sales order status changes, Garment tracking tags.
+   - Low Priority: Inventory adjustments, Attendance logs.
+2. **Chunked Streaming**:
+   - `SyncDaemon` enforces a maximum batch ceiling of **100 records per HTTP request**.
+   - Cloud API responds with individual accepted UUIDs, ensuring that if a transmission is interrupted at record 75, records 1–74 remain acknowledged and will not be retransmitted.
 
-## Scenarios
-30+ days offline operation, sync outbox with 10,000+ entries, conflict resolution when both local and cloud modified same record, internet drops mid-sync, sync resumes after partial push, dead-letter queue processing.
+---
 
-## Testing Strategy
-- Each scenario has a corresponding test case in the edge case test suite.
-- Edge Case Hunter agent is responsible for discovering new edge cases.
-- All edge cases are validated during regression testing.
+<a id="file-flows-order-lifecycle-md"></a>
 
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial edge case catalog |
+## --- FILE: flows\ORDER_LIFECYCLE.md ---
 
-## --- FILE: README.md ---
+# LaundryPro UAE — Order Processing Lifecycle
 
-﻿# Edge Cases - LaundryPro UAE
-> **Version:** 1.0.0
+> **Version:** 2.0.0 | **Authoritative Workflow Specification**
 
-Catalog of boundary conditions, edge cases, and special scenarios.
+---
 
-## --- FILE: tenant_edge_cases.md ---
+## 1. End-to-End Lifecycle State Machine
 
-﻿# Edge Cases: tenant - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Scenarios
-User attempts cross-tenant data access, tenant with zero branches, tenant with maximum branches (50), tenant license expiration mid-transaction, tenant data during UMAC read-only mode.
-
-## Testing Strategy
-- Each scenario has a corresponding test case in the edge case test suite.
-- Edge Case Hunter agent is responsible for discovering new edge cases.
-- All edge cases are validated during regression testing.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial edge case catalog |
-
-## --- FILE: README.md ---
-
-﻿# Data & Process Flows - LaundryPro UAE
-> **Version:** 1.0.0
-
-Data flow diagrams and process flow documentation.
-
-## --- FILE: sync_data_flow.md ---
-
-﻿# Sync Data Flow - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Push Flow (Local -> Cloud)
-```
-Local Write -> sync_outbox INSERT -> Connectivity Check ->
-IF online: POST /api/v1/sync/push (batch) ->
-  Cloud validates idempotency_key ->
-  Cloud applies changes ->
-  Cloud returns success/conflict ->
-  Local marks entries as synced ->
-IF offline: Entries remain in outbox (FIFO queue)
+```mermaid
+stateDiagram-v2
+    [*] --> Draft : Customer Intake at Counter / Home Van
+    Draft --> Confirmed : Checkout & Heat-Seal Tagging
+    Confirmed --> InProcess : Sorter Inspection / Factory Dispatch
+    
+    state InProcess {
+        [*] --> Sorting
+        Sorting --> Washing_DryCleaning
+        Washing_DryCleaning --> Pressing_Steam
+        Pressing_Steam --> QualityControl
+        QualityControl --> ReClean : Stain / Pressing Failed
+        ReClean --> Washing_DryCleaning
+        QualityControl --> Packaging : Passed Inspection
+        Packaging --> [*]
+    }
+    
+    InProcess --> Ready : Staged at Branch Racks
+    Ready --> OutForDelivery : Van Driver Dispatched
+    Ready --> Delivered : Customer Counter Pickup
+    OutForDelivery --> Delivered : Van Delivery Handover
+    Delivered --> Invoiced_Closed : Payment Settled & Tax Invoice Finalized
+    Invoiced_Closed --> [*]
 ```
 
-## Pull Flow (Cloud -> Local)
-```
-Connectivity Check ->
-IF online: GET /api/v1/sync/pull?since={last_sequence} ->
-  Cloud returns new entries since checkpoint ->
-  Local applies changes (LWW conflict resolution) ->
-  Local updates last_sequence checkpoint ->
-IF offline: No pull (local state is authoritative)
-```
-
-## --- FILE: customer_form.md ---
-
-﻿# Form: customer form - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Specification
-Customer form: name (required, varchar 100), phone (required, varchar 20, UAE format +971XXXXXXXXX), email (optional, valid email format), address (optional, text), type (required, enum: individual/corporate), trn (required if corporate, 15-digit TRN format).
-
-## Validation Rules
-- All required fields validated before submission.
-- Inline error messages displayed below field.
-- Server-side validation mirrors client-side rules.
-- All monetary fields: DECIMAL(18,2), validated > 0.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial form specification |
-
-## --- FILE: employee_form.md ---
-
-﻿# Form: employee form - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Specification
-Employee form: name (required, varchar 100), phone (required, varchar 20), email (optional), role_id (required, FK), branch_id (required, FK), hire_date (required, date), salary (required, DECIMAL(18,2) > 0), passport_number (required, varchar 20), emirates_id (required, varchar 18).
-
-## Validation Rules
-- All required fields validated before submission.
-- Inline error messages displayed below field.
-- Server-side validation mirrors client-side rules.
-- All monetary fields: DECIMAL(18,2), validated > 0.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial form specification |
-
-## --- FILE: invoice_form.md ---
-
-﻿# Form: invoice form - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Specification
-Invoice form: order_id (required, FK), customer_id (required, FK), subtotal (auto-calculated, DECIMAL), discount_amount (auto-calculated, DECIMAL), vat_amount (auto-calculated, 5% of subtotal-discount), total_amount (auto-calculated, DECIMAL), payment_method (required, enum: cash/card/split), trn_display (auto-filled from business profile).
-
-## Validation Rules
-- All required fields validated before submission.
-- Inline error messages displayed below field.
-- Server-side validation mirrors client-side rules.
-- All monetary fields: DECIMAL(18,2), validated > 0.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial form specification |
-
-## --- FILE: order_form.md ---
-
-﻿# Form: order form - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Specification
-Order form: customer_id (required, FK), branch_id (required, FK), service_type (required, enum), turnaround (required, enum: express/same-day/next-day/standard), notes (optional, text, max 500 chars). Items: service_id (required, FK), quantity (required, int > 0), unit_price (auto-filled, DECIMAL), discount (optional, DECIMAL 0-100%).
-
-## Validation Rules
-- All required fields validated before submission.
-- Inline error messages displayed below field.
-- Server-side validation mirrors client-side rules.
-- All monetary fields: DECIMAL(18,2), validated > 0.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial form specification |
-
-## --- FILE: payment_form.md ---
-
-﻿# Form: payment form - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Specification
-Payment form: invoice_id (required, FK), amount (required, DECIMAL > 0), method (required, enum: cash/card/bank_transfer), reference_number (required if card/bank, varchar 50), notes (optional, text).
-
-## Validation Rules
-- All required fields validated before submission.
-- Inline error messages displayed below field.
-- Server-side validation mirrors client-side rules.
-- All monetary fields: DECIMAL(18,2), validated > 0.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial form specification |
-
-## --- FILE: README.md ---
-
-﻿# Forms & Validation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Form specifications with field types, validation rules, and error messages for all input screens.
-
-## --- FILE: printer_integration.md ---
-
-﻿# Printer Integration - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Supported Printer Types
-| Type | Protocol | Paper Sizes | Brands |
-|------|----------|-------------|--------|
-| Thermal | ESC/POS | 57mm, 80mm | Epson, Star, Bixolon, Citizen, Xprinter |
-| Dot-Matrix | ESC/P | 112mm | Epson |
-| Inkjet/Laser | Windows Spooler | A6, A5, A4 | Any Windows-compatible |
-
-## Auto-Discovery Methods
-1. WMI query for USB printers
-2. Bluetooth device scan
-3. TCP port scan for network printers
-4. mDNS/Bonjour discovery
-5. COM port enumeration for serial
-
-## Adapter Interface
-All printers implement `IPrinterAdapter`:
-- `connect()`, `disconnect()`
-- `print(template, data)`
-- `getStatus()`
-- `openCashDrawer()`
-
-## --- FILE: README.md ---
-
-﻿# Integration Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Hardware and third-party integration documentation.
-
-## --- FILE: scanner_integration.md ---
-
-﻿# Scanner Integration - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Supported Scanner Types
-| Type | Interface | Mode |
-|------|-----------|------|
-| Handheld USB | USB HID | Keyboard wedge |
-| Bluetooth | SPP | Serial stream |
-| Fixed mount | RS-232 | Serial stream |
-
-## Barcode Formats
-- Code 128 (primary for garment tags)
-- QR Code (customer-facing)
-- EAN-13 (product lookup)
-
-## Integration Approach
-USB HID scanners inject keystrokes. The application listens for rapid keystroke sequences ending with Enter/CR to detect scan input vs. manual typing.
-
-## --- FILE: README.md ---
-
-﻿# Licensing Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-UMAC licensing and anti-piracy documentation.
-
-## --- FILE: umac_specification.md ---
-
-﻿# UMAC Licensing Specification - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Overview
-UMAC (Unique Machine Authentication Code) binds each license to a specific machine.
-
-## Machine Hash Components
-- CPU ID (CPUID instruction)
-- Disk serial number (primary drive)
-- MAC address (primary network adapter)
-- Combined via SHA-256: `UMAC = SHA256(CPUID + DISK_SERIAL + MAC_ADDRESS)`
-
-## License Tiers
-| Tier | Duration | Features |
-|------|----------|----------|
-| Trial | 30 days | Full features, watermark |
-| Standard | 1 year | Core modules |
-| Premium | 1 year | All modules + priority support |
-| Enterprise | 1 year | Multi-branch + API access |
-
-## Validation Flow
-1. On launch: compute UMAC from hardware.
-2. Compare against stored license hash.
-3. If match: activate.
-4. If mismatch: enter read-only mode.
-5. Grace period: 30 days offline before read-only enforcement.
-
-## --- FILE: product_overview.md ---
-
-﻿# Product Overview - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Tagline
-The Complete Offline-First Laundry Management Solution for UAE Businesses.
-
-## Key Selling Points
-1. Works without internet (offline-first architecture).
-2. Complete ERP/CRM/POS in one application.
-3. UAE regulatory compliant (VAT, FTA, WPS).
-4. Bilingual (English + Arabic) with full RTL support.
-5. Supports all common laundry hardware.
-6. Multi-branch management from one system.
-7. Enterprise-grade security (UMAC licensing).
-8. Built for the UAE laundry industry.
-
-## --- FILE: README.md ---
-
-﻿# Marketing Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Product marketing materials and sales documentation.
-
-## --- FILE: isolation_model.md ---
-
-﻿# Tenant Isolation Model - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Approach: Shared Database, Shared Schema, Row-Level Isolation
-
-## Isolation Column
-`business_owner_id` (BIGINT UNSIGNED FK) on all data tables.
-
-## Enforcement Points
-1. **Database**: All SELECT queries include WHERE business_owner_id = ?.
-2. **API Middleware**: Extracts business_owner_id from JWT; injects into all queries.
-3. **Sync Engine**: Outbox entries scoped to business_owner_id.
-4. **Reports**: All reports filtered by business_owner_id.
-5. **Bot**: tenant_isolation_checker validates at code review.
-
-## Exempt Tables (system-scoped)
-- migrations, system_settings, roles, permissions, role_permissions, machine_licenses
-
-## --- FILE: README.md ---
-
-﻿# Multi-Tenancy Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Multi-tenant architecture and isolation documentation.
-
-## --- FILE: audit_maintenance.md ---
-
-﻿# Audit & Maintenance Guide â€” LaundryPro UAE
-> **Version:** 1.0.0 | **Last Updated:** 2026-09-21
-
-## Daily Maintenance Checklist
-- [ ] Verify XAMPP services running (Apache + MariaDB)
-- [ ] Check disk space (minimum 1 GB free)
-- [ ] Verify daily backup completed successfully
-- [ ] Check sync outbox for dead-letter entries
-- [ ] Review error.log for new errors
-
-## Weekly Maintenance Checklist
-- [ ] Run database ANALYZE TABLE on all tables
-- [ ] Review slow query log
-- [ ] Check backup SHA-256 integrity
-- [ ] Review audit_logs for anomalies
-- [ ] Verify license validity (days remaining)
-
-## Monthly Maintenance Checklist
-- [ ] Test backup restore on isolated environment
-- [ ] Review and rotate PHP error logs
-- [ ] Update dependency lock files (pubspec.lock, composer.lock)
-- [ ] Run full security scan (RBAC audit, SQL injection test)
-- [ ] Review memory usage trends
-
-## Audit Trail Integrity Verification
-```sql
--- Verify hash chain integrity
-SELECT a1.id, a1.hash, a2.hash as prev_hash
-FROM audit_logs a1
-LEFT JOIN audit_logs a2 ON a2.id = a1.id - 1
-WHERE a1.id > 1
-AND a1.prev_hash != a2.hash
-LIMIT 10;
--- If any rows returned, hash chain is broken (investigate tampering)
+---
+
+## 2. Stage Breakdown & Operational Gates
+
+### Stage 1: Order Draft & Intake (`/sales/draft`)
+- Cashier enters customer mobile number; system displays loyalty tier, garment preferences (e.g., "heavy starch on Kandora cuffs"), and outstanding ledger balance.
+- Cashier adds garments (e.g., Suit 2-Piece, Abaya Silk, Curtains). Modifiers selected (perfume rinse, wooden hanger, express 4-hour turnaround).
+- Real-time gross and VAT calculation displayed.
+
+### Stage 2: Confirmation & Barcode Tagging (`/sales/orders`)
+- Order is confirmed. The thermal POS printer immediately prints:
+  1. **Customer Receipt** with order barcode, estimated ready date, and item breakdown.
+  2. **Thermal Garment Tags** (polyester heat-seal labels) containing: Order Number, Garment Index (e.g., `1/4`), Service Code, and Unique Barcode.
+- Tags are affixed to the internal care label of each garment.
+
+### Stage 3: Factory Dispatch Manifest (`/challans/dispatch`)
+- For hub-and-spoke laundry chains, garments are packed into nylon laundry bins and scanned into a **Factory Dispatch Challan**.
+- Van driver signs the digital manifest on the mobile tablet before departing for the central cleaning factory.
+
+### Stage 4: Central Processing & Quality Control
+- **Sorting**: Garments sorted by color, fabric weight, and wash cycle requirements (hydrocarbon dry cleaning vs. aqueous wet cleaning).
+- **Processing**: Garments washed, tumble dried, and steam-pressed.
+- **QC Inspection**: Inspector scans garment barcode. If stain persists, garment is routed to `ReClean` without customer surcharge. If approved, garment is poly-bagged and tagged with a destination rack slot.
+
+### Stage 5: Ready Notification & Delivery
+- Garment arrives back at branch; cashier scans tag into `Ready` status.
+- System automatically fires a bilingual WhatsApp/SMS notification to the customer:
+  > *"Dear customer, your laundry order #DXB-2026-0042 is ready for pickup at our Al Barsha branch."*
+
+### Stage 6: Counter Pickup & Payment Finalization
+- Cashier scans receipt barcode; system brings up order balance.
+- Customer tenders payment (Cash / Card / Store Credit).
+- Official UAE VAT Tax Invoice is finalized and printed with TLV QR code.
+
+---
+
+<a id="file-flows-payment-flow-md"></a>
+
+## --- FILE: flows\PAYMENT_FLOW.md ---
+
+# LaundryPro UAE — Payment & Financial Reconciliation Flow
+
+> **Version:** 2.0.0 | **Authoritative Financial Specification**
+
+---
+
+## 1. Supported Payment Tenders
+
+LaundryPro UAE supports multi-currency and multi-tender settlement:
+
+| Tender Code | Description | Hardware / Integration | Ledger Behavior |
+|---|---|---|---|
+| `CASH` | Emirati Dirham physical notes & coins | POS Cash Drawer pulse trigger (RJ11) | Credits Cash Drawer Till Account |
+| `CARD` | Visa / Mastercard / UnionPay / Amex | External Card Terminal or Integrated IP PIN Pad | Credits Bank Clearing Account |
+| `APPLE_PAY` / `SAMSUNG_PAY` | Mobile NFC contactless wallets | Contactless reader on card terminal | Credits Bank Clearing Account |
+| `STORE_CREDIT` | Customer prepaid package or refund balance | Internal loyalty ledger verification | Debits Customer Liability Account |
+| `CORPORATE_LEDGER` | B2B monthly credit terms (30 days net) | Credit limit authorization check | Debits Accounts Receivable (AR) |
+
+---
+
+## 2. Split Tenders & Advance Deposits
+
+```mermaid
+sequenceDiagram
+    participant Cashier as POS Cashier
+    participant POS as POS UI (Cart)
+    participant API as Local API
+    participant Drawer as Cash Drawer
+
+    Cashier->>POS: Enter Order Items (Total: 250.00 AED)
+    Cashier->>POS: Customer tenders 100.00 AED Cash as Advance
+    POS->>API: POST /sales/orders {advance_payment: 100.00, tender: 'CASH'}
+    API->>API: Generate Payment Transaction #PT-1001 (100.00 AED)
+    API->>API: Record Pending Balance (150.00 AED)
+    API-->>Drawer: Fire 24V Kick Pulse (Open Drawer)
+    API-->>POS: Order Confirmed (Advance Receipt Printed)
+    
+    Note over Cashier,POS: Days later: Customer returns for pickup
+    
+    Cashier->>POS: Scan Order #DXB-2026-0042 (Balance: 150.00 AED)
+    Cashier->>POS: Customer tenders 150.00 AED via Card
+    POS->>API: POST /invoices/generate {balance_payment: 150.00, tender: 'CARD'}
+    API->>API: Generate Payment Transaction #PT-1002 (150.00 AED)
+    API->>API: Finalize Tax Invoice #INV-2026-0042
+    API-->>POS: Tax Invoice Finalized & Printed
 ```
 
-## Database Health Queries
-```sql
--- Table sizes
-SELECT table_name, ROUND(data_length/1024/1024, 2) AS size_mb, table_rows
-FROM information_schema.tables WHERE table_schema = 'laundrypro'
-ORDER BY data_length DESC;
+---
 
--- Index usage
-SELECT table_name, index_name, seq_in_index, column_name
-FROM information_schema.statistics WHERE table_schema = 'laundrypro'
-ORDER BY table_name, index_name, seq_in_index;
+## 3. Refunds & FTA Credit Notes
 
--- Fragmentation check
-SELECT table_name, ROUND(data_free/1024/1024, 2) AS fragmented_mb
-FROM information_schema.tables WHERE table_schema = 'laundrypro' AND data_free > 0;
+Under UAE VAT regulations, when an order is cancelled or adjusted after a tax invoice has been issued:
+1. The original tax invoice **cannot be modified or deleted**.
+2. A formal **FTA Tax Credit Note** (`credit_memo`) must be issued referencing the original invoice number.
+3. The credit memo specifies:
+   - Original Tax Invoice Number and Date
+   - Reason for refund (e.g., "Garment damaged during processing", "Customer cancellation")
+   - Reversal of taxable amount and 5% VAT.
+4. Refund payout tender must match initial payment method or be credited to Customer Store Credit.
+
+---
+
+## 4. Cashier Shift Balancing & Z-Report
+
+At the end of each cashier's shift:
+1. **Blind Close**: Cashier enters physical cash count in drawer without seeing the expected theoretical total.
+2. System computes variance:
+   $$\text{Variance} = \text{Actual Cash Count} - (\text{Opening Float} + \text{Total Cash Sales} - \text{Petty Cash Expenses})$$
+3. A formal **Z-Report** is generated, signed, and locked. The drawer state is committed to `terminal_sessions`.
+
+---
+
+<a id="file-forms-form-specifications-md"></a>
+
+## --- FILE: forms\FORM_SPECIFICATIONS.md ---
+
+# LaundryPro UAE — UI Form Field & Validation Specifications
+
+> **Version:** 2.0.0 | **Authoritative Frontend Engineering Reference**
+
+---
+
+## 1. Customer Registration & Profile Form
+
+| Field Label | Field Key | Input Type | Validation Rules | Error Message (Bilingual) |
+|---|---|---|---|---|
+| **Mobile Number** | `phone` | Tel / Numeric | Required; Regex: `^(05\|+9715)[0-9]{8}$` | Invalid UAE mobile number / رقم الهاتف المتحرك غير صحيح |
+| **Customer Name** | `name` | Text | Required; Min 3, Max 100 characters | Name is required / يرجى إدخال اسم العميل |
+| **Customer Type** | `customer_type` | Radio / Select | Required; Options: `personal`, `corporate`, `walk_in` | Select customer type / حدد نوع العميل |
+| **Tax Number (TRN)**| `tax_number` | Text | Optional for retail; Required for corporate: 15 digits | 15-digit TRN required / الرقم الضريبي يتكون من 15 رقماً |
+| **Emirate** | `emirate` | Dropdown | Required; UAE 7 Emirates list (Dubai, Abu Dhabi, etc.) | Select Emirate / اختر الإمارة |
+| **Area / Street** | `address_line1` | Text | Optional for walk-in; Required for delivery | Address required for delivery / العنوان مطلوب للتوصيل |
+| **Credit Limit** | `credit_limit` | Currency | Optional; Numeric $\ge 0.00$; Default: `0.00` | Enter valid credit limit / أدخل حد ائتمان صالح |
+
+---
+
+## 2. Order Line Item Customization Modal
+
+| Field Label | Field Key | Input Type | Validation Rules |
+|---|---|---|---|
+| **Garment Category** | `category_id` | Quick Touch Tiles | Required; Filters child services (e.g., Traditional Men, Ladies Silk) |
+| **Service Type** | `service_id` | Quick Touch Tiles | Required; Auto-loads base price and default turnaround time |
+| **Quantity** | `quantity` | Stepper / Numpad | Integer; Min 1, Max 999; Default: `1` |
+| **Starch Level** | `modifier_starch` | Segmented Button | Optional; Options: `None`, `Light`, `Medium`, `Heavy` |
+| **Hanger / Packing** | `modifier_hanger` | Segmented Button | Optional; Options: `Wire Hanger`, `Wooden Hanger`, `Folded Box` |
+| **Express Surcharge** | `is_express` | Toggle Switch | Boolean; If true, applies configured express multiplier (+25% / +50%) |
+| **Damage Notes** | `defect_notes` | Text Area | Optional; Text describing tears, missing buttons, or stubborn stains |
+
+---
+
+## 3. Expense Voucher Entry Form
+
+| Field Label | Field Key | Input Type | Validation Rules |
+|---|---|---|---|
+| **Expense Category** | `category_id` | Dropdown | Required; (e.g., Shop Utilities, Fuel for Van, Detergent Supplies) |
+| **Amount (AED)** | `amount` | Decimal Input | Required; $> 0.00$; Max 5,000.00 AED per petty cash voucher |
+| **Paid From** | `paid_from` | Radio | Required; Options: `Cash Drawer Till` or `Bank Card` |
+| **Vendor / Payee** | `payee_name` | Text | Required; Name of petrol station, utility company, or vendor |
+| **Invoice / Receipt #**| `receipt_ref`| Text | Optional; Supplier's receipt number |
+| **Attach Receipt Photo**| `attachment` | Camera / File | Mandatory if Amount $> 100.00\text{ AED}$ (auditor compliance rule) |
+
+---
+
+<a id="file-integrations-erp-gateway-integrations-md"></a>
+
+## --- FILE: integrations\ERP_GATEWAY_INTEGRATIONS.md ---
+
+# LaundryPro UAE — External ERP & Gateway Integrations
+
+> **Version:** 2.0.0 | **Authoritative Integration Architecture**
+
+---
+
+## 1. Accounting & ERP System Connectors
+
+LaundryPro UAE provides native scheduled batch export and REST API webhooks for enterprise general ledgers:
+
+### 1.1 Tally Prime XML Integration
+The `AccountingController::export()` endpoint produces standard Tally XML Day-Book and Sales Journal files:
+- Maps POS sales categories to Tally Sales Ledgers.
+- Maps 5% Output VAT to "VAT on Sales (Output VAT 5%)" account.
+- Maps cash, card, and customer receivables to their corresponding Tally Cash/Bank/Sundry Debtors accounts.
+
+### 1.2 Zoho Books & QuickBooks Online
+- Automated daily synchronization of sales invoices and expense vouchers via authenticated OAuth2 REST APIs.
+- Generates summarized daily journal entries to prevent cluttering the main corporate general ledger with thousands of individual laundry tickets.
+
+---
+
+## 2. Payment Gateway & Card Terminal Integration
+
+### 2.1 Semi-Integrated IP / USB PIN Pad (Nexo / Standalone)
+- POS communicates with banking card terminals (Network International, Magnati, Mashreq) over TCP/IP or USB serial.
+- The POS sends: `Amount in AED` + `Unique Transaction ID`.
+- The customer taps their physical card or Apple Pay device on the bank terminal.
+- The terminal returns: `Approval Code`, `Card Scheme (Visa/Mastercard)`, `Masked PAN (**** 1234)`, and `RRN (Retrieval Reference Number)`.
+- Eliminates cashier manual entry errors on credit card machines.
+
+---
+
+## 3. Customer Messaging Channels (WhatsApp & SMS)
+
+```mermaid
+sequenceDiagram
+    participant Order as Order Engine
+    participant Notif as NotificationController
+    participant Queue as notifications table
+    participant Worker as Background SMS/WhatsApp Worker
+    participant Gateway as WhatsApp Cloud API / Infobip
+    participant Customer as Customer Phone
+
+    Order->>Notif: Trigger Event: 'order.ready'
+    Notif->>Queue: INSERT notification_messages (channel='whatsapp', status='queued')
+    
+    loop Every 5 Seconds
+        Worker->>Queue: SELECT pending notifications
+        Worker->>Gateway: POST /v1/messages {template: 'uae_order_ready', params: [name, order_no, rack]}
+        Gateway-->>Customer: WhatsApp Message Delivered
+        Gateway-->>Worker: HTTP 200 {message_id: 'wamid.HBg...'}
+        Worker->>Queue: UPDATE status='delivered'
+    end
 ```
 
-## Log Rotation Policy
-| Log | Location | Rotation | Retention |
-|-----|----------|----------|-----------|
-| PHP error log | C:\xampp\php\logs\ | Weekly | 30 days |
-| Apache access log | C:\xampp\apache\logs\ | Daily | 90 days |
-| Apache error log | C:\xampp\apache\logs\ | Daily | 90 days |
-| Agent decision log | .ai/logs/decisions.log.md | Monthly archive | Permanent |
-| Audit trail | audit_logs table | None (append-only) | Permanent |
+---
 
-## --- FILE: deployment_guide.md ---
+<a id="file-licensing-license-architecture-md"></a>
 
-﻿# Deployment Guide - LaundryPro UAE
-> **Version:** 1.0.0
+## --- FILE: licensing\LICENSE_ARCHITECTURE.md ---
 
-## Prerequisites
-- Windows 10/11 (64-bit)
-- 4 GB RAM minimum (8 GB recommended)
-- 10 GB free disk space
-- XAMPP installed with Apache, MariaDB, PHP 8.2
+# LaundryPro UAE — License Architecture
 
-## Installation Steps
-1. Install XAMPP and verify services start.
-2. Run database baseline migration (001_baseline.sql).
-3. Install MSIX package (double-click or sideload).
-4. Launch LaundryPro UAE.
-5. Complete first-time setup wizard.
-6. Configure hardware (auto-discovery).
-7. Verify with test transaction.
+> **Version:** 2.0.0 | **Last Updated:** 2026-09-30
 
-## Update Procedure
-1. Backup database (backup.protocol).
-2. Install new MSIX package (auto-updates or manual).
-3. Run pending migrations (if any).
-4. Verify functionality.
-5. Rollback if critical issues found.
+---
 
-## --- FILE: monitoring_checklist.md ---
+## 1. Overview
 
-﻿# System Monitoring Checklist â€” LaundryPro UAE
-> **Version:** 1.0.0 | **Last Updated:** 2026-09-21
+LaundryPro uses a **3-way license handshake** involving:
+1. **Local API** — License validation and UMAC generation
+2. **Cloud API** — License issuance, validation, and device tracking
+3. **Windows Registry** — Write-once hardware fingerprint storage
 
-## Real-Time Monitors
-| What | How | Alert Threshold |
-|------|-----|-----------------|
-| Apache status | `sc query Apache2.4` | Service not running |
-| MariaDB status | `sc query mysql` | Service not running |
-| Disk space | `Get-PSDrive C` | < 1 GB free |
-| Database connections | `SHOW STATUS LIKE 'Threads_connected'` | > 80 |
-| Sync outbox pending | `SELECT COUNT(*) FROM sync_outbox WHERE status='pending'` | > 1000 |
-| Dead-letter entries | `SELECT COUNT(*) FROM sync_outbox WHERE status='dead'` | > 0 |
-| API error rate | PHP error log analysis | > 10 errors/hour |
-| Backup age | Last backup timestamp | > 26 hours |
+## 2. License Lifecycle
 
-## Health Check Script
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        LICENSE LIFECYCLE                         │
+│                                                                 │
+│  TRIAL ──► ACTIVATE ──► ACTIVE ──► EXPIRED                     │
+│              │            │           │                          │
+│              │            │           └──► REACTIVATE ──► ACTIVE │
+│              │            │                                      │
+│              │            └──► SUSPENDED ──► REVOKED             │
+│              │                                                   │
+│              └──► INVALID (bad key or UMAC mismatch)             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## 3. Trial Mode
+
+When no license is activated:
+- **Invoice limit:** 9 invoices total
+- **Customer limit:** 9 customers total
+- **Duration:** 7 days from first install
+- **Features:** Basic POS only, no sync, no multi-branch
+- **Anti-tamper:** Install pulse stored in Windows Registry (write-once)
+
+### Trial Enforcement
+
+```php
+// LicenseService.php — Trial validation
+if ($row === null) {
+    $trialValid = ($invCount <= 9 && $custCount <= 9);
+    return [
+        'active' => false,
+        'is_trial' => true,
+        'trial_valid' => $trialValid,
+        'trial_days_remaining' => 7 - daysSinceInstall(),
+        'invoice_count' => $invCount,
+        'max_invoices' => 9,
+    ];
+}
+```
+
+## 4. 3-Way Handshake
+
+### Step-by-Step Flow
+
+| Step | Actor | Action |
+|---|---|---|
+| 1 | Flutter | User enters license key in Settings → License screen |
+| 2 | Flutter | Calls `POST /api/v1/license/activate` with `{license_key}` |
+| 3 | Local API | Generates UMAC from hardware (CPU ID + baseboard serial) |
+| 4 | Local API | Writes UMAC + install_pulse to Windows Registry (write-once) |
+| 5 | Local API | Calls Cloud API: `POST /api/v1/license/validate` with `{license_key, umac, machine_name}` |
+| 6 | Cloud API | Validates license_key exists in `cloud_licenses` |
+| 7 | Cloud API | Checks `cloud_licenses.status = 'active'` |
+| 8 | Cloud API | Checks `cloud_licenses.expires_at > NOW()` |
+| 9 | Cloud API | Records/verifies UMAC in `cloud_telemetry` |
+| 10 | Cloud API | Checks device count ≤ plan limit |
+| 11 | Cloud API | Returns `{valid: true, plan_type, expires_at, max_invoices, max_customers}` |
+| 12 | Local API | Stores validated license in local `license` table |
+| 13 | Local API | Returns success to Flutter |
+
+### Failure Cases
+
+| Failure | Code | Response |
+|---|---|---|
+| Invalid license key | `LICENSE_INVALID` | Key not found in cloud DB |
+| Expired license | `LICENSE_EXPIRED` | `expires_at` has passed |
+| Revoked license | `LICENSE_REVOKED` | Status is 'revoked' |
+| Device limit exceeded | `LICENSE_LIMIT_EXCEEDED` | Too many UMACs for plan |
+| UMAC mismatch | `LICENSE_UMAC_MISMATCH` | Registry tampering detected |
+| Cloud unreachable | *Offline grace period* | Use cached license for 72 hours |
+
+## 5. Plan Types
+
+| Plan | Devices | Branches | Invoices | Customers | Sync | Support |
+|---|---|---|---|---|---|---|
+| **Trial** | 1 | 1 | 9 | 9 | ❌ | None |
+| **Standard** | 1 | 1 | ∞ | ∞ | ❌ | Email |
+| **Premium** | 5 | 3 | ∞ | ∞ | ✅ | Priority |
+| **Enterprise** | 999 | ∞ | ∞ | ∞ | ✅ | 24/7 |
+
+## 6. UMAC (Unique Machine Authentication Code)
+
+### 6.1 Generation
+
+```dart
+// system_guard_service.dart
+String rawCombo = '$machineName|$cpuId|$baseboard';
+String machineHash = sha256(utf8.encode(rawCombo)).toUpperCase();
+String umac = 'UMAC-${hash[0:4]}-${hash[4:8]}-${hash[8:12]}';
+```
+
+### 6.2 Registry Storage
+
+```
+HKCU\Software\LaundryProUAE\Evaluation
+├── MachineCode: UMAC-A1B2-C3D4-E5F6 (REG_SZ)
+├── InstallPulse: 1727625600        (REG_DWORD, Unix timestamp)
+└── AppVersion: 1.2.1               (REG_SZ)
+```
+
+### 6.3 Anti-Tamper Rules
+
+1. If `InstallPulse` is missing → First install, write current timestamp
+2. If `InstallPulse` exists but changed → License invalidated (tamper detected)
+3. If `MachineCode` changed → New hardware, requires re-activation
+4. Registry values are checked on every app startup
+
+## 7. Offline Grace Period
+
+When cloud API is unreachable during license check:
+- **Cached license valid for 72 hours** after last successful cloud validation
+- After 72 hours offline → License status degrades to trial mode
+- On reconnect → Full re-validation with cloud
+- Grace period tracked via `license.last_cloud_validated_at` column
+
+## 8. License Issuance (Cloud Admin)
+
+The Cloud Super-Admin Portal provides license management:
+
+1. **Issue License:** Generate license key, assign to tenant, set plan/expiry
+2. **View Licenses:** List all licenses with status, usage, device count
+3. **Revoke License:** Immediately revoke a license with reason
+4. **Extend License:** Update expiry date for renewals
+5. **Audit Trail:** All license operations logged to `cloud_audit_logs`
+
+---
+
+*This document is the authoritative license architecture reference.*
+
+---
+
+<a id="file-marketing-feature-matrix-md"></a>
+
+## --- FILE: marketing\FEATURE_MATRIX.md ---
+
+# LaundryPro UAE — Commercial Edition Feature Matrix
+
+> **Version:** 2.0.0 | **Authoritative Commercial Tier Specification**
+
+---
+
+## 1. Commercial Edition Comparison Matrix
+
+| Feature Area | Standard Edition<br/>*(Single Boutique)* | Premium Edition<br/>*(Multi-Terminal Store)* | Enterprise Edition<br/>*(Multi-Branch Franchise)* |
+|---|:---:|:---:|:---:|
+| **Target Operation** | 1 POS Station | 1–3 POS Stations + Van Driver | 5+ Branches + Central Cleaning Factory |
+| **Max Workstations / Terminals** | 1 Terminal | Up to 5 Terminals | Unlimited |
+| **Local Workstation Offline POS** | Included | Included | Included |
+| **UAE FTA 5% VAT & TLV QR Invoices** | Included | Included | Included |
+| **Thermal 80mm Care Tag Printing** | Included | Included | Included |
+| **Bilingual Arabic / English UI** | Included | Included | Included |
+| **Customer Store Credit & Loyalty** | Basic | Advanced Tiered Loyalty | Full Loyalty Ledger with Cross-Branch Redemptions |
+| **Home Van Pickup & Delivery App** | Optional Add-on | Included (2 Drivers) | Included (Unlimited Fleets) |
+| **WhatsApp Order Notifications** | Manual Web Link | Automated API Gateway | Automated Dedicated WhatsApp Business API |
+| **Central Factory Dispatch Challans** | N/A | Included | Included with Digital Signatures & RFID Scan |
+| **Industrial UHF RFID Garment Tracking**| N/A | N/A | Included |
+| **HR Biometric Attendance & Shifts**| Basic | Included | Multi-Branch Rostering |
+| **MOHRE Wages Protection System (WPS)**| N/A | Included | Included with Automated SIF Export |
+| **Cloud Central Multi-Tenant Sync** | Daily Backup Snapshot | Real-Time Sync (60s Delta) | Real-Time Sub-Minute Sync with Zero Data Loss |
+| **Super-Admin Executive Dashboard**| N/A | Single Store Remote View | Multi-Tenant Franchise Control Plane |
+| **Automated Offsite Cloud Backups** | Weekly Snapshot | Daily Nightly Backup | Continuous Real-Time Streaming & Disaster Recovery |
+| **Custom ERP / Accounting Export** | CSV Export | Tally Prime / Zoho Books | Custom API Webhooks & SAP / Dynamics Connectors |
+| **SLA & Support** | Standard Email (24h) | Priority Business Hours (4h) | 24/7 Dedicated On-Call & 15m RTO Guarantee |
+
+---
+
+<a id="file-multitenancy-tenant-isolation-md"></a>
+
+## --- FILE: multitenancy\TENANT_ISOLATION.md ---
+
+# LaundryPro UAE — Multi-Tenant Architecture & Data Isolation
+
+> **Version:** 2.0.0 | **Authoritative Security & Architecture Specification**
+
+---
+
+## 1. Architectural Model: Shared Database with Strict Row-Level Scoping
+
+LaundryPro UAE Cloud utilizes a **multi-tenant shared database architecture** with strict logical isolation enforced at the infrastructure, application middleware, and query repository layers.
+
+### Rationale:
+- **Operational Scalability**: Allows thousands of franchisee locations and independent laundry operators to be managed centrally on scalable cloud infrastructure without provisioning separate database instances per tenant.
+- **Aggregated Analytics**: Facilitates authorized cross-tenant benchmarking and executive franchise revenue reporting.
+- **Resource Efficiency**: Drastically minimizes connection pool exhaustion and memory overhead compared to database-per-tenant architectures.
+
+---
+
+## 2. Multi-Layered Isolation Enforcements
+
+```mermaid
+flowchart TD
+    Req["Incoming API Request"] --> Gateway["Cloud API Gateway / Router"]
+    Gateway --> AuthToken["Auth Verifier:<br/>Extract Tenant Token or JWT"]
+    AuthToken --> ScopeMW["TenantScopeMiddleware:<br/>Binds authenticated tenant_id to Session Scope"]
+    
+    ScopeMW --> Controller["Domain Controller"]
+    Controller --> Repo["Tenant-Scoped Repository"]
+    
+    Repo --> QueryCheck["SQL Query Interceptor:<br/>Enforces WHERE tenant_id = :tenant_id"]
+    QueryCheck --> MariaDB[("Cloud MariaDB<br/>Foreign Keys & Unique Composite Indexes")]
+```
+
+### Layer 1: Cryptographic Token Binding
+Every API request carries a tenant token or JWT signed with server-side secrets. The `TenantScopeMiddleware` extracts the tenant identifier directly from the authenticated token payload. Any client-submitted parameters attempting to specify or override `tenant_id` are forcefully discarded.
+
+### Layer 2: Repository-Level SQL Injection Prevention
+All cloud repository classes inherit from `TenantScopedRepository`:
+```php
+abstract class TenantScopedRepository {
+    protected int $tenantId;
+
+    public function __construct(int $tenantId) {
+        $this->tenantId = $tenantId;
+    }
+
+    protected function scopeQuery(string $sql): string {
+        // Enforces tenant_id parameter binding on every query execution
+        return $sql; 
+    }
+}
+```
+
+### Layer 3: Database Composite Unique Constraints
+At the database engine level, entities enforce composite uniqueness spanning `(tenant_id, ...)`:
+- `businesses`: `id (PK)`, `uuid (UNIQUE)`, `cloud_token (UNIQUE)`
+- `sync_records`: `UNIQUE KEY uq_sync_entity (tenant_id, entity_type, entity_uuid)`
+- `cloud_licenses`: `INDEX idx_tenant_lic (tenant_id)`
+- `cloud_telemetry`: `UNIQUE KEY uq_tenant_umac (tenant_id, umac)`
+
+---
+
+## 3. Super-Admin vs. Tenant Access Boundaries
+
+| Role | Access Scope | Accessible Endpoints |
+|---|---|---|
+| **Tenant Workstation** | Own `tenant_id` records strictly | `/api/v1/sync/push`, `/api/v1/sync/pull`, `/api/v1/sync/backup` |
+| **Tenant Store Manager** | Own branch locations & reports | Local Admin Portal (`api/public/admin/`) |
+| **Super-Administrator** | Global multi-tenant administration | Cloud Portal (`cloud-api/public/admin/`), `/api/v1/reports/aggregation` |
+
+Super-Administrators can view tenant health and aggregate revenue, but customer PII (names, phone numbers, addresses) can be pseudonymized or masked according to privacy regulations.
+
+---
+
+<a id="file-operations-backup-restore-md"></a>
+
+## --- FILE: operations\BACKUP_RESTORE.md ---
+
+# LaundryPro UAE — Backup & Disaster Recovery Runbook
+
+> **Version:** 2.0.0 | **Authoritative Operations Manual** | **Strategy:** 3-2-1 Enterprise Backup
+
+---
+
+## 1. The 3-2-1 Backup Strategy
+
+LaundryPro UAE implements a resilient 3-2-1 disaster recovery architecture:
+1. **3 Copies of Data**:
+   - Production MariaDB/SQLite database on local workstation/branch server.
+   - Nightly local automated snapshot saved to dedicated local storage partition.
+   - Offsite encrypted snapshot streamed to central Cloud API storage.
+2. **2 Different Storage Media**:
+   - Local NVMe/SSD high-speed disk.
+   - S3-compatible cloud object storage or secure external network storage.
+3. **1 Offsite Replica**:
+   - Central Cloud API storage repository located in an alternate geographic availability zone.
+
+---
+
+## 2. Automated Local MariaDB Backup Procedure
+
+The local backup is driven by `BackupController.php` or CLI script:
+
+```bash
+# Automated local backup execution script
+BACKUP_DATE=$(date +"%Y%m%d_%H%M%S")
+BACKUP_FILE="E:/Projects/Flutter/UAE-Laundry-Pro/api/storage/backups/db_${BACKUP_DATE}.sql.gz"
+
+# Perform compressed mysqldump with single transaction consistency
+mysqldump -u laundry_user -p'SecurePassword' \
+    --single-transaction \
+    --quick \
+    --routines \
+    --triggers \
+    laundrypro_local | gzip > "$BACKUP_FILE"
+
+# Rotate backups: Retain last 30 daily snapshots locally
+find "E:/Projects/Flutter/UAE-Laundry-Pro/api/storage/backups" -name "db_*.sql.gz" -mtime +30 -exec rm {} \;
+```
+
+---
+
+## 3. Offsite Transmission to Cloud Storage
+
+Once the local compressed snapshot is created, `BackupController::upload()` encrypts the file with AES-256-CBC and streams it to the Cloud API:
+
+```http
+POST /api/v1/sync/backup
+Host: api.cloud.laundrypro.ae
+Authorization: Bearer <tenant_cloud_token>
+Content-Type: application/json
+
+{
+  "filename": "db_branch01_20260930_0200.sql.gz.enc",
+  "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "backup_data": "<base64_encrypted_payload>"
+}
+```
+
+---
+
+## 4. Disaster Recovery Restoration Runbook
+
+### Scenario: Total Hardware Failure of Local Workstation
+
+```mermaid
+sequenceDiagram
+    participant Eng as Field Support Engineer
+    participant NewPC as Replacement Workstation
+    participant Cloud as Cloud API Gateway
+
+    Eng->>NewPC: Install Windows 11 & LaundryPro Setup MSIX
+    Eng->>NewPC: Launch App; Enter Enterprise License Key & Cloud Token
+    NewPC->>Cloud: POST /license/validate (Registers New Hardware UMAC)
+    NewPC->>Cloud: GET /sync/backup/latest (Fetches Latest Encrypted DB Dump)
+    Cloud-->>NewPC: Returns Latest Backup Archive
+    NewPC->>NewPC: Decrypt & Restore MariaDB / SQLite Tables
+    NewPC->>Cloud: GET /sync/pull?since=backup_timestamp
+    Cloud-->>NewPC: Replays all delta mutations since last backup
+    NewPC->>NewPC: System 100% Restored to exact point in time
+```
+
+1. Deploy new replacement workstation hardware.
+2. Install standard software package and initialize `laundrypro_local` database.
+3. Fetch the latest tenant snapshot from Cloud Admin portal or via CLI:
+   ```powershell
+   & "E:\xampp\php\php.exe" "api/scripts/restore_from_cloud.php" --token="tenant_token"
+   ```
+4. The system restores database tables and immediately triggers a delta sync pull for all mutations recorded between the snapshot timestamp and the present minute.
+5. Downtime objective: **< 15 minutes Recovery Time Objective (RTO)** with **Zero Transaction Loss (RPO = 0)**.
+
+---
+
+<a id="file-operations-deployment-guide-md"></a>
+
+## --- FILE: operations\DEPLOYMENT_GUIDE.md ---
+
+# LaundryPro UAE — Production Deployment & DevOps Guide
+
+> **Version:** 2.0.0 | **Authoritative Operations Manual**
+
+---
+
+## 1. Local Workstation & Branch Server Deployment
+
+### 1.1 Apache VirtualHost Configuration
+For the local Apache server (e.g., XAMPP or native Apache on Windows/Linux), configure the VirtualHost in `httpd-vhosts.conf`:
+
+```apache
+<VirtualHost *:80>
+    ServerName laundrypro-api
+    DocumentRoot "E:/Projects/Flutter/UAE-Laundry-Pro/api/public"
+    <Directory "E:/Projects/Flutter/UAE-Laundry-Pro/api/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog "E:/Projects/Flutter/UAE-Laundry-Pro/api/logs/error.log"
+    CustomLog "E:/Projects/Flutter/UAE-Laundry-Pro/api/logs/access.log" common
+</VirtualHost>
+```
+
+Add the hosts entry in `C:\Windows\System32\drivers\etc\hosts`:
+```text
+127.0.0.1    laundrypro-api
+```
+
+### 1.2 Windows Background Sync Daemon
+To ensure non-blocking continuous synchronization between the local store and the central cloud, register `sync_scheduler.php` as a Windows Scheduled Task or background service:
+
 ```powershell
-# LaundryPro Health Check
-Write-Host "=== LaundryPro UAE Health Check ==="
-Write-Host "Date: 09/21/2026 01:47:25"
+# PowerShell script to register background sync worker
+$Action = New-ScheduledTaskAction -Execute "E:\xampp\php\php.exe" -Argument "E:\Projects\Flutter\UAE-Laundry-Pro\api\sync_scheduler.php"
+$Trigger = New-ScheduledTaskTrigger -AtStartup
+$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Days 365)
+Register-ScheduledTask -TaskName "LaundryProSyncWorker" -Action $Action -Trigger $Trigger -Settings $Settings -User "SYSTEM"
+```
 
-# Services
-Write-Host "
-Services:"
-@("Apache2.4","mysql") | ForEach-Object {
-    $svc = Get-Service $_ -ErrorAction SilentlyContinue
-    Write-Host "  $_: $(if ($svc.Status -eq 'Running') {'OK'} else {'DOWN!'})"
+---
+
+## 2. Cloud Central API Gateway Deployment
+
+### 2.1 Production VirtualHost (SSL / HTTPS)
+```apache
+<VirtualHost *:443>
+    ServerName api.cloud.laundrypro.ae
+    DocumentRoot "/var/www/laundrypro/cloud-api/public"
+    
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/api.cloud.laundrypro.ae/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/api.cloud.laundrypro.ae/privkey.pem
+
+    <Directory "/var/www/laundrypro/cloud-api/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+
+    ErrorLog /var/log/apache2/cloud_api_error.log
+    CustomLog /var/log/apache2/cloud_api_access.log combined
+</VirtualHost>
+```
+
+### 2.2 Docker Deployment
+A containerized deployment is available via `Dockerfile`:
+
+```dockerfile
+FROM php:8.2-apache
+RUN apt-get update && apt-get install -y \
+    libmariadb-dev-compat \
+    libmariadb-dev \
+    libzip-dev \
+    zip \
+    && docker-php-ext-install pdo pdo_mysql bcmath opcache
+RUN a2enmod rewrite headers ssl
+COPY cloud-api/ /var/www/html/
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/logs
+EXPOSE 80 443
+CMD ["apache2-foreground"]
+```
+
+### 2.3 Cloud Maintenance Cron Jobs
+Configure system crontab on the Cloud Linux host:
+```bash
+# Clean up expired CSRF tokens and inactive sessions every hour
+0 * * * * php /var/www/laundrypro/cloud-api/scripts/clean_sessions.php >> /var/log/laundrypro_cron.log 2>&1
+
+# Generate daily sync health snapshots every 15 minutes
+*/15 * * * * php /var/www/laundrypro/cloud-api/scripts/sync_health_collector.php >> /var/log/laundrypro_cron.log 2>&1
+```
+
+---
+
+<a id="file-peripherals-printer-integration-md"></a>
+
+## --- FILE: peripherals\PRINTER_INTEGRATION.md ---
+
+# LaundryPro UAE — Peripheral & Hardware Integration Guide
+
+> **Version:** 2.0.0 | **Authoritative Hardware Engineering Manual**
+
+---
+
+## 1. Supported Hardware Matrix
+
+| Hardware Class | Supported Models | Interface | Primary Role |
+|---|---|---|---|
+| **80mm Thermal Receipt** | Epson TM-T88VI/VII, Bixolon SRP-350, Rongta RP326 | USB, TCP/IP (Port 9100) | Customer Receipts & FTA Tax Invoices |
+| **Heat-Seal Garment Tag** | Zebra ZD421, TSC TE200, Citizen CL-E300 | USB, Virtual COM | Water-resistant polyester care label tags |
+| **POS Cash Drawer** | APG Vasario, M-S Cash Drawer, E-POS RJ11 | RJ11/RJ12 (via Receipt Printer) | Physical currency storage & drawer kicks |
+| **Barcode / 2D Scanners** | Honeywell Xenon 1900, Zebra DS2208, Datalogic | USB HID Keyboard Emulation | Order search & garment sorting scan |
+| **NFC / RFID Readers** | ACR122U, Impinj Speedway UHF Reader | USB / Serial | High-volume industrial garment tracking |
+
+---
+
+## 2. Thermal Printing & Bilingual Arabic Rendering
+
+Standard ESC/POS thermal printers do not natively shape connected Arabic text (RTL and contextual letter forms). LaundryPro UAE utilizes a dual-path rendering engine:
+
+### 2.1 Raster Canvas Graphic Rendering (Default & Recommended)
+1. The Flutter desktop app or PHP renderer draws the receipt onto an off-screen monochrome canvas (576 dots width for 80mm paper).
+2. Connected Arabic text (Noto Sans Arabic) and Latin typography are rendered with pixel-perfect alignment.
+3. The image is converted into raw ESC/POS bit-image command bytes (`GS v 0`) and transmitted directly to the printer socket or spooler.
+4. **Advantage**: 100% consistent typography across all printer brands; zero dependency on printer firmware code pages.
+
+### 2.2 Hardware Code Page Mode (Fast Text Mode)
+For legacy low-bandwidth networks:
+- Command: `ESC t 28` (Select Character Code Table: CP864 Arabic) or `ESC t 37` (Windows-1256).
+- Text is processed through a bidirectional reshaping algorithm before output.
+
+---
+
+## 3. Cash Drawer Kick-Out Pulse
+
+The cash drawer is connected via an RJ11/RJ12 cable to the back of the thermal receipt printer. The printer delivers a 24V solenoid electrical pulse:
+
+```dart
+// Dart ESC/POS Cash Drawer Trigger Code
+final List<int> kickDrawer = [
+  0x1B, 0x70, // ESC p
+  0x00,       // Pin 2 (Drawer 1)
+  0x19,       // Pulse ON time: 25 * 2ms = 50ms
+  0xFA        // Pulse OFF time: 250 * 2ms = 500ms
+];
+await printerSocket.add(kickDrawer);
+```
+
+---
+
+## 4. Garment Tag Printing Specification
+
+Heat-seal care tags must withstand continuous wash cycles up to 90°C and hydrocarbon dry cleaning solvents:
+- **Material**: Thermoplastic coated woven taffeta / satin polyester ribbon.
+- **Barcode Symbology**: Code 128 (Auto subset) or compact DataMatrix.
+- **Tag Layout (Width: 35mm, Height: 25mm)**:
+  ```text
+  ┌─────────────────────────┐
+  │ LP: DXB-2026-0042 [1/3] │
+  │ KANDORA - DRY CLEAN     │
+  │ *|||||||||||||||||||||* │
+  │ DUE: 02-OCT RACK: A-14  │
+  └─────────────────────────┘
+  ```
+
+---
+
+<a id="file-reference-glossary-md"></a>
+
+## --- FILE: reference\GLOSSARY.md ---
+
+# LaundryPro UAE — Technical & Industry Glossary
+
+> **Version:** 2.0.0 | **Authoritative Technical & Textile Care Glossary**
+
+---
+
+## 1. Laundry & Textile Care Terminology
+
+- **Dry Cleaning**: A non-aqueous textile cleaning process utilizing chemical solvents (typically hydrocarbon, silicone, or perchloroethylene) rather than water. Critical for woolens, tailored suits, and beaded garments that shrink or distort in water.
+- **Wet Cleaning**: An eco-friendly, computer-controlled aqueous cleaning process that employs specialized gentle mechanical drum action, biodegradable detergents, and controlled drying temperatures to safely wash delicate fabrics traditionally labeled "Dry Clean Only".
+- **Hydrocarbon Solvent**: A gentle, synthetic petroleum-based dry cleaning solvent with low odor and mild solvency, ideal for luxury garments and sensitive trims.
+- **Perchloroethylene (Perc)**: A heavy, non-flammable chlorinated solvent with aggressive grease-stripping properties, traditionally used in heavy-duty commercial dry cleaning.
+- **Spotting Board**: A specialized vacuum and compressed steam table equipped with chemical spotting reagents used by professional spotters to remove wine, blood, ink, and grease stains prior to washing.
+- **Flatwork Ironer**: A heavy motorized heated cylinder roller machine designed to press, dry, and fold flat linen (bed sheets, duvet covers, table cloths) at high speeds.
+- **Kandora (Thobe / Dishdasha)**: Traditional Emirati ankle-length white tailored garment, requiring crisp collar pressing, cuff stiffness, and optional starch finishing.
+- **Abaya**: Traditional flowing black cloak worn by Emirati women, frequently adorned with delicate crystals, lace, or silk embroidery requiring specialized gentle cycle hand care.
+- **Starch Sizing**: A starch or carboxymethyl cellulose finishing additive applied during the final rinse to impart body, crispness, and stain resistance to shirts and cotton Kandoras.
+
+---
+
+## 2. UAE Fiscal & Regulatory Terms
+
+- **FTA**: The **Federal Tax Authority** of the United Arab Emirates, responsible for administering and collecting federal taxes (VAT and Excise Tax).
+- **TRN (Tax Registration Number)**: A unique 15-digit number issued by the FTA to a taxable business entity in the UAE.
+- **TLV (Tag-Length-Value)**: A binary data encoding structure used to serialize mandatory invoice fields (Seller, TRN, Timestamp, Gross, VAT) into high-density 2D QR codes on thermal tax receipts.
+- **WPS (Wages Protection System)**: An electronic salary transfer system overseen by the Ministry of Human Resources and Emiratisation (MOHRE) and UAE Central Bank, requiring private companies to pay salaries via approved financial institutions.
+- **SIF (Salary Information File)**: The standardized comma-delimited text file format mandated by the UAE Central Bank for electronic salary disbursement batches.
+
+---
+
+## 3. System Architecture & Distributed Systems Terms
+
+- **UMAC (Unique Machine Authentication Code)**: A deterministic cryptographic hash generated from immutable hardware components (Motherboard UUID, CPU Serial, Physical MAC Address) used to bind workstation licenses to physical hardware.
+- **Offline-First**: An architectural pattern where the application writes to a local embedded database first, guaranteeing 100% functionality without relying on active network availability.
+- **3-Way Merge**: A conflict resolution algorithm that compares two diverging branches of data (Local vs. Cloud) against their common ancestor base version to automatically reconcile changes.
+- **Vector Clock**: An entity version tracking mechanism that maintains an incrementing counter per mutation to establish strict causal ordering of events across distributed nodes.
+- **WAL (Write-Ahead Logging)**: A database journaling mode in MariaDB and SQLite where changes are recorded to a dedicated sequential log before being applied to the database file, providing maximum crash durability and high concurrent read performance.
+- **Idempotency Key**: A unique client-generated UUID sent in the HTTP `X-Idempotency-Key` header ensuring that retried network requests do not trigger duplicate orders or credit card charges.
+
+---
+
+<a id="file-requirements-prd-functional-requirements-md"></a>
+
+## --- FILE: requirements\PRD_FUNCTIONAL_REQUIREMENTS.md ---
+
+# LaundryPro UAE — Product Requirements Document (PRD)
+
+> **Version:** 2.0.0 | **Authoritative Product Specification** | **Status:** Approved for Implementation
+
+---
+
+## 1. Product Scope & Vision
+
+LaundryPro UAE is an offline-first enterprise management system designed specifically for the United Arab Emirates textile care industry (dry cleaners, commercial laundries, hotel linen services, and boutique garment care). It bridges high-speed, zero-latency front-desk POS operations with central multi-tenant cloud reporting and automated compliance with UAE tax (FTA VAT) and labor regulations (MOHRE WPS).
+
+---
+
+## 2. Functional Requirements by Module
+
+### FR-1: Point of Sale (POS) & Intake Operations
+- **FR-1.1**: The system must allow cashiers to complete a customer garment intake in under **30 seconds**.
+- **FR-1.2**: Cashiers must be able to search customers by 10-digit UAE phone number (`05x...`), customer name, or barcode card.
+- **FR-1.3**: The system must support item-specific modifiers (e.g., Starch: None/Light/Medium/Heavy; Hanger: Wire/Wooden/Folded; Treatment: Stain Removal).
+- **FR-1.4**: The system must support turnaround service tier selection: Standard (48 hrs), Express (24 hrs, +25%), Urgent (4 hrs, +50%).
+- **FR-1.5**: Upon order confirmation, the system must trigger simultaneous printing of customer intake receipts and water-resistant care tags.
+
+### FR-2: UAE Billing & Invoicing Compliance
+- **FR-2.1**: Invoices must be fully bilingual (Arabic and English) with right-to-left layout compliance for Arabic text.
+- **FR-2.2**: The system must calculate standard 5% UAE VAT with exact precision using string math (`bcmath`), preventing penny rounding errors.
+- **FR-2.3**: Every invoice must include a dynamic FTA TLV-encoded Base64 QR code verifiable by FTA inspection scanners.
+- **FR-2.4**: In the event of an order cancellation or return, the system must generate a formal FTA Tax Credit Note referencing the original invoice.
+
+### FR-3: Central Factory Logistics & Challans
+- **FR-3.1**: The system must group tagged garments into numbered Factory Dispatch Challans for van transfer.
+- **FR-3.2**: Factory intake must support barcode batch scanning to verify garment count against the dispatch manifest.
+- **FR-3.3**: Returning factory van manifests must reconcile received clean items and flag any missing garments.
+
+### FR-4: Human Resources & WPS Payroll
+- **FR-4.1**: The system must track employee clock-in and clock-out with hardware terminal identification.
+- **FR-4.2**: The system must generate the standard UAE Wages Protection System (WPS) SIF file formatted for bank and exchange house submission.
+- **FR-4.3**: End-of-service gratuity (EOSG) calculations must strictly adhere to UAE Labor Law (Decree-Law No. 33 of 2021).
+
+### FR-5: Offline-First Synchronization Engine
+- **FR-5.1**: All POS transactions, receipts, and order updates must execute locally with **zero dependency on internet connectivity**.
+- **FR-5.2**: The background sync daemon must continuously poll for internet access and transmit queued outbox mutations to the Cloud API.
+- **FR-5.3**: Concurrent edits must be resolved via the 3-way merge conflict engine without user interruption.
+
+---
+
+## 3. Non-Functional Requirements (NFR)
+
+| Metric | Target Requirement | Verification Method |
+|---|---|---|
+| **POS Transaction Latency** | $< 200\text{ ms}$ from tap to receipt print | Stopwatch & telemetry profiler |
+| **Offline Availability** | 100% functionality during complete network disconnection | Simulated air-gapped test bench |
+| **Data Recovery Time (RTO)** | $< 15\text{ minutes}$ from total hardware destruction | Full restore from cloud snapshot |
+| **Data Recovery Point (RPO)** | Zero lost committed transactions ($RPO = 0$) | Write-ahead logging & outbox verification |
+| **System Security** | Argon2id password hashing, RS256 JWT, write-once anti-tamper | Third-party penetration testing |
+
+---
+
+<a id="file-security-security-model-md"></a>
+
+## --- FILE: security\SECURITY_MODEL.md ---
+
+# LaundryPro UAE — Security Model
+
+> **Version:** 2.0.0 | **Last Updated:** 2026-09-30
+
+---
+
+## 1. Authentication
+
+### 1.1 Local API — JWT Bearer Authentication
+
+| Token | TTL | Purpose |
+|---|---|---|
+| Access Token | 8 hours (28800s) | Short-lived, sent with every request |
+| Refresh Token | 30 days (2592000s) | Long-lived, used to obtain new access token |
+
+**Token Flow:**
+1. `POST /auth/login` → returns `{access_token, refresh_token, expires_in}`
+2. Client stores tokens in `flutter_secure_storage`
+3. Every request sends `Authorization: Bearer {access_token}`
+4. On 401, client calls `POST /auth/refresh` with `{refresh_token}`
+5. On logout, `POST /auth/logout` revokes refresh token (hash stored in `refresh_tokens` table)
+
+### 1.2 Cloud API — Tenant Authentication
+
+| Header | Purpose |
+|---|---|
+| `Authorization: Bearer {cloud_token}` | Tenant identity verification |
+| `X-Business-Owner-Id: {tenant_id}` | Tenant scope identification |
+| `X-License-Key: {key}` | License validation |
+| `X-Device-UMAC: {umac}` | Device fingerprint tracking |
+
+### 1.3 Portal Authentication
+
+- Session-based PHP sessions
+- Password verified via `password_verify()` against `password_hash` in database
+- CSRF tokens on all POST forms
+- Session timeout: 120 minutes
+- Failed login tracking with account lockout (configurable)
+
+## 2. Authorization (RBAC)
+
+### 2.1 Role Structure
+
+```json
+// roles.permissions column (JSON array)
+{
+  "administrator": ["*"],
+  "cashier": ["sales.create", "sales.read", "customers.read"],
+  "supervisor": ["sales.*", "customers.*", "inventory.read", "reports.read"]
+}
+```
+
+### 2.2 Permission Check Flow
+
+```
+Request → AuthMiddleware (decode JWT, extract user_id)
+       → PermissionMiddleware:
+           1. Fetch user's role from DB (cached)
+           2. Get required permission from route meta
+           3. Check if role.permissions contains required permission
+           4. Wildcard "*" matches everything
+           5. Prefix wildcards "sales.*" match "sales.create", "sales.read", etc.
+       → Allow or reject (403 AUTH_FORBIDDEN)
+```
+
+### 2.3 Default Roles
+
+| Role | Permissions | Description |
+|---|---|---|
+| `administrator` | `["*"]` | Full system access |
+| `cashier` | `["sales.create", "sales.read", "customers.read"]` | POS-only access |
+
+## 3. Input Validation & Sanitization
+
+### 3.1 Rules
+
+- All user input is validated before processing
+- SQL queries use PDO prepared statements (parameterized, never string concatenation)
+- JSON request bodies decoded with `json_decode()` and typed-checked
+- File uploads validated for type, size, and name sanitization
+- HTML output escaped to prevent XSS
+
+### 3.2 Financial Precision
+
+- All monetary values stored as `DECIMAL(18,2)` in database
+- All calculations use `bcmath` functions (`bcmul`, `bcadd`, `bcsub`) — never `float`
+- API responses send monetary values as strings to preserve precision
+- VAT calculations: `tax = bcmul(subtotal, '0.05', 2)` (UAE 5% VAT)
+
+## 4. Network Security
+
+### 4.1 CORS
+
+- Configured via `CORS_ALLOWED_ORIGINS` environment variable
+- Only whitelisted origins receive `Access-Control-Allow-Origin`
+- Credentials allowed for same-origin requests
+
+### 4.2 Rate Limiting
+
+| Endpoint Category | Limit | Window |
+|---|---|---|
+| Login/Refresh | 5 attempts | 15 minutes |
+| Install endpoints | 10 attempts | 1 hour |
+| General API | 1000 requests | 1 hour |
+
+### 4.3 Security Headers
+
+| Header | Value | Purpose |
+|---|---|---|
+| `X-Content-Type-Options` | `nosniff` | Prevent MIME sniffing |
+| `X-Frame-Options` | `DENY` | Prevent clickjacking |
+| `X-XSS-Protection` | `1; mode=block` | XSS protection |
+| `Strict-Transport-Security` | `max-age=31536000` | Force HTTPS |
+| `Content-Security-Policy` | `default-src 'self'` | CSP policy |
+
+## 5. Hardware Identity (UMAC)
+
+### 5.1 Generation Algorithm
+
+```
+Input:  hostname + CPU ProcessorID + baseboard SerialNumber
+Hash:   SHA-256(hostname | CPU_ID | baseboard_serial)
+Format: UMAC-{hash[0:4]}-{hash[4:8]}-{hash[8:12]}
+```
+
+### 5.2 Storage
+
+- **Windows Registry:** `HKCU\Software\LaundryProUAE\Evaluation`
+  - `MachineCode` (REG_SZ) — UMAC string
+  - `InstallPulse` (REG_DWORD) — Unix timestamp of first install
+  - Write-once: tamper detection if values change
+
+### 5.3 Anti-Tamper
+
+- Install pulse written once on first activation
+- If registry values are modified → license invalidated
+- UMAC compared against cloud license record on each sync
+
+## 6. Data Protection
+
+### 6.1 Sensitive Data Handling
+
+| Data | Storage | Protection |
+|---|---|---|
+| User passwords | `users.password_hash` | `password_hash(PASSWORD_DEFAULT)` |
+| JWT secret | `.env` file | Not committed to git |
+| Cloud DB password | `.env.production` | Not committed to git |
+| License master secret | `.env.production` | Not committed to git |
+| Refresh tokens | `refresh_tokens.token_hash` | SHA-256 hash (not plaintext) |
+| Cloud tokens | `businesses.cloud_token` | 64-char random hex |
+
+### 6.2 Audit Trail
+
+- All write operations logged to `audit_logs` table
+- Log includes: `user_id`, `action`, `entity_type`, `entity_id`, `payload`, `timestamp`
+- Cloud portal has separate `cloud_audit_logs` for super-admin actions
+- Logs are append-only (no UPDATE/DELETE allowed)
+
+---
+
+*This document is the authoritative security model reference.*
+
+---
+
+<a id="file-security-threat-model-md"></a>
+
+## --- FILE: security\THREAT_MODEL.md ---
+
+# LaundryPro UAE — Threat Model & Security Posture
+
+> **Version:** 2.0.0 | **Authoritative Security Review** | **Standard:** STRIDE & OWASP ASVS 4.0
+
+---
+
+## 1. Threat Classification (STRIDE Matrix)
+
+| Threat Category | Description in LaundryPro UAE Context | Inherent Risk | Implemented Countermeasure | Residual Risk |
+|---|---|:---:|---|:---:|
+| **Spoofing** | Attacker impersonates a cashier or cloud sync agent | High | RS256 JWT tokens; UMAC hardware fingerprint binding; 3-way handshake | Low |
+| **Tampering** | User modifies local SQLite database directly or intercepts HTTP traffic | Critical | Write-once Windows Registry flags; DB password protection; TLS 1.3 | Low |
+| **Repudiation** | Cashier deletes an order and claims it was never entered | High | Append-only `audit_logs` table; non-resettable sequential receipt numbering | Very Low |
+| **Information Disclosure** | Competitor extracts customer database or pricing formulas | High | Argon2id password hashing; column-level encryption for sensitive tokens | Low |
+| **Denial of Service** | Malicious local loop or external bot floods API | Medium | Token bucket rate limiting (120 req/min); payload size ceilings | Low |
+| **Elevation of Privilege** | Cashier attempts to approve their own discount or view payroll | Critical | RBAC enforced strictly at API router level via `PermissionMiddleware` | Very Low |
+
+---
+
+## 2. Attack Vectors & Defensive Controls
+
+### 2.1 Hardware Tampering & Clock Drift
+- **Attack Scenario:** Store owner rolls back system clock on workstation to re-open a closed accounting period or bypass license expiration dates.
+- **Defense:**
+  - `system_guard_service.dart` and `LicenseController.php` verify monotonic forward progression of timestamps.
+  - Periodic pings to Cloud NTP/API time servers.
+  - If `system_time < last_recorded_transaction_time`, system enters emergency read-only lock.
+
+### 2.2 Offline SQLite Database Extraction
+- **Attack Scenario:** Disgruntled employee copies `laundrypro_offline.db` file from Windows workstation to an external flash drive.
+- **Defense:**
+  - Windows file system permissions restricted to `LOCAL_SERVICE` and dedicated app service accounts.
+  - SQLCipher AES-256 database file encryption enabled on production client builds.
+
+### 2.3 Cross-Tenant Data Leakage
+- **Attack Scenario:** Tenant A submits a crafted `tenant_id` or UUID to inspect orders belonging to Tenant B on the central Cloud API.
+- **Defense:**
+  - `TenantScopeMiddleware` ignores client-submitted tenant IDs and binds queries strictly to the authenticated `tenant_id` extracted from the cryptographically verified JWT or Cloud Token.
+  - Foreign key constraints strictly enforce tenant ownership across all child records.
+
+### 2.4 Replay Attacks on Sync Ingestion
+- **Attack Scenario:** Intercepted sync batch is re-submitted multiple times to duplicate orders or financial lines.
+- **Defense:**
+  - `entity_uuid` uniqueness constraint in `sync_records` and `sales_orders`.
+  - Duplicate submissions are acknowledged as `accepted` without re-executing inserts (idempotency).
+
+---
+
+<a id="file-sync-conflict-resolution-md"></a>
+
+## --- FILE: sync\CONFLICT_RESOLUTION.md ---
+
+# LaundryPro UAE — Sync Conflict Resolution Specification
+
+> **Version:** 2.0.0 | **Authoritative Specification** | **Engine:** Outbox/Inbox V2
+
+---
+
+## 1. Conflict Detection Philosophy
+
+In an offline-first distributed architecture where multiple POS workstations and Cloud portals can mutate data simultaneously, conflicts are inevitable. LaundryPro UAE applies a **deterministic, zero-data-loss, rule-based 3-way merge algorithm**.
+
+### Core Guarantees:
+1. **Financial Immutability**: Invoices, payment transactions, cash drawer openings, and general ledger journal lines are **append-only**. They can never be overwritten by a conflict resolution. Any adjustment must produce a compensating transaction.
+2. **Deterministic Convergence**: If two nodes process the same conflicting records, both nodes will reach the exact same state without human intervention for 99% of business scenarios.
+3. **Audit Trail Preservation**: Whenever an automated resolution or manual override occurs, the previous local payload and cloud payload are permanently recorded in `sync_conflicts`.
+
+---
+
+## 2. Entity Versioning (Vector Clock Counter)
+
+Every syncable entity maintains an `entity_version INT UNSIGNED` and a `uuid CHAR(36)`.
+- On initial creation: `entity_version = 1`.
+- On every local mutation: `entity_version = entity_version + 1`.
+- When pushing to Cloud: Cloud validates `expected_version`.
+  - If `cloud.entity_version == incoming.entity_version - 1`, the update is clean (no conflict).
+  - If `cloud.entity_version >= incoming.entity_version`, a concurrent modification occurred $\rightarrow$ Trigger 3-Way Merge.
+
+---
+
+## 3. The 3-Way Merge Algorithm
+
+```mermaid
+flowchart TD
+    Detect["Concurrent Edit Detected<br/>(Version Divergence)"] --> CheckType{"Entity Category?"}
+    
+    CheckType -->|Financial / Invoice / Payment| AppendOnly["Append-Only Rule:<br/>Reject Overwrite.<br/>Create Compensating Credit Note"]
+    
+    CheckType -->|Order Status| StatusPrecedence["Status State Machine:<br/>Higher Status Wins<br/>(e.g., 'Delivered' > 'Ready')"]
+    
+    CheckType -->|Master Data: Customer / Service| FieldMerge["Field-Level 3-Way Merge:<br/>Base vs Local vs Cloud"]
+    
+    FieldMerge --> CheckDispute{"Unresolvable Field Clash?<br/>(e.g., conflicting phone numbers)"}
+    
+    CheckDispute -->|No| AutoApply["Auto-Resolve & Increment Version"]
+    CheckDispute -->|Yes| DeadLetter["Route to sync_conflicts<br/>(Dead-Letter Queue)"]
+    
+    DeadLetter --> NotifyAdmin["Alert Store Manager & Super-Admin"]
+```
+
+### 3.1 Domain-Specific Resolution Rules
+
+#### A. Sales Orders & Status Lifecycle
+- **Rule:** Order status transitions follow a monotonic directed acyclic graph (DAG):
+  `draft` $\rightarrow$ `confirmed` $\rightarrow$ `in_process` $\rightarrow$ `ready` $\rightarrow$ `delivered` $\rightarrow$ `closed`.
+- If Node A marks order as `ready` and Node B marks order as `delivered`, `delivered` wins because it represents a later lifecycle milestone.
+- If both nodes add garment lines offline: Lines are merged by unique `garment_tag_uuid`. If duplicate tag numbers exist, a duplicate warning flag is raised for cashier inspection.
+
+#### B. Customer Records (CRM)
+- **Rule:** Field-level granular merge:
+  - If Node A updated `address` while Node B updated `credit_limit`, both updates are preserved.
+  - If both nodes updated `outstanding_balance`: The delta $(\Delta A + \Delta B)$ is applied to the base balance rather than overwriting.
+
+#### C. Stock & Inventory
+- **Rule:** Absolute quantities are never synced directly; only **signed inventory movements** (`quantity_change: +5`, `-2`) are transmitted.
+- Stock on hand is computed as the sum of all reconciled movement transactions.
+
+---
+
+## 4. Dead-Letter Queue (`sync_conflicts`)
+
+When a conflict cannot be safely resolved by rule logic, it is placed in `sync_conflicts`:
+
+```sql
+SELECT 
+    id, entity_type, entity_uuid, local_version, cloud_version, status, created_at 
+FROM sync_conflicts 
+WHERE status = 'pending';
+```
+
+### Portal Dispute Actions:
+1. **Accept Local**: Overwrites Cloud state with Local payload; increments cloud entity version.
+2. **Accept Cloud**: Overwrites Local state with Cloud payload during next sync pull.
+3. **Custom Merge**: Portal user edits a JSON diff editor and commits the final unified state.
+
+---
+
+<a id="file-sync-sync-architecture-md"></a>
+
+## --- FILE: sync\SYNC_ARCHITECTURE.md ---
+
+# LaundryPro UAE — Sync Architecture
+
+> **Version:** 2.0.0 | **Last Updated:** 2026-09-30
+
+---
+
+## 1. Overview
+
+Sync operates exclusively between **Local API ↔ Cloud API**. Flutter never sees sync internals. The sync engine uses an **outbox/inbox pattern** with **cursor-based pagination** and **3-way merge conflict resolution**.
+
+## 2. Core Principles
+
+| # | Principle | Details |
+|---|---|---|
+| 1 | **Flutter isolation** | Flutter POS app has ZERO awareness of sync. All CRUD goes through Local API. |
+| 2 | **Outbox pattern** | Local mutations are queued in `sync_outbox`, pushed asynchronously to Cloud. |
+| 3 | **Inbox pattern** | Cloud-originated changes are queued in `sync_inbox`, pulled by Local API. |
+| 4 | **Cursor-based** | Pull uses `global_sequence_id`, never timestamps (avoids clock skew). |
+| 5 | **Idempotent** | Push uses `entity_uuid` as dedup key. Duplicate pushes are safe. |
+| 6 | **Batch processing** | All sync operations use batches of ≤100 records per request. |
+| 7 | **Exponential backoff** | Failed pushes retry with `delay = 2^attempts * 60s`, max 10 attempts. |
+| 8 | **Dead-letter queue** | Records exceeding retry limit are moved to `sync_conflicts`. |
+
+## 3. Sync Flow
+
+### 3.1 Push Flow (Local → Cloud)
+
+```
+Local DB Mutation (INSERT/UPDATE/DELETE)
+    │
+    ▼
+sync_outbox INSERT (status=pending, entity_uuid, payload)
+    │
+    ▼ (Background daemon, every 60s)
+SELECT FROM sync_outbox WHERE status IN ('pending','failed') AND next_retry_at <= NOW() LIMIT 100
+    │
+    ▼
+POST /api/v1/sync/push → Cloud API
+    │
+    ├─── 200 OK ──► UPDATE sync_outbox SET status='synced'
+    │
+    ├─── 409 Conflict ──► INSERT sync_conflicts, status='conflict'
+    │
+    └─── 5xx / Timeout ──► attempts++
+                           if attempts > 10: status='dead_letter'
+                           else: next_retry_at = NOW() + 2^attempts * 60s
+```
+
+### 3.2 Pull Flow (Cloud → Local)
+
+```
+Sync Daemon Timer (every 60s)
+    │
+    ▼
+GET /api/v1/sync/pull?since={last_global_sequence_id}&limit=100
+    │
+    ▼
+Cloud API returns batch of records
+    │
+    ▼
+For each record:
+    ├── Fetch local entity baseline (last synced state)
+    ├── Fetch local entity current state
+    ├── Compare with cloud state
+    │
+    ├── No local changes since baseline ──► Overwrite with cloud state
+    ├── Only cloud changed ──► Apply cloud state
+    ├── Both changed (no field overlap) ──► Merge fields
+    └── Both changed (field conflict) ──► Apply conflict resolution rules
+    │
+    ▼
+Update last_global_sequence_id
+```
+
+## 4. Syncable Entity Types
+
+| Entity | Direction | Conflict Strategy | Priority |
+|---|---|---|---|
+| `customers` | Bidirectional | Cloud wins (name/address), Local wins (balance) | P0 |
+| `services` | Bidirectional | Cloud wins | P0 |
+| `products` | Bidirectional | Cloud wins | P0 |
+| `sales_orders` | Local → Cloud | Local authoritative (origin store) | P0 |
+| `payment_transactions` | Local → Cloud | Local authoritative | P0 |
+| `invoices` | Local → Cloud | Local authoritative | P0 |
+| `employees` | Bidirectional | Cloud wins | P1 |
+| `vendors` | Bidirectional | Cloud wins | P1 |
+| `expenses` | Local → Cloud | Local authoritative | P1 |
+| `inventory_movements` | Local → Cloud | Local authoritative | P1 |
+| `settings` | Cloud → Local | Cloud authoritative | P1 |
+| `roles` | Cloud → Local | Cloud authoritative | P2 |
+
+## 5. Database Tables
+
+### 5.1 Local Tables
+
+**`sync_outbox`** — Queue of local mutations to push to cloud
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | BIGINT PK | Auto-increment |
+| `uuid` | CHAR(36) | Unique outbox record ID |
+| `entity_type` | VARCHAR(100) | e.g., 'customers', 'sales_orders' |
+| `entity_id` | CHAR(36) | `row_uuid` of the mutated entity |
+| `operation` | ENUM | INSERT, UPDATE, DELETE |
+| `payload` | JSON | Full entity snapshot |
+| `status` | ENUM | pending, pushing, synced, failed, dead_letter |
+| `attempts` | TINYINT | Retry count (max 10) |
+| `next_retry_at` | TIMESTAMP | Next retry time (exponential backoff) |
+| `created_at` | TIMESTAMP | When mutation occurred |
+
+**`sync_state`** — Global sync configuration and last-sync cursors
+
+| Column | Type | Description |
+|---|---|---|
+| `admin_id` | INT PK | Business owner ID |
+| `is_enabled` | TINYINT | Sync on/off |
+| `cloud_api_url` | VARCHAR(500) | Target cloud URL |
+| `cloud_token` | VARCHAR(255) | Auth token for cloud |
+| `last_push_at` | TIMESTAMP | Last successful push |
+| `last_pull_at` | TIMESTAMP | Last successful pull |
+| `last_global_sequence_id` | BIGINT | Pull cursor |
+
+### 5.2 Cloud Tables
+
+**`sync_records`** — Received push records from all tenants
+
+**`sync_inbox`** — Outbound records for tenants to pull
+
+**`sync_conflicts`** — Dead-letter queue for unresolvable conflicts
+
+**`sync_health_snapshots`** — Periodic health metrics per tenant
+
+## 6. API Endpoints
+
+### 6.1 Local API Sync Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/sync/status` | Current sync state and pending counts |
+| `GET` | `/api/v1/sync/entities` | List syncable entity types |
+| `POST` | `/api/v1/sync/push` | Push pending outbox records to cloud |
+| `GET` | `/api/v1/sync/pull` | Pull new records from cloud |
+| `GET` | `/api/v1/sync/config` | Get/update sync configuration |
+
+### 6.2 Cloud API Sync Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/sync/push` | Receive push from local API |
+| `GET` | `/api/v1/sync/pull` | Serve pull requests from local API |
+| `GET` | `/api/v1/sync/health` | Sync health metrics per tenant |
+| `POST` | `/api/v1/sync/backup` | Receive backup upload from local |
+
+## 7. Backoff Algorithm
+
+```
+function calculateDelay(attempts: int): seconds
+    if attempts > 10:
+        return DEAD_LETTER  // Move to dead-letter queue
+    base_delay = 60         // 1 minute
+    delay = 2^attempts * base_delay
+    max_delay = 86400       // 24 hours cap
+    jitter = random(0, delay * 0.1)
+    return min(delay + jitter, max_delay)
+```
+
+| Attempt | Delay |
+|---|---|
+| 1 | ~2 min |
+| 2 | ~4 min |
+| 3 | ~8 min |
+| 4 | ~16 min |
+| 5 | ~32 min |
+| 6 | ~1 hour |
+| 7 | ~2 hours |
+| 8 | ~4 hours |
+| 9 | ~8.5 hours |
+| 10 | ~17 hours |
+| 11+ | Dead letter |
+
+---
+
+*This document is the authoritative sync architecture reference.*
+
+---
+
+<a id="file-testing-test-plan-md"></a>
+
+## --- FILE: testing\TEST_PLAN.md ---
+
+# LaundryPro UAE — Comprehensive Master Test Plan
+
+> **Version:** 2.0.0 | **Authoritative Quality Assurance Strategy**
+
+---
+
+## 1. Testing Strategy & Pyramid
+
+```
+           / \
+          /   \     End-to-End (E2E) & User Acceptance Testing (UAT)
+         / UAT \    (Hardware printers, offline simulation, scanner flow)
+        /-------\
+       /  Integ  \  Integration & Contract Tests
+      /   Tests   \ (PHP API <-> MariaDB, Flutter Service <-> Mock API)
+     /-------------\
+    /     Unit      \ Unit Tests
+   /     Tests       \ (Business rules, VAT math, JWT validation, 3-way merge)
+  /-------------------\
+```
+
+---
+
+## 2. Test Execution Matrix
+
+| Test Suite | Scope | Target Framework / Tool | Frequency | Pass Criteria |
+|---|---|---|---|---|
+| **Core PHP Units** | Services, Repositories, Helpers, bcmath VAT logic | PHPUnit 10 / CLI Test Runner | Every Commit | 100% Pass; >80% Code Coverage |
+| **API Contract Tests**| Response envelope validation against `docs/swagger/UNIFIED_SWAGGER.yaml` | PHP / Spectral CLI | Pre-Merge | Zero Schema Validation Errors |
+| **Sync Engine Stress**| 1,000+ records pushed under network latency & disconnection | `tests/sync_stress.php` | Nightly | Zero Data Loss; Deterministic Convergence |
+| **Hardware Emulation**| 80mm ESC/POS printer byte stream & barcode validation | Virtual Serial Port / Socket | Release Candidate| Correct TLV QR & Arabic Code Page |
+| **Flutter Widget Tests**| POS Cart, Customer Search, Touch Keypad, Screen Navigation | `flutter test` | Every PR | All screens render without overflow |
+| **Security Pen-Test** | Injection, IDOR, Broken Authentication, CSRF | OWASP ZAP & Custom Scripts | Major Release | Zero High/Critical Vulnerabilities |
+
+---
+
+## 3. Critical Path Test Scenarios
+
+### 3.1 Scenario: Offline POS Checkout & Post-Reconnect Sync
+1. Disconnect Ethernet cable from POS workstation.
+2. Complete 5 customer orders with cash and card tenders in POS UI.
+3. Verify that orders, invoices, and customer balances update in local SQLite database immediately.
+4. Verify that thermal receipts print normally offline.
+5. Reconnect Ethernet cable.
+6. Verify that `SyncDaemon` automatically detects connectivity, pushes all 5 orders to Cloud API within 60 seconds, and receives ACKs without conflict.
+
+### 3.2 Scenario: Concurrent Status Mutation (3-Way Merge Test)
+1. Order #1001 exists on Cloud API with status `confirmed`.
+2. Workstation A goes offline and marks Order #1001 as `in_process`.
+3. Cloud Admin portal marks Order #1001 as `ready`.
+4. Workstation A reconnects and executes sync pull.
+5. Verify that the 3-way merge correctly applies `ready` (higher status precedence) and updates local state without throwing an exception.
+
+### 3.3 Scenario: VAT Precision Verification
+1. Create an order with 3 items of unit price 14.2857 AED.
+2. Verify total gross amount, total taxable amount, and total VAT using `bcmath`.
+3. Ensure rounding is exactly 2 decimal places and matches FTA tax schedule.
+
+---
+
+<a id="file-testing-uat-scripts-md"></a>
+
+## --- FILE: testing\UAT_SCRIPTS.md ---
+
+# LaundryPro UAE — User Acceptance Testing (UAT) Scripts
+
+> **Version:** 2.0.0 | **Authoritative Operational Validation Checklist**
+
+---
+
+## Script 1: Initial Workstation Provisioning & Admin Onboarding
+
+| Step # | Action | Input Data | Expected Result | Pass / Fail |
+|:---:|---|---|---|:---:|
+| 1.1 | Launch Windows desktop application | N/A | App launches without errors; redirects to `/install` if unlicensed | [ ] |
+| 1.2 | Submit valid Enterprise License Key | `LP-ENT-2026-ABCD-EFGH` | System extracts UMAC, contacts Cloud API, activates license | [ ] |
+| 1.3 | Create Super-Admin store account | `admin@store.ae` / `P@ssword2026!` | Admin profile created; redirects to POS login screen | [ ] |
+| 1.4 | Log in with newly created credentials | Same credentials | Issues JWT Bearer token; opens main POS AppShell in bilingual EN/AR | [ ] |
+
+---
+
+## Script 2: Customer Intake, Heat-Seal Tagging & Thermal Print
+
+| Step # | Action | Input Data | Expected Result | Pass / Fail |
+|:---:|---|---|---|:---:|
+| 2.1 | Search customer by phone number | `+971501234567` | Displays customer record or prompts to create new customer | [ ] |
+| 2.2 | Add 2x Men's Kandora (Dry Clean) | Modifier: `Medium Starch` | Items added to cart; gross total and 5% VAT updated instantly | [ ] |
+| 2.3 | Add 1x Silk Abaya (Hand Wash) | Modifier: `Perfume Rinse` | Items added to cart; turnaround time computed | [ ] |
+| 2.4 | Click "Confirm & Print Tags" | Tender: `Advance 50 AED Cash` | Cash drawer kicks open; thermal printer outputs 3 garment tags + 1 customer receipt | [ ] |
+| 2.5 | Inspect physical printed tags | Visual Inspection | Tags contain high-contrast legible barcode, item count `1/3`, `2/3`, `3/3` | [ ] |
+
+---
+
+## Script 3: Factory Challan Dispatch & Return Gate-Pass
+
+| Step # | Action | Input Data | Expected Result | Pass / Fail |
+|:---:|---|---|---|:---:|
+| 3.1 | Navigate to Logistics -> Factory Challan | Filter: `Ready for Factory` | Lists all confirmed garment batches currently in branch staging | [ ] |
+| 3.2 | Scan barcodes of 20 garments | Barcode Scanner | Items automatically grouped into Challan manifest #CH-1001 | [ ] |
+| 3.3 | Assign Van Driver & Click "Dispatch" | Driver: `Ahmed Al Zaabi` | Manifest finalized; garments status updated to `InProcess (Factory)` | [ ] |
+| 3.4 | Later: Factory van returns; scan return | Challan #CH-1001 | Garments verified against manifest; missing items highlighted | [ ] |
+| 3.5 | Confirm receipt into branch | Click "Accept Clean" | Garments updated to `Ready`; customer SMS/WhatsApp triggers | [ ] |
+
+---
+
+## Script 4: Offline POS Resilience & Background Cloud Synchronization
+
+| Step # | Action | Input Data | Expected Result | Pass / Fail |
+|:---:|---|---|---|:---:|
+| 4.1 | Disconnect network cable (Simulate Outage)| Physically disconnect | Cloud sync status badge turns yellow `Offline Mode` | [ ] |
+| 4.2 | Create 3 new customer sales orders | Standard POS Checkout | Orders processed without latency; saved to local SQLite DB | [ ] |
+| 4.3 | Print tax invoices and customer receipts | Thermal Printer | Invoices print normally with local sequence numbers | [ ] |
+| 4.4 | Reconnect network cable | Physically connect | Cloud sync status badge turns green `Syncing...` | [ ] |
+| 4.5 | Verify Cloud Portal inspector | Cloud Admin URL | All 3 orders appear on Cloud Portal with status `Synced` within 60s | [ ] |
+
+---
+
+<a id="file-training-admin-guide-md"></a>
+
+## --- FILE: training\ADMIN_GUIDE.md ---
+
+# LaundryPro UAE — Store Administrator & Manager Guide
+
+> **Version:** 2.0.0 | **Authoritative Operations Manual**
+
+---
+
+## 1. Store Management Portal Overview
+
+The Local Admin Portal (`http://localhost:8080/admin`) provides store managers with real-time operational control over catalog pricing, customer accounts, staff attendance, inventory levels, and financial audits.
+
+---
+
+## 2. Day-to-Day Manager Responsibilities
+
+### 2.1 Daily Morning Opening Checklist
+1. **System Health Verification**: Check the top-bar status pill. Ensure both MariaDB database and Cloud Sync daemon indicate `Connected (Green)`.
+2. **Till Float Reconciliation**: Verify that the opening cash float in the cash drawer matches the amount entered by the opening cashier.
+3. **Dispatch Manifest Review**: Inspect orders scheduled for central factory pickup. Ensure all bags are sealed with Challan barcodes attached.
+
+### 2.2 Catalog & Pricing Management
+To adjust service prices or add seasonal laundry packages:
+1. Navigate to **Catalog $\rightarrow$ Services**.
+2. Click **Edit** on the target service (e.g., "Men's Kandora - Dry Clean").
+3. Update base rate, express surcharge percentage, and standard turnaround hours.
+4. Click **Save Changes**. The update automatically syncs to all local POS terminals.
+
+### 2.3 Inventory Auditing & Purchase Orders
+1. Review stock levels under **Inventory $\rightarrow$ Stock on Hand**.
+2. When detergent, poly-rolls, or hangers hit the `Reorder Point`, generate a Purchase Order under **Purchasing $\rightarrow$ New PO**.
+3. Select the supplier, input line quantities, and email the PO directly from the portal.
+4. Upon delivery, click **Receive Goods (GRN)** to automatically adjust stock balances and credit the vendor ledger.
+
+### 2.4 Staff Attendance & Payroll Review
+1. Review biometric clock-in logs under **HR $\rightarrow$ Attendance**.
+2. Approve leave requests and authorize salary advances.
+3. At month-end, click **Payroll $\rightarrow$ Run Payroll** to review salary breakdowns and export the UAE WPS SIF file for bank transfer.
+
+---
+
+## 3. Resolving Sync Conflicts & Cloud Status
+
+If a network outage occurred and the Cloud Sync badge indicates `Conflict Pending`:
+1. Navigate to **System $\rightarrow$ Sync Inspector $\rightarrow$ Conflict Queue**.
+2. Compare the **Local Version** and **Cloud Version** in the visual side-by-side diff viewer.
+3. Click **Accept Local**, **Accept Cloud**, or manually select the correct field value.
+4. Click **Resolve & Re-Sync** to clear the conflict.
+
+---
+
+<a id="file-training-cashier-guide-md"></a>
+
+## --- FILE: training\CASHIER_GUIDE.md ---
+
+# LaundryPro UAE — POS Cashier Operational Manual
+
+> **Version:** 2.0.0 | **Authoritative Cashier Training Guide** | **Language:** English & Arabic Context
+
+---
+
+## 1. Shift Opening Routine
+
+1. Power on the POS workstation and log in with your assigned cashier PIN or username and password.
+2. The screen prompts: **"Open Shift - Enter Cash Float"**.
+3. Count the physical cash in the drawer (e.g., 500 AED standard opening change).
+4. Enter the amount and click **"Confirm Open Shift"**. The cash drawer kicks open for confirmation.
+
+---
+
+## 2. Customer Order Intake (Booking Steps)
+
+### Step 1: Identify the Customer
+- Ask for customer's mobile number and type it into the top search bar (e.g., `0501234567`).
+- If existing: The customer profile loads showing their name, VIP status, and garment preferences.
+- If new: Click **"New Customer" (+)**, enter Name, Mobile, and optional Area/Building details, then click **"Save & Continue"**.
+
+### Step 2: Add Garments & Choose Services
+- Use touch category tabs: **Dry Clean**, **Wash & Iron**, **Press Only**, **Beds & Curtains**.
+- Tap item card (e.g., **Kandora**, **Suit 2-Pc**, **Abaya**).
+- Modifier pop-up appears:
+  - **Starch**: None / Light / Medium / Heavy.
+  - **Packaging**: Wire Hanger / Wooden Hanger / Folded in Box.
+  - **Stain Notes**: Note any pre-existing stains, tears, or loose buttons.
+
+### Step 3: Set Turnaround & Payment
+- Select **Standard (48 hrs)** or **Express Same-Day (+50% surcharge)**.
+- Choose payment option:
+  - **Pay on Delivery/Pickup**: Order booked with zero payment; customer pays upon collection.
+  - **Advance Deposit**: Enter partial payment (e.g., 50 AED Cash).
+  - **Full Payment**: Settle 100% via Card or Cash immediately.
+
+### Step 4: Tag Affixing
+- The thermal printer prints:
+  1. **Customer Receipt** (Hand to customer).
+  2. **Heat-seal tags** (Affix immediately to the care label of each respective garment).
+
+---
+
+## 3. Order Collection & Final Settlement
+
+1. When customer arrives for collection, scan the barcode on their receipt or search by customer phone number.
+2. The order screen displays the rack slot location (e.g., `Rack: B-08`).
+3. Retrieve the poly-bagged garments from the rack and verify the item count against the screen.
+4. If an outstanding balance remains:
+   - Tap **"Settle Balance"**.
+   - Tender payment via Card or Cash.
+5. Tap **"Handover & Print Tax Invoice"**.
+6. Hand garments and final tax invoice with QR code to customer.
+
+---
+
+## 4. Shift Closing Routine & Z-Report
+
+1. At the end of your shift, click your profile icon $\rightarrow$ **"Close Shift"**.
+2. Count all cash notes and coins in the drawer.
+3. Enter the total cash counted into the **Physical Cash** field.
+4. Click **"Submit Blind Count & Print Z-Report"**.
+5. The thermal printer outputs the **Z-Report** showing total shift sales, cash drawer variance, and card totals.
+6. Sign the printed Z-Report, paper-clip the card merchant slips, and deposit the cash packet in the store safe.
+
+---
+
+<a id="file-ui-theme-specification-md"></a>
+
+## --- FILE: ui\THEME_SPECIFICATION.md ---
+
+# LaundryPro UAE — "Purple Dark" Theme Specification
+
+> **Version:** 2.0.0 | **Authoritative Design System** | **Theme:** Purple Dark Enterprise
+
+---
+
+## 1. Design Philosophy
+
+The LaundryPro UAE user interface combines high-contrast ergonomic readability for POS cashiers operating under bright retail lighting with a sleek, luxury enterprise aesthetic for store managers and corporate franchise owners.
+
+---
+
+## 2. Core Color Palette Tokens
+
+```css
+:root {
+  /* Surface & Background Layers */
+  --lp-bg-canvas: #0d0f17;         /* Deep obsidian background */
+  --lp-bg-surface: #161926;        /* Primary container & card surface */
+  --lp-bg-surface-elevated: #1e2235;/* Modal dialogs, dropdowns, tooltips */
+  --lp-bg-surface-hover: #262b42;   /* Hover state for table rows & cards */
+
+  /* Primary Brand Violet Scale */
+  --lp-primary-50: #f5f3ff;
+  --lp-primary-100: #ede9fe;
+  --lp-primary-400: #a78bfa;
+  --lp-primary-500: #8b5cf6;
+  --lp-primary-600: #7c3aed;        /* Primary button & brand accent */
+  --lp-primary-700: #6d28d9;
+  --lp-primary-900: #4c1d95;
+
+  /* Accent & Functional Colors */
+  --lp-accent-cyan: #06b6d4;        /* Sync active indicator & secondary CTA */
+  --lp-success-emerald: #10b981;    /* Ready orders, paid invoices */
+  --lp-warning-amber: #f59e0b;      /* Pending sync, delayed orders */
+  --lp-danger-rose: #f43f5e;        /* Voided items, system alerts */
+
+  /* Text & Border Contrasts */
+  --lp-text-primary: #f8fafc;       /* Highest contrast header & body text */
+  --lp-text-secondary: #cbd5e1;     /* Secondary details, timestamps */
+  --lp-text-muted: #94a3b8;         /* Table headers, disabled states */
+  --lp-border-subtle: rgba(255, 255, 255, 0.08);
+  --lp-border-focused: rgba(124, 58, 237, 0.5);
+
+  /* Shadows & Glassmorphism */
+  --lp-shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --lp-shadow-glow: 0 0 15px rgba(124, 58, 237, 0.35);
+  --lp-glass-blur: blur(12px);
+}
+```
+
+---
+
+## 3. Typography & Bilingual Type Hierarchy
+
+- **English Typography**: Inter or Outfit (Google Fonts).
+- **Arabic Typography**: Noto Sans Arabic or Cairo (Google Fonts).
+- **Scale**:
+  - `Display / KPI`: 32px / Bold (700)
+  - `Page Header H1`: 24px / SemiBold (600)
+  - `Card Header H2`: 18px / Medium (500)
+  - `Body / Table Row`: 14px / Regular (400)
+  - `Caption / Tag`: 12px / Medium (500)
+
+---
+
+## 4. AdminLTE v4 Web Portal Dark Overrides
+
+For both Local Admin (`api/`) and Cloud Super-Admin (`cloud-api/`), AdminLTE v4 is customized via CSS overrides:
+
+```css
+body.dark-mode {
+  background-color: var(--lp-bg-canvas) !important;
+  color: var(--lp-text-primary) !important;
+  font-family: 'Inter', 'Noto Sans Arabic', sans-serif;
 }
 
-# Disk
-Write-Host "
-Disk:"
-$drive = Get-PSDrive C
-Write-Host "  Free: $([math]::Round($drive.Free/1GB, 2)) GB"
+.main-sidebar {
+  background-color: var(--lp-bg-surface) !important;
+  border-right: 1px solid var(--lp-border-subtle) !important;
+}
 
-# Database
-Write-Host "
-Database:"
-$result = & "C:\xampp\mysql\bin\mysql.exe" -u root -e "SELECT 'OK' AS status" 2>$null
-Write-Host "  Connection: $(if ($result -match 'OK') {'OK'} else {'FAILED!'})"
+.card {
+  background-color: var(--lp-bg-surface) !important;
+  border: 1px solid var(--lp-border-subtle) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--lp-shadow-card) !important;
+}
 
-Write-Host "
-=== Health Check Complete ==="
-```
-
-## --- FILE: README.md ---
-
-﻿# Operations Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Deployment, backup, monitoring, and operational procedures.
-
-## --- FILE: runtime_troubleshooting.md ---
-
-﻿# Runtime Troubleshooting Guide â€” LaundryPro UAE
-> **Version:** 1.0.0 | **Last Updated:** 2026-09-21
-> **Owner:** LP-AGENT-OPS-LEAD
-
----
-
-## Quick Diagnosis Flowchart
-
-```
-Issue Reported
-    |
-    +-- Application won't start?      --> Section 1
-    +-- XAMPP service won't start?     --> Section 2
-    +-- Database connection failed?    --> Section 3
-    +-- API returning errors?          --> Section 4
-    +-- Print job fails?               --> Section 5
-    +-- Scanner not working?           --> Section 6
-    +-- Sync not working?              --> Section 7
-    +-- License error?                 --> Section 8
-    +-- Performance degradation?       --> Section 9
-    +-- Data inconsistency?            --> Section 10
-    +-- UI rendering issues?           --> Section 11
-    +-- Backup/Restore issues?         --> Section 12
+.btn-primary {
+  background: linear-gradient(135deg, var(--lp-primary-600), var(--lp-primary-700)) !important;
+  border: none !important;
+  box-shadow: var(--lp-shadow-glow) !important;
+}
 ```
 
 ---
 
-## Section 1: Application Won't Start
+<a id="file-use-cases-enterprise-use-cases-md"></a>
 
-### Symptoms
-- MSIX app crashes on launch
-- White screen on startup
-- Error dialog on launch
+## --- FILE: use-cases\ENTERPRISE_USE_CASES.md ---
 
-### Diagnosis
-1. Check Windows Event Viewer (Application log) for crash details.
-2. Verify MSIX package integrity: `Get-AppxPackage *LaundryPro*`
-3. Check if XAMPP services are running.
-4. Check license validity (UMAC hash match).
+# LaundryPro UAE — Enterprise Use-Cases & Field Scenarios
 
-### Resolution
-| Cause | Fix |
-|-------|-----|
-| Corrupt MSIX | Reinstall MSIX package |
-| XAMPP not running | Start Apache and MariaDB services |
-| License expired | Renew license or enter grace period |
-| Missing .env file | Restore from backup or recreate |
-| Database unreachable | Check MariaDB port 3306 |
-
-### Recovery
-```powershell
-# Verify XAMPP services
-net start Apache2.4
-net start mysql
-# Verify database connection
-mysql -u root -p -e "SELECT 1"
-```
+> **Version:** 2.0.0 | **Authoritative Operational Field Manual**
 
 ---
 
-## Section 2: XAMPP Service Won't Start
+## Use-Case 1: Ramadan & Eid Festive High-Volume Kandora Rush
 
-### Apache Won't Start
-| Cause | Fix |
-|-------|-----|
-| Port 80 occupied | `netstat -ano | findstr :80` then kill conflicting process or change Apache port |
-| Port 443 occupied | Same as above for HTTPS port |
-| Corrupt httpd.conf | Restore from `xampp/apache/conf/httpd.conf.bak` |
-| Missing PHP module | Verify php.ini extension loading |
+### Context & Operational Challenge
+During the last 10 days of Ramadan and the days preceding Eid al-Fitr and Eid al-Adha, UAE dry cleaners experience an unprecedented surge in garment intake—frequently exceeding **2,000 Kandoras per day** per retail outlet. Front-desk queues form out the door, and customers demand guaranteed 24-hour turnaround with crisp, unyielding collar starch.
 
-### MariaDB Won't Start
-| Cause | Fix |
-|-------|-----|
-| Port 3306 occupied | `netstat -ano | findstr :3306` then kill conflicting process |
-| Corrupt InnoDB files | Run `mysqlcheck --all-databases --repair` |
-| Insufficient disk space | Free disk space (min 1 GB required) |
-| my.ini syntax error | Restore from `xampp/mysql/bin/my.ini.bak` |
-
-### Recovery
-```powershell
-# Check port conflicts
-netstat -ano | findstr ":80 :443 :3306"
-# Force kill conflicting PID
-taskkill /PID <PID> /F
-# Restart XAMPP services
-& "C:\xampp\xampp_start.exe"
-```
+### System Solution & Execution
+1. **Express Multi-Garment POS Mode**:
+   - The cashier enables "Fast Intake Mode" on the Flutter POS touch interface.
+   - Default modifiers are pre-set to: `Men's Kandora`, `Medium Starch`, `Wire Hanger`, `Due Date: Eid Eve`.
+   - Cashier enters customer mobile number, taps `+5 Kandoras`, and completes checkout in **under 12 seconds**.
+2. **High-Speed Thermal Batch Printing**:
+   - The dual-printer system instantly spits out 5 heat-seal barcode tags from the thermal label printer while the receipt printer prints the customer collection ticket.
+3. **Automated Factory Sorter Manifests**:
+   - Plant sorting conveyors scan the tag barcodes and route the Kandoras automatically to the high-temperature steam collar-and-cuff press line.
 
 ---
 
-## Section 3: Database Connection Failed
+## Use-Case 2: 5-Star Hotel Linen & Spa Turnaround (24h SLA)
 
-### Symptoms
-- API returns LP-ERR-SYS-5002
-- "Connection refused" errors
-- Timeout on database queries
+### Context & Operational Challenge
+A luxury Dubai beach resort contracts its daily linen processing (2,500 kg of bedsheets, duvet covers, pillowcases, bathrobes, and pool towels). Any delivery delay results in room turnaround delays and severe SLA financial penalties.
 
-### Diagnosis
-```powershell
-# Test MariaDB connectivity
-mysql -u root -p -h 127.0.0.1 -P 3306 -e "SHOW DATABASES;"
-# Check connection count
-mysql -u root -p -e "SHOW STATUS LIKE 'Threads_connected';"
-# Check max connections
-mysql -u root -p -e "SHOW VARIABLES LIKE 'max_connections';"
-```
-
-### Resolution
-| Cause | Fix |
-|-------|-----|
-| MariaDB not running | Start MariaDB service |
-| Max connections reached | Increase max_connections in my.ini (default: 100) |
-| Wrong credentials in .env | Verify DB_HOST, DB_PORT, DB_USER, DB_PASS in .env |
-| Firewall blocking | Allow port 3306 in Windows Firewall |
-| InnoDB corruption | Run recovery: `innodb_force_recovery = 1` in my.ini, restart, then repair |
+### System Solution & Execution
+1. **Gross Weight Scale Integration**:
+   - The hotel linen hampers are rolled onto a digital floor scale at the loading dock.
+   - The driver scans the customer QR code and captures gross weight directly into the delivery tablet.
+2. **Factory Processing & Flatwork Ironing**:
+   - Items are routed through continuous batch tunnel washers with thermal disinfection ($\ge 71^\circ\text{C}$ for 3 minutes) and dried on automated flatwork ironer lines.
+3. **Automated Gate-Pass Delivery**:
+   - The clean linen bundles return with a digitally signed delivery gate-pass, automatically reconciling the clean weight against the intake weight.
 
 ---
 
-## Section 4: API Returning Errors
+## Use-Case 3: Cross-Branch Garment Transfer & Collection
 
-### Error Code Quick Reference
-| Error Code | Meaning | Fix |
-|------------|---------|-----|
-| LP-ERR-AUTH-1001 | Invalid credentials | Verify username/password |
-| LP-ERR-AUTH-1002 | Token expired | Refresh token via /auth/refresh |
-| LP-ERR-AUTH-1004 | Insufficient permissions | Check user role and RBAC scopes |
-| LP-ERR-AUTH-1006 | License expired | Renew UMAC license |
-| LP-ERR-AUTH-1007 | Machine not authorized | Verify UMAC hash; re-bind license |
-| LP-ERR-VAL-2001 | Required field missing | Check request payload |
-| LP-ERR-VAL-2004 | Duplicate entry | Check for existing record |
-| LP-ERR-BIZ-3002 | Invoice immutable | Use correction memo workflow |
-| LP-ERR-SYNC-4001 | Sync conflict | Check dead-letter queue |
-| LP-ERR-SYS-5001 | Internal server error | Check PHP error log |
-| LP-ERR-SYS-5002 | Database connection failed | See Section 3 |
+### Context & Operational Challenge
+A business traveler drops off three tailored suits at the Dubai International Financial Centre (DIFC) branch in the morning and requests to collect them after work at the Dubai Marina branch near their residence.
 
-### PHP Error Log Location
-`C:\xampp\php\logs\php_error_log` or `C:\xampp\apache\logs\error.log`
+### System Solution & Execution
+1. **Intake with Destination Routing**:
+   - DIFC cashier selects `Collection Branch: Dubai Marina` in the POS order modal.
+   - Garment tags print with destination code `DEST: MARINA`.
+2. **Logistics Van Transfer**:
+   - DIFC branch manifests garments onto the mid-day inter-branch transfer van via `/challans/dispatch`.
+3. **Marina Intake & Rack Allocation**:
+   - Marina cashier scans incoming van box; items are immediately marked `Ready` in Marina store's local database and assigned to Rack Slot `M-22`.
+   - Customer receives a WhatsApp alert notifying them:
+     > *"Your order #DIFC-2026-0891 is ready for collection at our Dubai Marina branch (Rack M-22)."*
 
 ---
 
-## Section 5: Print Job Fails
+<a id="file-user-journeys-customer-journeys-md"></a>
 
-### Diagnosis
-1. Check printer power and USB/network connection.
-2. Run auto-discovery to verify detection.
-3. Check Windows print spooler: `Get-Service Spooler`
-4. Test with direct ESC/POS command.
+## --- FILE: user-journeys\CUSTOMER_JOURNEYS.md ---
 
-### Resolution
-| Cause | Fix |
-|-------|-----|
-| Printer offline | Power cycle printer; check USB cable |
-| Wrong port assigned | Re-run auto-discovery |
-| Print spooler stopped | `Start-Service Spooler` |
-| Paper out | Reload paper |
-| ESC/POS command error | Verify printer supports ESC/POS; check codepage for Arabic |
-| Driver conflict | Remove and reinstall printer driver |
+# LaundryPro UAE — Customer Journeys & Experience Maps
 
-### Test Print
-```powershell
-# Test Windows spooler
-Get-Printer | Format-Table Name, PortName, PrinterStatus
-# Restart print spooler
-Restart-Service Spooler
-```
+> **Version:** 2.0.0 | **Authoritative Service Blueprint**
 
 ---
 
-## Section 6: Scanner Not Working
-
-### Diagnosis
-1. Check USB connection.
-2. Verify scanner appears in Device Manager (HID devices).
-3. Test scanner output in Notepad (should inject text + Enter).
-
-### Resolution
-| Cause | Fix |
-|-------|-----|
-| USB not connected | Reconnect USB cable |
-| Wrong HID mode | Configure scanner for USB HID keyboard wedge mode |
-| Scanner sending wrong suffix | Configure scanner to send CR (Enter) suffix |
-| Bluetooth not paired | Re-pair Bluetooth scanner |
-| Application not capturing input | Ensure focus is on the scan input field |
-
----
-
-## Section 7: Sync Not Working
-
-### Diagnosis
-```sql
--- Check outbox status
-SELECT status, COUNT(*) FROM sync_outbox GROUP BY status;
--- Check dead-letter entries
-SELECT * FROM sync_outbox WHERE status = 'dead' ORDER BY created_at DESC LIMIT 10;
--- Check last sync time
-SELECT MAX(synced_at) FROM sync_outbox WHERE status = 'synced';
-```
-
-### Resolution
-| Cause | Fix |
-|-------|-----|
-| No internet | Expected in offline mode; entries queue in outbox |
-| Cloud endpoint down | Entries queue; retry on next connectivity |
-| Max retries exceeded | Check dead-letter queue; investigate and replay |
-| Conflict unresolved | Manual resolution via admin interface |
-| Tenant isolation violation | CRITICAL: investigate immediately |
-| Outbox table locked | Check for long-running transactions; restart MariaDB |
-
----
-
-## Section 8: License Error
-
-### UMAC Troubleshooting
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Machine not authorized | Hardware changed (CPU, disk, NIC) | Re-bind license to new hardware hash |
-| License expired | Subscription lapsed | Renew license key |
-| Read-only mode | Grace period exceeded (30 days offline) | Connect to internet for license verification |
-| Invalid license format | Corrupt license key | Request new license from vendor |
-
-### Hardware Hash Verification
-```powershell
-# Get CPU ID
-wmic cpu get ProcessorId
-# Get disk serial
-wmic diskdrive get SerialNumber
-# Get MAC address
-getmac /v
-```
-
----
-
-## Section 9: Performance Degradation
-
-### Diagnosis
-| Area | Check | Tool |
-|------|-------|------|
-| Database | Slow queries | `SHOW PROCESSLIST;` and slow query log |
-| API | Response time | Check API response time headers |
-| UI | Frame rate | Flutter DevTools performance tab |
-| Memory | Leak detection | Task Manager memory trend |
-| Disk | Space | `Get-PSDrive C` |
-
-### Quick Fixes
-```sql
--- Find slow queries
-SET GLOBAL slow_query_log = 'ON';
-SET GLOBAL long_query_time = 1;
--- Analyze table statistics
-ANALYZE TABLE orders, order_items, invoices, customers;
--- Check missing indexes
-EXPLAIN SELECT * FROM orders WHERE business_owner_id = 1 AND status = 'pending';
-```
-
----
-
-## Section 10: Data Inconsistency
-
-### Diagnosis
-```sql
--- Check orphaned order items
-SELECT oi.id FROM order_items oi LEFT JOIN orders o ON oi.order_id = o.id WHERE o.id IS NULL;
--- Check invoice-payment mismatch
-SELECT i.id, i.total_amount, COALESCE(SUM(p.amount),0) as paid FROM invoices i LEFT JOIN payments p ON p.invoice_id = i.id GROUP BY i.id HAVING i.total_amount != paid;
--- Check tenant isolation
-SELECT table_name FROM information_schema.columns WHERE column_name = 'business_owner_id' AND table_schema = 'laundrypro';
-```
-
-### Resolution
-1. Identify root cause (missing FK, failed sync, bug).
-2. Take backup before any data fix.
-3. Apply data correction with audit log entry.
-4. Verify with integrity checks.
-5. Add regression test to prevent recurrence.
-
----
-
-## Section 11: UI Rendering Issues
-
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| RTL layout broken | Missing Directionality | Wrap with Directionality widget |
-| Text overflow | Long Arabic text | Use TextOverflow.ellipsis or Flexible |
-| Widget rebuild jank | Unnecessary rebuilds | Use const constructors and select() |
-| Theme not applied | Wrong context | Ensure Theme.of(context) is used |
-| Images not loading | Wrong path | Check asset declarations in pubspec.yaml |
-
----
-
-## Section 12: Backup/Restore Issues
-
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Backup fails | Disk full | Free space; minimum 2x database size |
-| SHA-256 mismatch | Corrupt backup file | Re-run backup; check disk health |
-| Restore fails | Version mismatch | Ensure backup matches current schema version |
-| Partial restore | Interrupted process | Restore from the previous clean backup |
-
-### Emergency Backup
-```powershell
-# Emergency manual backup
-cd C:\xampp\mysql\bin
-mysqldump -u root -p --single-transaction --routines --triggers laundrypro > "backup_emergency_20260921_014725.sql"
-```
-
----
-
-## Escalation Matrix for Runtime Issues
-| Severity | Response Time | Who to Contact |
-|----------|--------------|----------------|
-| P1 Critical (system down) | 15 min | OPS-L3 + CTO |
-| P2 High (major feature broken) | 1 hour | OPS-L2 + ENG-LEAD |
-| P3 Medium (workaround available) | 4 hours | OPS-L1 |
-| P4 Low (cosmetic/enhancement) | Next sprint | Backlog |
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial runtime troubleshooting guide |
-
-## --- FILE: README.md ---
-
-# Peripherals (Windows hardware)
-
-LaundryPro UAE integrates ESC/POS printing, barcode scanner wedge, scale parser, cash drawer, and diagnostic tools via `lib/peripherals/`.
-
-## Setup
-
-1. Open **Settings → Peripherals**
-2. **Printer** tab — select Windows installed thermal printer
-3. **POS** — after payment, use **Print** for hardware or **Save PDF** for fallback
-
-## Requirements
-
-- Windows 10/11 desktop
-- PowerShell (printer discovery via Win32 spooler)
-- Selected printer in Peripherals console before POS hardware print
-
-## Cash drawer
-
-Drawer kick uses ESC/POS pulse through the selected printer. Configure printer in Peripherals → **Cash Drawer** tab or pulse automatically on cash payment in POS.
-
-## Scanner
-
-USB keyboard-wedge scanners work without drivers. POS and Peripherals screens listen for fast key bursts; matches service `code` or product `barcode` via catalog API.
-
-## MSIX / VC++ runtime
-
-For MSIX builds, stage VC++ runtime DLLs before packaging:
-
-```powershell
-powershell scripts/peripherals/stage_missing_dlls.ps1
-```
-
-Required DLLs: `msvcp140.dll`, `msvcp140_1.dll`, `vcruntime140.dll`, `vcruntime140_1.dll` (from Visual C++ Redistributable).
-
-## Remote SQL tab
-
-Admin diagnostic only — connects directly to MySQL bypassing API auth. Use on trusted LAN only.
-
-## Local database
-
-Peripheral templates, print queue, and logs use SQLite at:
-
-`%APPDATA%/laundrypro_peripherals.db` (via `getApplicationSupportDirectory`)
-
-
-## --- FILE: api_quick_reference.md ---
-
-﻿# API Quick Reference - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Auth
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | /api/v1/auth/login | Login (returns tokens) |
-| POST | /api/v1/auth/refresh | Refresh access token |
-| POST | /api/v1/auth/logout | Revoke tokens |
-
-## Orders
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /api/v1/orders | List orders (paginated) |
-| POST | /api/v1/orders | Create order |
-| GET | /api/v1/orders/:id | Get order detail |
-| PATCH | /api/v1/orders/:id | Update order |
-| POST | /api/v1/orders/:id/status | Update order status |
-
-## Customers
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /api/v1/customers | List customers |
-| POST | /api/v1/customers | Create customer |
-| GET | /api/v1/customers/:id | Get customer |
-| PATCH | /api/v1/customers/:id | Update customer |
-
-## Sync
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | /api/v1/sync/push | Push outbox entries |
-| GET | /api/v1/sync/pull | Pull cloud changes |
-
-## --- FILE: README.md ---
-
-﻿# Reference Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Quick reference cards and cheat sheets.
-
-## --- FILE: business_requirements.md ---
-
-﻿# Business Requirements - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Business Objectives
-1. Provide a complete ERP/CRM/POS solution for UAE laundry businesses.
-2. Support offline-first operation (internet not required for daily operations).
-3. Support multi-tenant deployment (multiple business owners, multiple branches).
-4. Support bilingual interface (English LTR + Arabic RTL).
-5. Comply with UAE regulations (VAT, FTA, WPS, PDPL).
-6. Support all common laundry hardware (printers, scanners, cash drawers, RFID).
-7. Enable data synchronization when connectivity is available.
-8. Protect against piracy with machine-bound licensing (UMAC).
-
-## Business Constraints
-- Must run on Windows 10/11 desktop (MSIX distribution).
-- Must work without internet (offline-first).
-- Must use local XAMPP server (no cloud dependency for core operations).
-- Must support existing laundry hardware ecosystem in UAE.
-- Must comply with UAE Federal Tax Authority (FTA) requirements.
-- All monetary calculations must use DECIMAL precision (zero floating-point).
-
-## Target Users
-1. **Business Owners** - Financial oversight, reports, multi-branch management
-2. **Branch Managers** - Daily operations, staff management, inventory
-3. **Cashiers** - POS operations, order intake, payments
-4. **Production Operators** - Garment processing, quality checks
-5. **Delivery Drivers** - Route management, delivery confirmation
-6. **System Administrators** - System configuration, user management
-
-## Success Criteria
-- Cashier can process order in < 30 seconds.
-- System operates for 30+ days without internet.
-- VAT calculation matches FTA requirements exactly.
-- All data syncs correctly after connectivity restoration.
-- Zero data loss during offline/online transitions.
-
-## --- FILE: functional_requirements.md ---
-
-﻿# Functional Requirements - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Module: Authentication & Authorization
-- FR-AUTH-001: System shall support username/password login.
-- FR-AUTH-002: System shall enforce RBAC with 6 defined roles.
-- FR-AUTH-003: System shall issue JWT access tokens (15-min expiry).
-- FR-AUTH-004: System shall support token refresh (7-day refresh token).
-- FR-AUTH-005: System shall support session management and logout.
-- FR-AUTH-006: System shall enforce machine-bound licensing (UMAC).
-
-## Module: Order Management
-- FR-ORD-001: System shall support walk-in, pickup, and corporate order intake.
-- FR-ORD-002: System shall assign sequential order numbers (ORD-YYYY-NNNNNN).
-- FR-ORD-003: System shall support barcode and RFID garment tagging.
-- FR-ORD-004: System shall track order status (received, processing, ready, delivered).
-- FR-ORD-005: System shall support express, same-day, next-day, and standard turnaround.
-- FR-ORD-006: System shall calculate pricing per-item, per-kg, or per-piece.
-- FR-ORD-007: System shall support line-item discounts and order-level discounts.
-- FR-ORD-008: System shall support order notes and special instructions.
-
-## Module: Point of Sale
-- FR-POS-001: System shall display service catalog with prices.
-- FR-POS-002: System shall support barcode scanner input for item lookup.
-- FR-POS-003: System shall calculate subtotal, discount, VAT, and total.
-- FR-POS-004: System shall support cash, card, and split payment methods.
-- FR-POS-005: System shall print receipt on thermal printer.
-- FR-POS-006: System shall open cash drawer after cash payment.
-
-## Module: Inventory
-- FR-INV-001: System shall track supply inventory (detergent, hangers, bags, etc.).
-- FR-INV-002: System shall support stock-in and stock-out transactions.
-- FR-INV-003: System shall alert when stock falls below minimum threshold.
-- FR-INV-004: System shall track garment inventory by status and location.
-
-## Module: Production
-- FR-PRD-001: System shall track garment production stages.
-- FR-PRD-002: System shall support quality check pass/fail.
-- FR-PRD-003: System shall support rewash/reclean workflow.
-- FR-PRD-004: System shall track production by operator for performance.
-
-## Module: Delivery
-- FR-DEL-001: System shall support route planning with address management.
-- FR-DEL-002: System shall track delivery status (assigned, en-route, delivered).
-- FR-DEL-003: System shall support delivery confirmation with signature/photo.
-- FR-DEL-004: System shall support driver assignment and reassignment.
-
-## Module: Customer Management
-- FR-CUS-001: System shall maintain customer profiles with contact info.
-- FR-CUS-002: System shall track customer order history.
-- FR-CUS-003: System shall support corporate accounts with billing.
-- FR-CUS-004: System shall support customer preferences and notes.
-
-## Module: HR & Payroll
-- FR-HR-001: System shall manage employee records.
-- FR-HR-002: System shall track attendance (check-in/check-out).
-- FR-HR-003: System shall calculate payroll with UAE overtime rules.
-- FR-HR-004: System shall export SIF files for WPS compliance.
-- FR-HR-005: System shall track leave entitlements and balances.
-
-## Module: Finance & Invoicing
-- FR-FIN-001: System shall generate invoices with TRN and VAT.
-- FR-FIN-002: System shall enforce immutable posted invoices.
-- FR-FIN-003: System shall support correction memos for invoice amendments.
-- FR-FIN-004: System shall generate financial reports (daily, weekly, monthly).
-- FR-FIN-005: System shall track all payments and outstanding balances.
-
-## Module: Reports & Analytics
-- FR-RPT-001: System shall generate sales reports by period, branch, employee.
-- FR-RPT-002: System shall generate production reports by operator, service type.
-- FR-RPT-003: System shall generate financial reports (P&L, cash flow, aging).
-- FR-RPT-004: System shall support report export (PDF, CSV).
-- FR-RPT-005: System shall display dashboard KPIs.
-
-## Module: Settings & Configuration
-- FR-SET-001: System shall support multi-branch configuration.
-- FR-SET-002: System shall support service catalog management.
-- FR-SET-003: System shall support price list management.
-- FR-SET-004: System shall support hardware configuration (printers, scanners).
-- FR-SET-005: System shall support backup and restore.
-
-## --- FILE: non_functional_requirements.md ---
-
-﻿# Non-Functional Requirements - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Performance
-- NFR-PERF-001: API response time < 500ms at P95.
-- NFR-PERF-002: Page load time < 2 seconds for all screens.
-- NFR-PERF-003: Database query execution < 100ms at P95.
-- NFR-PERF-004: Order processing (POS) < 30 seconds end-to-end.
-- NFR-PERF-005: Print job queuing < 2 seconds.
-- NFR-PERF-006: Sync outbox flush < 30 seconds after connectivity restoration.
-
-## Reliability
-- NFR-REL-001: System shall operate continuously for 30+ days without internet.
-- NFR-REL-002: Zero data loss during offline/online transitions.
-- NFR-REL-003: Automatic recovery from hardware disconnection.
-- NFR-REL-004: Database backup with SHA-256 integrity verification.
-
-## Security
-- NFR-SEC-001: All API endpoints authenticated via JWT.
-- NFR-SEC-002: RBAC enforced server-side on all routes.
-- NFR-SEC-003: All user input sanitized (SQL injection, XSS prevention).
-- NFR-SEC-004: PII encrypted at rest.
-- NFR-SEC-005: Machine-bound licensing (UMAC) prevents unauthorized use.
-- NFR-SEC-006: Audit trail tamper-evident with hash chaining.
-
-## Usability
-- NFR-USE-001: Full LTR (English) and RTL (Arabic) support.
-- NFR-USE-002: WCAG 2.1 AA accessibility compliance.
-- NFR-USE-003: Keyboard navigation for all screens.
-- NFR-USE-004: Font scaling support (100%-200%).
-
-## Scalability
-- NFR-SCA-001: Support up to 10 concurrent users per branch.
-- NFR-SCA-002: Support up to 50 branches per business owner.
-- NFR-SCA-003: Support up to 100,000 orders per branch per year.
-- NFR-SCA-004: Support up to 500 inventory items per branch.
-
-## --- FILE: README.md ---
-
-﻿# Requirements - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Document Index
-| Document | Description |
-|----------|-------------|
-| business_requirements.md | High-level business objectives and constraints |
-| functional_requirements.md | Detailed functional requirements by module |
-| non_functional_requirements.md | Performance, security, usability, reliability requirements |
-| user_roles.md | User role definitions and permission matrix |
-| use_case_summary.md | Summary of all use cases by module |
-
-## --- FILE: user_roles.md ---
-
-﻿# User Roles & Permissions - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Role Hierarchy
-super_admin > owner > manager > cashier / operator / driver
-
-## Permission Matrix
-| Module | Action | super_admin | owner | manager | cashier | operator | driver |
-|--------|--------|:-----------:|:-----:|:-------:|:-------:|:--------:|:------:|
-| Auth | Login | Y | Y | Y | Y | Y | Y |
-| Auth | Manage Users | Y | Y | N | N | N | N |
-| Orders | Create | Y | Y | Y | Y | N | N |
-| Orders | View All | Y | Y | Y | N | N | N |
-| Orders | View Own | Y | Y | Y | Y | Y | Y |
-| POS | Process Payment | Y | Y | Y | Y | N | N |
-| POS | Void Transaction | Y | Y | Y | N | N | N |
-| Inventory | View | Y | Y | Y | N | Y | N |
-| Inventory | Modify | Y | Y | Y | N | N | N |
-| Production | Update Status | Y | Y | Y | N | Y | N |
-| Delivery | Assign Driver | Y | Y | Y | N | N | N |
-| Delivery | Update Status | Y | Y | Y | N | N | Y |
-| Customers | View | Y | Y | Y | Y | N | N |
-| Customers | Modify | Y | Y | Y | N | N | N |
-| HR | View Employees | Y | Y | Y | N | N | N |
-| HR | Manage Payroll | Y | Y | N | N | N | N |
-| Finance | View Reports | Y | Y | Y | N | N | N |
-| Finance | Manage Invoices | Y | Y | N | N | N | N |
-| Settings | Configure | Y | Y | N | N | N | N |
-| Settings | Manage Branches | Y | Y | N | N | N | N |
-| System | Backup/Restore | Y | Y | N | N | N | N |
-| System | License Mgmt | Y | N | N | N | N | N |
-
-## --- FILE: README.md ---
-
-﻿# Security Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Security architecture, policies, and procedures.
-
-## --- FILE: security_architecture.md ---
-
-﻿# Security Architecture - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Security Layers
-1. **Authentication**: JWT with 15-min access tokens, 7-day refresh tokens.
-2. **Authorization**: RBAC with scope-based permissions on all endpoints.
-3. **Input Validation**: Server-side validation on all inputs; PDO prepared statements.
-4. **Data Protection**: AES-256-GCM encryption for PII at rest; SHA-256 for backup verification.
-5. **Audit Trail**: Hash-chained audit logs for tamper evidence.
-6. **Licensing**: UMAC machine-bound licensing with hardware hash verification.
-7. **Tenant Isolation**: business_owner_id on all data queries and mutations.
-
-## --- FILE: README.md ---
-
-﻿# Sync Engine Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Offline-first sync engine documentation.
-
-## --- FILE: sync_protocol.md ---
-
-﻿# Sync Protocol Specification - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Sync Outbox Schema
-| Column | Type | Description |
-|--------|------|-------------|
-| id | BIGINT UNSIGNED PK | Entry ID |
-| sequence_number | BIGINT UNSIGNED | Monotonic sequence |
-| idempotency_key | CHAR(36) UUID | Deduplication key |
-| table_name | VARCHAR(100) | Target table |
-| row_id | BIGINT UNSIGNED | Target row PK |
-| operation | ENUM('INSERT','UPDATE','DELETE') | Operation type |
-| payload | JSON | Data payload |
-| business_owner_id | BIGINT UNSIGNED FK | Tenant scope |
-| status | ENUM('pending','synced','failed','dead') | Sync status |
-| retry_count | INT DEFAULT 0 | Retry attempts |
-| created_at | DATETIME | Entry creation time |
-| synced_at | DATETIME NULL | Sync completion time |
-
-## Push Protocol
-POST /api/v1/sync/push with batch of outbox entries (max 100 per request).
-
-## Pull Protocol
-GET /api/v1/sync/pull?since={last_sequence}&limit=100.
-
-## Conflict Resolution
-Last-Write-Wins by updated_at. If equal timestamps, higher sequence_number wins.
-Unresolvable conflicts moved to dead-letter queue for manual resolution.
-
-## --- FILE: README.md ---
-
-﻿# Testing Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-Test strategies, plans, and frameworks.
-
-## --- FILE: test_strategy.md ---
-
-﻿# Test Strategy - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Test Pyramid
-1. **Unit Tests** (base): Individual functions, methods, widgets. Target: 80% coverage.
-2. **Integration Tests** (middle): API endpoints, database queries, cross-module flows.
-3. **E2E Tests** (top): Full user workflows through the UI.
-
-## Test Frameworks
-| Layer | Flutter | PHP |
-|-------|---------|-----|
-| Unit | flutter_test | PHPUnit |
-| Widget | testWidgets, golden | N/A |
-| Integration | integration_test | PHPUnit + HTTP client |
-| E2E | integration_test (driver) | N/A |
-
-## Quality Gates (must pass before release)
-- Unit test pass rate: 100%
-- Integration test pass rate: 100%
-- Code coverage: >= 80%
-- Zero CRITICAL bot alerts
-- Regression suite: 100% pass
-- Security test: 100% pass
-- Accessibility: WCAG 2.1 AA compliant
-
-## --- FILE: cashier_guide.md ---
-
-﻿# Cashier Quick Start Guide - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Getting Started
-1. Login with your cashier credentials.
-2. You will see the Dashboard with today's pending orders.
-
-## Creating an Order
-1. Click **New Order** or navigate to **POS**.
-2. Search or scan items to add to the order.
-3. Review the order summary (subtotal, discount, VAT, total).
-4. Click **Process Payment**.
-5. Select payment method (cash or card).
-6. Receipt prints automatically.
-7. Cash drawer opens (if cash payment).
-
-## Common Tasks
-- **Lookup Customer**: Use the search bar in Customers.
-- **Apply Discount**: Click the discount icon on a line item or order.
-- **Reprint Receipt**: Open order detail and click Print.
-- **Switch Language**: Click the language toggle (EN/AR) in the top bar.
-
-## --- FILE: README.md ---
-
-﻿# Training Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-User training materials and guides.
-
-## --- FILE: design_system.md ---
-
-﻿# Design System - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Colors
-| Token | Value | Usage |
-|-------|-------|-------|
-| primary | #1E88E5 | Primary actions, headers |
-| primaryDark | #1565C0 | Pressed states |
-| secondary | #43A047 | Success, confirmations |
-| error | #E53935 | Errors, warnings |
-| warning | #FB8C00 | Caution states |
-| surface | #FFFFFF | Card backgrounds |
-| background | #F5F5F5 | Page backgrounds |
-| onPrimary | #FFFFFF | Text on primary |
-| onSurface | #212121 | Primary text |
-| onSurfaceVariant | #757575 | Secondary text |
-
-## Typography
-| Style | Font (LTR) | Font (RTL) | Size | Weight |
-|-------|-----------|-----------|------|--------|
-| displayLarge | Inter | Noto Sans Arabic | 32sp | Bold |
-| headlineMedium | Inter | Noto Sans Arabic | 24sp | SemiBold |
-| titleLarge | Inter | Noto Sans Arabic | 20sp | Medium |
-| bodyLarge | Inter | Noto Sans Arabic | 16sp | Regular |
-| bodyMedium | Inter | Noto Sans Arabic | 14sp | Regular |
-| labelLarge | Inter | Noto Sans Arabic | 14sp | Medium |
-| labelSmall | Inter | Noto Sans Arabic | 12sp | Regular |
-
-## Spacing Scale
-| Token | Value |
-|-------|-------|
-| xs | 4dp |
-| sm | 8dp |
-| md | 16dp |
-| lg | 24dp |
-| xl | 32dp |
-| xxl | 48dp |
-
-## Components
-- Buttons: Primary (filled), Secondary (outlined), Text, Icon
-- Inputs: TextField, Dropdown, DatePicker, SearchField
-- Cards: Elevated, Outlined
-- Tables: DataTable with sorting, pagination, selection
-- Dialogs: Alert, Confirm, Form
-- Navigation: Sidebar, TopBar, Breadcrumbs
-
-## --- FILE: navigation_map.md ---
-
-﻿# Navigation Map - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Navigation Structure (go_router)
-
-```
-/login
-/dashboard
-/pos
-/orders
-  /orders/new
-  /orders/:id
-/customers
-  /customers/new
-  /customers/:id
-/inventory
-  /inventory/stock-in
-  /inventory/stock-out
-/production
-  /production/:id
-  /production/qc
-/deliveries
-  /deliveries/:id
-  /deliveries/route
-/employees
-  /employees/:id
-/attendance
-/payroll
-/leaves
-/invoices
-  /invoices/:id
-  /invoices/:id/correction
-/payments
-/expenses
-/reports
-  /reports/daily
-  /reports/sales
-  /reports/financial
-  /reports/production
-  /reports/hr
-/settings
-  /settings/branches
-  /settings/services
-  /settings/prices
-  /settings/users
-  /settings/hardware
-  /settings/backup
-  /settings/license
-  /settings/sync
-```
-
-## Sidebar Navigation Groups
-1. **Main**: Dashboard, POS
-2. **Operations**: Orders, Customers, Production, Deliveries
-3. **Inventory**: Stock Management
-4. **HR**: Employees, Attendance, Payroll, Leaves
-5. **Finance**: Invoices, Payments, Expenses
-6. **Reports**: All report types
-7. **Settings**: System configuration
-
-## --- FILE: README.md ---
-
-﻿# UI Documentation - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Documents
-| Document | Description |
-|----------|-------------|
-| design_system.md | Colors, typography, spacing, components |
-| screen_catalog.md | Complete screen inventory (42+ screens) |
-| navigation_map.md | Application navigation structure |
-| responsive_rules.md | LTR/RTL responsive layout rules |
-
-## --- FILE: responsive_rules.md ---
-
-﻿# LTR/RTL Responsive Rules - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Layout Rules
-1. Use `start` and `end` instead of `left` and `right`.
-2. Use `Directionality` widget for text direction.
-3. Use `TextDirection.ltr` for English, `TextDirection.rtl` for Arabic.
-4. All padding/margin use start/end, not left/right.
-5. Icons that indicate direction (arrows, chevrons) must flip in RTL.
-
-## Typography Rules
-1. LTR font: Inter (Latin glyphs).
-2. RTL font: Noto Sans Arabic (Arabic glyphs).
-3. Numbers always displayed LTR even in RTL context.
-4. Dates follow locale format (DD/MM/YYYY for both EN and AR).
-
-## Component Rules
-1. Tables: Column order does NOT reverse in RTL.
-2. Forms: Labels align to start (right in RTL).
-3. Navigation: Sidebar on start side (right in RTL).
-4. Buttons: Icon position flips in RTL.
-5. Dialogs: Close button on end side (left in RTL).
-
-## --- FILE: screen_catalog.md ---
-
-﻿# Screen Catalog - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Screens by Module (42+)
-| # | Screen | Route | Module | Roles |
-|---|--------|-------|--------|-------|
-| 1 | Login | /login | Auth | All |
-| 2 | Dashboard | /dashboard | Dashboard | All |
-| 3 | POS | /pos | POS | cashier, manager, owner |
-| 4 | Order List | /orders | Orders | cashier, manager, owner |
-| 5 | Order Detail | /orders/:id | Orders | cashier, manager, owner |
-| 6 | New Order | /orders/new | Orders | cashier, manager |
-| 7 | Customer List | /customers | Customers | cashier, manager, owner |
-| 8 | Customer Detail | /customers/:id | Customers | cashier, manager, owner |
-| 9 | New Customer | /customers/new | Customers | cashier, manager |
-| 10 | Inventory List | /inventory | Inventory | manager, owner |
-| 11 | Stock In | /inventory/stock-in | Inventory | manager |
-| 12 | Stock Out | /inventory/stock-out | Inventory | manager |
-| 13 | Production Queue | /production | Production | operator, manager |
-| 14 | Production Detail | /production/:id | Production | operator, manager |
-| 15 | Quality Check | /production/qc | Production | operator, manager |
-| 16 | Delivery List | /deliveries | Delivery | driver, manager |
-| 17 | Delivery Detail | /deliveries/:id | Delivery | driver, manager |
-| 18 | Route View | /deliveries/route | Delivery | driver |
-| 19 | Employee List | /employees | HR | manager, owner |
-| 20 | Employee Detail | /employees/:id | HR | manager, owner |
-| 21 | Attendance | /attendance | HR | manager, owner |
-| 22 | Payroll | /payroll | HR | owner |
-| 23 | Invoice List | /invoices | Finance | manager, owner |
-| 24 | Invoice Detail | /invoices/:id | Finance | manager, owner |
-| 25 | Payment List | /payments | Finance | cashier, manager, owner |
-| 26 | Daily Report | /reports/daily | Reports | manager, owner |
-| 27 | Sales Report | /reports/sales | Reports | manager, owner |
-| 28 | Financial Report | /reports/financial | Reports | owner |
-| 29 | Production Report | /reports/production | Reports | manager, owner |
-| 30 | HR Report | /reports/hr | Reports | owner |
-| 31 | Settings | /settings | Settings | admin, owner |
-| 32 | Branch Management | /settings/branches | Settings | admin, owner |
-| 33 | Service Catalog | /settings/services | Settings | manager, owner |
-| 34 | Price Lists | /settings/prices | Settings | manager, owner |
-| 35 | User Management | /settings/users | Settings | admin, owner |
-| 36 | Hardware Config | /settings/hardware | Settings | admin |
-| 37 | Backup & Restore | /settings/backup | Settings | admin, owner |
-| 38 | License | /settings/license | Settings | admin |
-| 39 | Sync Status | /settings/sync | Settings | admin, manager |
-| 40 | Correction Memo | /invoices/:id/correction | Finance | manager, owner |
-| 41 | Leave Management | /leaves | HR | manager, owner |
-| 42 | Expense Tracking | /expenses | Finance | manager, owner |
-
-## --- FILE: README.md ---
-
-﻿# Use Cases - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Use Case Index by Actor
-| Actor | Use Cases |
-|-------|-----------|
-| Cashier | UC-001 to UC-010 (POS, orders, payments) |
-| Manager | UC-011 to UC-020 (oversight, reports, staff) |
-| Operator | UC-021 to UC-025 (production, quality) |
-| Driver | UC-026 to UC-030 (delivery, route) |
-| Owner | UC-031 to UC-040 (finance, multi-branch, analytics) |
-| Admin | UC-041 to UC-050 (system config, users, licensing) |
-
-## --- FILE: uc_admin.md ---
-
-﻿# Use Cases: admin - LaundryPro UAE
-> **Version:** 1.0.0
-
-## UC-041: Configure System Settings
-Actor: Admin. Flow: Open settings -> Modify configuration -> Save -> Restart services if needed.
-
-## UC-042: Manage Hardware
-Actor: Admin. Flow: Run auto-discovery -> Review detected devices -> Configure connections -> Test printing.
-
-## UC-043: License Management
-Actor: Admin. Flow: View license status -> Activate/renew license -> Verify machine binding.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial use case documentation |
-
-## --- FILE: uc_cashier.md ---
-
-﻿# Use Cases: cashier - LaundryPro UAE
-> **Version:** 1.0.0
-
-## UC-001: Create Walk-in Order
-Actor: Cashier. Flow: Open POS -> Scan/select items -> Apply pricing -> Calculate total -> Process payment -> Print receipt.
-
-## UC-002: Process Payment
-Actor: Cashier. Flow: Select payment method -> Enter amount -> Validate -> Record -> Print receipt -> Open drawer.
-
-## UC-003: Lookup Customer
-Actor: Cashier. Flow: Search by name/phone -> Select customer -> Auto-fill order details.
-
-## UC-004: Apply Discount
-Actor: Cashier. Flow: Select line item or order -> Apply discount (% or fixed) -> Recalculate totals.
-
-## UC-005: Print Receipt
-Actor: Cashier. Flow: Select order -> Preview receipt -> Print on configured printer.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial use case documentation |
-
-## --- FILE: uc_driver.md ---
-
-﻿# Use Cases: driver - LaundryPro UAE
-> **Version:** 1.0.0
-
-## UC-026: View Delivery Route
-Actor: Driver. Flow: Login -> View assigned deliveries -> See route order -> Navigate to first stop.
-
-## UC-027: Confirm Delivery
-Actor: Driver. Flow: Arrive at customer -> Hand over items -> Capture confirmation -> Update status to delivered.
-
-## UC-028: Handle Failed Delivery
-Actor: Driver. Flow: Customer unavailable -> Mark as failed -> Add notes -> Return items to branch.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial use case documentation |
-
-## --- FILE: uc_manager.md ---
-
-﻿# Use Cases: manager - LaundryPro UAE
-> **Version:** 1.0.0
-
-## UC-011: View Daily Summary
-Actor: Manager. Flow: Open dashboard -> View KPIs (orders, revenue, pending) -> Drill down by branch.
-
-## UC-012: Manage Employees
-Actor: Manager. Flow: View employee list -> Add/edit/deactivate -> Assign roles -> Set schedules.
-
-## UC-013: Approve Refund
-Actor: Manager. Flow: Review refund request -> Check original invoice -> Approve/reject -> Process if approved.
-
-## UC-014: Manage Inventory
-Actor: Manager. Flow: View stock levels -> Stock-in with supplier reference -> Review alerts for low stock.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial use case documentation |
-
-## --- FILE: uc_operator.md ---
-
-﻿# Use Cases: operator - LaundryPro UAE
-> **Version:** 1.0.0
-
-## UC-021: Process Garment
-Actor: Operator. Flow: Scan garment tag -> View processing instructions -> Perform service -> Mark complete -> Move to next stage.
-
-## UC-022: Quality Check
-Actor: Operator. Flow: Inspect processed garment -> Pass/fail -> If fail: flag defect and send for rewash.
-
-## UC-023: Package Order
-Actor: Operator. Flow: Verify all items complete -> Package -> Mark order as ready -> Notify customer.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial use case documentation |
-
-## --- FILE: uc_owner.md ---
-
-﻿# Use Cases: owner - LaundryPro UAE
-> **Version:** 1.0.0
-
-## UC-031: View Financial Reports
-Actor: Owner. Flow: Select report type -> Choose period and branch -> Generate -> View/export.
-
-## UC-032: Multi-Branch Overview
-Actor: Owner. Flow: View all branches -> Compare KPIs -> Drill into branch details.
-
-## UC-033: Payroll Review
-Actor: Owner. Flow: View payroll summary -> Review calculations -> Approve -> Export SIF for WPS.
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial use case documentation |
-
-## --- FILE: cashier_daily.md ---
-
-﻿# User Journey: cashier daily - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Journey Steps
-06:00 Login -> Check pending orders -> Process walk-in customers -> Scan items -> Calculate totals -> Process payments -> Print receipts -> Handle customer queries -> Process pickups -> End-of-shift cash count.
-
-## Touchpoints
-- Desktop application (Flutter Windows)
-- Thermal receipt printer
-- Barcode scanner
-- Cash drawer
-
-## Pain Points Addressed
-- Offline operation (no internet dependency)
-- Fast POS processing (< 30 seconds)
-- Bilingual interface (EN/AR)
-- Automatic hardware detection
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial user journey |
-
-## --- FILE: first_time_setup.md ---
-
-﻿# User Journey: first time setup - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Journey Steps
-Install MSIX -> Launch app -> Enter license key -> Configure business profile (name, TRN, address) -> Create admin account -> Add first branch -> Run hardware auto-discovery -> Configure printer -> Import service catalog -> Create first test order -> Verify receipt printing -> Go live.
-
-## Touchpoints
-- Desktop application (Flutter Windows)
-- Thermal receipt printer
-- Barcode scanner
-- Cash drawer
-
-## Pain Points Addressed
-- Offline operation (no internet dependency)
-- Fast POS processing (< 30 seconds)
-- Bilingual interface (EN/AR)
-- Automatic hardware detection
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial user journey |
-
-## --- FILE: manager_daily.md ---
-
-﻿# User Journey: manager daily - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Journey Steps
-07:00 Login -> Review dashboard KPIs -> Check production queue -> Assign operators -> Handle escalations -> Review inventory alerts -> Process refund requests -> Generate daily report -> End-of-day close.
-
-## Touchpoints
-- Desktop application (Flutter Windows)
-- Thermal receipt printer
-- Barcode scanner
-- Cash drawer
-
-## Pain Points Addressed
-- Offline operation (no internet dependency)
-- Fast POS processing (< 30 seconds)
-- Bilingual interface (EN/AR)
-- Automatic hardware detection
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial user journey |
-
-## --- FILE: owner_weekly.md ---
-
-﻿# User Journey: owner weekly - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Journey Steps
-Weekly: Login -> Review multi-branch dashboard -> Compare branch performance -> Review financial reports -> Approve payroll -> Check license status -> Plan next week's operations.
-
-## Touchpoints
-- Desktop application (Flutter Windows)
-- Thermal receipt printer
-- Barcode scanner
-- Cash drawer
-
-## Pain Points Addressed
-- Offline operation (no internet dependency)
-- Fast POS processing (< 30 seconds)
-- Bilingual interface (EN/AR)
-- Automatic hardware detection
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial user journey |
-
-## --- FILE: README.md ---
-
-﻿# User Journeys - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Journey Index
-| Journey | Persona | Description |
-|---------|---------|-------------|
-| cashier_daily.md | Cashier | A cashier's typical workday |
-| manager_daily.md | Manager | A manager's typical workday |
-| owner_weekly.md | Owner | Owner's weekly review |
-| first_time_setup.md | Admin | Initial system setup experience |
-
-## --- FILE: daily_close.md ---
-
-﻿# Workflow: daily close - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Daily close: Print daily summary report -> Count cash register -> Enter counted amount -> System calculates variance -> Manager reviews and approves -> Generate daily financial report -> Backup database.
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: delivery_flow.md ---
-
-﻿# Workflow: delivery flow - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Delivery: Orders marked ready -> Group by route -> Assign driver -> Driver departs -> Update status en-route -> Deliver to customer -> Confirm delivery -> Update order status.
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: order_intake.md ---
-
-﻿# Workflow: order intake - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Walk-in order: Customer arrives -> Cashier creates order -> Add items (scan/manual) -> Apply pricing -> Calculate total with VAT -> Process payment -> Print receipt -> Tag garments -> Send to sorting.
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: payment_flow.md ---
-
-﻿# Workflow: payment flow - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Payment: Calculate total (subtotal - discounts + VAT) -> Select method (cash/card/split) -> Process payment -> Record in payments table -> Update order paid status -> Print receipt -> Open cash drawer (if cash).
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: pickup_order.md ---
-
-﻿# Workflow: pickup order - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Pickup order: Customer calls/schedules online -> Manager creates pickup order -> Assign driver -> Driver collects garments -> Tag at branch -> Process as standard order.
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: production_flow.md ---
-
-﻿# Workflow: production flow - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Production: Sorted garments -> Assign to operator -> Process (wash/dry/iron) -> Quality check -> Pass: package -> Fail: rewash/flag -> Mark ready -> Notify customer.
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: README.md ---
-
-﻿# Business Workflows - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Workflow Index
-| Workflow | Description |
-|----------|-------------|
-| order_intake.md | Walk-in order creation flow |
-| pickup_order.md | Scheduled pickup order flow |
-| production_flow.md | Garment processing pipeline |
-| delivery_flow.md | Order delivery workflow |
-| payment_flow.md | Payment processing workflow |
-| refund_flow.md | Refund and correction workflow |
-| daily_close.md | End-of-day closing procedure |
-| tenant_setup.md | New tenant onboarding workflow |
-
-## --- FILE: refund_flow.md ---
-
-﻿# Workflow: refund flow - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Refund: Identify original invoice -> Create correction memo (credit note) -> Process refund payment -> Create new invoice if needed -> Log audit trail -> Manager approval required for refunds > 500 AED.
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: tenant_setup.md ---
-
-﻿# Workflow: tenant setup - LaundryPro UAE
-> **Version:** 1.0.0
-
-## Flow
-Tenant setup: Generate UMAC license -> Install MSIX -> Run setup wizard -> Configure business profile -> Create admin user -> Setup branches -> Configure hardware -> Import service catalog -> Run test transaction -> Go live.
-
-## Actors
-- Relevant user roles as defined in user_roles.md
-
-## Preconditions
-- User authenticated with appropriate role
-- System online or offline (offline-first capable)
-
-## Postconditions
-- All state changes logged to audit_logs
-- Sync outbox updated for offline entries
-
-## Error Handling
-- Validation errors shown inline
-- System errors logged and user notified
-- Offline mode: operations queued in sync outbox
-
-## Change Log
-| Version | Date | Change |
-|---------|------|--------|
-| 1.0.0 | 2026-09-21 | Initial workflow documentation |
-
-## --- FILE: ALGORITHMS_AND_FEATURE_REVIEW.md ---
-
-﻿# LaundryPro UAE: Algorithms & Feature Review
-
-## 1. Core Algorithms
-
-### 1.1 Financial Precision Engine (`bcmath`)
-All financial aggregations in the API strictly avoid native floating-point math to prevent IEEE-754 precision drift.
-
-**Algorithm:**
-1. Fetch lines from DB as `DECIMAL(18,2)` strings.
-2. Initialize `grand_total = '0.00'`.
-3. Loop lines:
-   - `line_total = bcmul(qty_string, price_string, 2)`
-   - `line_total = bcsub(line_total, discount_string, 2)`
-   - `grand_total = bcadd(grand_total, line_total, 2)`
-4. Apply VAT (5%):
-   - `tax_amount = bcmul(grand_total, '0.05', 2)`
-   - `final_grand_total = bcadd(grand_total, tax_amount, 2)`
-5. Return JSON payload encapsulating values as strings.
-
-### 1.2 Offline-First Sync Backoff Algorithm
-When pushing local changes to the cloud from `sync_outbox`, network failures trigger an exponential backoff to preserve system resources.
-
-**Algorithm:**
-1. Daemon queries `SELECT * FROM sync_outbox WHERE status IN ('pending', 'failed') AND next_retry_at <= NOW() LIMIT 100`.
-2. For each record, `POST` to cloud.
-3. If `200 OK`, `UPDATE status = 'synced'`.
-4. If Network Timeout or `5xx`:
-   - `attempts = attempts + 1`
-   - If `attempts > 10`: `status = 'dead_letter'`
-   - Else: `delay = power(2, attempts) * 60` seconds.
-   - `next_retry_at = NOW() + delay`
-
-### 1.3 Inventory Concurrency Lock
-To prevent negative inventory when two terminals sell the same product simultaneously.
-
-**Algorithm:**
-1. `BEGIN TRANSACTION;`
-2. `SELECT qty_on_hand FROM products WHERE id = X FOR UPDATE;` (Locks row)
-3. If `qty_on_hand - req_qty < 0`: Rollback & throw `InsufficientStockException`.
-4. `UPDATE products SET qty_on_hand = qty_on_hand - req_qty;`
-5. `INSERT INTO inventory_movements ...`
-6. `COMMIT;` (Releases lock)
-
----
-
-## 2. Feature Review & Screen Index
-
-| UI Screen | Feature Set | State |
-|---|---|---|
-| **AppShell** | Navigation rail, localized RTL/LTR, sync status indicator, dynamic theming. | Production Ready |
-| **Dashboard** | 60s auto-refresh, top KPIs, financial trend arrows, quick actions. | Production Ready |
-| **POS Screen** | Barcode scanning integration, split payments panel, `bcmath` mirrored calculations. | Production Ready |
-| **Catalog** | `AppDataTable` integration, 2000+ item pagination, image attachment mapping. | Production Ready |
-| **Customers** | CRM tracking, outstanding balance calculations, WhatsApp quick-link integration. | Production Ready |
-| **Peripherals** | Epson/Citizen thermal printer integration via ESC/POS protocol, cash drawer pulse testing. | Production Ready |
-| **Shift Close** | Blind cash entry, variance calculation logic, forced Z-Report printing. | Production Ready |
-| **Settings** | UI bindings to `system_settings` table, dynamic VAT adjustments, licensing UMAC verifications. | Production Ready |
-
-### Final Readiness Assessment
-The runtime features operate accurately. The frontend is fully decoupled from the backend state via offline repositories. All components meet strict deployment specifications.
-
-
-## --- FILE: BLUEPRINT_WORKFLOWS_USE_CASES.md ---
-
-
-
-## --- FILE: CLOSEOUT_CHECKLIST.md ---
-
-# LaundryPro UAE — Final Closeout Checklist
-
-**Version:** 1.2.1+4  
-**Date:** 2026-09-05  
-**Quality gate:** `powershell scripts\dev.ps1 gate`
-
-## Consolidation
-
-| Item | Status |
-|------|--------|
-| `001_baseline.sql` greenfield migration | Done |
-| Incremental migrations archived | Done |
-| `001_all_seeds.sql` + `run_dev_seed.php` | Done |
-| `scripts/dev.ps1` unified CLI | Done |
-| API tests → 4 phase suites (182 cases) | Done |
-| Legacy DB baseline shim in MigrationService | Done |
-
-## Test evidence
-
-| Suite | Pass | Skip |
-|-------|------|------|
-| API (`run_api_tests.php`) | 173 | 9 |
-| Flutter (`flutter test`) | 116 | 0 |
-| OpenAPI routes | 148 | — |
-
-## Phase gap audit
-
-| Track | Status | Notes |
-|-------|--------|-------|
-| Phase 0 | VERIFIED | Platform + quality gate |
-| Phase 1 | VERIFIED | CRM, catalog, POS, sales, sync local |
-| Phase 1C | VERIFIED | License, backup verify/restore |
-| Phase 2 | VERIFIED | Production, delivery, challans, purchasing, HR, payroll, expenses, reports, notifications |
-| Phase 2 P2-13 | DEFERRED | Print template designer UI — peripheral template DB exists, no visual designer |
-| Phase 3 | VERIFIED | Branches, terminals, LAN, analytics, KSA, channels, accounting, storefront, portal |
-| CR-2026-09-02-001 | PARALLEL | Cloud scaffold; tenant tests optional (skip on 404) |
-| CR-2026-09-05-002 | VERIFIED | Phase 3 completion |
-| CR-2026-09-05-003 | VERIFIED | POS peripheral framework merge |
-| POS hardware | VERIFIED | Print, scan, drawer; printer must be selected in Peripherals |
-
-## Documentation synced
-
-| Document | Updated |
-|----------|---------|
-| CR-2026-09-05-003.md | Yes |
-| EDGE_CASES.md (AC-031..035) | Yes |
-| QUALITY_GATE.md | Yes |
-| api-contract.md | Yes |
-| docs/peripherals/README.md | Yes |
-| Roadmap (key sections) | Yes |
-
-## Git closeout
-
-- [x] Commit 1: `feat(peripherals): merge POS peripheral framework`
-- [x] Commit 2: `chore: consolidate artifacts and sync v1.2.1 docs`
-- [x] Quality gate green
-- [x] `git push origin main` (`9a3eeb2`)
-
-## Known optional skips (not blockers)
-
-- Cloud tenant registration tests (cloud-api not on localhost)
-- `p3_branch_create` / `p3_terminal_create` optional 500 in some envs
-- MSIX build requires VS C++ ATL + `scripts/peripherals/stage_missing_dlls.ps1`
-
-
-## --- FILE: DATABASE_ER_DIAGRAM.md ---
-
-﻿# LaundryPro UAE: Database Entity-Relationship (ER) Diagram
-
-This document defines the core relational data model underpinning the LaundryPro UAE offline-first system.
-
-## Core Schema
+## Journey 1: The Walk-In Retail Customer (Express Kandora & Suits)
 
 ```mermaid
-erDiagram
-    BUSINESS ||--o{ BRANCHES : "owns"
-    BRANCHES ||--o{ TERMINALS : "contains"
-    
-    ROLES ||--o{ USERS : "defines permissions for"
-    USERS ||--o{ REFRESH_TOKENS : "issues"
-    USERS ||--o{ AUDIT_LOGS : "performs"
-    
-    CUSTOMERS ||--o{ SALES_ORDERS : "places"
-    
-    CATEGORIES ||--o{ SERVICES : "groups"
-    SERVICES ||--o{ SERVICE_PRODUCT_MAP : "consumes"
-    PRODUCTS ||--o{ SERVICE_PRODUCT_MAP : "is consumed by"
-    
-    SALES_ORDERS ||--o{ SALES_ORDER_LINES : "contains"
-    SALES_ORDERS ||--o{ PAYMENT_TRANSACTIONS : "paid via"
-    
-    PRODUCTS ||--o{ INVENTORY_MOVEMENTS : "tracked by"
-    VENDORS ||--o{ PURCHASE_ORDERS : "receives"
-    PURCHASE_ORDERS ||--o{ INVENTORY_MOVEMENTS : "restocks via"
-    
-    TERMINALS ||--o{ SYNC_OUTBOX : "queues data to"
-    SYNC_OUTBOX ||--o{ SYNC_STATE : "monitored by"
-    
-    BUSINESS {
-        int id PK
-        string name
-        string trn
-        boolean is_active
-    }
-    
-    USERS {
-        int id PK
-        string uuid
-        int role_id FK
-        string username
-        string password_hash
-    }
-    
-    ROLES {
-        int id PK
-        string name
-        json permissions
-    }
-    
-    CUSTOMERS {
-        int id PK
-        string uuid
-        string name
-        string phone
-        decimal outstanding_balance
-    }
-    
-    SALES_ORDERS {
-        int id PK
-        string uuid
-        int customer_id FK
-        string status
-        string payment_status
-        decimal grand_total
-        decimal balance_due
-    }
-    
-    SALES_ORDER_LINES {
-        int id PK
-        int sales_order_id FK
-        int service_id FK
-        int quantity
-        decimal unit_price
-        decimal subtotal
-    }
-    
-    PRODUCTS {
-        int id PK
-        string sku
-        string name
-        int qty_on_hand
-        int reorder_point
-    }
-    
-    INVENTORY_MOVEMENTS {
-        int id PK
-        int product_id FK
-        string type
-        int quantity_change
-    }
-    
-    SYNC_OUTBOX {
-        int id PK
-        string entity_type
-        string entity_uuid
-        string action
-        json payload
-        string status
-        int attempts
-        timestamp next_retry_at
-    }
+journey
+    title Walk-In Retail Customer Experience
+    section Intake at Counter
+      Arrives at retail branch: 5: Customer
+      Cashier enters mobile number: 5: Customer, Cashier
+      Inspects garments & selects starch level: 4: Customer, Cashier
+      Takes heat-seal tagged receipt: 5: Customer
+    section Processing & Notification
+      Receives WhatsApp order confirmation: 5: Customer
+      Garments washed, pressed, and staged on rack: 5: Sorter, Ironer
+      Receives WhatsApp notification 'Ready for Pickup': 5: Customer
+    section Collection & Handover
+      Returns to branch & shows receipt barcode: 5: Customer
+      Cashier retrieves garments from rack: 5: Cashier
+      Tenders Apple Pay payment: 5: Customer, Cashier
+      Receives bilingual FTA tax invoice: 5: Customer
 ```
 
-## Design Constraints
-- All primary keys (`id`) are unsigned integers auto-incremented for local database speed.
-- All replicated tables possess a `uuid` `CHAR(36)` used as the global primary key when synchronizing to the central cloud.
-- Monetary values (`grand_total`, `subtotal`, etc.) are STRICTLY typed as `DECIMAL(18,2)`.
-- The `sync_outbox` acts as an event-store for the offline-first replication engine.
+---
 
+## Journey 2: Home Pickup & Van Delivery Customer
 
-## --- FILE: MANUAL_ADMIN_SUPERADMIN_BOOK.md ---
-
-﻿# LaundryPro UAE — Super-Admin & Cloud Portal Guide
-
-**Document Version:** 2.0 (Production Release)  
-**Target Audience:** Magnificent Solution System Administrators, Cloud Operators, Franchise IT Heads  
+1. **Order Initiation**: Customer requests home laundry pickup via telephone or online storefront portal.
+2. **Driver Dispatch**: Store manager assigns the task to the neighborhood delivery driver; driver's tablet updates with customer location, building name, and apartment number.
+3. **Doorstep Intake**: Driver arrives with branded laundry bags, inspects garments, enters items on the mobile POS interface, and issues a digital WhatsApp receipt.
+4. **Processing**: Garments are transported to the store/plant, tagged, and processed through their respective wash cycles.
+5. **Scheduled Delivery**: Customer receives an interactive notification allowing them to confirm their presence at home. Driver delivers clean, hung garments and collects payment via portable wireless card terminal.
 
 ---
 
-## Table of Contents
-1. [Cloud Architecture & Security Overview](#1-cloud-architecture--security-overview)
-2. [Accessing the Super-Admin Web Portal](#2-accessing-the-super-admin-web-portal)
-3. [Dashboard Metrics & Operational Telemetry](#3-dashboard-metrics--operational-telemetry)
-4. [Tenant & Client Laundry Node Management](#4-tenant--client-laundry-node-management)
-5. [Cryptographic License Issuance & Management](#5-cryptographic-license-issuance--management)
-6. [Offline License Request Processing (laundrypro_req.lic)](#6-offline-license-request-processing-laundrypro_reqlic)
-7. [Remote Revocation & Kill-Switch](#7-remote-revocation--kill-switch)
-8. [Real-time Sync Payload Stream Inspector](#8-real-time-sync-payload-stream-inspector)
-9. [System Audit Trail & Security Logs](#9-system-audit-trail--security-logs)
-10. [Database Backup & Maintenance](#10-database-backup--maintenance)
-11. [Backup & Restore Procedures](#11-backup--restore-procedures)
-12. [Rate Limiting & Security Monitoring](#12-rate-limiting--security-monitoring)
-13. [Sync Engine Monitoring](#13-sync-engine-monitoring)
-14. [RBAC Role Management](#14-rbac-role-management)
-15. [Financial Precision Notes (bcmath)](#15-financial-precision-notes-bcmath)
+## Journey 3: Corporate Contract Client (B2B Hotel & Clinic Linen)
+
+1. **Scheduled Daily Collection**: Van arrives at hotel loading dock; logistics staff scans bulk linen hampers (bed sheets, pillowcases, duvet covers, towels).
+2. **Gross Weight & Count Manifest**: Digital Challan manifest is co-signed by hotel housekeeper and van driver.
+3. **Industrial Cleanroom Processing**: Central factory processes items through high-temperature thermal disinfection tunnel washers and automated flatwork ironers.
+4. **Gate-Pass Return**: Clean linen bundles return to hotel wrapped in hygienic film with delivery gate-pass.
+5. **Monthly Consolidated Invoicing**: At month-end, system compiles all daily challans into a consolidated corporate VAT tax invoice with 30-day payment credit terms.
 
 ---
 
-## 1. Cloud Architecture & Security Overview
+<a id="file-workflows-business-workflows-md"></a>
 
-The Central Cloud API & Super-Admin Web Portal resides in cloud-api/ and is designed for standard cPanel shared hosting or Linux Apache servers:
-- **Framework:** Pure PHP 8.2 with PDO MariaDB/MySQL.
-- **Frontend UI:** AdminLTE v4 (Bootstrap 5, FontAwesome/Bootstrap Icons).
-- **Public Root:** cloud-api/public/ (accessible via VirtualHost or sub-folder).
-- **Database:** laundrypro_cloud.
+## --- FILE: workflows\BUSINESS_WORKFLOWS.md ---
 
----
+# LaundryPro UAE — Textile Care & Business Operations Workflows
 
-## 2. Accessing the Super-Admin Web Portal
-
-1. Navigate to:
-   http://localhost/cloud-api/public/admin or http://cloud-api/admin  
-   (Production URL: https://www.laundrypro-cloudapi.magnificentsolution.co.in/admin)
-2. Enter your super-admin credentials:
-   - **Username:** superadmin
-   - **Password:** SuperAdmin@LaundryPro2026!
-3. The session is protected by cryptographic cookie signatures and CSRF tokens.
+> **Version:** 2.0.0 | **Authoritative Plant & Store Operational Manual**
 
 ---
 
-## 3. Dashboard Metrics & Operational Telemetry
+## 1. Garment Classification & Sorting Matrix
 
-The executive dashboard displays:
-- **Total Registered Tenants:** Count of laundry business nodes.
-- **Active Licenses:** Count of valid, unexpired licenses.
-- **Total Sync Events:** All-time ingested data records.
-- **24-Hour Telemetry:** Pushes, orders, and pings received in the last 24 hours.
-- **Recent Tenants Table:** Quick links to client profiles and activation statuses.
+Every garment intake is routed into a specific processing stream based on fabric composition and care label symbols:
 
----
-
-## 4. Tenant & Client Laundry Node Management
-
-Navigate to **Tenants** in the sidebar:
-1. **View Tenants:** View all registered laundry owners, trade license numbers, contact info, and node status.
-2. **Cloud Tokens:** Each tenant has an auto-generated high-entropy Bearer token (	oken_...) used by their local XAMPP node for authentication.
-3. **Status Control:** Toggle status between **Active**, **Suspended**, or **Archived**.
-
----
-
-## 5. Cryptographic License Issuance & Management
-
-Navigate to **Licenses** in the sidebar:
-1. Click **Issue New License**.
-2. Select the client **Tenant / Business**.
-3. Choose Plan:
-   - **Standard** (Full features, 1 year validity)
-   - **Enterprise** (Multi-branch, unlimited terminals)
-   - **Trial / Evaluation** (7 days, 9 invoices quota)
-4. Enter target hardware **UMAC Code** (e.g., UMAC-8F2A-49C1-77B0).
-5. Click **Generate License**.
-6. The system generates a cryptographically signed license key:
-   LP-1A2B3C4D-5E6F-7G8H
-   which is returned to the client.
+```mermaid
+flowchart TD
+    Garment["Incoming Garment"] --> Inspect["Initial Counter / Plant Inspection"]
+    
+    Inspect --> FabricCheck{"Fabric Type & Care Label"}
+    
+    FabricCheck -->|Silk, Wool, Structured Suits, Beaded Abayas| DryClean["Dry Cleaning Stream<br/>(Hydrocarbon / GreenEarth / Perc)"]
+    FabricCheck -->|Kandoras, Shirts, Bed Linen, Towels| WetClean["Wet Cleaning & Commercial Wash<br/>(Controlled Water Temp & Mechanical Action)"]
+    FabricCheck -->|Curtains, Heavy Rugs, Blankets| BulkWash["Heavy Duty Wash Stream<br/>(High Capacity Drum Extractors)"]
+    
+    DryClean --> PostSpot["Post-Spotting Table"]
+    WetClean --> TumbleDry["Moisture-Controlled Tumble Dry"]
+    
+    PostSpot --> Pressing["Steam Form Finishing & Collar/Cuff Press"]
+    TumbleDry --> Pressing
+    BulkWash --> Flatwork["Flatwork Ironer Roller (Linen)"]
+    
+    Pressing --> FinalQC{"Quality Control Check"}
+    Flatwork --> FinalQC
+    
+    FinalQC -->|Stain / Wrinkle Detected| ReWash["Re-Wash & Spotting (No Charge)"]
+    ReWash --> FabricCheck
+    
+    FinalQC -->|Passed| AutoBag["Poly-Bagger & Automated Sorter Conveyor"]
+```
 
 ---
 
-## 6. Offline License Request Processing (laundrypro_req.lic)
+## 2. Chemical Dosing & Controlled Wash Cycles
 
-For client machines without internet access:
-1. Client generates laundrypro_req.lic from the Flutter License Screen.
-2. Client sends this file to Magnificent Solution support.
-3. Super-Admin opens the License Generator, inputs the client details and hardware UMAC from the file.
-4. Download the signed laundrypro_license.lic file and return it to the client.
-5. Client imports the file into their desktop app to unlock permanent operation.
-
----
-
-## 7. Remote Revocation & Kill-Switch
-
-If a client terminates their contract or fails payment:
-1. Navigate to **Licenses**.
-2. Locate the client license and click **Revoke License**.
-3. On the next cloud handshake (or sync attempt), the local node receives the revocation signal and locks POS transaction capabilities.
+For industrial laundries and automated dosing pumps connected to washer-extractors:
+1. **Pre-Wash**: Flush with cold water to remove water-soluble soils and protein stains.
+2. **Main Wash**: Controlled alkali and detergent injection with automated temperature ramp:
+   - Whites / Hospital Linen: $65^\circ\text{C} - 75^\circ\text{C}$ with oxygen-based bleach.
+   - Colored Cottons / Kandoras: $40^\circ\text{C} - 50^\circ\text{C}$ with optical brighteners.
+   - Delicates / Silks: Cold wash ($30^\circ\text{C}$) with neutral pH surfactant.
+3. **Rinse & Neutralization**: Sour / acid neutralizing agent injected to restore fabric pH to skin-friendly level ($\text{pH } 5.5 - 6.5$).
+4. **Starch & Fragrance Finishing**: Automated starch sizing injected for crisp collars and traditional Kandoras.
 
 ---
 
-## 8. Real-time Sync Payload Stream Inspector
+## 3. Garment Damage & Loss Claim Workflow
 
-Navigate to **Sync Records** in the sidebar:
-- Inspect inbound JSON payloads stream pushed by client workstations.
-- Filter by Tenant, Entity Type (customer, sales_order, payment, expense).
-- View exact timestamps, local record IDs, and payload snapshots for technical troubleshooting.
-
----
-
-## 9. System Audit Trail & Security Logs
-
-Navigate to **Audit Logs**:
-- Every super-admin login, tenant creation, license issuance, and revocation is recorded with:
-  - Admin User ID
-  - Action Name
-  - Timestamp
-  - Client IP Address
-  - Action Details
+In the rare event of garment damage, shrinkage, or loss:
+1. Store Manager opens a **Garment Claim Record** in the Local Admin Portal referencing the Order and Garment Tag Barcode.
+2. Standard textile depreciation guidelines are applied:
+   $$\text{Settlement Value} = \text{Original Garment Value} \times (1 - \text{Depreciation Rate}) \quad (\text{Cap: } 10\times \text{ Cleaning Charge})$$
+3. Upon customer agreement, the Manager clicks **"Authorize Settlement"**:
+   - Payout via Store Credit Voucher (added to customer balance), or
+   - Cash Refund with accompanying FTA Credit Note.
 
 ---
 
-## 10. Database Backup & Maintenance
-
-The cloud database laundrypro_cloud should be backed up using mysqldump:
-`ash
-mysqldump -u root -p laundrypro_cloud > laundrypro_cloud_backup_.sql
-`
-
----
-
-## 11. Backup & Restore Procedures
-
-All system backups are executed via the local PHP API to ensure consistency.
-
-1. **Creating a Backup:** 
-   - A cron job or manual trigger calls POST /api/v1/backup/run.
-   - The system executes mysqldump, packages the .sql file into a .zip, and generates a SHA-256 cryptographic manifest.
-2. **Restoring a Backup:**
-   - Call POST /api/v1/backup/restore.
-   - The system unpacks the .zip, validates the SHA-256 signature against the manifest to prevent payload tampering, and overwrites the active database.
-   - **Never manually restore a raw SQL dump** in a production environment as it bypasses the audit and integrity checks.
-
----
-
-## 12. Rate Limiting & Security Monitoring
-
-The RateLimitMiddleware protects all /auth/* endpoints against brute-force attacks using an IP-based sliding window throttle.
-
-- **Rule:** Maximum 5 attempts per 1-minute window per IP.
-- **Enforcement:** If exceeded, the API returns 429 Too Many Requests.
-- **Monitoring:** Check the system_settings table for keys prefixed with 
-ate_limit:. These keys store the hit count and expiry timestamp. Admins can manually clear these rows if a legitimate terminal is locked out.
-
----
-
-## 13. Sync Engine Monitoring
-
-The offline-first sync engine relies on the sync_outbox table and the SyncService background daemon.
-
-- **Monitoring:** Call GET /api/v1/sync/status to check the outbox depth.
-- **Outbox States:**
-  - pending: Record is queued for the next push cycle.
-  - synced: Record successfully received by the cloud.
-  - ailed: Push failed. The engine applies an exponential backoff (up to 10 attempts) before parking the record.
-- **Alerts:** Set up a monitoring threshold. If pending records exceed 500, or if any record is stuck in ailed for more than 24 hours, an alert should be dispatched to the IT team.
-
----
-
-## 14. RBAC Role Management
-
-The system uses granular Role-Based Access Control (RBAC). Roles are strictly defined in the 
-oles and 
-ole_permissions tables.
-
-- **Creating Roles:** Use the **Role Editor Screen** in the Flutter UI or POST /api/v1/roles to create custom roles (e.g., "Junior Cashier", "Inventory Manager").
-- **Granular Permissions:** Permissions follow the 
-esource.action convention (e.g., sales.read, sales.write, catalog.write, users.manage).
-- **Enforcement:** All permissions are validated server-side by the PHP controllers using the JWT payload claims.
-
----
-
-## 15. Financial Precision Notes (bcmath)
-
-**CRITICAL:** LaundryPro UAE entirely forbids the use of native PHP floating-point numbers (loat / double) for monetary calculations.
-
-- **Why?** Native floats introduce precision loss (e.g.,  .1 + 0.2 = 0.30000000000000004), which compounds into massive discrepancies over thousands of sales and tax calculations.
-- **The Standard:** All monetary values are strictly cast to DECIMAL(18,2) in MariaDB and transported as **strings** in JSON payloads.
-- **PHP Calculations:** Whenever the API must perform math (e.g., tax calculation, discounts), it strictly uses the cmath extension (cadd, csub, cmul, cdiv) with a scale of 2.
-- **Admin Action:** Ensure extension=bcmath is enabled in php.ini on all edge terminals. If disabled, the API will crash on any financial mutation.
-
-
-
-## --- FILE: MANUAL_OPERATOR_BOOK.md ---
-
-# LaundryPro UAE — Operator & Cashier User Manual
-
-**Document Version:** 2.1 (Production Release)
-**Product Version:** 1.2.1+4
-**Target Audience:** Front-desk Cashiers, Store Operators, Laundry Floor Staff, Delivery Drivers
-
----
-
-## Table of Contents
-1. [Starting the Application](#1-starting-the-application)
-2. [Splash Screen & Self-Healing Boot](#2-splash-screen--self-healing-boot)
-3. [Logging In & Profile Switching](#3-logging-in--profile-switching)
-4. [Instant Sale / Counter Point of Sale (POS)](#4-instant-sale--counter-point-of-sale-pos)
-5. [Customer CRM & Walk-In Customers](#5-customer-crm--walk-in-customers)
-6. [Thermal Receipt Printing & Cash Drawer](#6-thermal-receipt-printing--cash-drawer)
-7. [Order Tracking & Processing Movement](#7-order-tracking--processing-movement)
-8. [Factory Challans & Delivery Tasks](#8-factory-challans--delivery-tasks)
-9. [Staff Attendance Clock-In / Clock-Out](#9-staff-attendance-clock-in--clock-out)
-10. [End of Day Closing & Reports](#10-end-of-day-closing--reports)
-11. [Offline Resilience & Recovery](#11-offline-resilience--recovery)
-12. [Split Payments (Multi-Tender)](#12-split-payments-multi-tender)
-13. [Hold & Resume Sales](#13-hold--resume-sales)
-14. [Refunds & Correction Memos](#14-refunds--correction-memos)
-15. [Keyboard Shortcuts](#15-keyboard-shortcuts)
-16. [WhatsApp Receipt Sharing](#16-whatsapp-receipt-sharing)
-
----
-
-## 1. Starting the Application
-
-Launch LaundryPro UAE from your Windows Desktop shortcut or executable:
-
-`
-build\\windows\\x64\\runner\\Release\\laundrypro_uae.exe
-`
-
-Ensure that XAMPP (Apache and MySQL) is running on the computer before launching.
-
----
-
-## 2. Splash Screen & Self-Healing Boot
-
-When the program opens, a modern splash screen validates the system environment:
-
-1. **Verifying Local Node Connectivity:** Checks if the local database and local web server are active.
-   - *If offline:* The screen clearly displays: *Unable to connect to local database engine. Please verify XAMPP is running.* You can click **Retry** or **Exit Application**.
-2. **Applying Database Upgrades:** Silently checks for pending database migrations and executes them automatically without operator intervention.
-3. **Evaluating License & Machine ID:** Checks hardware UMAC and active license quotas.
-4. **Cloud Background Handshake:** In the background, contacts the central cloud server to check for sync updates (never blocks offline usage).
-5. **Dashboard Transition:** Opens the Login screen smoothly.
-
----
-
-## 3. Logging In & Profile Switching
-
-1. Enter your operator username and password:
-   - **Default Admin:** dmin / dmin123
-   - Passwords are case-sensitive. Contact your system administrator if locked out.
-2. Select your preferred language:
-   - **English (LTR)** or **العربية (Arabic RTL)**.
-   - You can toggle language at any time from the top navigation bar.
-3. To switch operator profiles mid-shift, click your name avatar in the top-right corner and select **Switch User** without closing the application.
-
----
-
-## 4. Instant Sale / Counter Point of Sale (POS)
-
-The POS interface is optimised for keyboard, mouse, and touchscreen operation:
-
-1. **Select or Scan Customer:**
-   - Use the Customer Search bar (by phone number, name, or code) or click **Walk-in Customer**.
-2. **Add Laundry Items:**
-   - Tap category buttons (Dry Clean, Wash & Fold, Steam Press, Curtain Care).
-   - Click services or scan item barcodes.
-   - Adjust quantities using the on-screen keypad (+ / -).
-3. **Apply Modifiers & Urgency:**
-   - Express Service (+50%), Fragrance, Stiff Starch, Stain Treatment.
-4. **Collect Payment:**
-   - Choose Payment Method: **Cash**, **Card / Terminal**, **Credit (Account)**, or **Split** (see Section 12).
-   - If paying Cash, enter tender amount; the system calculates exact change in AED & Fils.
-5. **Finalize Order:**
-   - Click **Confirm & Print**. The thermal receipt prints immediately and the cash drawer kicks open.
-
----
-
-## 5. Customer CRM & Walk-In Customers
-
-1. Navigate to **Customers** on the left navigation rail.
-2. Click **New Customer** (F2):
-   - Enter Full Name, UAE Mobile Number (+971 50 ...), TRN (if corporate), Delivery Address, Villa/Flat No.
-3. View order history, unpaid ledger balances, and loyalty points.
-
----
-
-## 6. Thermal Receipt Printing & Cash Drawer
-
-- **Printer Models Supported:** Standard 80 mm and 58 mm ESC/POS thermal receipt printers (Epson, Citizen, Bixolon, Xprinter).
-- **Cash Drawer:** Automatically pops open via RJ11 pulse on cash transactions.
-- **Reprint Receipt:** Open any past order and click **Reprint Receipt** (Ctrl+P).
-- **Test Print:** Navigate to **Settings > Peripherals > Test Print** to verify printer alignment.
-
----
-
-## 7. Order Tracking & Processing Movement
-
-Track order progress through 4 standard stages:
-
-1. **Received (Counter):** Items tagged and bagged.
-2. **In Processing (Washing/Dry Cleaning):** Items in wash or dry clean cycle.
-3. **Ready for Pickup / Delivery:** Ironed, packaged, and inspected by QC.
-4. **Delivered / Completed:** Customer collected or driver delivered.
-
-Status changes are logged with operator name and timestamp for full auditability.
-
----
-
-## 8. Factory Challans & Delivery Tasks
-
-- **Challans:** For laundries with an off-site central factory, generate a batch transfer Challan with line counts and barcodes for the transport driver.
-- **Home Deliveries:** View scheduled deliveries, assign to drivers, and mark completed upon drop-off.
-
----
-
-## 9. Staff Attendance Clock-In / Clock-Out
-
-1. Navigate to **HR & Attendance**.
-2. Staff member selects their profile or scans their employee barcode badge.
-3. Tap **Clock In** at the start of shift and **Clock Out** at the end of shift.
-4. Records are automatically compiled for monthly UAE Labour Law compliant payroll.
-
----
-
-## 10. End of Day Closing & Reports
-
-At the end of your shift:
-1. Navigate to **Reports** > **Daily Sales Summary**.
-2. Verify:
-   - Total Cash in Drawer
-   - Total Card Payments
-   - Total Outstanding Invoices
-3. Print the **Shift End / Z-Report** for the store manager.
-4. For full shift reconciliation with variance logging, see Section 13: Hold & Resume Sales actually see Shift Close (UC-13 in Blueprint).
-
----
-
-## 11. Offline Resilience & Recovery
-
-- **Zero Cloud Dependence:** You can continue booking orders, printing receipts, and collecting payments even if the internet is completely disconnected.
-- When internet returns, the background sync engine seamlessly uploads records to the central cloud.
-- The status bar at the bottom of every screen shows a **Sync Status** indicator:
-  - Green dot: All records synced.
-  - Amber dot: Pending records in outbox (syncing shortly).
-  - Red dot: Offline; records queued locally.
-
----
-
-## 12. Split Payments (Multi-Tender)
-
-Use Split Payment when a customer wants to settle an invoice with more than one payment method (e.g., part cash, part card).
-
-**Steps:**
-
-1. Build the cart and proceed to **Checkout** as normal.
-2. Instead of selecting a single payment method, click **Split Payment**.
-3. The Split Payment panel opens showing the full invoice total.
-4. Enter the **Cash amount** the customer is paying (e.g., 100.00 AED).
-   - The panel automatically shows the **Remaining Balance** (e.g., 110.00 AED).
-5. Select the second method for the remaining balance: **Card / Terminal**, **Credit (Account)**, or a third split.
-6. For Card: confirm the physical terminal has approved the charge, then click **Card Approved**.
-7. Verify the running total matches the invoice total (the **Finalize** button only activates when fully balanced).
-8. Click **Finalize Split Payment**.
-9. A **single consolidated receipt** prints listing all payment legs.
-10. The cash drawer opens only if a cash leg was included.
-
-> **Note:** Change is only calculated and given on the **cash leg**. Card and account legs must be exact amounts.
-
----
-
-## 13. Hold & Resume Sales
-
-Hold an in-progress cart without losing its contents — useful when a customer needs to step aside or fetch more items.
-
-**To Hold a Sale:**
-
-1. While on the active cart screen, press **Ctrl+H** or click the **Hold Cart** icon (pause symbol) in the toolbar.
-2. Enter an optional **Hold Note** (e.g., “customer fetching more garments”).
-3. Click **Hold**. The cart is saved and the POS clears to accept a new customer.
-
-**To Resume a Held Sale:**
-
-1. Click the **Held Orders** tray icon in the top navigation bar (shows count badge).
-2. Select the held cart from the list.
-3. Click **Resume** — the cart reloads with all items, customer details, and modifiers intact.
-4. Continue checkout as normal.
-
-> **Important:** Held carts do not generate an invoice or reserve stock. They are session-level holds. If the application is closed, held carts are discarded.
-
----
-
-## 14. Refunds & Correction Memos
-
-LaundryPro UAE never modifies or deletes an original invoice. All refunds and corrections are handled through a **Correction Memo** (Credit Memo) that links back to the original order.
-
-**Steps to Issue a Correction Memo:**
-
-1. Navigate to **Orders** and search for the original order by number, customer name, or date.
-2. Open the order detail view.
-3. Click **Issue Correction Memo** (requires Manager role or above).
-4. In the dialog:
-   - Select the line items to refund (full or partial lines).
-   - Enter the **refund reason** (mandatory field).
-   - Choose the **refund method**: Cash Return, Account Credit, or Voucher.
-5. Click **Confirm Memo**.
-6. The system creates a **Credit Memo** (e.g., #CM-2026-00019) with a negative total referencing the original order.
-7. A **Correction Memo receipt** prints automatically, clearly headed:
-
-   `
-   CORRECTION MEMO — NOT AN INVOICE
-   Ref. Original Order: LP-2026-00109
-   `
-
-8. Return cash to the customer or apply the credit to their account.
-
-> **Key Rules:**
-> - The original invoice remains unchanged and visible in history.
-> - Only managers and above can issue correction memos.
-> - Partial refunds are allowed; you cannot refund more than the original line quantity.
-
----
-
-## 15. Keyboard Shortcuts
-
-Keyboard shortcuts accelerate high-volume counter operations. All shortcuts are active when the POS or Orders screen is in focus.
-
-| Shortcut | Action |
-|---|---|
-| **F1** | Open Help / This Manual |
-| **F2** | New Customer |
-| **F3** | Customer Search |
-| **F4** | New Order / Open Cart |
-| **F5** | Refresh Current Screen |
-| **F6** | Apply Express (+50%) modifier to selected line |
-| **F8** | Void / Remove selected cart line |
-| **F9** | Open Cash Drawer (manual pulse) |
-| **F10** | Proceed to Checkout |
-| **F11** | Toggle Full-Screen Mode |
-| **F12** | Reprint Last Receipt |
-| **Ctrl+H** | Hold Current Cart |
-| **Ctrl+P** | Print / Reprint Receipt |
-| **Ctrl+R** | Open Refund / Correction Memo |
-| **Ctrl+Z** | Undo Last Item Add (cart only) |
-| **Ctrl+S** | Save Draft (hold cart silently) |
-| **Ctrl+Shift+S** | Shift Close Screen |
-| **Ctrl+W** | Send WhatsApp Receipt (see Section 16) |
-| **Escape** | Cancel current dialog / close panel |
-| **Enter** | Confirm active dialog / proceed |
-| **+** / **-** | Increase / Decrease selected item quantity |
-| **Numpad 0–9** | Quick quantity entry on focused line |
-
----
-
-## 16. WhatsApp Receipt Sharing
-
-Send a digital receipt directly to the customer\'s WhatsApp number immediately after payment.
-
-**After completing a sale:**
-
-1. The post-payment confirmation screen shows a **Send WhatsApp Receipt** button (or press **Ctrl+W**).
-2. Verify the customer\'s UAE mobile number displayed (pre-filled from the customer record).
-3. Click **Send via WhatsApp**.
-4. The system constructs a WhatsApp deep-link with the receipt summary pre-filled in the message body:
-   `
-   https://wa.me/971501234567?text=LaundryPro+UAE+Receipt+%23LP-2026-00109...
-   `
-5. Windows opens the WhatsApp Desktop app (or WhatsApp Web in browser).
-6. Review the pre-filled message and click **Send** in WhatsApp.
-
-**To share a receipt for a past order:**
-
-1. Open the order in **Orders > Order Detail**.
-2. Click the **WhatsApp** icon in the action bar.
-3. Follow steps 2–6 above.
-
-> **Note:** WhatsApp sharing uses the standard wa.me deep-link protocol and requires WhatsApp Desktop or WhatsApp Web to be installed and logged in on the workstation. An active internet connection is required for WhatsApp delivery; the local POS operates fully without it.

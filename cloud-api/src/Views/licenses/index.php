@@ -7,6 +7,7 @@
       </div>
       <div class="card-body p-4">
         <form action="/admin/licenses/issue" method="POST">
+          <?= \LaundryPro\Cloud\Middleware\CsrfMiddleware::field() ?>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Target Tenant</label>
             <select name="tenant_id" class="form-select" required>
@@ -83,6 +84,7 @@
                     <td>
                       <?php if ($l['status'] === 'active'): ?>
                         <form action="/admin/licenses/revoke/<?= $l['id'] ?>" method="POST" onsubmit="return confirm('Revoke this license immediately? Client workstation will be locked out.');">
+                          <?= \LaundryPro\Cloud\Middleware\CsrfMiddleware::field() ?>
                           <button type="submit" class="btn btn-sm btn-outline-danger">
                             <i class="bi bi-slash-circle me-1"></i> Revoke
                           </button>

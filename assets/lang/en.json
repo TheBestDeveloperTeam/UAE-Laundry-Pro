@@ -16,7 +16,7 @@
     "splash_step_cloud":  "Synchronizing cloud license status...",
     "splash_step_ready":  "Starting workstation session...",
     "splash_err_local_api_title":  "Local Service Node Not Found",
-    "splash_err_local_api_desc":  "Cannot connect to laundrypro-localapi. Please verify that XAMPP Apache \u0026 MySQL are running and your host configuration is completed.",
+    "splash_err_local_api_desc":  "Cannot connect to laundrypro-api. Please verify that XAMPP Apache & MySQL are running and your host configuration is completed.",
     "exit_app":  "Exit Application",
     "trial_active_title":  "7-Day Evaluation Mode",
     "trial_expired_title":  "Evaluation Period Expired",

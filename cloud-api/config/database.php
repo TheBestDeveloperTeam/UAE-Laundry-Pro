@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use LaundryPro\Cloud\Core\Env;
+
 return [
-    'host' => getenv('CLOUD_DB_HOST') ?: 'localhost',
-    'port' => (int) (getenv('CLOUD_DB_PORT') ?: 3306),
-    'database' => getenv('CLOUD_DB_NAME') ?: 'laundrypro_cloud',
-    'username' => getenv('CLOUD_DB_USER') ?: 'root',
-    'password' => getenv('CLOUD_DB_PASS') !== false ? getenv('CLOUD_DB_PASS') : '',
+    'host' => Env::get('CLOUD_DB_HOST') ?: Env::get('DB_HOST', 'localhost'),
+    'port' => (int) (Env::get('CLOUD_DB_PORT') ?: Env::get('DB_PORT', '3306')),
+    'database' => Env::get('CLOUD_DB_NAME') ?: Env::get('DB_NAME', 'ihgzplwh_laundrypro'),
+    'username' => Env::get('CLOUD_DB_USER') ?: Env::get('DB_USER', 'ihgzplwh_laundrypro'),
+    'password' => Env::get('CLOUD_DB_PASS') ?? Env::get('DB_PASS', 'n33d@L0v3#0786'),
     'charset' => 'utf8mb4',
 ];

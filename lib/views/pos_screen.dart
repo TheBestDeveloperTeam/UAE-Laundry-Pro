@@ -131,9 +131,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   void _addService(ServiceModel service) {
-    final id = service.id ?? 0;
-    final name = service.name ?? '';
-    final rate = double.tryParse(service.baseRate?.toString() ?? '0') ?? 0;
+    final id = service.id;
+    final name = service.name;
+    final rate = service.baseRate;
     _addLine(itemType: 'service', itemId: id, name: name, rate: rate);
   }
 
@@ -203,7 +203,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         customerId: _selectedCustomer?.id,
         lines: _cart.map((l) => l.toLine()).toList(),
       );
-      final orderId = draft.id ?? 0;
+      final orderId = draft.id;
       final confirmed = await _sales.confirm(orderId);
       setState(() {
         _confirmedOrder = confirmed;
@@ -227,8 +227,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   Future<void> _pay() async {
     if (_confirmedOrder == null || _processing) return;
     final l10n = context.l10n;
-    final orderId = _confirmedOrder!.id ?? 0;
-    final total = double.tryParse(_confirmedOrder!.grandTotal?.toString() ?? '0') ?? _grandTotal;
+    final orderId = _confirmedOrder!.id;
+    final total = _confirmedOrder!.grandTotal;
 
     final payment = await showDialog<_PaymentResult>(
       context: context,
@@ -352,7 +352,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               final c = _customers[i];
               return ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.person, size: 18)),
-                title: Text(c.name ?? ''),
+                title: Text(c.name),
                 subtitle: Text(c.phone ?? ''),
                 onTap: () {
                   setState(() => _selectedCustomer = c);
@@ -459,7 +459,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                               builder: (context) {
                                 final filtered = _services.where((s) {
                                   if (_searchFilter.isEmpty) return true;
-                                  final name = (s.name ?? '').toLowerCase();
+                                  final name = s.name.toLowerCase();
                                   final code = (s.code ?? '').toLowerCase();
                                   return name.contains(_searchFilter) || code.contains(_searchFilter);
                                 }).toList();
@@ -487,7 +487,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   itemCount: filtered.length,
                                   itemBuilder: (context, i) {
                                     final s = filtered[i];
-                                    final rate = s.baseRate?.toString() ?? '0';
+                                    final rate = s.baseRate.toString();
                                     return OutlinedButton(
                                       style: OutlinedButton.styleFrom(
                                         padding: const EdgeInsets.all(8),
@@ -498,7 +498,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            s.name ?? '',
+                                            s.name,
                                             textAlign: TextAlign.center,
                                             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                                             maxLines: 2,

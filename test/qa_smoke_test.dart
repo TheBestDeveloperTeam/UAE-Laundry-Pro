@@ -3,7 +3,6 @@ import 'package:laundrypro_uae/services/api_client.dart';
 import 'package:laundrypro_uae/services/sync_service.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
 import 'package:laundrypro_uae/models/order_model.dart';
-import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/services/license_service.dart';
 
 class MockApiClient extends ApiClient {

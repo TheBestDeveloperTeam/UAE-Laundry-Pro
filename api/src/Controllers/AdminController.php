@@ -16,16 +16,22 @@ class AdminController
 
     public function dashboard(Request $request, Response $response): void
     {
-        // For local admin, we might just use admin_id = 1 for now if no auth is in place for views
         $adminId = 1;
 
-        // Fetch Metrics
-        // 1. New Orders today
-        $stmtOrders = $this->db->prepare("SELECT COUNT(*) FROM sales_orders WHERE admin_id = ? AND DATE(created_at) = CURDATE()");
+        // 1. Orders and Sales today
+        $stmtOrders = $this->db->prepare("SELECT COUNT(*), COALESCE(SUM(total_amount), 0), COALESCE(SUM(tax_amount), 0) FROM sales_orders WHERE admin_id = ? AND DATE(created_at) = CURDATE()");
         $stmtOrders->execute([$adminId]);
-        $newOrders = (int) $stmtOrders->fetchColumn();
+        $orderMetrics = $stmtOrders->fetch(PDO::FETCH_NUM);
+        $newOrders = (int) ($orderMetrics[0] ?? 0);
+        $todaySales = (float) ($orderMetrics[1] ?? 0.0);
+        $todayVat = (float) ($orderMetrics[2] ?? 0.0);
 
-        // 2. Pending Sync Items
+        // 2. Customers count
+        $stmtCust = $this->db->prepare("SELECT COUNT(*) FROM customers WHERE admin_id = ?");
+        $stmtCust->execute([$adminId]);
+        $totalCustomers = (int) $stmtCust->fetchColumn();
+
+        // 3. Pending Sync Items
         $stmtSync = $this->db->prepare("SELECT COUNT(*) FROM sync_outbox WHERE admin_id = ? AND status = 'pending'");
         $stmtSync->execute([$adminId]);
         $pendingSync = (int) $stmtSync->fetchColumn();
@@ -37,12 +43,16 @@ class AdminController
         $syncStatus = 100;
         if ($totalSync > 0) {
             $synced = $totalSync - $pendingSync;
-            $syncStatus = round(($synced / $totalSync) * 100);
+            $syncStatus = (int) round(($synced / $totalSync) * 100);
         }
 
         // Pass variables to view
         extract([
             'newOrders' => $newOrders,
+            'todaySales' => $todaySales,
+            'todayVat' => $todayVat,
+            'totalCustomers' => $totalCustomers,
+            'pendingSync' => $pendingSync,
             'syncStatus' => $syncStatus,
         ]);
 
@@ -50,7 +60,6 @@ class AdminController
         require __DIR__ . '/../Views/dashboard.php';
         $html = ob_get_clean();
 
-        // Render HTML response manually since our Response class sends JSON
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
         exit;

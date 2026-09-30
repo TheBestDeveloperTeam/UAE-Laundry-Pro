@@ -16,7 +16,7 @@
     "splash_step_cloud":  "مزامنة حالة الترخيص السحابي...",
     "splash_step_ready":  "بدء جلسة العمل...",
     "splash_err_local_api_title":  "الخدمة المحلية غير متوفرة",
-    "splash_err_local_api_desc":  "تعذر الاتصال بـ laundrypro-localapi. يرجى التأكد من تشغيل Apache و MySQL في XAMPP وإعداد ملف hosts.",
+    "splash_err_local_api_desc":  "تعذر الاتصال بـ laundrypro-api. يرجى التأكد من تشغيل Apache و MySQL في XAMPP وإعداد ملف hosts.",
     "exit_app":  "إغلاق التطبيق",
     "trial_active_title":  "النسخة التجريبية (7 أيام)",
     "trial_expired_title":  "انتهت الفترة التجريبية",

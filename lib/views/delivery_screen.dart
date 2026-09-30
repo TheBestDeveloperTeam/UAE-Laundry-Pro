@@ -36,7 +36,6 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
 
   Future<void> _updateStatus(DeliveryModel task, String status) async {
     final id = task.id;
-    if (id == null) return;
     try {
       await _delivery.update(id, {'status': status});
       await _load();
@@ -100,7 +99,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, i) {
                           final t = _items[i];
-                          final status = t.status ?? 'pending';
+                          final status = t.status;
                           final isDelivered = status == 'delivered';
                           final isInTransit = status == 'in_transit';
 

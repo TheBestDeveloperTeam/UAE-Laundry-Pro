@@ -52,7 +52,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
       }
       if (_searchQuery.trim().isEmpty) return true;
       final q = _searchQuery.toLowerCase();
-      final orderNo = (o.orderNo ?? '').toLowerCase();
+      final orderNo = o.orderNo.toLowerCase();
       final custName = (o.customerName ?? '').toLowerCase();
       final custPhone = (o.customerPhone ?? '').toLowerCase();
       return orderNo.contains(q) || custName.contains(q) || custPhone.contains(q);
@@ -88,7 +88,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total: AED ${order.grandTotal ?? '0.00'}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text('Total: AED ${order.grandTotal}', style: const TextStyle(fontWeight: FontWeight.w600)),
                         Text('Balance: AED ${balance.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.error)),
                       ],
                     ),
@@ -150,7 +150,6 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
       if (payAmount <= 0) return;
 
       final orderId = order.id;
-      if (orderId == null) return;
 
       try {
         final updated = await _sales.postPayment(
@@ -179,7 +178,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
           );
         }
         await _load();
-        if (mounted && updated != null) {
+        if (mounted) {
           _showReceiptOptions(updated);
         }
       } catch (e) {
@@ -268,7 +267,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
       ),
     );
     if (selected == null) return;
-    await _sales.updateStatus(order.id!, selected);
+    await _sales.updateStatus(order.id, selected);
     await _load();
   }
 
