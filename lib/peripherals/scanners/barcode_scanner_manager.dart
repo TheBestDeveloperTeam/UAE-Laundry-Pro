@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 
-enum ScannerType { usb_hid, camera, bluetooth_spp }
+enum ScannerType { usbHid, camera, bluetoothSpp }
 
 class BarcodeScannerManager {
   ScannerType _currentType = ScannerType.camera;
   
   // For USB HID Keyboard wedges
   final StreamController<String> _hidStreamController = StreamController<String>.broadcast();
-  StringBuffer _hidBuffer = StringBuffer();
+  final StringBuffer _hidBuffer = StringBuffer();
   DateTime _lastKeystroke = DateTime.now();
 
   ScannerType get currentType => _currentType;
@@ -35,21 +35,21 @@ class BarcodeScannerManager {
         );
         if (scanResult != '-1') return scanResult;
       } catch (e) {
-        print("Camera Scanner Error: $e");
+        AppLogger.error("Camera Scanner Error: $e", tag: 'BarcodeScannerManager');
       }
       return null;
     } else {
       // For USB HID and Bluetooth SPP, scanning is stream-based, not future-based.
       // This method acts as a trigger or placeholder for manual SPP connection attempts.
-      print("Awaiting hardware scan via stream...");
+      AppLogger.info("Awaiting hardware scan via stream...", tag: 'BarcodeScannerManager');
       return null;
     }
   }
 
-  /// Listens to RawKeyboard events to capture USB HID Scanner wedge inputs globally
+  /// Listens to Keyboard events to capture USB HID Scanner wedge inputs globally
   /// Must be injected into the root widget tree
-  void handleKey(RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
+  void handleKey(KeyEvent event) {
+    if (event is KeyDownEvent) {
       final keyLabel = event.logicalKey.keyLabel;
       final now = DateTime.now();
       

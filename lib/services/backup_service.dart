@@ -26,4 +26,13 @@ class BackupService {
     final res = await _api.post('/backup/restore/validate', body: {if (file != null) 'file': file});
     return Map<String, dynamic>.from(res['data'] as Map? ?? {});
   }
+
+  Future<Map<String, dynamic>> restore({String? file, bool confirm = false}) async {
+    final res = await _api.post('/backup/restore', body: {
+      if (file != null) 'file': file,
+      'confirm': confirm,
+    });
+    return Map<String, dynamic>.from(res['data'] as Map? ?? {});
+  }
 }
+

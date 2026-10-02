@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
 import 'package:laundrypro_uae/core/receipt_renderer.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
@@ -91,7 +92,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       Map<String, dynamic> business = {};
       try {
         business = await _sales.getBusiness();
-      } catch (_) {}
+      } catch (e) {
+        AppLogger.warning('Failed to load business details for POS header', tag: 'PosScreen', error: e);
+      }
 
       if (mounted) {
         setState(() {
@@ -102,7 +105,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           _loading = false;
         });
       }
-    } catch (_) {
+    } catch (e, stack) {
+      AppLogger.error('Failed to load POS catalog and services', tag: 'PosScreen', error: e, stackTrace: stack);
       if (mounted) setState(() => _loading = false);
     }
   }
@@ -165,7 +169,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         _addProduct(product);
         return;
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.warning('Barcode catalog lookup failed', tag: 'PosScreen', error: e);
+    }
 
     // 3. Check Customer code
     final customer = _customers.cast<CustomerModel?>().firstWhere(
@@ -214,7 +220,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           SnackBar(content: Text('${l10n.t('pos_confirmed')}: ${confirmed.orderNo}')),
         );
       }
-    } catch (_) {
+    } catch (e, stack) {
+      AppLogger.error('Failed to confirm sale draft', tag: 'PosScreen', error: e, stackTrace: stack);
       setState(() => _processing = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -263,7 +270,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         _orderDiscount = 0.0;
         _selectedCustomer = null;
       });
-    } catch (_) {
+    } catch (e, stack) {
+      AppLogger.error('Failed to post payment for order $orderId', tag: 'PosScreen', error: e, stackTrace: stack);
       setState(() => _processing = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

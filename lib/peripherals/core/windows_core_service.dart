@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 
 class WindowsCoreService {
   static const MethodChannel _channel = MethodChannel('com.magnificentsolution.laundrypro/windows_core');
@@ -16,9 +17,9 @@ class WindowsCoreService {
         'comPortDefaults': 'COM1,COM2',
         'enableSpoolerOverride': true,
       });
-      print("Windows Registry successfully initialized for peripherals.");
+      AppLogger.info("Windows Registry successfully initialized for peripherals.", tag: 'WindowsCoreService');
     } on PlatformException catch (e) {
-      print("Failed to initialize Windows registry: ${e.message}");
+      AppLogger.error("Failed to initialize Windows registry: ${e.message}", tag: 'WindowsCoreService');
     }
   }
 
@@ -30,9 +31,9 @@ class WindowsCoreService {
         'serviceName': 'LaundryProSyncEngine',
         'startType': 'auto',
       });
-      print("Windows Background Sync Service Registered.");
+      AppLogger.info("Windows Background Sync Service Registered.", tag: 'WindowsCoreService');
     } on PlatformException catch (e) {
-      print("Failed to register Windows service: ${e.message}");
+      AppLogger.error("Failed to register Windows service: ${e.message}", tag: 'WindowsCoreService');
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
 import 'package:laundrypro_uae/core/receipt_renderer.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
@@ -40,7 +41,8 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
         _orders = [...pending, ...partial];
         _loading = false;
       });
-    } catch (_) {
+    } catch (e, stack) {
+      AppLogger.error('Failed to load pending invoices', tag: 'PendingInvoicesScreen', error: e, stackTrace: stack);
       setState(() => _loading = false);
     }
   }
@@ -169,7 +171,9 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                 payload: manager.cashDrawerPulse(),
               );
             }
-          } catch (_) {}
+          } catch (e) {
+            AppLogger.warning('Cash drawer pulse failed', tag: 'PendingInvoicesScreen', error: e);
+          }
         }
 
         if (mounted) {
@@ -303,8 +307,8 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                 SegmentedButton<String>(
                   segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
-                    ButtonSegment(value: 'pending', label: Text('Unpaid')),
-                    ButtonSegment(value: 'partial', label: Text('Partial')),
+                    const ButtonSegment(value: 'pending', label: Text('Unpaid')),
+                    const ButtonSegment(value: 'partial', label: Text('Partial')),
                   ],
                   selected: {_filterStatus},
                   onSelectionChanged: (set) => setState(() => _filterStatus = set.first),

@@ -23,4 +23,14 @@ class EmployeeService {
     final res = await _api.put('/employees/$id', body: body);
     return EmployeeModel.fromJson(Map<String, dynamic>.from(res['data']?['employee'] as Map? ?? {}));
   }
+
+  Future<bool> deactivate(int id) async {
+    try {
+      await _api.delete('/employees/$id');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }
+

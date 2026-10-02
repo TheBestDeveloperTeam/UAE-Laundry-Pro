@@ -42,6 +42,21 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     } catch (_) {}
   }
 
+  Future<void> _reconcileCod(DeliveryModel task) async {
+    try {
+      await _delivery.update(task.id, {'cod_collected': 1});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('COD of AED ${task.codAmount.toStringAsFixed(2)} reconciled for Order #${task.salesOrderId}'),
+            backgroundColor: Colors.green.shade700,
+          ),
+        );
+      }
+      await _load();
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -76,7 +91,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                   segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
                     ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
-                    ButtonSegment(value: 'in_transit', label: Text('Transit')),
+                    const ButtonSegment(value: 'in_transit', label: Text('Transit')),
                     ButtonSegment(value: 'delivered', label: Text(context.l10n.t('status_delivered'))),
                   ],
                   selected: {_statusFilter},
@@ -97,7 +112,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                     : ListView.separated(
                         itemCount: _items.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, i) {
+                        itemBuilder: (listCtx, i) {
                           final t = _items[i];
                           final status = t.status;
                           final isDelivered = status == 'delivered';
@@ -117,11 +132,66 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                                     : (isInTransit ? Colors.blue.shade900 : Colors.amber.shade900),
                               ),
                             ),
-                            title: Text('${l10n.t('orders')} #${t.salesOrderId}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('Address: ${t.deliveryAddress ?? 'Counter Pickup'} · Driver: ${t.driverName ?? 'Unassigned'}'),
+                            title: Row(
+                              children: [
+                                Text('${l10n.t('orders')} #${t.salesOrderId}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blueGrey.shade100,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(t.routeZone, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 4),
+                                Text('Address: ${t.deliveryAddress ?? 'Counter Pickup'} · Driver: ${t.driverName ?? 'Unassigned'}'),
+                                if (t.codAmount > 0) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: t.codCollected ? Colors.green.shade50 : Colors.amber.shade50,
+                                          border: Border.all(color: t.codCollected ? Colors.green : Colors.amber.shade800),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'COD: AED ${t.codAmount.toStringAsFixed(2)} (${t.codCollected ? "COLLECTED" : "DUE ON DELIVERY"})',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: t.codCollected ? Colors.green.shade900 : Colors.amber.shade900,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                            isThreeLine: t.codAmount > 0,
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                if (t.codAmount > 0 && !t.codCollected)
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.green.shade800,
+                                      side: BorderSide(color: Colors.green.shade800),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    icon: const Icon(Icons.payments_outlined, size: 14),
+                                    label: const Text('Reconcile COD'),
+                                    onPressed: () => _reconcileCod(t),
+                                  ),
+                                const SizedBox(width: 8),
                                 if (status == 'pending')
                                   FilledButton.tonal(
                                     onPressed: () => _updateStatus(t, 'in_transit'),

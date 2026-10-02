@@ -25,6 +25,51 @@ class PayrollService {
     return PayrollModel.fromJson(res['data']?['payroll_run'] as Map<String, dynamic>? ?? {});
   }
 
+  Future<List<PayrollRunModel>> listPayrollRuns() async {
+    final res = await _api.get('/payroll/runs');
+    return (res['data']?['payroll_runs'] as List? ?? [])
+        .map((e) => PayrollRunModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  Future<PayrollRunModel?> showPayrollRun(int id) async {
+    final res = await _api.get('/payroll/runs/$id');
+    final data = res['data']?['payroll_run'];
+    if (data == null) return null;
+    return PayrollRunModel.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+
+  String generateWpsSif(PayrollRunModel run, {String employerCode = '123456789', String employerBank = 'AE123456789012345678901'}) {
+    final monthStr = '${run.periodStart.year}${run.periodStart.month.toString().padLeft(2, '0')}';
+    final lines = <String>[];
+    double totalSalary = 0.0;
+
+    for (final line in run.lines) {
+      final empId = line.employeeNo != null && line.employeeNo!.isNotEmpty
+          ? line.employeeNo!.padLeft(14, '0')
+          : line.employeeId.toString().padLeft(14, '0');
+      final fixed = line.baseSalary.toStringAsFixed(2);
+      final variable = line.overtimePay.toStringAsFixed(2);
+      totalSalary += line.netPay;
+
+      // EDR record (Employee Detail Record)
+      lines.add('EDR,$empId,000000000,AE000000000000000000000,        ,        ,0000,$fixed,$variable,0');
+    }
+
+    final totalStr = totalSalary.toStringAsFixed(2);
+    final count = run.lines.length;
+    final now = DateTime.now();
+    final fileDate = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final fileTime = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+
+    // SCR header record (Salary Control Record)
+    final scr = 'SCR,$employerCode,$employerBank,$fileDate,$fileTime,$monthStr,$count,$totalStr,AED,SAL';
+    lines.insert(0, scr);
+
+    return lines.join('\r\n');
+  }
+
+
   Future<List<LeaveModel>> listLeave({String? status}) async {
     final path = status != null ? '/leave-requests?status=$status' : '/leave-requests';
     final res = await _api.get(path);

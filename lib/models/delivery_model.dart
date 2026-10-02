@@ -9,6 +9,10 @@ class DeliveryModel {
     required this.status, // 'pending', 'in_transit', 'delivered', 'failed'
     this.address,
     this.deliveryDate,
+    this.codAmount = 0.0,
+    this.codCollected = false,
+    this.routeZone = 'Zone A (Downtown/Business Bay)',
+    this.recipientPhone,
     required this.createdAt,
   });
 
@@ -19,6 +23,10 @@ class DeliveryModel {
   final String status;
   final String? address;
   final DateTime? deliveryDate;
+  final double codAmount;
+  final bool codCollected;
+  final String routeZone;
+  final String? recipientPhone;
   final DateTime createdAt;
 
   int get salesOrderId => orderId;
@@ -36,6 +44,10 @@ class DeliveryModel {
       deliveryDate: json['delivery_date'] != null
           ? SafeParser.parseDateTime(json['delivery_date'])
           : null,
+      codAmount: SafeParser.parseDouble(json['cod_amount'], 0.0),
+      codCollected: json['cod_collected'] == 1 || json['cod_collected'] == true,
+      routeZone: json['route_zone'] as String? ?? 'Zone A (Downtown/Business Bay)',
+      recipientPhone: json['recipient_phone'] as String?,
       createdAt: SafeParser.parseDateTime(json['created_at']),
     );
   }
@@ -49,6 +61,10 @@ class DeliveryModel {
       'status': status,
       if (address != null) 'address': address,
       if (deliveryDate != null) 'delivery_date': deliveryDate!.toIso8601String(),
+      'cod_amount': codAmount,
+      'cod_collected': codCollected ? 1 : 0,
+      'route_zone': routeZone,
+      if (recipientPhone != null) 'recipient_phone': recipientPhone,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -67,6 +83,10 @@ class DeliveryModel {
     String? status,
     String? address,
     DateTime? deliveryDate,
+    double? codAmount,
+    bool? codCollected,
+    String? routeZone,
+    String? recipientPhone,
     DateTime? createdAt,
   }) {
     return DeliveryModel(
@@ -77,6 +97,10 @@ class DeliveryModel {
       status: status ?? this.status,
       address: address ?? this.address,
       deliveryDate: deliveryDate ?? this.deliveryDate,
+      codAmount: codAmount ?? this.codAmount,
+      codCollected: codCollected ?? this.codCollected,
+      routeZone: routeZone ?? this.routeZone,
+      recipientPhone: recipientPhone ?? this.recipientPhone,
       createdAt: createdAt ?? this.createdAt,
     );
   }

@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
 
 class WizardScreen extends StatefulWidget {
-  const WizardScreen({Key? key}) : super(key: key);
+  const WizardScreen({super.key});
 
   @override
-  _WizardScreenState createState() => _WizardScreenState();
+  State<WizardScreen> createState() => _WizardScreenState();
 }
 
 class _WizardScreenState extends State<WizardScreen> {
@@ -86,13 +86,13 @@ class _WizardScreenState extends State<WizardScreen> {
       title: const Text('Admin Account'),
       isActive: _currentStep >= 3,
       state: _currentStep == 3 ? StepState.editing : StepState.indexed,
-      content: Column(
+      content: const Column(
         children: [
-          const TextField(
+          TextField(
             decoration: InputDecoration(labelText: 'Admin Username / Email'),
           ),
-          const SizedBox(height: 16),
-          const TextField(
+          SizedBox(height: 16),
+          TextField(
             obscureText: true,
             decoration: InputDecoration(labelText: 'Password'),
           ),

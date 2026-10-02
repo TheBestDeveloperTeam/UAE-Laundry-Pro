@@ -14,68 +14,6 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
   bool _loading = true;
   List<dynamic> _roles = [];
 
-  final List<String> _availablePermissions = [
-    '*',
-    'system.settings',
-    'system.config.paths',
-    'license.manage',
-    'backup.run',
-    'backup.restore',
-    'sales.create',
-    'sales.edit_draft',
-    'sales.override_rate',
-    'sales.discount_line',
-    'sales.discount_order',
-    'sales.cancel',
-    'sales.reprint',
-    'sales.receive_payment',
-    'sales.void',
-    'sales.memo.credit',
-    'sales.memo.debit',
-    'catalog.view',
-    'catalog.create',
-    'catalog.edit',
-    'catalog.delete',
-    'catalog.pricing',
-    'customer.view',
-    'customer.create',
-    'customer.edit',
-    'customer.merge',
-    'customer.delete',
-    'vendor.view',
-    'vendor.create',
-    'vendor.edit',
-    'inventory.view',
-    'inventory.adjust',
-    'inventory.reconcile',
-    'inventory.transfer',
-    'production.status_update',
-    'production.qc',
-    'production.rework',
-    'delivery.dispatch',
-    'delivery.complete',
-    'delivery.reassign',
-    'purchase.create',
-    'purchase.receive',
-    'purchase.approve',
-    'hr.employee.view',
-    'hr.attendance.record',
-    'hr.leave.approve',
-    'hr.payroll.run',
-    'hr.payroll.view',
-    'hr.advance.approve',
-    'expense.create',
-    'expense.approve',
-    'expense.view',
-    'reports.sales',
-    'reports.inventory',
-    'reports.hr',
-    'reports.financial',
-    'reports.export',
-    'hardware.configure',
-    'hardware.test',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -119,6 +57,80 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
     }
   }
 
+  static final Map<String, List<String>> _permissionCategories = {
+    'System & Admin': [
+      '*',
+      'system.settings',
+      'system.config.paths',
+      'license.manage',
+      'backup.run',
+      'backup.restore',
+      'hardware.configure',
+      'hardware.test',
+    ],
+    'Point of Sale (POS) & Billing': [
+      'sales.create',
+      'sales.edit_draft',
+      'sales.override_rate',
+      'sales.discount_line',
+      'sales.discount_order',
+      'sales.cancel',
+      'sales.reprint',
+      'sales.receive_payment',
+      'sales.void',
+      'sales.memo.credit',
+      'sales.memo.debit',
+    ],
+    'Catalog & Customers': [
+      'catalog.view',
+      'catalog.create',
+      'catalog.edit',
+      'catalog.delete',
+      'catalog.pricing',
+      'customer.view',
+      'customer.create',
+      'customer.edit',
+      'customer.merge',
+      'customer.delete',
+      'vendor.view',
+      'vendor.create',
+      'vendor.edit',
+    ],
+    'Inventory & Operations': [
+      'inventory.view',
+      'inventory.adjust',
+      'inventory.reconcile',
+      'inventory.transfer',
+      'production.status_update',
+      'production.qc',
+      'production.rework',
+      'delivery.dispatch',
+      'delivery.complete',
+      'delivery.reassign',
+      'purchase.create',
+      'purchase.receive',
+      'purchase.approve',
+    ],
+    'HR & Payroll': [
+      'hr.employee.view',
+      'hr.attendance.record',
+      'hr.leave.approve',
+      'hr.payroll.run',
+      'hr.payroll.view',
+      'hr.advance.approve',
+      'expense.create',
+      'expense.approve',
+      'expense.view',
+    ],
+    'Financial & Reports': [
+      'reports.sales',
+      'reports.inventory',
+      'reports.hr',
+      'reports.financial',
+      'reports.export',
+    ],
+  };
+
   void _showRoleDialog(Map<dynamic, dynamic>? role) {
     final isNew = role == null;
     final nameController = TextEditingController(text: role?['name'] ?? '');
@@ -131,36 +143,128 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: Text(isNew ? 'New Role' : 'Edit Role'),
+              title: Row(
+                children: [
+                  Icon(isNew ? Icons.add_moderator : Icons.security, color: Theme.of(context).primaryColor),
+                  const SizedBox(width: 8),
+                  Text(isNew ? 'New Role Configuration' : 'Edit Role Permissions'),
+                ],
+              ),
               content: SizedBox(
-                width: 600,
-                height: 500,
+                width: 720,
+                height: 560,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Role Name'),
+                      decoration: const InputDecoration(
+                        labelText: 'Role Title (e.g. Branch Supervisor)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.badge),
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${currentPermissions.length} permissions granted',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        Row(
+                          children: [
+                            TextButton.icon(
+                              icon: const Icon(Icons.select_all, size: 16),
+                              label: const Text('Grant All (*)'),
+                              onPressed: () {
+                                setStateDialog(() {
+                                  if (!currentPermissions.contains('*')) {
+                                    currentPermissions.add('*');
+                                  }
+                                  for (final cat in _permissionCategories.values) {
+                                    for (final p in cat) {
+                                      if (!currentPermissions.contains(p)) currentPermissions.add(p);
+                                    }
+                                  }
+                                });
+                              },
+                            ),
+                            TextButton.icon(
+                              icon: const Icon(Icons.clear_all, size: 16),
+                              label: const Text('Clear All'),
+                              onPressed: () {
+                                setStateDialog(() {
+                                  currentPermissions.clear();
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const Divider(),
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: _availablePermissions.length,
-                        itemBuilder: (context, index) {
-                          final perm = _availablePermissions[index];
-                          return CheckboxListTile(
-                            title: Text(perm),
-                            value: currentPermissions.contains(perm),
-                            onChanged: (val) {
-                              setStateDialog(() {
-                                if (val == true) {
-                                  currentPermissions.add(perm);
-                                } else {
-                                  currentPermissions.remove(perm);
-                                }
-                              });
-                            },
+                      child: ListView(
+                        children: _permissionCategories.entries.map((catEntry) {
+                          final categoryName = catEntry.key;
+                          final permissions = catEntry.value;
+                          final grantedCount = permissions.where((p) => currentPermissions.contains(p)).length;
+                          final allInCatGranted = grantedCount == permissions.length;
+
+                          return ExpansionTile(
+                            initiallyExpanded: true,
+                            leading: Icon(
+                              allInCatGranted ? Icons.check_circle : (grantedCount > 0 ? Icons.indeterminate_check_box : Icons.radio_button_unchecked),
+                              color: allInCatGranted ? Colors.teal : (grantedCount > 0 ? Colors.orange : Colors.grey),
+                            ),
+                            title: Text(
+                              categoryName,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            subtitle: Text('$grantedCount of ${permissions.length} active'),
+                            trailing: TextButton(
+                              child: Text(allInCatGranted ? 'Revoke Group' : 'Grant Group'),
+                              onPressed: () {
+                                setStateDialog(() {
+                                  if (allInCatGranted) {
+                                    for (final p in permissions) {
+                                      currentPermissions.remove(p);
+                                    }
+                                  } else {
+                                    for (final p in permissions) {
+                                      if (!currentPermissions.contains(p)) currentPermissions.add(p);
+                                    }
+                                  }
+                                });
+                              },
+                            ),
+                            children: permissions.map((perm) {
+                              final isPermGranted = currentPermissions.contains(perm);
+                              return CheckboxListTile(
+                                dense: true,
+                                title: Text(
+                                  perm,
+                                  style: TextStyle(
+                                    fontWeight: perm == '*' ? FontWeight.bold : FontWeight.normal,
+                                    color: perm == '*' ? Colors.red[800] : null,
+                                  ),
+                                ),
+                                subtitle: perm == '*' ? const Text('Full Wildcard Access across the system') : null,
+                                value: isPermGranted,
+                                onChanged: (val) {
+                                  setStateDialog(() {
+                                    if (val == true) {
+                                      currentPermissions.add(perm);
+                                    } else {
+                                      currentPermissions.remove(perm);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
                           );
-                        },
+                        }).toList(),
                       ),
                     ),
                   ],

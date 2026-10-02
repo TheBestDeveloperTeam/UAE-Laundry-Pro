@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 
 class AndroidCoreService {
   static const MethodChannel _channel = MethodChannel('com.magnificentsolution.laundrypro/android_core');
@@ -16,9 +17,9 @@ class AndroidCoreService {
         'tag': 'LaundryPro:PeripheralScannerLock',
         'timeoutMs': 3600000 // 1 hour timeout
       });
-      print("Android Wakelock Acquired successfully.");
+      AppLogger.info("Android Wakelock Acquired successfully.", tag: 'AndroidCoreService');
     } on PlatformException catch (e) {
-      print("Failed to acquire wakelock: ${e.message}");
+      AppLogger.error("Failed to acquire wakelock: ${e.message}", tag: 'AndroidCoreService');
     }
   }
 
@@ -28,12 +29,12 @@ class AndroidCoreService {
     try {
       final bool granted = await _channel.invokeMethod('requestUsbPermissions');
       if (granted) {
-        print("USB Host permissions granted. Ready for HID/Serial peripherals.");
+        AppLogger.info("USB Host permissions granted. Ready for HID/Serial peripherals.", tag: 'AndroidCoreService');
       } else {
-        print("USB Host permissions denied by user or OS.");
+        AppLogger.warning("USB Host permissions denied by user or OS.", tag: 'AndroidCoreService');
       }
     } on PlatformException catch (e) {
-      print("Failed to request USB permissions: ${e.message}");
+      AppLogger.error("Failed to request USB permissions: ${e.message}", tag: 'AndroidCoreService');
     }
   }
 

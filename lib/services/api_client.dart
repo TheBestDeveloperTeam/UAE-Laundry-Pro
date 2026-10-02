@@ -148,6 +148,29 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? body,
+    dynamic data,
+    bool auth = true,
+    Map<String, String>? customHeaders,
+  }) async {
+    try {
+      final response = await _dio.delete(
+        path,
+        data: data ?? body,
+        options: Options(
+          extra: {'auth': auth},
+          headers: customHeaders,
+        ),
+      );
+      return _decodeResponse(response);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+
   Future<Map<String, dynamic>> postMultipart(
     String path,
     String filePath, {

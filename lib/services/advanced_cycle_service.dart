@@ -10,7 +10,7 @@ class AdvancedCycleService {
 
   Future<List<dynamic>> getPresets() async {
     final res = await _api.get('/advanced-cycles/presets');
-    return res['data'] ?? [];
+    return res['data']?['presets'] as List? ?? [];
   }
 
   Future<Map<String, dynamic>> startCycle(Map<String, dynamic> data) async {
@@ -18,11 +18,12 @@ class AdvancedCycleService {
     return res['data'] ?? {};
   }
 
-  Future<void> completeCycle(String id, String condition) async {
-    await _api.post('/advanced-cycles//complete', data: {'condition': condition});
+  Future<void> completeCycle(dynamic id, String condition) async {
+    await _api.post('/advanced-cycles/$id/complete', data: {'condition': condition});
   }
 
-  Future<void> processLog(String id, Map<String, dynamic> data) async {
-    await _api.post('/advanced-cycles//process-logs', data: data);
+  Future<Map<String, dynamic>> processLog(dynamic id, Map<String, dynamic> data) async {
+    final res = await _api.post('/advanced-cycles/$id/process-logs', data: data);
+    return res['data'] ?? {};
   }
 }

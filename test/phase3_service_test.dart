@@ -6,6 +6,8 @@ import 'package:laundrypro_uae/services/analytics_service.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
 import 'package:laundrypro_uae/services/channel_service.dart';
 import 'package:laundrypro_uae/services/localization_service.dart';
+import 'package:laundrypro_uae/services/accounting_service.dart';
+import 'package:laundrypro_uae/services/api_client.dart';
 import 'package:laundrypro_uae/services/storefront_service.dart';
 import 'package:laundrypro_uae/services/terminal_service.dart';
 
@@ -163,12 +165,27 @@ void main() {
     }
   });
 
-  group('Phase3 i18n keys', () {
-    const keys = ['branches', 'terminals', 'analytics', 'storefront', 'customer_portal'];
-    for (final key in keys) {
-      test('key $key non-empty', () {
-        expect(key.isNotEmpty, true);
-      });
-    }
+  group('Phase3 Accounting & Tax Audit', () {
+    test('generateFafAuditCsv creates standard compliant UAE FTA structure', () {
+      final service = AccountingService(apiClient: ApiClient());
+      final csv = service.generateFafAuditCsv(
+        companyName: 'UAE Laundry Pro LLC',
+        trn: '100492817200003',
+        periodStart: '2026-09-01',
+        periodEnd: '2026-09-30',
+        totalStandardSales: 10000.0,
+        totalVatCollected: 500.0,
+        totalExpenses: 4000.0,
+        totalInputVat: 200.0,
+      );
+
+      expect(csv.contains('CompanyInfo,TaxablePersonName,TRN,PeriodStart,PeriodEnd,CreationDate'), true);
+      expect(csv.contains('"UAE Laundry Pro LLC","100492817200003"'), true);
+      expect(csv.contains('StandardRatedSupplies,TransactionType,TaxRate,NetTotalAED,VATAED'), true);
+      expect(csv.contains('Supplies,Standard,5%,10000.00,500.00'), true);
+      expect(csv.contains('InputExpenses,Standard,5%,4000.00,200.00'), true);
+      expect(csv.contains('VATSummary,GrossSalesAED,GrossOutputVatAED,GrossInputVatAED,NetPayableDueAED'), true);
+      expect(csv.contains('Summary,10500.00,500.00,200.00,300.00'), true);
+    });
   });
 }

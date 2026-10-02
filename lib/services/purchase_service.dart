@@ -19,6 +19,11 @@ class PurchaseService {
     return PurchaseOrderModel.fromJson(res['data']?['purchase_order'] as Map<String, dynamic>? ?? {});
   }
 
+  Future<PurchaseOrderModel> get(int id) async {
+    final res = await _api.get('/purchase-orders/$id');
+    return PurchaseOrderModel.fromJson(res['data']?['purchase_order'] as Map<String, dynamic>? ?? {});
+  }
+
   Future<PurchaseOrderModel> receive(int id, Map<String, dynamic> body) async {
     final res = await _api.post('/purchase-orders/$id/receive', body: body);
     return PurchaseOrderModel.fromJson(res['data'] as Map<String, dynamic>? ?? {});

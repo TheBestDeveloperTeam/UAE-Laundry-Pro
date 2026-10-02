@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:laundrypro_uae/core/logger.dart';
 
 enum PrinterBrand { epson, zebra, xprinter, star, generic }
 enum ConnectionType { usb, bluetooth, network, serial }
@@ -57,7 +58,7 @@ class ThermalPrinterManager {
       }
     } catch (e) {
       _isConnected = false;
-      print("Peripheral Hardware Error: Could not connect to printer -> $e");
+      AppLogger.error("Peripheral Hardware Error: Could not connect to printer -> $e", tag: 'ThermalPrinterManager');
     }
     return false;
   }
@@ -149,7 +150,7 @@ class ThermalPrinterManager {
         await socket.flush();
         socket.destroy();
       } catch (e) {
-        print("Network Printer Error: $e");
+        AppLogger.error("Network Printer Error: $e", tag: 'ThermalPrinterManager');
       }
     } else if (_currentConfig!.type == ConnectionType.bluetooth) {
        // Bluetooth transmission stream

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/services/expense_service.dart';
 
 class ExpensesScreen extends StatefulWidget {
@@ -32,7 +33,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       final filter = _statusFilter == 'all' ? null : _statusFilter;
       _items = await _expenses.list(status: filter);
       _categories = await _expenses.listCategories();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load expenses or categories', tag: 'ExpensesScreen', error: e, stackTrace: stack);
+    }
     setState(() => _loading = false);
   }
 
@@ -159,14 +162,18 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     try {
       await _expenses.approve(id);
       await _load();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to approve expense $id', tag: 'ExpensesScreen', error: e, stackTrace: stack);
+    }
   }
 
   Future<void> _reject(int id) async {
     try {
       await _expenses.reject(id);
       await _load();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to reject expense $id', tag: 'ExpensesScreen', error: e, stackTrace: stack);
+    }
   }
 
   @override
@@ -203,7 +210,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                   segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
                     ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
-                    ButtonSegment(value: 'approved', label: Text('Approved')),
+                    const ButtonSegment(value: 'approved', label: Text('Approved')),
                   ],
                   selected: {_statusFilter},
                   onSelectionChanged: (set) {

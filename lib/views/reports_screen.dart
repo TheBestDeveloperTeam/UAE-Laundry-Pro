@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:laundrypro_uae/core/document_renderer.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
 import 'package:laundrypro_uae/models/report_config_model.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key, this.reportsService});
@@ -53,7 +57,9 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     setState(() => _loadingKpis = true);
     try {
       _kpis = await _reports.dashboardKpis(date: _fmtDate(_to));
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load KPIs', tag: 'ReportsScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loadingKpis = false);
     }
@@ -94,7 +100,8 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
           data = await _reports.deliveryReport(ReportConfigModel(fromDate: from, toDate: to));
       }
       _cache[idx] = data;
-    } catch (_) {
+    } catch (e, stack) {
+      AppLogger.error('Failed to load tab $idx data', tag: 'ReportsScreen', error: e, stackTrace: stack);
       _error = 'load_failed';
     }
     setState(() => _loading = false);
@@ -169,21 +176,78 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
             tooltip: 'Export CSV',
             icon: const Icon(Icons.download),
             onPressed: () {
-              // Export CSV placeholder (for desktop file writing)
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export CSV saved to C:/LaundryPro/exports/')));
+              final activeData = _cache[_tabs.index] ?? {};
+              if (activeData.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No report data available to export')));
+                return;
+              }
+              final buffer = StringBuffer();
+              buffer.writeln('Metric,Value');
+              void flatten(String prefix, dynamic value) {
+                if (value is Map) {
+                  for (final e in value.entries) {
+                    flatten(prefix.isEmpty ? e.key.toString() : '$prefix.${e.key}', e.value);
+                  }
+                } else {
+                  buffer.writeln('"${prefix.replaceAll('"', '""')}","${value?.toString().replaceAll('"', '""') ?? ''}"');
+                }
+              }
+              flatten('', activeData);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Exported ${_tabs.index == 0 ? "Sales" : "Report"} CSV (${buffer.toString().split('\n').length} rows)'),
+                  backgroundColor: Colors.teal[700],
+                ),
+              );
             },
           ),
           IconButton(
             tooltip: 'Export PDF',
             icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export PDF saved to C:/LaundryPro/exports/')));
+            onPressed: () async {
+              final activeData = _cache[_tabs.index] ?? {};
+              if (activeData.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No report data to print/export')));
+                return;
+              }
+              final tabTitles = [
+                'Sales & Operational Summary',
+                'Expenses Summary',
+                'Payroll Summary',
+                'Inventory Valuation',
+                'Production Throughput',
+                'Purchasing Report',
+                'Delivery Report',
+              ];
+              final title = tabTitles[_tabs.index];
+              try {
+                final pdfBytes = await DocumentRenderer.generateReport(
+                  activeData,
+                  title: title,
+                  dateRange: '${_fmtDate(_from)} to ${_fmtDate(_to)}',
+                );
+                await Printing.layoutPdf(
+                  onLayout: (PdfPageFormat format) async => pdfBytes,
+                  name: '${title.replaceAll(" ", "_")}_${_fmtDate(_from)}.pdf',
+                );
+              } catch (e, st) {
+                AppLogger.error('PDF report export failed', tag: 'ReportsScreen', error: e, stackTrace: st);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to generate PDF: $e'), backgroundColor: Colors.red[700]),
+                  );
+                }
+              }
             },
           ),
-          IconButton(onPressed: () {
-             _loadTab(force: true);
-             _loadKpis();
-          }, icon: const Icon(Icons.refresh)),
+          IconButton(
+            tooltip: 'Refresh',
+            onPressed: () {
+              _loadTab(force: true);
+              _loadKpis();
+            },
+            icon: const Icon(Icons.refresh),
+          ),
         ],
       ),
       body: Column(

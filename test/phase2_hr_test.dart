@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:laundrypro_uae/models/attendance_model.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
 import 'package:laundrypro_uae/models/leave_model.dart';
+import 'package:laundrypro_uae/models/payroll_model.dart';
+import 'package:laundrypro_uae/models/salary_advance_model.dart';
 import 'package:laundrypro_uae/services/attendance_service.dart';
 import 'package:laundrypro_uae/services/employee_service.dart';
 import 'package:laundrypro_uae/services/payroll_service.dart';
@@ -152,5 +154,118 @@ void main() {
       final list = await s.listLeave();
       expect(list.first['status'], 'approved');
     });
+
+    test('EmployeeModel handles UAE compliance fields and deactivation', () {
+      final emp = EmployeeModel.fromJson({
+        'id': 10,
+        'uuid': 'EMP-UUID-10',
+        'employee_no': 'EMP-00010',
+        'full_name': 'Rashid Al Nuaimi',
+        'civil_id': '784-1990-1234567-1',
+        'civil_id_expiry': '2026-12-31',
+        'passport_no': 'A1234567',
+        'visa_expiry': '2027-05-15',
+        'pin': '1234',
+        'department': 'Logistics',
+        'job_title': 'Driver',
+        'base_salary': 4500.0,
+        'is_active': 1,
+      });
+
+      expect(emp.employeeNo, 'EMP-00010');
+      expect(emp.civilId, '784-1990-1234567-1');
+      expect(emp.passportNo, 'A1234567');
+      expect(emp.pin, '1234');
+      expect(emp.isActive, isTrue);
+      expect(emp.civilIdExpiry?.year, 2026);
+      expect(emp.visaExpiry?.year, 2027);
+
+      final json = emp.toJson();
+      expect(json['civil_id'], '784-1990-1234567-1');
+      expect(json['passport_no'], 'A1234567');
+      expect(json['pin'], '1234');
+      expect(json['is_active'], 1);
+    });
+
+    test('LeaveModel computes duration correctly', () {
+      final leave = LeaveModel.fromJson({
+        'id': 5,
+        'employee_id': 1,
+        'leave_type_name': 'Annual Leave',
+        'start_date': '2026-11-01',
+        'end_date': '2026-11-05',
+        'status': 'pending',
+      });
+
+      expect(leave.leaveType, 'Annual Leave');
+      expect(leave.durationDays, 5);
+      expect(leave.status, 'pending');
+    });
+
+    test('PayrollRunModel parses lines and generates valid UAE WPS SIF structure', () {
+      final run = PayrollRunModel.fromJson({
+        'id': 1,
+        'payroll_period_id': 1,
+        'run_no': 'PR-000001',
+        'period_start': '2026-10-01',
+        'period_end': '2026-10-31',
+        'total_amount': 5500.0,
+        'status': 'posted',
+        'lines': [
+          {
+            'id': 101,
+            'payroll_run_id': 1,
+            'employee_id': 10,
+            'employee_no': 'EMP-00010',
+            'employee_name': 'Rashid Al Nuaimi',
+            'base_salary': 4500.0,
+            'overtime_pay': 500.0,
+            'advance_deduction': 500.0,
+            'net_pay': 4500.0,
+          },
+          {
+            'id': 102,
+            'payroll_run_id': 1,
+            'employee_id': 11,
+            'employee_no': 'EMP-00011',
+            'employee_name': 'Saeed Khan',
+            'base_salary': 1000.0,
+            'overtime_pay': 0.0,
+            'advance_deduction': 0.0,
+            'net_pay': 1000.0,
+          }
+        ]
+      });
+
+      expect(run.lines.length, 2);
+      expect(run.lines.first.grossPay, 5000.0);
+      expect(run.lines.first.totalDeductions, 500.0);
+
+      final service = PayrollService();
+      final sif = service.generateWpsSif(run, employerCode: '987654321', employerBank: 'AE998877665544332211001');
+
+      expect(sif.contains('SCR,987654321,AE998877665544332211001'), isTrue);
+      expect(sif.contains('AED,SAL'), isTrue);
+      expect(sif.contains('EDR,'), isTrue);
+      expect(sif.contains('4500.00'), isTrue);
+    });
+
+    test('SalaryAdvanceModel calculates current balance correctly', () {
+      final adv = SalaryAdvanceModel.fromJson({
+        'id': 1,
+        'employee_id': 10,
+        'employee_name': 'Rashid Al Nuaimi',
+        'amount': 2000.0,
+        'balance_remaining': 1500.0,
+        'status': 'open',
+        'request_date': '2026-10-01',
+      });
+
+      expect(adv.currentBalance, 1500.0);
+      expect(adv.amount, 2000.0);
+      expect(adv.status, 'open');
+    });
   });
 }
+
+

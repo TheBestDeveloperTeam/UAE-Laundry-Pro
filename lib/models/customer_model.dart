@@ -12,6 +12,9 @@ class CustomerModel {
     this.balance = 0.0,
     required this.createdAt,
     this.syncStatus = 'pending',
+    this.loyaltyPoints = 0,
+    this.loyaltyTier = 'Bronze',
+    this.address,
   });
 
   final int id;
@@ -24,6 +27,9 @@ class CustomerModel {
   final double balance;
   final DateTime createdAt;
   final String? syncStatus;
+  final int loyaltyPoints;
+  final String loyaltyTier;
+  final String? address;
 
   String? get customerCode => uuid;
   String get customerType => 'Retail';
@@ -40,6 +46,9 @@ class CustomerModel {
       createdAt: SafeParser.parseDateTime(json['created_at']),
       localId: json['local_id'] != null ? SafeParser.parseInt(json['local_id']) : null,
       syncStatus: json['sync_status'] as String?,
+      loyaltyPoints: SafeParser.parseInt(json['loyalty_points'], 0),
+      loyaltyTier: json['loyalty_tier'] as String? ?? 'Bronze',
+      address: json['address'] as String?,
     );
   }
 
@@ -53,6 +62,9 @@ class CustomerModel {
       'trn': trn,
       'balance': balance,
       'created_at': createdAt.toIso8601String(),
+      'loyalty_points': loyaltyPoints,
+      'loyalty_tier': loyaltyTier,
+      if (address != null) 'address': address,
       if (localId != null) 'local_id': localId,
       if (syncStatus != null) 'sync_status': syncStatus,
     };
@@ -69,6 +81,9 @@ class CustomerModel {
     DateTime? createdAt,
     int? localId,
     String? syncStatus,
+    int? loyaltyPoints,
+    String? loyaltyTier,
+    String? address,
   }) {
     return CustomerModel(
       id: id ?? this.id,
@@ -81,6 +96,9 @@ class CustomerModel {
       createdAt: createdAt ?? this.createdAt,
       localId: localId ?? this.localId,
       syncStatus: syncStatus ?? this.syncStatus,
+      loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
+      loyaltyTier: loyaltyTier ?? this.loyaltyTier,
+      address: address ?? this.address,
     );
   }
 }

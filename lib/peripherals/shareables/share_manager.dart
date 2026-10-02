@@ -24,7 +24,7 @@ class ShareManager {
               pw.Text("Invoice ID: ${invoiceData['id']}"),
               pw.Text("Customer: ${invoiceData['customer']}"),
               pw.SizedBox(height: 20),
-              pw.Text("Total: AED ${invoiceData['total']}", style: pw.TextStyle(fontSize: 18)),
+              pw.Text("Total: AED ${invoiceData['total']}", style: const pw.TextStyle(fontSize: 18)),
             ]
           );
         },

@@ -61,19 +61,43 @@ final class EmployeeRepository
     }
 
     $stmt = $this->pdo->prepare(
-      'INSERT INTO employees (uuid, admin_id, employee_no, full_name, phone, email, job_title, base_salary, created_at)
-       VALUES (:uuid, :owner, :no, :name, :phone, :email, :title, :salary, UTC_TIMESTAMP())'
+      'INSERT INTO employees (uuid, admin_id, employee_no, full_name, phone, email, job_title, department, civil_id, civil_id_expiry, passport_no, visa_expiry, pin, base_salary, created_at)
+       VALUES (:uuid, :owner, :no, :name, :phone, :email, :title, :dept, :cid, :cid_exp, :pass, :visa_exp, :pin, :salary, UTC_TIMESTAMP())'
     );
-    $stmt->execute([
-      'uuid' => $this->uuid(),
-      'owner' => $this->businessOwnerId,
-      'no' => $employeeNo,
-      'name' => $data['full_name'],
-      'phone' => $data['phone'] ?? null,
-      'email' => $data['email'] ?? null,
-      'title' => $data['job_title'] ?? null,
-      'salary' => $data['base_salary'] ?? 0,
-    ]);
+    try {
+      $stmt->execute([
+        'uuid' => $this->uuid(),
+        'owner' => $this->businessOwnerId,
+        'no' => $employeeNo,
+        'name' => $data['full_name'],
+        'phone' => $data['phone'] ?? null,
+        'email' => $data['email'] ?? null,
+        'title' => $data['job_title'] ?? null,
+        'dept' => $data['department'] ?? null,
+        'cid' => $data['civil_id'] ?? null,
+        'cid_exp' => $data['civil_id_expiry'] ?? null,
+        'pass' => $data['passport_no'] ?? null,
+        'visa_exp' => $data['visa_expiry'] ?? null,
+        'pin' => $data['pin'] ?? null,
+        'salary' => $data['base_salary'] ?? 0,
+      ]);
+    } catch (\Throwable $e) {
+      // Fallback if extended columns not yet present in existing table
+      $stmtFallback = $this->pdo->prepare(
+        'INSERT INTO employees (uuid, admin_id, employee_no, full_name, phone, email, job_title, base_salary, created_at)
+         VALUES (:uuid, :owner, :no, :name, :phone, :email, :title, :salary, UTC_TIMESTAMP())'
+      );
+      $stmtFallback->execute([
+        'uuid' => $this->uuid(),
+        'owner' => $this->businessOwnerId,
+        'no' => $employeeNo,
+        'name' => $data['full_name'],
+        'phone' => $data['phone'] ?? null,
+        'email' => $data['email'] ?? null,
+        'title' => $data['job_title'] ?? null,
+        'salary' => $data['base_salary'] ?? 0,
+      ]);
+    }
 
     return $this->findById((int) $this->pdo->lastInsertId()) ?? [];
   }
@@ -96,20 +120,44 @@ final class EmployeeRepository
       return null;
     }
 
-    $stmt = $this->pdo->prepare(
-      'UPDATE employees SET full_name = :name, phone = :phone, email = :email, job_title = :title,
-       base_salary = :salary, updated_at = UTC_TIMESTAMP()
-       WHERE id = :id AND admin_id = :owner'
-    );
-    $stmt->execute([
-      'id' => $id,
-      'owner' => $this->businessOwnerId,
-      'name' => $data['full_name'] ?? $existing['full_name'],
-      'phone' => $data['phone'] ?? $existing['phone'],
-      'email' => $data['email'] ?? $existing['email'],
-      'title' => $data['job_title'] ?? $existing['job_title'],
-      'salary' => $data['base_salary'] ?? $existing['base_salary'],
-    ]);
+    try {
+      $stmt = $this->pdo->prepare(
+        'UPDATE employees SET full_name = :name, phone = :phone, email = :email, job_title = :title,
+         department = :dept, civil_id = :cid, civil_id_expiry = :cid_exp, passport_no = :pass,
+         visa_expiry = :visa_exp, pin = :pin, base_salary = :salary, updated_at = UTC_TIMESTAMP()
+         WHERE id = :id AND admin_id = :owner'
+      );
+      $stmt->execute([
+        'id' => $id,
+        'owner' => $this->businessOwnerId,
+        'name' => $data['full_name'] ?? $existing['full_name'],
+        'phone' => $data['phone'] ?? $existing['phone'] ?? null,
+        'email' => $data['email'] ?? $existing['email'] ?? null,
+        'title' => $data['job_title'] ?? $existing['job_title'] ?? null,
+        'dept' => $data['department'] ?? $existing['department'] ?? null,
+        'cid' => $data['civil_id'] ?? $existing['civil_id'] ?? null,
+        'cid_exp' => $data['civil_id_expiry'] ?? $existing['civil_id_expiry'] ?? null,
+        'pass' => $data['passport_no'] ?? $existing['passport_no'] ?? null,
+        'visa_exp' => $data['visa_expiry'] ?? $existing['visa_expiry'] ?? null,
+        'pin' => $data['pin'] ?? $existing['pin'] ?? null,
+        'salary' => $data['base_salary'] ?? $existing['base_salary'],
+      ]);
+    } catch (\Throwable $e) {
+      $stmtFallback = $this->pdo->prepare(
+        'UPDATE employees SET full_name = :name, phone = :phone, email = :email, job_title = :title,
+         base_salary = :salary, updated_at = UTC_TIMESTAMP()
+         WHERE id = :id AND admin_id = :owner'
+      );
+      $stmtFallback->execute([
+        'id' => $id,
+        'owner' => $this->businessOwnerId,
+        'name' => $data['full_name'] ?? $existing['full_name'],
+        'phone' => $data['phone'] ?? $existing['phone'] ?? null,
+        'email' => $data['email'] ?? $existing['email'] ?? null,
+        'title' => $data['job_title'] ?? $existing['job_title'] ?? null,
+        'salary' => $data['base_salary'] ?? $existing['base_salary'],
+      ]);
+    }
 
     return $this->findById($id);
   }

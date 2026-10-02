@@ -34,6 +34,8 @@ class AppTheme {
   static const Color cardColor = pureWhite;
   static const Color primaryDark = primaryNavy;
   static const Color primaryBlue = primaryNavyLight;
+  static const Color accentTeal = accentGreen;
+  static const Color secondaryGrey = darkSlate;
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
@@ -60,7 +62,7 @@ class AppTheme {
   // Box Shadows (Futuristic Glow)
   static List<BoxShadow> get subtleGlow => [
     BoxShadow(
-      color: accentCyan.withOpacity(0.2),
+      color: accentCyan.withValues(alpha: 0.2),
       blurRadius: 4,
       spreadRadius: 0,
       offset: const Offset(0, 0),
