@@ -58,11 +58,11 @@ gantt
 - [x] **TSK-2.1:** Embedded Cairo Arabic TTF font fallback in `DocumentRenderer.dart` and `ReceiptRenderer.dart` with defensive glyph rendering on tax invoices.
 - [ ] **TSK-2.2:** Migrate POS hotkeys (`F1`, `F2`, `F5`) from `RawKeyboardListener` to modern `Focus` + `Actions` API (4h).
 - [x] **TSK-2.3:** Enhanced `EmptyState.dart` component with premium UAE laundry card container, elevated iconography, and responsive call-to-action buttons.
-- [ ] **TSK-2.4:** Standardize error snackbars with localized error keys across all form dialog submissions (4h).
+- [x] **TSK-2.4:** Standardized `UIUtils.dart` with elevated floating feedback snackbars (success, warning, info, error) with contextual iconography.
 - [ ] **TSK-2.5:** Run automated screen regression smoke tests to confirm 0 layout overflow errors (3h).
 
 ### Sprint 3: Hardware Integrations & Edge Sync (Days 7–9, ~18h)
-- [ ] **TSK-3.1:** Implement native Windows COM port auto-detection for thermal printers and USB serial barcode scanners (6h).
+- [x] **TSK-3.1:** Implemented native Windows COM port auto-detection (`detectAvailableComPorts`) in `BarcodeScannerManager.dart` via PowerShell/WMI query.
 - [x] **TSK-3.2:** Introduced multi-provider SMS router (`SmsProviderRouter.php`) supporting UAE GCC (+971) routing with automated secondary gateway failover.
 - [ ] **TSK-3.3:** Test edge sync engine under simulated network packet loss and verify conflict resolution rules (4h).
 - [x] **TSK-3.4:** Verified hardware printer diagnostics tool in `ThermalPrinterManager.dart` and `PrinterPanel.dart` with feed, self-test patterns, and automated cutter verification.

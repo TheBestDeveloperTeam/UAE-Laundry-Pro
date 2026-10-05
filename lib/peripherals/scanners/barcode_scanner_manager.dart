@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -19,6 +20,37 @@ class BarcodeScannerManager {
 
   void configureScanner(ScannerType type) {
     _currentType = type;
+  }
+
+  /// Auto-detect available COM ports on Windows workstation (TSK-3.1)
+  static Future<List<String>> detectAvailableComPorts() async {
+    final ports = <String>[];
+    if (identical(0, 0.0)) return ports; // Web check
+
+    try {
+      // Query Windows Registry or WMI via PowerShell for COM ports
+      final result = await Process.run('powershell', [
+        '-NoProfile',
+        '-Command',
+        r'[System.IO.Ports.SerialPort]::GetPortNames()',
+      ]);
+      if (result.exitCode == 0) {
+        final lines = (result.stdout as String).split(RegExp(r'\r?\n'));
+        for (final line in lines) {
+          final trimmed = line.trim();
+          if (trimmed.startsWith('COM')) {
+            ports.add(trimmed);
+          }
+        }
+      }
+    } catch (e) {
+      AppLogger.warning('COM port auto-discovery failed: $e', tag: 'BarcodeScannerManager');
+    }
+
+    if (ports.isEmpty) {
+      ports.addAll(['COM1', 'COM2', 'COM3', 'COM4']); // Standard fallback scan targets
+    }
+    return ports;
   }
 
   /// Deep dive scanner integration
