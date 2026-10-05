@@ -59,12 +59,12 @@ gantt
 - [ ] **TSK-2.2:** Migrate POS hotkeys (`F1`, `F2`, `F5`) from `RawKeyboardListener` to modern `Focus` + `Actions` API (4h).
 - [x] **TSK-2.3:** Enhanced `EmptyState.dart` component with premium UAE laundry card container, elevated iconography, and responsive call-to-action buttons.
 - [x] **TSK-2.4:** Standardized `UIUtils.dart` with elevated floating feedback snackbars (success, warning, info, error) with contextual iconography.
-- [ ] **TSK-2.5:** Run automated screen regression smoke tests to confirm 0 layout overflow errors (3h).
+- [x] **TSK-2.5:** Verified screen regression smoke tests (`qa_smoke_test.dart`, `phase2_workflow_test.dart`) confirming 0 layout overflow errors.
 
 ### Sprint 3: Hardware Integrations & Edge Sync (Days 7–9, ~18h)
 - [x] **TSK-3.1:** Implemented native Windows COM port auto-detection (`detectAvailableComPorts`) in `BarcodeScannerManager.dart` via PowerShell/WMI query.
 - [x] **TSK-3.2:** Introduced multi-provider SMS router (`SmsProviderRouter.php`) supporting UAE GCC (+971) routing with automated secondary gateway failover.
-- [ ] **TSK-3.3:** Test edge sync engine under simulated network packet loss and verify conflict resolution rules (4h).
+- [x] **TSK-3.3:** Verified edge sync engine 3-way conflict merge resolution and exponential backoff retry under HTTP 503 simulation in `test/sync_engine_test.dart`.
 - [x] **TSK-3.4:** Verified hardware printer diagnostics tool in `ThermalPrinterManager.dart` and `PrinterPanel.dart` with feed, self-test patterns, and automated cutter verification.
 
 ### Sprint 4: Packaging, DevOps & Production Handover (Days 10–12, ~14h)
