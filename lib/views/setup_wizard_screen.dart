@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/locale_provider.dart';
 import 'package:laundrypro_uae/services/global_config_service.dart';
@@ -107,7 +108,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       _status = await _install.status();
       final hw = await SystemGuardService.getHardwareInfo();
       _machineCode = hw.machineCode;
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.warning('Failed to inspect initial setup status or hardware code', tag: 'SetupWizardScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loading = false);
       if (_status['locked'] == true) {
@@ -138,7 +141,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
       if (licenseKey.isNotEmpty) {
         try {
           await _license.activate(licenseKey);
-        } catch (_) {}
+        } catch (e, stack) {
+          AppLogger.warning('License activation failed during initial setup', tag: 'SetupWizardScreen', error: e, stackTrace: stack);
+        }
       }
 
       // 5. Lock installer

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 
 import 'package:laundrypro_uae/providers/auth_provider.dart';
@@ -65,15 +66,21 @@ class _SplashScreenState extends State<SplashScreen> {
         try {
           await install.migrate();
           await install.seed();
-        } catch (_) {}
+        } catch (e, stack) {
+          AppLogger.warning('Database migration or seed skipped during boot', tag: 'SplashScreen', error: e, stackTrace: stack);
+        }
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.warning('Install status check encountered non-fatal error', tag: 'SplashScreen', error: e, stackTrace: stack);
+    }
 
     // STEP 3: License & Trial Quota Verification
     setState(() => _currentStepKey = 'splash_step_licensing');
     try {
       await license.status();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.warning('License check encountered non-fatal error during splash boot', tag: 'SplashScreen', error: e, stackTrace: stack);
+    }
 
     // STEP 4: Cloud API Handshake Sync
     setState(() => _currentStepKey = 'splash_step_cloud');
