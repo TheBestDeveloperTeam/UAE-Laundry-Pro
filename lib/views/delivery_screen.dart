@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/delivery_model.dart';
 import 'package:laundrypro_uae/services/delivery_service.dart';
@@ -30,7 +31,9 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     try {
       final filter = _statusFilter == 'all' ? null : _statusFilter;
       _items = await _delivery.list(status: filter);
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load delivery tasks', tag: 'DeliveryScreen', error: e, stackTrace: stack);
+    }
     setState(() => _loading = false);
   }
 
@@ -39,7 +42,9 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     try {
       await _delivery.update(id, {'status': status});
       await _load();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to update delivery task status', tag: 'DeliveryScreen', error: e, stackTrace: stack);
+    }
   }
 
   Future<void> _reconcileCod(DeliveryModel task) async {
@@ -54,7 +59,9 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
         );
       }
       await _load();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to reconcile COD', tag: 'DeliveryScreen', error: e, stackTrace: stack);
+    }
   }
 
   @override

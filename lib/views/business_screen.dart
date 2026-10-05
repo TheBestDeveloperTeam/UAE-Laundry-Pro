@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/services/business_service.dart';
@@ -53,7 +54,9 @@ class _BusinessScreenState extends State<BusinessScreen> {
       _addressController.text = profile['address']?.toString() ?? 'Al Quoz Industrial Area 3, Dubai, UAE';
       _selectedCurrency = profile['currency']?.toString() ?? 'AED';
       _vatRate = double.tryParse(profile['vat_rate']?.toString() ?? '5.0') ?? 5.0;
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load business profile', tag: 'BusinessScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loading = false);
     }
@@ -79,7 +82,8 @@ class _BusinessScreenState extends State<BusinessScreen> {
           ),
         );
       }
-    } catch (_) {
+    } catch (e, stack) {
+      AppLogger.error('Failed to save business profile', tag: 'BusinessScreen', error: e, stackTrace: stack);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
