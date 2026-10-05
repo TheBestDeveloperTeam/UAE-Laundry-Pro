@@ -3,8 +3,21 @@ import 'package:laundrypro_uae/models/challan_model.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:printing/printing.dart';
+
 /// Abstraction for rendering PDF documents with 3D QR and 2D Barcode
 class DocumentRenderer {
+  static pw.Font? _cachedArabicFont;
+
+  static Future<pw.Font> _getArabicFont() async {
+    if (_cachedArabicFont != null) return _cachedArabicFont!;
+    try {
+      _cachedArabicFont = await PdfGoogleFonts.cairoRegular();
+      return _cachedArabicFont!;
+    } catch (_) {
+      return pw.Font.helvetica();
+    }
+  }
   static Future<Uint8List> generateReceipt(Map<String, dynamic> invoiceData) async {
     // Implement pdf package logic here to generate the PDF bytes
     // Including Top-Right 3D QR and Bottom-Right 2D Barcode
@@ -27,6 +40,7 @@ class DocumentRenderer {
     String trn = '100XXXXXXXXX003',
     String dateRange = '',
   }) async {
+    final arabicFont = await _getArabicFont();
     final doc = pw.Document();
 
     // Flatten nested map for table presentation
@@ -58,7 +72,7 @@ class DocumentRenderer {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(businessName, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
-                    pw.Text(businessNameAr, style: const pw.TextStyle(fontSize: 12)),
+                    pw.Text(businessNameAr, textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontSize: 12, font: arabicFont)),
                     pw.SizedBox(height: 2),
                     pw.Text('TRN: $trn', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
                   ],

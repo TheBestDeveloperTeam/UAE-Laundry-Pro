@@ -1,8 +1,20 @@
 import 'package:laundrypro_uae/core/receipt_model.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class ReceiptRenderer {
+  static pw.Font? _cachedArabicFont;
+
+  static Future<pw.Font> _getArabicFont() async {
+    if (_cachedArabicFont != null) return _cachedArabicFont!;
+    try {
+      _cachedArabicFont = await PdfGoogleFonts.cairoRegular();
+      return _cachedArabicFont!;
+    } catch (_) {
+      return pw.Font.helvetica();
+    }
+  }
   static String toThermal(
     ReceiptModel receipt, {
     int width = 48,
@@ -57,6 +69,7 @@ class ReceiptRenderer {
     String? trn,
     String? address = 'Dubai, United Arab Emirates',
   }) async {
+    final arabicFont = await _getArabicFont();
     final doc = pw.Document();
     final activeTrn = trn ?? receipt.trn ?? '100XXXXXXXXX003';
 
@@ -74,7 +87,7 @@ class ReceiptRenderer {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(businessName, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
-                    pw.Text(businessNameAr, style: const pw.TextStyle(fontSize: 14)),
+                    pw.Text(businessNameAr, textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontSize: 14, font: arabicFont)),
                     pw.SizedBox(height: 4),
                     pw.Text('Address: $address', style: const pw.TextStyle(fontSize: 10)),
                     pw.Text('TRN (Tax Registration Number): $activeTrn', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),

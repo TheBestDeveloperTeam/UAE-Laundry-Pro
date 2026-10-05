@@ -8,6 +8,10 @@ use LaundryPro\Api\Core\Request;
 use LaundryPro\Api\Core\Response;
 use LaundryPro\Api\Repositories\ReportRepository;
 
+/**
+ * @deprecated Legacy controller superseded by \LaundryPro\Api\Controllers\ReportsController.
+ * Retained for backwards compatibility with any remaining legacy scripts.
+ */
 class ReportController
 {
     public function __construct(private readonly ReportRepository $repository)

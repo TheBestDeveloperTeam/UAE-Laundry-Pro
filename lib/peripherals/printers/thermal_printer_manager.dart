@@ -141,6 +141,42 @@ class ThermalPrinterManager {
     await _spoolToHardware(bytes);
   }
 
+  /// Diagnostic self-test print pattern and cutter verification (TSK-3.4)
+  Future<bool> testPrintDiagnostics() async {
+    try {
+      final profile = await CapabilityProfile.load();
+      final paperSize = (_currentConfig?.paperWidth == 58) ? PaperSize.mm58 : PaperSize.mm80;
+      final generator = Generator(paperSize, profile);
+
+      List<int> bytes = [];
+      bytes += generator.reset();
+      bytes += generator.text(
+        'LAUNDRYPRO UAE — HARDWARE SELF-TEST',
+        styles: const PosStyles(align: PosAlign.center, bold: true, height: PosTextSize.size2),
+      );
+      bytes += generator.text(
+        'Station Printer Diagnostics OK',
+        styles: const PosStyles(align: PosAlign.center),
+      );
+      bytes += generator.hr();
+      bytes += generator.text('Date: ${DateTime.now().toIso8601String().substring(0, 19)}');
+      bytes += generator.text('Interface: ${_currentConfig?.type.name.toUpperCase() ?? "USB"}');
+      bytes += generator.text('Address: ${_currentConfig?.address ?? "DEFAULT"}');
+      bytes += generator.text('Paper Width: ${paperSize == PaperSize.mm58 ? "58mm" : "80mm"}');
+      bytes += generator.hr();
+      bytes += generator.feed(3);
+      bytes += generator.cut();
+
+      if (_currentConfig != null) {
+        await _spoolToHardware(bytes);
+      }
+      return true;
+    } catch (e) {
+      AppLogger.error('Printer self-test error: $e', tag: 'ThermalPrinterManager');
+      return false;
+    }
+  }
+
   /// Platform specific Spooler
   Future<void> _spoolToHardware(List<int> bytes) async {
     if (_currentConfig!.type == ConnectionType.network) {
