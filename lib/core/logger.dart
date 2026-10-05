@@ -28,12 +28,18 @@ class AppLogger {
     }
   }
 
-  static void warning(String message, {String tag = 'App', Object? error}) {
+  static void warning(
+    String message, {
+    String tag = 'App',
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
     developer.log(
       '⚠️ $message',
       name: 'LaundryPro.$tag',
       level: 900,
       error: error,
+      stackTrace: stackTrace,
     );
   }
 

@@ -88,7 +88,7 @@ void main() {
       expect(s['sales_total'], 1500.0);
     });
     test('trends returns series', () async {
-      final t = await FakeAnalyticsService().trends(ReportConfigModel(metric: 'sales_total', fromDate: '2026-08-01', toDate: '2026-09-05'));
+      final t = await FakeAnalyticsService().trends(const ReportConfigModel(metric: 'sales_total', fromDate: '2026-08-01', toDate: '2026-09-05'));
       expect(t.first['metric_value'], 500);
     });
     test('summary with branch', () async {

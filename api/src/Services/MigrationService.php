@@ -18,6 +18,7 @@ final class MigrationService
   public function status(): array
   {
     $this->ensureMigrationsTable();
+    $this->ensureBaselineForLegacyInstalls();
     $applied = $this->appliedMigrations();
     $pending = [];
 
@@ -106,7 +107,24 @@ final class MigrationService
   private function ensureBaselineForLegacyInstalls(): void
   {
     $applied = $this->appliedMigrations();
-    if (in_array('001_baseline.sql', $applied, true)) {
+    if (in_array('001_local_initial_schema.sql', $applied, true) || in_array('001_baseline.sql', $applied, true)) {
+      return;
+    }
+
+    // If tables already exist in database (e.g. users, sales_orders), mark 001_local_initial_schema.sql as already applied
+    $hasTables = false;
+    try {
+      $check = $this->pdo->query("SHOW TABLES LIKE 'sales_orders'");
+      if ($check && $check->fetchColumn() !== false) {
+        $hasTables = true;
+      }
+    } catch (\Throwable) {
+      $hasTables = false;
+    }
+
+    if ($hasTables) {
+      $insert = $this->pdo->prepare('INSERT INTO schema_migrations (migration) VALUES (:migration)');
+      $insert->execute(['migration' => '001_local_initial_schema.sql']);
       return;
     }
 
@@ -123,6 +141,6 @@ final class MigrationService
     }
 
     $insert = $this->pdo->prepare('INSERT INTO schema_migrations (migration) VALUES (:migration)');
-    $insert->execute(['migration' => '001_baseline.sql']);
+    $insert->execute(['migration' => '001_local_initial_schema.sql']);
   }
 }

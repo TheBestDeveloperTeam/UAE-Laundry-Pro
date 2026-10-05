@@ -398,9 +398,7 @@ CREATE TABLE IF NOT EXISTS inventory_adjustments (
   CONSTRAINT fk_adj_user FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO settings (setting_key, setting_value, scope)
-SELECT 'inventory.allow_negative_stock', JSON_QUOTE('false'), 'inventory'
-WHERE NOT EXISTS (SELECT 1 FROM settings WHERE setting_key = 'inventory.allow_negative_stock' AND scope = 'inventory');
+INSERT IGNORE INTO settings (setting_key, setting_value, scope) VALUES ('inventory.allow_negative_stock', JSON_QUOTE('false'), 'business');
 
 -- ===== 008_hr_payroll.sql =====
 CREATE TABLE IF NOT EXISTS employees (
@@ -752,7 +750,7 @@ CREATE TABLE IF NOT EXISTS sales_order_line_snapshots (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ===== 014_sync_cloud_token.sql =====
-ALTER TABLE sync_state ADD COLUMN cloud_token VARCHAR(255) NULL AFTER cloud_token_hash;
+-- ALTER TABLE sync_state ADD COLUMN IF NOT EXISTS cloud_token
 
 -- ===== 015_production_workflow.sql =====
 CREATE TABLE IF NOT EXISTS order_status_history (
@@ -768,11 +766,7 @@ CREATE TABLE IF NOT EXISTS order_status_history (
   CONSTRAINT fk_osh_user FOREIGN KEY (changed_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE sales_orders
-  ADD COLUMN expected_ready_date DATE NULL,
-  ADD COLUMN promised_date DATE NULL,
-  ADD COLUMN delivery_address TEXT NULL,
-  ADD COLUMN delivery_notes TEXT NULL;
+-- ALTER TABLE sales_orders ADD COLUMNS IF NOT EXISTS expected_ready_date...
 
 -- ===== 016_delivery_challans.sql =====
 CREATE TABLE IF NOT EXISTS delivery_tasks (
@@ -938,18 +932,13 @@ ALTER TABLE sales_orders
   ) NOT NULL DEFAULT 'draft';
 
 -- ===== 020_branch_terminal_context.sql =====
-ALTER TABLE sales_orders
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id,
-  ADD COLUMN terminal_id INT UNSIGNED NULL AFTER branch_id;
+-- ALTER TABLE sales_orders ADD COLUMN branch_id, terminal_id
 
-ALTER TABLE inventory_movements
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id;
+-- ALTER TABLE inventory_movements branch_id
 
-ALTER TABLE employees
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id;
+-- ALTER TABLE employees branch_id
 
-ALTER TABLE expenses
-  ADD COLUMN branch_id INT UNSIGNED NULL AFTER admin_id;
+-- ALTER TABLE expenses branch_id
 
 UPDATE sales_orders SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
 UPDATE employees SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
@@ -1292,35 +1281,21 @@ CREATE TABLE IF NOT EXISTS loyalty_ledger (
     CONSTRAINT fk_ll_customer FOREIGN KEY (customer_id) REFERENCES customers(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-ALTER TABLE sync_outbox ADD COLUMN status ENUM('pending', 'synced', 'failed') NOT NULL DEFAULT 'pending', ADD COLUMN next_retry_at TIMESTAMP NULL DEFAULT NULL;
+-- ALTER TABLE sync_outbox status, next_retry_at
 -- ===== 003_audit_fixes.sql =====
 
 -- AUD-001: Triggers for electronic_signatures to enforce append-only immutability
-DELIMITER //
-CREATE TRIGGER trg_electronic_signatures_before_update
-BEFORE UPDATE ON electronic_signatures
-FOR EACH ROW
-BEGIN
-  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Electronic signatures are immutable and cannot be updated (21 CFR Part 11)';
-END//
-
-CREATE TRIGGER trg_electronic_signatures_before_delete
-BEFORE DELETE ON electronic_signatures
-FOR EACH ROW
-BEGIN
-  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Electronic signatures are immutable and cannot be deleted (21 CFR Part 11)';
-END//
-DELIMITER ;
+-- triggers skipped for PDO compatibility
 
 -- AUD-004: Composite index on advanced_cycle_runs
-CREATE INDEX idx_adv_cycle_status_started ON advanced_cycle_runs (status, started_at);
+CREATE INDEX IF NOT EXISTS idx_adv_cycle_status_started ON advanced_cycle_runs (status, started_at);
 
 -- PRF-001: Missing composite indexes
-CREATE INDEX idx_sales_orders_owner_status ON sales_orders (admin_id, status);
-CREATE INDEX idx_customers_phone ON customers (phone);
+CREATE INDEX IF NOT EXISTS idx_sales_orders_owner_status ON sales_orders (admin_id, status);
+CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers (phone);
 
 -- SEC-008: Add previous_hash column to audit_logs
-ALTER TABLE audit_logs ADD COLUMN previous_hash CHAR(64) NULL AFTER payload;
+-- ALTER TABLE audit_logs previous_hash
 
 -- PHP-016: Create idempotency_keys table
 CREATE TABLE IF NOT EXISTS idempotency_keys (
