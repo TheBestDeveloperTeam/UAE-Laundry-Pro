@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/services/channel_service.dart';
@@ -27,7 +28,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     setState(() => _loading = true);
     try {
       _items = await _service.list();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load notification channels', tag: 'ChannelsScreen', error: e, stackTrace: stack);
+    }
     if (mounted) setState(() => _loading = false);
   }
 
@@ -101,7 +104,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
         'provider': provider,
         'is_active': 1,
       });
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to create notification channel', tag: 'ChannelsScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 
@@ -163,7 +168,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
           ),
         );
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to send test channel notification', tag: 'ChannelsScreen', error: e, stackTrace: stack);
+    }
     if (mounted) setState(() => _loading = false);
   }
 

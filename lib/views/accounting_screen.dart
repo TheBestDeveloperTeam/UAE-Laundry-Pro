@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/services/accounting_service.dart';
@@ -40,7 +41,9 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
     setState(() => _loading = true);
     try {
       _batches = await _service.listBatches();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load accounting batches', tag: 'AccountingScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loading = false);
     }
@@ -65,7 +68,9 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
           ),
         );
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to export accounting data', tag: 'AccountingScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 
@@ -79,7 +84,9 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
         final res = await _service.showBatch(batchId);
         if (res['batch'] != null) details = Map<String, dynamic>.from(res['batch'] as Map);
         if (res['lines'] != null) lines = List<dynamic>.from(res['lines'] as List);
-      } catch (_) {}
+      } catch (e, stack) {
+        AppLogger.error('Failed to fetch batch details', tag: 'AccountingScreen', error: e, stackTrace: stack);
+      }
     }
 
     if (!mounted) return;
