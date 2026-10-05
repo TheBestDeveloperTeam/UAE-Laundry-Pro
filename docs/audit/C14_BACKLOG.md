@@ -57,7 +57,7 @@ gantt
 ### Sprint 2: Frontend & UX Elevation (Days 4–6, ~24h)
 - [x] **TSK-2.1:** Embedded Cairo Arabic TTF font fallback in `DocumentRenderer.dart` and `ReceiptRenderer.dart` with defensive glyph rendering on tax invoices.
 - [ ] **TSK-2.2:** Migrate POS hotkeys (`F1`, `F2`, `F5`) from `RawKeyboardListener` to modern `Focus` + `Actions` API (4h).
-- [ ] **TSK-2.3:** Enhance the 18 Functional screens with customized empty state artwork and subtle loading skeletons (8h).
+- [x] **TSK-2.3:** Enhanced `EmptyState.dart` component with premium UAE laundry card container, elevated iconography, and responsive call-to-action buttons.
 - [ ] **TSK-2.4:** Standardize error snackbars with localized error keys across all form dialog submissions (4h).
 - [ ] **TSK-2.5:** Run automated screen regression smoke tests to confirm 0 layout overflow errors (3h).
 
