@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
@@ -381,11 +382,27 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return KeyboardListener(
-      autofocus: true,
-      focusNode: _scannerFocus,
-      onKeyEvent: ref.read(scannerControllerProvider),
-      child: Scaffold(
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.f1): _selectCustomerDialog,
+        const SingleActivator(LogicalKeyboardKey.f2): () {
+          if (_confirmedOrder == null) {
+            if (_cart.isNotEmpty && !_processing) {
+              _confirmSale();
+            }
+          } else {
+            if (!_processing) {
+              _pay();
+            }
+          }
+        },
+        const SingleActivator(LogicalKeyboardKey.f5): _load,
+      },
+      child: KeyboardListener(
+        autofocus: true,
+        focusNode: _scannerFocus,
+        onKeyEvent: ref.read(scannerControllerProvider),
+        child: Scaffold(
         appBar: AppBar(
           title: Row(
             children: [
@@ -654,8 +671,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                 ],
               ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _PaymentResult {

@@ -1,0 +1,10 @@
+.git
+.github
+.env
+.env.production
+tests/
+docs/
+*.md
+*.log
+storage/logs/*
+!storage/logs/.gitkeep

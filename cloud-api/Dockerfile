@@ -1,20 +1,33 @@
-FROM php:8.2-fpm-alpine
+# Multi-Stage Production Build for LaundryPro UAE Cloud Hub API
+# Stage 1: Build & Dependency Preparation
+FROM php:8.2-fpm-alpine AS builder
 
-# Install required system packages
 RUN apk update && apk add --no-cache \
-    nginx \
-    supervisor \
-    mariadb-client \
     curl \
     unzip \
     libzip-dev \
     oniguruma-dev
 
-# Install required PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring zip bcmath opcache
 
+# Stage 2: Final Minimal Runtime Image
+FROM php:8.2-fpm-alpine
+
+# Install minimal runtime dependencies (no compiler/build tools)
+RUN apk update && apk add --no-cache \
+    nginx \
+    supervisor \
+    mariadb-client \
+    libzip \
+    oniguruma \
+    && rm -rf /var/cache/apk/*
+
+# Copy compiled PHP extensions from builder
+COPY --from=builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
+COPY --from=builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
+
 # Setup Nginx configuration
-RUN rm /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/conf.d/default.conf 2>/dev/null || true
 RUN echo -e "server {\n\
     listen 80;\n\
     server_name _;\n\
@@ -63,11 +76,13 @@ stderr_logfile_maxbytes=0" > /etc/supervisor/conf.d/supervisord.conf
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
+# Copy application files (filtered via .dockerignore)
 COPY . .
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
+# Remove unnecessary documentation & tests from runtime if copied
+RUN rm -rf tests docs README.md \
+    && mkdir -p storage/logs \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
 EXPOSE 80
