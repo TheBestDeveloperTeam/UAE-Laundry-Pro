@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/services/backup_service.dart';
@@ -44,7 +45,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final settings = data['settings'] as Map? ?? {};
       _businessNameController.text = settings['business.name']?.toString().replaceAll('"', '') ?? '';
       _backups = await _backup.history();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load system settings or backup history', tag: 'SettingsScreen', error: e, stackTrace: stack);
+    }
     if (mounted) setState(() => _loading = false);
   }
 
@@ -107,7 +110,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to generate system backup', tag: 'SettingsScreen', error: e, stackTrace: stack);
+    }
     if (mounted) setState(() => _loading = false);
   }
 
@@ -118,7 +123,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Map<String, dynamic> validation = {};
     try {
       validation = await _backup.restoreValidate(file: fileName);
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to validate backup archive for restore', tag: 'SettingsScreen', error: e, stackTrace: stack);
+    }
     setState(() => _loading = false);
 
     if (!mounted) return;

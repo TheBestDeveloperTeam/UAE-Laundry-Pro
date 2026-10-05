@@ -463,7 +463,9 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
       } else {
         await _employees.create(body);
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to create or update employee record', tag: 'EmployeesScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 
