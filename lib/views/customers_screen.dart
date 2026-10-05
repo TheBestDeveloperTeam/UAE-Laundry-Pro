@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/customer_model.dart';
 import 'package:laundrypro_uae/services/customer_service.dart';
@@ -35,7 +36,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
       if (mounted) {
         setState(() => _customers = res);
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load customers', tag: 'CustomersScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loading = false);
     }

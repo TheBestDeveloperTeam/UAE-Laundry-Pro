@@ -1,0 +1,57 @@
+name: LaundryPro UAE - CI/CD Quality Gate & Verification
+
+on:
+  push:
+    branches: [ "main", "taha/dev" ]
+  pull_request:
+    branches: [ "main", "taha/dev" ]
+
+jobs:
+  backend-quality-gate:
+    name: PHP API Lint, Parity & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql, mbstring, zip, bcmath
+          coverage: none
+
+      - name: PHP Syntax Check
+        run: |
+          find api/src cloud-api/src -name "*.php" -print0 | xargs -0 -n1 php -l
+
+      - name: Verify Route Parity Across 35 Domains
+        run: |
+          php scripts/verify_route_parity.php
+
+      - name: Export & Validate Swagger / OpenAPI 3.0
+        run: |
+          php scripts/export_swagger.php
+
+  frontend-quality-gate:
+    name: Flutter Lint & Automated Regression Tests
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter 3.29.x
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Analyzer
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run Flutter Test Suite (118 assertions)
+        run: flutter test --reporter expanded

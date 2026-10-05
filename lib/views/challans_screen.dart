@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/document_renderer.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
@@ -31,7 +32,9 @@ class _ChallansScreenState extends State<ChallansScreen> {
     setState(() => _loading = true);
     try {
       _items = await _challans.list();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load challans', tag: 'ChallansScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loading = false);
     }
@@ -127,7 +130,9 @@ class _ChallansScreenState extends State<ChallansScreen> {
           },
         ],
       });
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to create challan', tag: 'ChallansScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 

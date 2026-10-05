@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/catalog_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
@@ -49,7 +50,9 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
           _products = products;
         });
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load catalog services/products', tag: 'CatalogScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loading = false);
     }
