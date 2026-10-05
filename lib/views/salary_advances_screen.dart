@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
@@ -42,7 +43,9 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
       ]);
       _items = results[0] as List<SalaryAdvanceModel>;
       _employees = results[1] as List<EmployeeModel>;
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load salary advances or employees', tag: 'SalaryAdvancesScreen', error: e, stackTrace: stack);
+    }
     if (mounted) setState(() => _loading = false);
   }
 
@@ -253,7 +256,9 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
         'amount': amount,
         if (notesController.text.isNotEmpty) 'notes': notesController.text.trim(),
       });
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to create salary advance', tag: 'SalaryAdvancesScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 

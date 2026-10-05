@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
@@ -46,7 +47,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
       _items = results[0] as List<LeaveModel>;
       _employees = results[1] as List<EmployeeModel>;
       _leaveTypes = results[2] as List<Map<String, dynamic>>;
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load leave requests or types', tag: 'LeaveScreen', error: e, stackTrace: stack);
+    }
     if (mounted) setState(() => _loading = false);
   }
 
@@ -299,7 +302,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
         'end_date': endDate.toIso8601String().split('T').first,
         if (reasonController.text.isNotEmpty) 'reason': reasonController.text.trim(),
       });
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to create leave request', tag: 'LeaveScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 
@@ -307,7 +312,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
     setState(() => _loading = true);
     try {
       await _payroll.approveLeave(id);
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to approve leave request', tag: 'LeaveScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 
@@ -315,7 +322,9 @@ class _LeaveScreenState extends State<LeaveScreen> {
     setState(() => _loading = true);
     try {
       await _payroll.rejectLeave(id);
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to reject leave request', tag: 'LeaveScreen', error: e, stackTrace: stack);
+    }
     await _load();
   }
 
