@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/services/license_service.dart';
@@ -46,7 +47,9 @@ class _LicenseScreenState extends State<LicenseScreen> {
           _umac = hw.machineCode;
         });
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load license or UMAC machine code', tag: 'LicenseScreen', error: e, stackTrace: stack);
+    }
   }
 
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/branch_model.dart';
@@ -28,7 +29,9 @@ class _BranchesScreenState extends State<BranchesScreen> {
     setState(() => _loading = true);
     try {
       _items = await _service.list();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.error('Failed to load branches', tag: 'BranchesScreen', error: e, stackTrace: stack);
+    }
     if (mounted) {
       setState(() => _loading = false);
     }
@@ -183,7 +186,9 @@ class _BranchesScreenState extends State<BranchesScreen> {
                       ),
                     );
                   }
-                } catch (_) {}
+                } catch (e, stack) {
+                  AppLogger.error('Failed to create branch', tag: 'BranchesScreen', error: e, stackTrace: stack);
+                }
                 await _load();
               },
               child: Text(ctx.l10n.t('save')),
