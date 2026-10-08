@@ -616,6 +616,10 @@ function register_api_routes(Router $router): void
     'tag' => 'License', 'summary' => 'Activate license', 'permission' => 'license.manage',
     'responses' => ['200' => 'LICENSE_ACTIVATED', '422' => 'VALIDATION_ERROR'],
   ]);
+  $router->post('/api/v1/license/sync', [LicenseController::class, 'sync'], $auth, [
+    'tag' => 'License', 'summary' => 'Synchronize license status', 'permission' => 'license.read',
+    'responses' => ['200' => 'LICENSE_SYNCED'],
+  ]);
 
   $router->get('/api/v1/inventory/movements', [InventoryController::class, 'movements'], $auth, [
     'tag' => 'Inventory', 'summary' => 'List inventory movements', 'permission' => 'inventory.read',

@@ -136,6 +136,15 @@ final class Application
     $originalPath = $request->getPath();
     $request = $this->normalizeRequestPath($request);
 
+    // Security headers (F-010)
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('X-XSS-Protection: 1; mode=block');
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+      header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+
     try {
       $globalMiddleware = [
         new CorsMiddleware($this->appConfig['cors_allowed_origins']),
@@ -389,7 +398,7 @@ final class Application
     ));
     $this->container->singleton(BranchRepository::class, fn (Container $c) => new BranchRepository($c->pdo()));
     $this->container->singleton(TerminalRepository::class, fn(Container $c) => new TerminalRepository($c->pdo()));
-    $this->container->singleton(HardwareAdapterInterface::class, fn() => new DummyRfidAdapter());
+    $this->container->singleton(HardwareAdapterInterface::class, fn() => new \LaundryPro\Api\Adapters\SerialRfidAdapter());
     $this->container->singleton(RfidRepository::class, fn(Container $c) => new RfidRepository($c->pdo()));
     $this->container->singleton(OperatorRepository::class, fn(Container $c) => new OperatorRepository($c->pdo()));
     $this->container->singleton(EquipmentRepository::class, fn(Container $c) => new EquipmentRepository($c->pdo()));

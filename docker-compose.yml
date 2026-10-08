@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  cloud-api:
+    build:
+      context: ./cloud-api
+      dockerfile: Dockerfile
+    container_name: laundrypro-cloud-api
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=cloud-db
+      - DB_DATABASE=laundrypro_cloud
+      - DB_USERNAME=laundrypro
+      - DB_PASSWORD=secret_db_pass
+    depends_on:
+      - cloud-db
+
+  cloud-db:
+    image: mariadb:10.11
+    container_name: laundrypro-cloud-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_secret_pass
+      - MYSQL_DATABASE=laundrypro_cloud
+      - MYSQL_USER=laundrypro
+      - MYSQL_PASSWORD=secret_db_pass
+    volumes:
+      - cloud_db_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+volumes:
+  cloud_db_data:
+    driver: local

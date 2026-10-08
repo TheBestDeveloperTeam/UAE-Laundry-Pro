@@ -31,8 +31,18 @@ final class LicenseController
       return;
     }
 
-    $result = $this->license->activate(trim($key));
-    $this->response->success($request, $result, 'LICENSE_ACTIVATED', 'license.activated');
+    try {
+      $result = $this->license->activate(trim($key));
+      $this->response->success($request, $result, 'LICENSE_ACTIVATED', 'license.activated');
+    } catch (\InvalidArgumentException $e) {
+      $this->response->error($request, 'INVALID_LICENSE_FORMAT', 'license.invalid_format', 422);
+    }
+  }
+
+  public function sync(Request $request, Container $container): void
+  {
+    $status = $this->license->status();
+    $this->response->success($request, $status, 'LICENSE_SYNCED', 'license.synced');
   }
 }
 

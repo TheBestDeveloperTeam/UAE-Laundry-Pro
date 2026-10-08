@@ -85,11 +85,18 @@ final class OpenApiGenerator
     }
 
     foreach ($map as $status => $code) {
+      $schemaRef = '#/components/schemas/ApiEnvelope';
+      if ((string) $status === '400') {
+        $schemaRef = '#/components/schemas/ErrorResponse';
+      } elseif ((string) $status === '422') {
+        $schemaRef = '#/components/schemas/UnprocessableEntityResponse';
+      }
+
       $responses[(string) $status] = [
         'description' => (string) $code,
         'content' => [
           'application/json' => [
-            'schema' => ['$ref' => '#/components/schemas/ApiEnvelope'],
+            'schema' => ['$ref' => $schemaRef],
           ],
         ],
       ];

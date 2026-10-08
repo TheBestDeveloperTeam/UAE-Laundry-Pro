@@ -108,6 +108,9 @@ final class SyncService
       $url = $cloudUrl . '/sync/pull' . ($since !== null ? '?since=' . urlencode($since) : '');
       $response = $this->httpGet($url, $cloudToken);
       $records = $response['data']['records'] ?? [];
+      if (is_array($records) && !empty($records)) {
+        $this->applyPulledRecords($records);
+      }
     }
 
     $stmt = $this->pdo->prepare(
@@ -116,6 +119,52 @@ final class SyncService
     $stmt->execute(['id' => $this->businessOwnerId]);
 
     return ['since' => $since, 'records' => $records];
+  }
+
+  /**
+   * Applies pulled records from the cloud into local tables safely
+   *
+   * @param array<int, array<string, mixed>> $records
+   */
+  public function applyPulledRecords(array $records): void
+  {
+    foreach ($records as $record) {
+      $entityType = strtolower((string) ($record['entity_type'] ?? ''));
+      $payload = is_array($record['payload'] ?? null) ? $record['payload'] : json_decode((string) ($record['payload'] ?? '{}'), true);
+      if (!is_array($payload) || empty($payload)) {
+        continue;
+      }
+
+      try {
+        if ($entityType === 'service' || $entityType === 'services') {
+          $name = (string) ($payload['name'] ?? '');
+          $price = (float) ($payload['price'] ?? 0.0);
+          if ($name !== '') {
+            $stmt = $this->pdo->prepare(
+              'INSERT INTO services (name, price, is_active, created_at, updated_at)
+               VALUES (:name, :price, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+               ON DUPLICATE KEY UPDATE price = VALUES(price), updated_at = UTC_TIMESTAMP()'
+            );
+            $stmt->execute(['name' => $name, 'price' => $price]);
+          }
+        } elseif ($entityType === 'customer' || $entityType === 'customers') {
+          $name = (string) ($payload['name'] ?? $payload['full_name'] ?? '');
+          $phone = (string) ($payload['phone'] ?? $payload['mobile'] ?? '');
+          if ($name !== '' && $phone !== '') {
+            $stmt = $this->pdo->prepare(
+              'INSERT INTO customers (name, phone, created_at, updated_at)
+               VALUES (:name, :phone, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+               ON DUPLICATE KEY UPDATE name = VALUES(name), updated_at = UTC_TIMESTAMP()'
+            );
+            $stmt->execute(['name' => $name, 'phone' => $phone]);
+          }
+        } elseif ($entityType === 'order_line_modifier') {
+          $this->resolveConflict($record);
+        }
+      } catch (\Throwable $e) {
+        // Silently continue applying next records
+      }
+    }
   }
 
   public function registerWithCloud(string $licenseKey): void
@@ -242,13 +291,23 @@ final class SyncService
           if (($cloudPayload['entity_type'] ?? '') === 'order_line_modifier') {
               $localId = (int)($cloudPayload['entity_local_id'] ?? 0);
               // Wrap in SELECT ... FOR UPDATE to prevent race condition
-              $stmt = $this->pdo->prepare('SELECT id FROM order_line_modifiers WHERE id = :id FOR UPDATE');
+              $stmt = $this->pdo->prepare('SELECT id, updated_at, created_at FROM order_line_modifiers WHERE id = :id FOR UPDATE');
               $stmt->execute(['id' => $localId]);
+              $existing = $stmt->fetch();
+              if ($existing) {
+                  // Deterministic Last-Write-Wins (LWW) resolution strategy
+                  $incomingTimestamp = $cloudPayload['updated_at'] ?? $cloudPayload['created_at'] ?? null;
+                  $existingTimestamp = $existing['updated_at'] ?? $existing['created_at'] ?? null;
 
-              if ($stmt->fetch()) {
-                  // Deterministic merge strategy
-                  $update = $this->pdo->prepare('UPDATE order_line_modifiers SET payload = :payload, updated_at = UTC_TIMESTAMP() WHERE id = :id');
-                  $update->execute(['payload' => json_encode($cloudPayload['payload']), 'id' => $localId]);
+                  $shouldUpdate = true;
+                  if ($incomingTimestamp !== null && $existingTimestamp !== null) {
+                      $shouldUpdate = strtotime((string) $incomingTimestamp) >= strtotime((string) $existingTimestamp);
+                  }
+
+                  if ($shouldUpdate) {
+                      $update = $this->pdo->prepare('UPDATE order_line_modifiers SET payload = :payload, updated_at = UTC_TIMESTAMP() WHERE id = :id');
+                      $update->execute(['payload' => json_encode($cloudPayload['payload']), 'id' => $localId]);
+                  }
               }
           }
           $this->pdo->commit();

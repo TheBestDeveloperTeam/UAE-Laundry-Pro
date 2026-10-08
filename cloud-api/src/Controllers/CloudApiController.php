@@ -33,7 +33,13 @@ final class CloudApiController
 
     public function openapiJson(Request $request): void
     {
-        $specPath = dirname(__DIR__, 2) . '/docs/swagger/cloud-api.json';
+        $specPath = dirname(__DIR__, 2) . '/cloud-api/docs/openapi.json';
+        if (!file_exists($specPath)) {
+            $specPath = dirname(__DIR__) . '/docs/openapi.json';
+        }
+        if (!file_exists($specPath)) {
+            $specPath = dirname(__DIR__, 2) . '/docs/swagger/cloud-api.json';
+        }
         if (!file_exists($specPath)) {
             $specPath = dirname(__DIR__, 2) . '/api/docs/openapi.json';
         }
@@ -81,7 +87,7 @@ final class CloudApiController
             $tenantId = (int) $pdo->lastInsertId();
 
             $audit = $pdo->prepare('INSERT INTO cloud_audit_logs (tenant_id, action, details, ip_address) VALUES (?, ?, ?, ?)');
-            $audit->execute([$tenantId, 'BUSINESS_REGISTERED', "Registered tenant: $name", $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1']);
+            $audit->execute([$tenantId, 'BUSINESS_REGISTERED', "Registered tenant: $name", $request->ip()]);
 
             Response::json([
                 'success' => true,
@@ -509,6 +515,59 @@ final class CloudApiController
                 $stmt->execute([
                     't' => $tenantId, 'u' => $entityUuid, 'on' => $orderNumber, 's' => $status,
                     'ps' => $payStatus, 'sub' => $subtotal, 'vat' => $vatAmount, 'tot' => $totalAmount, 'b' => $branch
+                ]);
+            } elseif (in_array($normalizedType, ['inventory', 'inventory_movements', 'inventory_movement'], true)) {
+                $sku = (string) ($payload['sku'] ?? $payload['item_code'] ?? ('SKU-' . substr($entityUuid, 0, 6)));
+                $name = (string) ($payload['name'] ?? $payload['item_name'] ?? 'Inventory Item');
+                $qty = (float) ($payload['quantity'] ?? $payload['qty'] ?? 0.0);
+                $unitCost = (float) ($payload['unit_cost'] ?? $payload['cost'] ?? 0.0);
+
+                $stmt = $pdo->prepare(
+                    'INSERT INTO tenant_inventory_movements (tenant_id, uuid, sku, item_name, quantity, unit_cost, created_at)
+                     VALUES (:t, :u, :sku, :n, :q, :c, NOW())
+                     ON DUPLICATE KEY UPDATE item_name = VALUES(item_name), quantity = VALUES(quantity), unit_cost = VALUES(unit_cost)'
+                );
+                $stmt->execute([
+                    't' => $tenantId, 'u' => $entityUuid, 'sku' => $sku, 'n' => $name, 'q' => $qty, 'c' => $unitCost
+                ]);
+            } elseif (in_array($normalizedType, ['expense', 'expenses'], true)) {
+                $category = (string) ($payload['category'] ?? 'General');
+                $amount = (float) ($payload['amount'] ?? 0.0);
+                $desc = (string) ($payload['description'] ?? '');
+
+                $stmt = $pdo->prepare(
+                    'INSERT INTO tenant_expenses (tenant_id, uuid, category, amount, description, created_at)
+                     VALUES (:t, :u, :cat, :amt, :d, NOW())
+                     ON DUPLICATE KEY UPDATE category = VALUES(category), amount = VALUES(amount), description = VALUES(description)'
+                );
+                $stmt->execute([
+                    't' => $tenantId, 'u' => $entityUuid, 'cat' => $category, 'amt' => $amount, 'd' => $desc
+                ]);
+            } elseif (in_array($normalizedType, ['employee', 'employees'], true)) {
+                $name = (string) ($payload['name'] ?? $payload['full_name'] ?? 'Staff');
+                $role = (string) ($payload['role'] ?? 'staff');
+                $phone = (string) ($payload['phone'] ?? '');
+
+                $stmt = $pdo->prepare(
+                    'INSERT INTO tenant_employees (tenant_id, uuid, name, role, phone, is_active)
+                     VALUES (:t, :u, :n, :r, :p, 1)
+                     ON DUPLICATE KEY UPDATE name = VALUES(name), role = VALUES(role), phone = VALUES(phone)'
+                );
+                $stmt->execute([
+                    't' => $tenantId, 'u' => $entityUuid, 'n' => $name, 'r' => $role, 'p' => $phone
+                ]);
+            } elseif (in_array($normalizedType, ['audit_log', 'audit_logs'], true)) {
+                $action = (string) ($payload['action'] ?? 'system');
+                $entity = (string) ($payload['entity'] ?? 'audit');
+                $details = is_string($payload['details'] ?? null) ? $payload['details'] : json_encode($payload['details'] ?? []);
+
+                $stmt = $pdo->prepare(
+                    'INSERT INTO tenant_audit_logs (tenant_id, uuid, action, entity, details, created_at)
+                     VALUES (:t, :u, :act, :ent, :dt, NOW())
+                     ON DUPLICATE KEY UPDATE details = VALUES(details)'
+                );
+                $stmt->execute([
+                    't' => $tenantId, 'u' => $entityUuid, 'act' => $action, 'ent' => $entity, 'dt' => $details
                 ]);
             }
         } catch (\Throwable $e) {

@@ -20,4 +20,12 @@ $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoi
 Write-Host "Creating Scheduled Task: $TaskName (every 5 minutes)..." -ForegroundColor Cyan
 Register-ScheduledTask -Action $Action -Trigger $Trigger -Settings $Settings -TaskName $TaskName -Description "Runs LaundryPro local outbox sync to the cloud every 5 minutes" -User "SYSTEM" -Force
 
-Write-Host "Task registered successfully!" -ForegroundColor Green
+# Register Daily Database Backup Task
+$BackupTaskName = "LaundryPro_DailyBackup"
+$BackupScript = Join-Path (Split-Path -Parent $ScriptPath) "backup.php"
+$BackupAction = New-ScheduledTaskAction -Execute $PhpExe -Argument "-r `"require_once '$BackupScript';`""
+$BackupTrigger = New-ScheduledTaskTrigger -Daily -At "02:00"
+Write-Host "Creating Scheduled Task: $BackupTaskName (daily at 2:00 AM)..." -ForegroundColor Cyan
+Register-ScheduledTask -Action $BackupAction -Trigger $BackupTrigger -Settings $Settings -TaskName $BackupTaskName -Description "Runs daily local database backup at 2:00 AM" -User "SYSTEM" -Force
+
+Write-Host "Tasks registered successfully!" -ForegroundColor Green

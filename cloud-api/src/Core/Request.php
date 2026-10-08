@@ -108,4 +108,23 @@ final class Request
     {
         return (int) ($this->header('X-Business-Owner-Id') ?? 0);
     }
+
+    public function ip(): string
+    {
+        $forwarded = $this->header('X-Forwarded-For') ?? ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? null);
+        if ($forwarded) {
+            $parts = explode(',', (string) $forwarded);
+            $clientIp = trim($parts[0]);
+            if (filter_var($clientIp, FILTER_VALIDATE_IP)) {
+                return $clientIp;
+            }
+        }
+
+        $realIp = $this->header('X-Real-IP') ?? ($_SERVER['HTTP_X_REAL_IP'] ?? null);
+        if ($realIp && filter_var($realIp, FILTER_VALIDATE_IP)) {
+            return (string) $realIp;
+        }
+
+        return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    }
 }

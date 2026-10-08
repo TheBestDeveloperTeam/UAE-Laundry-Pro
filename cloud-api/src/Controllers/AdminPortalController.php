@@ -78,7 +78,7 @@ final class AdminPortalController
             $upd->execute([$user['id']]);
 
             $audit = $pdo->prepare('INSERT INTO cloud_audit_logs (super_admin_id, action, details, ip_address) VALUES (?, ?, ?, ?)');
-            $audit->execute([$user['id'], 'SUPER_ADMIN_LOGIN', 'Successful login', $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1']);
+            $audit->execute([$user['id'], 'SUPER_ADMIN_LOGIN', 'Successful login', $request->ip()]);
 
             Response::redirect('/admin');
         }
@@ -200,7 +200,7 @@ final class AdminPortalController
 
             // Audit
             $audit = $pdo->prepare('INSERT INTO cloud_audit_logs (super_admin_id, tenant_id, action, details, ip_address) VALUES (?, ?, ?, ?, ?)');
-            $audit->execute([$user['id'], $tenantId, 'LICENSE_ISSUED', "Issued $planType license: $licenseKey", $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1']);
+            $audit->execute([$user['id'], $tenantId, 'LICENSE_ISSUED', "Issued $planType license: $licenseKey", $request->ip()]);
         }
 
         Response::redirect('/admin/licenses');
@@ -216,7 +216,7 @@ final class AdminPortalController
             $stmt->execute([$id]);
 
             $audit = $pdo->prepare('INSERT INTO cloud_audit_logs (super_admin_id, action, details, ip_address) VALUES (?, ?, ?, ?)');
-            $audit->execute([$user['id'], 'LICENSE_REVOKED', "Revoked license ID $id", $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1']);
+            $audit->execute([$user['id'], 'LICENSE_REVOKED', "Revoked license ID $id", $request->ip()]);
         }
         Response::redirect('/admin/licenses');
     }

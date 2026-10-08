@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
+import 'package:laundrypro_uae/core/logger.dart';
 
 class SyncService {
   final ApiClient _apiClient;
@@ -123,7 +124,9 @@ class SyncService {
              await _db.db.update('sync_queue', {'status': 'failed', 'retry_count': (row['retry_count'] as int) + 1}, where: 'id = ?', whereArgs: [id]);
            }
         }
-      } catch (_) {}
+      } catch (e, stack) {
+        AppLogger.error('Failed to process offline sync queue: $e', tag: 'SyncService', error: e, stackTrace: stack);
+      }
     }
 
     if (extraPayload != null && extraPayload.isNotEmpty) {

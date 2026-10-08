@@ -23,14 +23,18 @@ Future<void> main() async {
     try {
       final file = File('${GlobalConfigService().logPath}crash.log');
       file.writeAsStringSync('${DateTime.now()}: ${details.exceptionAsString()}\n', mode: FileMode.append);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to write exception to crash.log: $e');
+    }
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     try {
       final file = File('${GlobalConfigService().logPath}crash.log');
       file.writeAsStringSync('${DateTime.now()}: $error\n$stack\n', mode: FileMode.append);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to write platform error to crash.log: $e');
+    }
     return true;
   };
 

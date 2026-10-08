@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
+import '../core/logger.dart';
 
 class HardwareInfo {
   final String machineCode;
@@ -54,7 +55,9 @@ class SystemGuardService {
               .toList();
           if (lines.isNotEmpty) baseboard = lines.first;
         }
-      } catch (_) {}
+      } catch (e, stack) {
+        AppLogger.warning('Failed to query motherboard UUID from wmic/registry: $e', tag: 'SystemGuardService', error: e, stackTrace: stack);
+      }
     }
 
     final rawCombo = '$machineName|$cpuId|$baseboard';
@@ -85,12 +88,16 @@ class SystemGuardService {
           return int.tryParse(match.group(1)!) ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
         }
       }
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.warning('Registry query for InstallPulse failed: $e', tag: 'SystemGuardService', error: e, stackTrace: stack);
+    }
 
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     try {
       await Process.run('reg', ['add', _registryKeyPath, '/v', 'InstallPulse', '/t', 'REG_SZ', '/d', now.toString(), '/f']);
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.warning('Registry write for InstallPulse failed: $e', tag: 'SystemGuardService', error: e, stackTrace: stack);
+    }
     return now;
   }
 

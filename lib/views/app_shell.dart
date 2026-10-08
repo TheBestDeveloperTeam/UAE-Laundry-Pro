@@ -34,6 +34,7 @@ class _AppShellState extends State<AppShell> {
     _NavItem('/customers', Icons.people_outline, 'customers', permission: 'customers.read'),
     _NavItem('/vendors', Icons.store_outlined, 'vendors', permission: 'vendors.read'),
     _NavItem('/catalog', Icons.category_outlined, 'catalog', permission: 'catalog.read'),
+    _NavItem('/inventory', Icons.inventory_2_outlined, 'inventory_management', permission: 'inventory.read'),
     _NavItem('/pending', Icons.receipt_long_outlined, 'pending_invoices', permission: 'sales.read'),
     _NavItem('/production', Icons.precision_manufacturing_outlined, 'production', permission: 'sales.read'),
     _NavItem('/equipment', Icons.build_outlined, 'equipment', permission: 'advanced.equipment.manage'),

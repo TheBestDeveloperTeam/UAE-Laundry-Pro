@@ -64,28 +64,14 @@ if (str_starts_with($request->path(), '/admin') && in_array($request->method(), 
 }
 
 require_once dirname(__DIR__) . '/routes/api.php';
+require_once dirname(__DIR__) . '/routes/web.php';
 
 $router = new Router();
 
 // Register Full Cloud API Routes (178 endpoints for 100% parity across all 35 operational domains)
 register_cloud_api_routes($router);
 
-// Super-Admin Web Portal Endpoints
-$router->get('/admin/login', [AdminPortalController::class, 'loginView']);
-$router->post('/admin/login', [AdminPortalController::class, 'handleLogin']);
-$router->post('/admin/logout', [AdminPortalController::class, 'logout']);
-
-$router->get('/admin', [AdminPortalController::class, 'dashboard']);
-$router->get('/admin/tenants', [AdminPortalController::class, 'tenants']);
-$router->get('/admin/licenses', [AdminPortalController::class, 'licenses']);
-$router->post('/admin/licenses/issue', [AdminPortalController::class, 'issueLicense']);
-$router->post('/admin/licenses/revoke/{id}', [AdminPortalController::class, 'revokeLicense']);
-$router->get('/admin/sync', [AdminPortalController::class, 'syncInspector']);
-$router->get('/admin/audit', [AdminPortalController::class, 'audit']);
-
-// Default root redirect
-$router->get('/', function (Request $req) {
-    Response::redirect('/admin');
-});
+// Register Super-Admin Web Portal Routes
+register_cloud_web_routes($router);
 
 $router->dispatch($request);

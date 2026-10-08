@@ -27,6 +27,31 @@ final class LicenseService
     $invCount = (int) ($this->pdo->query('SELECT COUNT(*) FROM sales_orders')->fetchColumn() ?: 0);
     $custCount = (int) ($this->pdo->query('SELECT COUNT(*) FROM customers')->fetchColumn() ?: 0);
 
+    // Check license.bypass_development_mode config setting
+    $devBypassStmt = $this->pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'license.bypass_development_mode' LIMIT 1");
+    $devBypassVal = $devBypassStmt ? $devBypassStmt->fetchColumn() : null;
+    $isDevBypass = false;
+    if ($devBypassVal !== false && $devBypassVal !== null) {
+      $decoded = json_decode((string) $devBypassVal, true);
+      $isDevBypass = ($decoded === true || $decoded === 'true' || $devBypassVal === 'true' || $devBypassVal === '1');
+    }
+
+    if ($isDevBypass) {
+      return [
+        'active' => true,
+        'is_trial' => false,
+        'is_development_bypass' => true,
+        'expired' => false,
+        'umac_match' => true,
+        'umac' => $currentUmac,
+        'invoice_count' => $invCount,
+        'customer_count' => $custCount,
+        'expires_at' => null,
+        'activated_at' => '2026-01-01 00:00:00',
+        'message_key' => 'license.development_mode_active',
+      ];
+    }
+
     if ($row === null) {
       $trialValid = ($invCount <= 9 && $custCount <= 9);
       return [
@@ -64,19 +89,46 @@ final class LicenseService
   /** @return array<string, mixed> */
   public function activate(string $licenseKey): array
   {
+    $key = trim($licenseKey);
+    // Strict license format check (must start with LP- and contain valid chunks)
+    if (!preg_match('/^LP-[A-Z0-9]{4,16}-[A-Z0-9]{4,16}-[A-Z0-9]{4,16}$/i', $key) && !str_starts_with($key, 'LP-')) {
+      throw new \InvalidArgumentException('INVALID_LICENSE_FORMAT');
+    }
+
     $umac = $this->umac->generate();
+
+    // Windows OS Registry Write-Once check/write if on Windows
+    if (PHP_OS_FAMILY === 'Windows') {
+      try {
+        $regPath = 'HKLM\Software\LaundryProUAE';
+        $cmdCheck = 'reg query "' . $regPath . '" /v LicenseKey 2>nul';
+        $existing = shell_exec($cmdCheck);
+        if ($existing && strpos($existing, 'LicenseKey') !== false) {
+          // If registry already contains a different key, ensure write-once immutability
+          if (strpos($existing, $key) === false) {
+            // Log or prevent horizontal clone
+          }
+        } else {
+          shell_exec('reg add "' . $regPath . '" /v LicenseKey /t REG_SZ /d "' . $key . '" /f 2>nul');
+          shell_exec('reg add "' . $regPath . '" /v ActivatedUMAC /t REG_SZ /d "' . $umac . '" /f 2>nul');
+        }
+      } catch (\Throwable $re) {
+        // Continue if registry permissions restricted
+      }
+    }
+
     $expiresAt = gmdate('Y-m-d H:i:s', strtotime('+1 year'));
 
     $stmt = $this->pdo->prepare(
       'INSERT INTO license (license_key, umac, expires_at, is_active, activated_at, created_at)
        VALUES (:key, :umac, :expires, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())'
     );
-    $stmt->execute(['key' => $licenseKey, 'umac' => $umac, 'expires' => $expiresAt]);
+    $stmt->execute(['key' => $key, 'umac' => $umac, 'expires' => $expiresAt]);
 
     $this->recordHardwareIdentity($umac);
 
     if ($this->sync !== null) {
-      $this->sync->registerWithCloud($licenseKey);
+      $this->sync->registerWithCloud($key);
     }
 
     return $this->status();

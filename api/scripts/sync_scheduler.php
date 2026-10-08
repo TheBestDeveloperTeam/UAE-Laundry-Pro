@@ -18,6 +18,11 @@ if (!($status['enabled'] ?? false)) {
   exit(0);
 }
 
-$result = $sync->push();
-echo 'Pushed: ' . ($result['pushed'] ?? 0) . PHP_EOL;
+$pushResult = $sync->push();
+echo 'Pushed: ' . ($pushResult['pushed'] ?? 0) . PHP_EOL;
+
+$pullResult = $sync->pull();
+$pulledCount = count($pullResult['records'] ?? []);
+echo 'Pulled: ' . $pulledCount . PHP_EOL;
+
 exit(0);

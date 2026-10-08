@@ -28,18 +28,28 @@ final class TenantScopeMiddleware
         $pdo = Database::connect();
         $token = $request->bearerToken();
 
-        // 1. If database is offline or not configured, gracefully return resilient default tenant
+        // 1. If database is offline, reject request with SERVICE_UNAVAILABLE to ensure tenant isolation
         if ($pdo === null) {
-            $mockTenant = [
-                'id' => 1,
-                'uuid' => '00000000-0000-0000-0000-000000000001',
-                'name' => 'LaundryPro Demo UAE',
-                'status' => 'active',
-                'max_branches' => 10,
-                'max_devices' => 25,
-            ];
-            self::$currentTenant = $mockTenant;
-            return $mockTenant;
+            $isDev = (getenv('APP_ENV') === 'development' || getenv('APP_ENV') === 'local');
+            if ($isDev) {
+                $mockTenant = [
+                    'id' => 1,
+                    'uuid' => '00000000-0000-0000-0000-000000000001',
+                    'name' => 'LaundryPro Demo UAE',
+                    'status' => 'active',
+                    'max_branches' => 10,
+                    'max_devices' => 25,
+                ];
+                self::$currentTenant = $mockTenant;
+                return $mockTenant;
+            }
+
+            Response::json([
+                'success' => false,
+                'code' => 'SERVICE_UNAVAILABLE',
+                'message' => 'Database connection unavailable. Cannot verify tenant boundary.',
+            ], 503);
+            return null;
         }
 
         // 2. Token extraction & header fallbacks

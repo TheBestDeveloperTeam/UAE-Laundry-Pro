@@ -17,6 +17,7 @@ import 'package:laundrypro_uae/views/dashboard_screen.dart';
 import 'package:laundrypro_uae/views/delivery_screen.dart';
 import 'package:laundrypro_uae/views/employees_screen.dart';
 import 'package:laundrypro_uae/views/expenses_screen.dart';
+import 'package:laundrypro_uae/views/inventory_screen.dart';
 import 'package:laundrypro_uae/views/leave_screen.dart';
 import 'package:laundrypro_uae/views/license_screen.dart';
 import 'package:laundrypro_uae/views/localization_screen.dart';
@@ -99,6 +100,7 @@ class AppRouter {
             GoRoute(path: '/customers', builder: (context, state) => const CustomersScreen()),
             GoRoute(path: '/vendors', builder: (context, state) => const VendorsScreen()),
             GoRoute(path: '/catalog', builder: (context, state) => const CatalogScreen()),
+            GoRoute(path: '/inventory', builder: (context, state) => const InventoryScreen()),
             GoRoute(path: '/pending', builder: (context, state) => const PendingInvoicesScreen()),
             GoRoute(path: '/production', builder: (context, state) => const ProductionScreen()),
             GoRoute(path: '/equipment', builder: (context, state) => const EquipmentScreen()),

@@ -34,6 +34,34 @@ final class ApiSchemas
             'meta' => ['$ref' => '#/components/schemas/ApiMeta'],
           ],
         ],
+        'ErrorResponse' => [
+          'type' => 'object',
+          'required' => ['success', 'code', 'message_key'],
+          'properties' => [
+            'success' => ['type' => 'boolean', 'example' => false],
+            'code' => ['type' => 'string', 'example' => 'BAD_REQUEST'],
+            'message_key' => ['type' => 'string', 'example' => 'error.bad_request'],
+            'errors' => [
+              'type' => 'array',
+              'items' => ['$ref' => '#/components/schemas/ValidationError'],
+            ],
+            'meta' => ['$ref' => '#/components/schemas/ApiMeta'],
+          ],
+        ],
+        'UnprocessableEntityResponse' => [
+          'type' => 'object',
+          'required' => ['success', 'code', 'message_key', 'errors'],
+          'properties' => [
+            'success' => ['type' => 'boolean', 'example' => false],
+            'code' => ['type' => 'string', 'example' => 'VALIDATION_FAILED'],
+            'message_key' => ['type' => 'string', 'example' => 'error.validation_failed'],
+            'errors' => [
+              'type' => 'array',
+              'items' => ['$ref' => '#/components/schemas/ValidationError'],
+            ],
+            'meta' => ['$ref' => '#/components/schemas/ApiMeta'],
+          ],
+        ],
         'ApiMeta' => [
           'type' => 'object',
           'properties' => [
@@ -44,10 +72,11 @@ final class ApiSchemas
         ],
         'ValidationError' => [
           'type' => 'object',
+          'required' => ['field', 'code', 'message_key'],
           'properties' => [
-            'field' => ['type' => 'string'],
-            'code' => ['type' => 'string'],
-            'message_key' => ['type' => 'string'],
+            'field' => ['type' => 'string', 'example' => 'phone'],
+            'code' => ['type' => 'string', 'example' => 'INVALID_FORMAT'],
+            'message_key' => ['type' => 'string', 'example' => 'validation.phone_invalid'],
           ],
         ],
         'LoginRequest' => [

@@ -1,0 +1,63 @@
+openapi: 3.0.0
+info:
+  title: LaundryPro UAE - Cloud API
+  version: 1.0.0
+  description: Canonical Cloud API Specification (Subset/Example). Full spec auto-generated dynamically at `/api/v1/docs/openapi.json`.
+servers:
+  - url: https://cloud.magnificentsolution.co.in
+    description: Production Cloud Server
+paths:
+  /api/v1/health:
+    get:
+      summary: Health check
+      tags:
+        - Platform
+      responses:
+        '200':
+          description: HEALTH_OK
+  /api/v1/sync/push:
+    post:
+      summary: Push local changes to cloud
+      tags:
+        - Sync Gateway
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: SYNC_SUCCESS
+  /api/v1/tenant/orders:
+    get:
+      summary: List orders for tenant
+      tags:
+        - Tenant Aliases
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+  /api/v1/license/approve:
+    post:
+      summary: Approve tenant license key (Super-Admin)
+      tags:
+        - License Management
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: LICENSE_APPROVED
+  /api/v1/license/revoke:
+    post:
+      summary: Revoke tenant license key (Super-Admin)
+      tags:
+        - License Management
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: LICENSE_REVOKED
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

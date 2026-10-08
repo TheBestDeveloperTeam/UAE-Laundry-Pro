@@ -1,0 +1,56 @@
+openapi: 3.0.0
+info:
+  title: LaundryPro UAE - Local API
+  version: 1.0.0
+  description: Canonical Local API Specification (Subset/Example). Full specification is auto-generated dynamically at `/api/v1/docs/openapi.json`.
+servers:
+  - url: http://localhost:8000
+    description: Local XAMPP Server
+paths:
+  /api/v1/health:
+    get:
+      summary: Health check
+      tags:
+        - Platform
+      responses:
+        '200':
+          description: HEALTH_OK
+        '500':
+          description: SERVER_ERROR
+  /api/v1/auth/login:
+    post:
+      summary: Login with username and password
+      tags:
+        - Identity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: AUTH_LOGIN_SUCCESS
+        '401':
+          description: AUTH_INVALID_CREDENTIALS
+  /api/v1/sales:
+    get:
+      summary: List sales orders
+      tags:
+        - Sales
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

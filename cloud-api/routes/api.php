@@ -46,11 +46,7 @@ function register_cloud_api_routes(Router $router): void
     $router->post('/api/v1/roles', [PlatformController::class, 'createRole']);
     $router->put('/api/v1/roles/{id}', [PlatformController::class, 'updateRole']);
 
-    // ===== 5. Install & Setup =====
-    $router->get('/api/v1/install/status', [PlatformController::class, 'installStatus']);
-    $router->post('/api/v1/install/migrate', [PlatformController::class, 'installMigrate']);
-    $router->post('/api/v1/install/seed', [PlatformController::class, 'installSeed']);
-    $router->post('/api/v1/install/complete', [PlatformController::class, 'installComplete']);
+    // Install routes removed on Cloud Hub (Local-only provisioning)
 
     // ===== 6. Customers =====
     $router->get('/api/v1/customers', [CustomerController::class, 'list']);
@@ -200,6 +196,8 @@ function register_cloud_api_routes(Router $router): void
     $router->get('/api/v1/license/status', [SyncManagementController::class, 'licenseStatus']);
     $router->post('/api/v1/license/activate', [SyncManagementController::class, 'licenseActivate']);
     $router->post('/api/v1/license/validate', [CloudApiController::class, 'validateLicense']);
+    $router->post('/api/v1/license/approve', [SyncManagementController::class, 'licenseApprove']);
+    $router->post('/api/v1/license/revoke', [SyncManagementController::class, 'licenseRevoke']);
 
     // ===== 18. Sync Gateway =====
     $router->get('/api/v1/sync/status', [SyncManagementController::class, 'syncStatus']);
@@ -234,10 +232,9 @@ function register_cloud_api_routes(Router $router): void
     $router->get('/api/v1/operators/certifications', [OperationsController::class, 'operatorCertifications']);
     $router->post('/api/v1/operators/{id}/certify', [OperationsController::class, 'certifyOperator']);
 
-    // ===== 22. RFID =====
-    $router->post('/api/v1/rfid/scan', [OperationsController::class, 'rfidScan']);
+    // Local hardware routes (/rfid/scan, /lan/*) removed on Cloud Hub
 
-    // ===== 23. Advanced Cycles & Sterilization =====
+    // ===== 22. Advanced Cycles & Sterilization =====
     $router->get('/api/v1/advanced-cycles/presets', [OperationsController::class, 'advancedCyclePresets']);
     $router->post('/api/v1/advanced-cycles/start', [OperationsController::class, 'startAdvancedCycle']);
     $router->post('/api/v1/advanced-cycles/{id}/complete', [OperationsController::class, 'completeAdvancedCycle']);
@@ -249,7 +246,7 @@ function register_cloud_api_routes(Router $router): void
     $router->post('/api/v1/sterilization/sign', [OperationsController::class, 'sterilizationSign']);
     $router->get('/api/v1/sterilization/logs/{cycleRunId}', [OperationsController::class, 'sterilizationLogs']);
 
-    // ===== 24. Storefront & Customer Portal =====
+    // ===== 23. Storefront & Customer Portal =====
     $router->get('/api/v1/storefront/catalog', [OperationsController::class, 'storefrontCatalog']);
     $router->post('/api/v1/storefront/orders', [OperationsController::class, 'createStorefrontOrder']);
     $router->get('/api/v1/storefront/orders', [OperationsController::class, 'storefrontOrders']);
@@ -258,11 +255,7 @@ function register_cloud_api_routes(Router $router): void
     $router->post('/api/v1/portal/tokens', [OperationsController::class, 'portalTokens']);
     $router->get('/api/v1/portal/order', [OperationsController::class, 'portalOrder']);
 
-    // ===== 25. LAN =====
-    $router->get('/api/v1/lan/status', [PlatformController::class, 'lanStatus']);
-    $router->put('/api/v1/lan/bind', [PlatformController::class, 'lanBind']);
-
-    // ===== 26. Accounting =====
+    // ===== 24. Accounting =====
     $router->get('/api/v1/accounting/batches', [OperationsController::class, 'accountingBatches']);
     $router->get('/api/v1/accounting/batches/{id}', [OperationsController::class, 'getAccountingBatch']);
     $router->post('/api/v1/accounting/export', [OperationsController::class, 'accountingExport']);

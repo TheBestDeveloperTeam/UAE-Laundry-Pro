@@ -82,16 +82,36 @@ final class SyncManagementController extends BaseController
         ], 'LICENSE_STATUS_RETRIEVED');
     }
 
-    public function licenseActivate(Request $request, array $params = []): void
+    public function licenseApprove(Request $request, array $params = []): void
     {
         $body = $request->json();
         $key = $body['license_key'] ?? 'LP-ACTIVATED-KEY';
+        $pdo = $this->db();
+        if ($pdo !== null) {
+            $stmt = $pdo->prepare('UPDATE cloud_licenses SET status = "active", updated_at = NOW() WHERE license_key = ?');
+            $stmt->execute([$key]);
+        }
         $this->success([
-            'activated' => true,
+            'approved' => true,
             'license_key' => $key,
-            'plan_type' => 'enterprise',
             'status' => 'active',
-        ], 'LICENSE_ACTIVATED', 201);
+        ], 'LICENSE_APPROVED');
+    }
+
+    public function licenseRevoke(Request $request, array $params = []): void
+    {
+        $body = $request->json();
+        $key = $body['license_key'] ?? '';
+        $pdo = $this->db();
+        if ($pdo !== null) {
+            $stmt = $pdo->prepare('UPDATE cloud_licenses SET status = "revoked", updated_at = NOW() WHERE license_key = ?');
+            $stmt->execute([$key]);
+        }
+        $this->success([
+            'revoked' => true,
+            'license_key' => $key,
+            'status' => 'revoked',
+        ], 'LICENSE_REVOKED');
     }
 
     // ===== Backup Endpoints =====

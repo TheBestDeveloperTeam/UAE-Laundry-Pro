@@ -54,6 +54,29 @@ final class AuditLogRepository
           'hash_signature' => $newHash,
         ]);
 
+        $insertId = (int) $this->pdo->lastInsertId();
+
+        // Enqueue to sync_outbox for central cloud visibility
+        try {
+          $outboxStmt = $this->pdo->prepare(
+            "INSERT INTO sync_outbox (business_owner_id, admin_id, entity_type, entity_local_id, operation, payload, status, sync_attempts, created_at)
+             VALUES (1, 1, 'audit_log', :local_id, 'INSERT', :payload, 'pending', 0, UTC_TIMESTAMP())"
+          );
+          $outboxStmt->execute([
+            'local_id' => $insertId,
+            'payload' => json_encode([
+              'user_id' => $userId,
+              'action' => $action,
+              'entity_type' => $entityType,
+              'entity_id' => $entityId,
+              'payload' => $payload,
+              'hash_signature' => $newHash,
+            ]),
+          ]);
+        } catch (\Throwable $oe) {
+          // Non-blocking outbox failure
+        }
+
         $this->pdo->commit();
     } catch (\Exception $e) {
         if ($this->pdo->inTransaction()) {
