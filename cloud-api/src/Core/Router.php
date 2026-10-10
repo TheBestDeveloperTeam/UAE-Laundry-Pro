@@ -47,9 +47,14 @@ final class Router
         $reqMethod = $request->method();
         $reqPath = $request->path();
 
-        // Normalize subfolder paths if running in /cloud-api/public or similar
+        // Normalize subfolder paths if running in /cloud-api/public or /cloud-api or similar on cPanel / shared hosts
         if (str_contains($reqPath, '/public')) {
             $reqPath = substr($reqPath, strpos($reqPath, '/public') + strlen('/public')) ?: '/';
+        }
+        if (str_starts_with($reqPath, '/cloud-api/')) {
+            $reqPath = substr($reqPath, strlen('/cloud-api')) ?: '/';
+        } elseif ($reqPath === '/cloud-api') {
+            $reqPath = '/';
         }
 
         foreach ($this->routes as $route) {

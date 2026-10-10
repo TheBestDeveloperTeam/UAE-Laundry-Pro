@@ -1,3 +1,19 @@
-﻿RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(.*)$ public/$1 [L]
+# LaundryPro Cloud API - Apache / cPanel / LiteSpeed Rewrites
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pass Authorization Header to PHP environment
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Prevent direct access to sensitive directories
+    RewriteRule ^(\.env|\.git|storage|logs|database|tests|src|config) - [F,L,NC]
+
+    # If requested file or directory exists under public/, serve directly
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Route all other requests to public/index.php
+    RewriteRule ^ public/index.php [QSA,L]
+</IfModule>

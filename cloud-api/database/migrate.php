@@ -103,7 +103,18 @@ if (php_sapi_name() === 'cli') {
     require_once dirname(__DIR__) . '/src/Core/Env.php';
     require_once dirname(__DIR__) . '/src/Core/Database.php';
 
-    \LaundryPro\Cloud\Core\Env::load(dirname(__DIR__) . '/.env');
+    $envCandidates = [
+        dirname(__DIR__) . '/.env',
+        dirname(__DIR__) . '/.env.production',
+        dirname(__DIR__, 2) . '/.env',
+        dirname(__DIR__, 2) . '/.env.production',
+    ];
+    foreach ($envCandidates as $envCandidate) {
+        if (file_exists($envCandidate)) {
+            \LaundryPro\Cloud\Core\Env::load($envCandidate);
+            break;
+        }
+    }
 
     $pdo = Database::connect();
     if ($pdo === null) {

@@ -1,0 +1,20 @@
+# LaundryPro UAE Root .htaccess (for cPanel subdomain root pointing to repository root)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Forward Authorization header to PHP
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Prevent access to source files, git, and local POS code from web
+    RewriteRule ^(\.git|api|lib|windows|test|scripts) - [F,L,NC]
+
+    # Route /api/* and /admin/* and cloud traffic directly to cloud-api/public/index.php
+    RewriteCond %{REQUEST_URI} ^/api/ [OR]
+    RewriteCond %{REQUEST_URI} ^/admin/ [OR]
+    RewriteCond %{REQUEST_URI} ^/cloud-api/
+    RewriteRule ^ cloud-api/public/index.php [QSA,L]
+
+    # Default root redirect to /admin portal
+    RewriteRule ^$ cloud-api/public/index.php [QSA,L]
+</IfModule>

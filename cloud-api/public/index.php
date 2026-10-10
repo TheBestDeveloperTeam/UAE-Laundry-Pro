@@ -21,8 +21,19 @@ spl_autoload_register(function (string $class): void {
 
 use LaundryPro\Cloud\Core\Env;
 
-// Load root or local .env if present
-Env::load(dirname(__DIR__) . '/.env');
+// Load root or local .env or .env.production if present
+$envCandidates = [
+    dirname(__DIR__) . '/.env',
+    dirname(__DIR__) . '/.env.production',
+    dirname(__DIR__, 2) . '/.env',
+    dirname(__DIR__, 2) . '/.env.production',
+];
+foreach ($envCandidates as $envCandidate) {
+    if (file_exists($envCandidate)) {
+        Env::load($envCandidate);
+        break;
+    }
+}
 
 use LaundryPro\Cloud\Controllers\AdminPortalController;
 use LaundryPro\Cloud\Controllers\CloudApiController;
