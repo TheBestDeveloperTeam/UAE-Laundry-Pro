@@ -1,0 +1,29 @@
+{
+  "name": "laundrypro/cloud-api",
+  "description": "LaundryPro UAE Enterprise Cloud Management Hub & Multi-Tenant API",
+  "type": "project",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "TheBestDeveloperTeam",
+      "homepage": "https://magnificentsolution.co.in"
+    }
+  ],
+  "require": {
+    "php": ">=8.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "LaundryPro\\Cloud\\": "src/"
+    }
+  },
+  "scripts": {
+    "migrate": "php database/migrate.php",
+    "seed-superadmin": "php database/seed_superadmin.php",
+    "deploy-check": "php scripts/deploy_check.php"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
+}

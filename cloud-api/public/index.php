@@ -2,22 +2,28 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(function (string $class): void {
-    $prefix = 'LaundryPro\\Cloud\\';
-    $baseDir = dirname(__DIR__) . '/src/';
+// Load Composer autoloader if vendor directory exists; otherwise fallback to native autoloader
+$composerAutoload = dirname(__DIR__) . '/vendor/autoload.php';
+if (file_exists($composerAutoload)) {
+    require_once $composerAutoload;
+} else {
+    spl_autoload_register(function (string $class): void {
+        $prefix = 'LaundryPro\\Cloud\\';
+        $baseDir = dirname(__DIR__) . '/src/';
 
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
-        return;
-    }
+        $len = strlen($prefix);
+        if (strncmp($prefix, $class, $len) !== 0) {
+            return;
+        }
 
-    $relativeClass = substr($class, $len);
-    $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+        $relativeClass = substr($class, $len);
+        $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
 
-    if (file_exists($file)) {
-        require_once $file;
-    }
-});
+        if (file_exists($file)) {
+            require_once $file;
+        }
+    });
+}
 
 use LaundryPro\Cloud\Core\Env;
 

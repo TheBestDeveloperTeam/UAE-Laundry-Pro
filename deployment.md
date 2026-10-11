@@ -177,24 +177,61 @@ Located at: `/home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolut
 
 ## Step 4: Running Database Migrations via Web & CLI
 
-### Option A: Using SSH CLI (Recommended)
+### Option A: Using the All-in-One Custom Deployment Engine (Recommended)
 
 From your SSH terminal as user `ihgzplwh`:
+
+```bash
+cd /home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api
+php scripts/deploy.php
+```
+
+*What `php scripts/deploy.php` does automatically:*
+1. Loads and validates your `.env` database credentials.
+2. Verifies connectivity to `ihgzplwh_laundrypro` on `localhost`.
+3. Runs all pending database migrations (`001_cloud_initial_schema.sql`, `002_tenant_full_domain_schema.sql`).
+4. Auto-provisions the master Super-Admin user (`superadmin`) if not already present.
+5. Verifies and auto-creates required runtime folders (`logs/`, `storage/`).
+
+*Expected output:*
+```text
+========================================================
+  LaundryPro UAE — Cloud API Custom Deployment Engine   
+========================================================
+
+[✓] Environment loaded from: .env
+[*] Database Configuration:
+    Host: localhost
+    Database: ihgzplwh_laundrypro
+    User: ihgzplwh_laundrypro
+
+[*] Connecting to MariaDB/MySQL... [OK]
+
+[*] Executing database migrations...
+  [✓] APPLIED 001_cloud_initial_schema : Applied successfully
+  [✓] APPLIED 002_tenant_full_domain_schema : Applied successfully
+
+[*] Verifying Super-Admin account...
+  [✓] Super-Admin user 'superadmin' already provisioned.
+
+[*] Checking required runtime directories...
+  [✓] Directory ready: logs
+  [✓] Directory ready: storage
+
+========================================================
+  DEPLOYMENT COMPLETE!                                  
+========================================================
+```
+
+### Option B: Using Individual CLI Scripts
+If you prefer running steps individually:
 
 ```bash
 cd /home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api
 php database/migrate.php
 ```
 
-*Expected output:*
-```
-✅ [APPLIED] 001_cloud_initial_schema — Applied successfully
-✅ [APPLIED] 002_tenant_full_domain_schema — Applied successfully
-
-Done. 2 migration(s) applied.
-```
-
-### Option B: Using cPanel phpMyAdmin (If CLI is restricted)
+### Option C: Using cPanel phpMyAdmin (If CLI is restricted)
 
 1. Open **phpMyAdmin** from your cPanel.
 2. Select database `ihgzplwh_laundrypro`.
