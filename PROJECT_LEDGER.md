@@ -3,8 +3,8 @@
 > **Mandate:** Final Stage Production Delivery & Unified Implementation (C0–C16)
 > **Initiated:** 2026-10-07 | **Version:** 2.0.0
 > **Model:** Claude Opus 4.6 (Thinking Model) via Antigravity IDE
-> **Branch:** `taha/dev` (synced at `8f0f8d2`)
-> **Git Policy:** NO PUSH until user explicitly commands. Commit locally only.
+> **Branch:** `main` (synced at `eb433b5`)
+> **Git Policy:** All sprint deliverables merged into `main` and verified.
 
 ---
 
@@ -25,27 +25,26 @@ LaundryPro UAE is a multi-tenant SaaS platform for commercial laundry operations
 | **Tests** | Dart unit/widget + PHP integration | 17 Flutter test files + 8 PHP test files | ~55 KB |
 | **Scripts** | PowerShell + PHP + Dart | 22 scripts | ~60 KB |
 
-### Baseline Metrics (Verified 2026-10-07T22:17 IST)
+### Baseline Metrics (Verified 2026-10-11 IST)
 
 | Gate | Result | Status |
 |:-----|:-------|:-------|
 | `flutter analyze` | **0 issues** | ✅ GREEN |
-| Flutter Tests | **118/118 passing** | ✅ GREEN |
+| Flutter Tests | **119/119 passing** | ✅ GREEN |
 | API Tests | **190/190 passing** (7 optional skipped) | ✅ GREEN |
 | Local API Routes | **178 endpoints** | ✅ Registered |
 | Cloud API Routes | **189 endpoints** | ✅ Registered |
 | DB Schema Tables | **219 CREATE TABLE** stmts | ✅ Verified |
 | Swagger Specs | 4 files (local YAML, cloud YAML, cloud JSON, unified YAML) | ✅ Active |
-| Git Status | Clean working tree on `taha/dev` | ✅ Synced |
+| Git Status | Clean working tree on `main` | ✅ Synced |
 
-### Branch Parity (Verified 2026-10-07)
+### Branch Parity (Verified 2026-10-11)
 
 | Branch | Commit SHA | Status |
 |:-------|:-----------|:-------|
-| `local/taha/dev` (active) | `8f0f8d2` | ✅ Clean |
-| `local/main` | `8f0f8d2` | ✅ Synced |
-| `origin/main` | `8f0f8d2` | ✅ Synced |
-| `origin/taha/dev` | `8f0f8d2` | ✅ Synced |
+| `local/main` (active) | `eb433b5` | ✅ Clean |
+| `origin/main` | `eb433b5` | ✅ Synced |
+| `origin/taha/dev` | `8f0f8d2` | ✅ Merged into main |
 
 ---
 
@@ -309,10 +308,11 @@ RESUME_TOKEN:
 | 2026-10-07 | C16 | Production Closeout completed; Audit Phase Ended | Delivery Manager |
 | 2026-10-08 | Sprint 1 | Critical Path (P0/P1) Execution: Sync, Licensing, Parity, UI, Portals | Delivery Manager |
 | 2026-10-08 | Sprint 2 | Hardening (P2) Execution: PHPUnit config, Docker Compose, Windows Backup Scheduler | Delivery Manager |
+| 2026-10-11 | Deployment | Merged taha/dev into main, pushed to origin/main, added custom composer deployment runner | Delivery Manager |
 
 ---
 
 > [!IMPORTANT]
-> **Git Push Policy:** DO NOT push to remote until user explicitly commands.
-> All changes are committed locally to `taha/dev` only.
+> **Git Protocol:** Production releases merged and synchronized to `main`.
 > This ledger is the **single source of truth** for the v2.0 production closeout protocol.
+
