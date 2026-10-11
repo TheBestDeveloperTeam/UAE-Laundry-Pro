@@ -188,11 +188,10 @@ php database/migrate.php
 
 *Expected output:*
 ```
-✅ [APPLIED] 001_cloud_init — Applied successfully
-✅ [APPLIED] 002_multi_tenant_schemas — Applied successfully
-✅ [APPLIED] 003_cloud_audit_and_licenses — Applied successfully
+✅ [APPLIED] 001_cloud_initial_schema — Applied successfully
+✅ [APPLIED] 002_tenant_full_domain_schema — Applied successfully
 
-Done. 3 migration(s) applied.
+Done. 2 migration(s) applied.
 ```
 
 ### Option B: Using cPanel phpMyAdmin (If CLI is restricted)
@@ -201,9 +200,8 @@ Done. 3 migration(s) applied.
 2. Select database `ihgzplwh_laundrypro`.
 3. Click the **Import** tab.
 4. Import the following SQL migration files in order:
-   - `cloud-api/database/migrations/001_cloud_init.sql`
-   - `cloud-api/database/migrations/002_multi_tenant_schemas.sql`
-   - `cloud-api/database/migrations/003_cloud_audit_and_licenses.sql`
+   - `cloud-api/database/migrations/001_cloud_initial_schema.sql`
+   - `cloud-api/database/migrations/002_tenant_full_domain_schema.sql`
 5. Click **Go** to execute.
 
 ### Seed Default Master Super-Admin
