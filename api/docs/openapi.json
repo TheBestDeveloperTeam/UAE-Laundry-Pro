@@ -1,13 +1,13 @@
 {
     "openapi": "3.0.3",
     "info": {
-        "title": "LaundryPro UAE \u2014 Local Station API",
-        "version": "2.0.0",
+        "title": "LaundryPro UAE API",
+        "version": "1.2.0",
         "description": "Live-generated OpenAPI specification for LaundryPro UAE API."
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8080"
+            "url": "https://laundrypro-api/api/v1"
         }
     ],
     "tags": [
@@ -199,7 +199,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -281,7 +281,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -342,7 +342,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -519,7 +519,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -609,7 +609,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -665,7 +665,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -745,7 +745,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1044,7 +1044,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1174,7 +1174,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1304,7 +1304,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1384,7 +1384,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1464,7 +1464,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1580,7 +1580,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1660,7 +1660,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1740,7 +1740,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1800,7 +1800,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1934,7 +1934,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1970,7 +1970,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2006,7 +2006,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2132,7 +2132,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2240,7 +2240,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2276,7 +2276,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2336,7 +2336,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2500,7 +2500,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2560,7 +2560,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2622,7 +2622,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2658,7 +2658,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2718,7 +2718,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2754,7 +2754,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2790,7 +2790,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2912,7 +2912,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2972,7 +2972,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3032,7 +3032,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3104,7 +3104,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3140,7 +3140,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3176,7 +3176,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3246,7 +3246,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3412,7 +3412,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3578,7 +3578,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3684,7 +3684,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4492,6 +4492,32 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/license/sync": {
+            "post": {
+                "tags": [
+                    "License"
+                ],
+                "summary": "Synchronize license status",
+                "operationId": "post_license_sync_sync",
+                "responses": {
+                    "200": {
+                        "description": "LICENSE_SYNCED",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "$ref": "#/components/schemas/ApiEnvelope"
                                 }
                             }
@@ -4554,7 +4580,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4590,7 +4616,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4626,7 +4652,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4688,7 +4714,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4770,7 +4796,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4806,7 +4832,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4842,7 +4868,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4938,7 +4964,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5068,7 +5094,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5366,7 +5392,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5500,7 +5526,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5557,7 +5583,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5741,7 +5767,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5777,7 +5803,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5813,7 +5839,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6179,6 +6205,69 @@
                     }
                 }
             },
+            "ErrorResponse": {
+                "type": "object",
+                "required": [
+                    "success",
+                    "code",
+                    "message_key"
+                ],
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "BAD_REQUEST"
+                    },
+                    "message_key": {
+                        "type": "string",
+                        "example": "error.bad_request"
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/ApiMeta"
+                    }
+                }
+            },
+            "UnprocessableEntityResponse": {
+                "type": "object",
+                "required": [
+                    "success",
+                    "code",
+                    "message_key",
+                    "errors"
+                ],
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "VALIDATION_FAILED"
+                    },
+                    "message_key": {
+                        "type": "string",
+                        "example": "error.validation_failed"
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/ApiMeta"
+                    }
+                }
+            },
             "ApiMeta": {
                 "type": "object",
                 "properties": {
@@ -6196,15 +6285,23 @@
             },
             "ValidationError": {
                 "type": "object",
+                "required": [
+                    "field",
+                    "code",
+                    "message_key"
+                ],
                 "properties": {
                     "field": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "phone"
                     },
                     "code": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "INVALID_FORMAT"
                     },
                     "message_key": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "validation.phone_invalid"
                     }
                 }
             },
