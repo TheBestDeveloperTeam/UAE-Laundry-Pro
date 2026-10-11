@@ -19,6 +19,14 @@ final class DocsController
 
   public function openapi(Request $request, Container $container): void
   {
+    $jsonFile = dirname(__DIR__, 2) . '/docs/openapi.json';
+    if (is_file($jsonFile)) {
+      $decoded = json_decode((string) file_get_contents($jsonFile), true);
+      if (is_array($decoded) && !empty($decoded['paths'])) {
+        Response::json($decoded);
+        return;
+      }
+    }
     Response::json($this->generator->generate());
   }
 
