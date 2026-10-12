@@ -161,30 +161,32 @@ LaundryPro UAE features an abstracted, platform-agnostic peripheral driver frame
 - XAMPP (PHP 8.2, MariaDB 10.4+)
 - Visual Studio (C++ Desktop Development workload)
 
-### 1. Backend Verification
+**Production cloud:** [deployment.md](deployment.md) (cPanel / Apache / PHP — no Docker).
+
+### 1. One-click local setup
 ```powershell
-# Run the complete PHP API automated integration test suite (197 tests)
-& "E:\xampp\php\php.exe" "e:\Projects\Flutter\UAE-Laundry-Pro\api\tests\run_api_tests.php"
+.\scripts\laundrypro-setup.ps1
+.\scripts\setup-task-scheduler.ps1   # Administrator shell
 ```
 
-### 2. Frontend Verification
-```powershell
-# Verify zero compiler errors in Dart codebase
-flutter analyze lib
+See [docs/operations/LOCAL_WINDOWS_SETUP.md](docs/operations/LOCAL_WINDOWS_SETUP.md).
 
-# Run the complete Flutter test suite (118 tests)
-flutter test
+### 2. Quality gate
+```powershell
+.\scripts\quality-gate.ps1
 ```
 
-### 3. Running the Flutter Desktop Application
+### 3. Run desktop (dev)
 ```powershell
 flutter run -d windows
 ```
 
-### 4. Building the Production Windows Installer
+### 4. Production pack (signed MSIX + API zips)
 ```powershell
-flutter pub run msix:create
+.\scripts\build_prod.ps1 -BuildMsix -CertificatePath "D:\certs\sign.pfx" -CertificatePassword "..."
 ```
+
+Details: [docs/operations/MSIX_SIGNING.md](docs/operations/MSIX_SIGNING.md), [docs/operations/RELEASE_CHECKLIST.md](docs/operations/RELEASE_CHECKLIST.md).
 
 ---
 

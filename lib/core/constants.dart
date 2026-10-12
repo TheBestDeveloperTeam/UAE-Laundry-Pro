@@ -5,7 +5,7 @@ const String kApiBaseUrl = String.fromEnvironment(
 
 const String kCloudApiBaseUrl = String.fromEnvironment(
   'CLOUD_API_BASE_URL',
-  defaultValue: 'https://laundrypro-cloudapi.magnificentsolution.co.in/api/v1',
+  defaultValue: 'https://your-cloud-domain.example.com/api/v1',
 );
 
 const String kDefaultLocale = 'en';

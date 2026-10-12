@@ -1,6 +1,8 @@
 # LaundryPro UAE — Production Deployment & DevOps Guide
 
-> **Version:** 2.0.0 | **Authoritative Operations Manual**
+> **Version:** 2.0.0 | **Supplemental operations manual**
+
+> **Production cloud (cPanel):** use the canonical guide **[deployment.md](../../deployment.md)** — no Docker required.
 
 ---
 

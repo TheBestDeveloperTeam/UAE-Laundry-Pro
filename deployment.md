@@ -1,331 +1,176 @@
-# LaundryPro UAE — Zero-Docker Manual Deployment Guide
-## (cPanel / Apache / Direct PHP / FTP / Shared Hosting)
+# LaundryPro UAE — cPanel Production Deployment (canonical)
 
-> **Deployment Mode:** Pure Custom Core PHP (Zero Docker, Zero Nginx, Zero Composer)  
-> **Server Environment:** cPanel / Apache / LiteSpeed / Linux Shared or VPS (Non-Root, Non-Sudo)  
-> **Target Cloud Domain:** `https://laundrypro-cloudapi.magnificentsolution.co.in/`  
-> **Server Path:** `/home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/`  
-> **Database:** MariaDB / MySQL (`ihgzplwh_laundrypro`)  
+> **Stack:** PHP 8.2 + Apache/LiteSpeed + MariaDB — **no Docker, Node, or Composer required**  
+> **Also published as:** [docs/operations/DEPLOYMENT_CPANEL.md](docs/operations/DEPLOYMENT_CPANEL.md)
 
 ---
 
-## Table of Contents
+## Security notice
 
-1. [Why Zero-Docker & Why No Nginx or Composer?](#1-why-zero-docker--why-no-nginx-or-composer)
-2. [Prerequisites & Server Inventory](#2-prerequisites--server-inventory)
-3. [Step 1: Database Setup in cPanel](#step-1-database-setup-in-cpanel)
-4. [Step 2: Environment Configuration (.env)](#step-2-environment-configuration-env)
-5. [Step 3: Web Server & URL Rewriting (.htaccess)](#step-3-web-server--url-rewriting-htaccess)
-6. [Step 4: Running Database Migrations via Web & CLI](#step-4-running-database-migrations-via-web--cli)
-7. [Step 5: Verifying Health, Docs, and Admin Portal](#step-5-verifying-health-docs-and-admin-portal)
-8. [Step 6: Connecting Local Windows POS Terminals to Cloud Hub](#step-6-connecting-local-windows-pos-terminals-to-cloud-hub)
-9. [Troubleshooting & Common Questions](#troubleshooting--common-questions)
+- **Never commit** `.env`, `.env.production`, or real passwords to git.
+- If credentials ever appeared in documentation or chat logs, **rotate** database passwords, `JWT_SECRET`, `LICENSE_MASTER_SECRET`, and super-admin passwords on the server immediately.
+- Use explicit `CORS_ALLOWED_ORIGINS` in production (not `*`).
 
 ---
 
-## 1. Why Zero-Docker & Why No Nginx or Composer?
+## Table of contents
 
-- **No Docker Required:** Standard shared hosting and cPanel accounts do not allow `sudo`, root privileges, or `docker` daemon commands (`bash: docker: command not found`, `bash: sudo: command not found`).
-- **No Nginx Required:** Your hosting server (`pace.magnificentsolution.co.in`) is already powered by **Apache / LiteSpeed**. Adding Nginx is redundant and would conflict with your cPanel port bindings. Apache handles routing cleanly via `.htaccess`.
-- **No Composer Required:** The LaundryPro Cloud and Local APIs are designed strictly under architectural constraint **AC-1 ("No third-party PHP framework")**. The micro-framework has **zero external vendor dependencies**; everything uses the built-in native PHP autoloader (`spl_autoload_register`).
-
----
-
-## 2. Prerequisites & Server Inventory
-
-From your terminal, your server directory is:
-```
-/home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/
-```
-
-Inside this directory, the cloud API lives in:
-```
-./cloud-api/
-```
-
-### Database Credentials Configured:
-- **Host:** `localhost` (or `127.0.0.1` — **DO NOT use `cloud-db`**, which was a Docker container name)
-- **Database Name:** `ihgzplwh_laundrypro`
-- **Username:** `ihgzplwh_laundrypro`
-- **Password:** `n33d@L0v3#0786`
-- **Port:** `3306`
+1. [Prerequisites](#1-prerequisites)
+2. [Database (cPanel)](#2-database-cpanel)
+3. [Environment files](#3-environment-files)
+4. [URL rewriting (.htaccess)](#4-url-rewriting-htaccess)
+5. [Migrations & deploy engine](#5-migrations--deploy-engine)
+6. [cPanel cron jobs](#6-cpanel-cron-jobs)
+7. [Verification](#7-verification)
+8. [Connect Windows POS terminals](#8-connect-windows-pos-terminals)
+9. [Troubleshooting](#9-troubleshooting)
 
 ---
 
-## Step 1: Database Setup in cPanel
+## 1. Prerequisites
 
-1. Log into your **cPanel** dashboard:
-   `https://pace.magnificentsolution.co.in:2083/`
-2. Navigate to **Databases** -> **MySQL® Databases**:
-   - Verify database `ihgzplwh_laundrypro` exists.
-   - Verify user `ihgzplwh_laundrypro` is assigned to `ihgzplwh_laundrypro` with **ALL PRIVILEGES**.
-3. (Optional) Open **phpMyAdmin** from cPanel to view tables.
+| Item | Requirement |
+|------|-------------|
+| Hosting | cPanel shared or reseller with PHP 8.2+ |
+| Web server | Apache or LiteSpeed with `mod_rewrite` |
+| Database | MariaDB / MySQL 10.4+ |
+| TLS | Valid certificate on cloud subdomain |
+
+**Document root (choose one):**
+
+- **Option A (recommended):** cPanel subdomain document root → `.../cloud-api/public`
+- **Option B:** Parent folder + root `.htaccess` routing to `cloud-api/public/index.php` (see repo [`.htaccess`](.htaccess))
+
+Replace placeholders below:
+
+| Placeholder | Example |
+|-------------|---------|
+| `CLOUD_DOMAIN` | `laundrypro-cloudapi.example.com` |
+| `CPANEL_USER` | `your_cpanel_user` |
+| `DEPLOY_ROOT` | `/home/CPANEL_USER/public_html/CLOUD_DOMAIN` |
+| `DB_NAME` | `cpuser_laundrypro` |
+| `DB_USER` | `cpuser_laundrypro` |
 
 ---
 
-## Step 2: Environment Configuration (.env)
+## 2. Database (cPanel)
 
-Your terminal has two `.env` files:
-1. Root: `/home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/.env`
-2. Cloud API: `/home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api/.env`
+1. cPanel → **MySQL® Databases** → create `DB_NAME` and user `DB_USER` with **ALL PRIVILEGES**.
+2. Note host is almost always `localhost` (not `cloud-db` — that name is for legacy container docs only).
 
-### Configure `cloud-api/.env` (or copy `.env.production`):
+---
+
+## 3. Environment files
+
+On the server:
 
 ```bash
-cd /home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api
-cp .env.production .env
+cd DEPLOY_ROOT/cloud-api
+cp .env.production.example .env
+# Edit .env with production values (chmod 600 if your host allows)
 ```
 
-Ensure the contents of `cloud-api/.env` match the following **exact production settings**:
+Minimum production keys (see [`cloud-api/.env.production.example`](cloud-api/.env.production.example)):
 
 ```ini
 APP_DEBUG=false
 APP_ENV=production
-APP_NAME=UAE Laundry Pro
-APP_URL=https://laundrypro-cloudapi.magnificentsolution.co.in
-API_BASE_URL=https://laundrypro-cloudapi.magnificentsolution.co.in/api/v1
-CLOUD_API_BASE_URL=https://laundrypro-cloudapi.magnificentsolution.co.in/api/v1
-
-# Security & Secrets
-JWT_SECRET=MakeSureThisIsA64CharRandomHexSecretForProductionKeySigning12345
-LICENSE_HMAC_SECRET=LaundryProCloudSecret2026
-LICENSE_MASTER_SECRET=LP_CLOUD_MASTER_SIGNING_SECRET_KEY_2026_UAE_SECURITY_LAYER
-
-# Super-Admin Contact
-SUPERADMIN_EMAIL=superadmin@laundrypro-cloudapi.magnificentsolution.co.in
-
-# Database Connection (Standard cPanel localhost)
-DB_CONNECTION=mysql
+APP_URL=https://CLOUD_DOMAIN
 DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=ihgzplwh_laundrypro
-DB_USERNAME=ihgzplwh_laundrypro
-DB_PASSWORD=n33d@L0v3#0786
-
-# Alternative prefixes (supported by LaundryPro Cloud Database helper)
-CLOUD_DB_HOST=localhost
-CLOUD_DB_PORT=3306
-CLOUD_DB_NAME=ihgzplwh_laundrypro
-CLOUD_DB_USER=ihgzplwh_laundrypro
-CLOUD_DB_PASS=n33d@L0v3#0786
-
-# CORS
-CORS_ALLOWED_ORIGINS=*
-
-# Session configuration
+DB_NAME=DB_NAME
+DB_USER=DB_USER
+DB_PASS=<strong-random-password>
+JWT_SECRET=<64+-char-random-hex>
+LICENSE_MASTER_SECRET=<64+-char-random-secret>
+CORS_ALLOWED_ORIGINS=https://CLOUD_DOMAIN
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 ```
 
-> **IMPORTANT:** Notice `DB_HOST=localhost`. In Docker setups this was `cloud-db`. In cPanel shared hosting, MariaDB runs locally, so **`localhost` is required**.
+`deploy.php` also accepts `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD` aliases.
 
 ---
 
-## Step 3: Web Server & URL Rewriting (.htaccess)
+## 4. URL rewriting (.htaccess)
 
-The application includes two pre-configured `.htaccess` files to route all incoming HTTP traffic to `cloud-api/public/index.php`.
+Ensure repo files are present:
 
-### 1. Root `.htaccess`
-Located at: `/home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/.htaccess`
+- [`DEPLOY_ROOT/.htaccess`](.htaccess) (Option B)
+- [`cloud-api/.htaccess`](cloud-api/.htaccess)
+- [`cloud-api/public/.htaccess`](cloud-api/public/.htaccess)
 
-```apache
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Forward Authorization header for JWT tokens to PHP
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    # Prevent direct web access to local desktop code and source control
-    RewriteRule ^(\.git|api|lib|windows|test|scripts) - [F,L,NC]
-
-    # Route API, Admin, and Cloud endpoints to the Cloud API entry point
-    RewriteCond %{REQUEST_URI} ^/api/ [OR]
-    RewriteCond %{REQUEST_URI} ^/admin/ [OR]
-    RewriteCond %{REQUEST_URI} ^/cloud-api/
-    RewriteRule ^ cloud-api/public/index.php [QSA,L]
-
-    # Default root redirect to Super-Admin portal
-    RewriteRule ^$ cloud-api/public/index.php [QSA,L]
-</IfModule>
-```
-
-### 2. Cloud API `.htaccess`
-Located at: `/home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api/.htaccess`
-
-```apache
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    # Protect internal folders
-    RewriteRule ^(\.env|\.git|storage|logs|database|tests|src|config) - [F,L,NC]
-
-    # Serve static assets directly if existing under public/
-    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
-    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
-    RewriteRule ^(.*)$ public/$1 [L]
-
-    # Route all traffic to public/index.php
-    RewriteRule ^ public/index.php [QSA,L]
-</IfModule>
-```
+LiteSpeed generally honors Apache rewrite rules. Forward `Authorization` for JWT (included in repo rules).
 
 ---
 
-## Step 4: Running Database Migrations via Web & CLI
+## 5. Migrations & deploy engine
 
-### Option A: Using the All-in-One Custom Deployment Engine (Recommended)
-
-From your SSH terminal as user `ihgzplwh`:
+SSH or cPanel Terminal:
 
 ```bash
-cd /home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api
+cd DEPLOY_ROOT/cloud-api
 php scripts/deploy.php
 ```
 
-*What `php scripts/deploy.php` does automatically:*
-1. Loads and validates your `.env` database credentials.
-2. Verifies connectivity to `ihgzplwh_laundrypro` on `localhost`.
-3. Runs all pending database migrations (`001_cloud_initial_schema.sql`, `002_tenant_full_domain_schema.sql`).
-4. Auto-provisions the master Super-Admin user (`superadmin`) if not already present.
-5. Verifies and auto-creates required runtime folders (`logs/`, `storage/`).
+This runs pending SQL migrations, verifies `logs/` and `storage/`, and ensures super-admin provisioning logic runs.
 
-*Expected output:*
-```text
-========================================================
-  LaundryPro UAE — Cloud API Custom Deployment Engine   
-========================================================
+**Manual fallback:** import in order:
 
-[✓] Environment loaded from: .env
-[*] Database Configuration:
-    Host: localhost
-    Database: ihgzplwh_laundrypro
-    User: ihgzplwh_laundrypro
+- `cloud-api/database/migrations/001_cloud_initial_schema.sql`
+- `cloud-api/database/migrations/002_tenant_full_domain_schema.sql`
 
-[*] Connecting to MariaDB/MySQL... [OK]
-
-[*] Executing database migrations...
-  [✓] APPLIED 001_cloud_initial_schema : Applied successfully
-  [✓] APPLIED 002_tenant_full_domain_schema : Applied successfully
-
-[*] Verifying Super-Admin account...
-  [✓] Super-Admin user 'superadmin' already provisioned.
-
-[*] Checking required runtime directories...
-  [✓] Directory ready: logs
-  [✓] Directory ready: storage
-
-========================================================
-  DEPLOYMENT COMPLETE!                                  
-========================================================
-```
-
-### Option B: Using Individual CLI Scripts
-If you prefer running steps individually:
-
-```bash
-cd /home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api
-php database/migrate.php
-```
-
-### Option C: Using cPanel phpMyAdmin (If CLI is restricted)
-
-1. Open **phpMyAdmin** from your cPanel.
-2. Select database `ihgzplwh_laundrypro`.
-3. Click the **Import** tab.
-4. Import the following SQL migration files in order:
-   - `cloud-api/database/migrations/001_cloud_initial_schema.sql`
-   - `cloud-api/database/migrations/002_tenant_full_domain_schema.sql`
-5. Click **Go** to execute.
-
-### Seed Default Master Super-Admin
-
-In phpMyAdmin -> **SQL** tab (or via mysql CLI), run:
-
-```sql
-INSERT INTO cloud_super_admins (id, username, email, password_hash, full_name, role, is_active)
-VALUES (
-  1,
-  'superadmin',
-  'superadmin@laundrypro-cloudapi.magnificentsolution.co.in',
-  '$2y$10$eE0oI9uL5O9B7zT7w7Nq6.H.w187QjXo2bWqC6cZyS85Ewh9bK87y',
-  'Master Super Administrator',
-  'super_admin',
-  1
-) ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP;
-```
-
-> **Default Super-Admin Credentials:**  
-> - **Username:** `superadmin`  
-> - **Password:** `SuperAdmin@LaundryPro2026!`
+Super-admin is created by `deploy.php` when configured; otherwise set password via admin UI after first login with a one-time bootstrap procedure your ops team controls.
 
 ---
 
-## Step 5: Verifying Health, Docs, and Admin Portal
+## 6. cPanel cron jobs
 
-Open your web browser and test the live URLs:
+cPanel → **Cron Jobs** (use full path to PHP CLI from `which php`):
 
-### 1. Health Check Endpoint
-URL: `https://laundrypro-cloudapi.magnificentsolution.co.in/api/v1/health`
-
-*Expected JSON response:*
-```json
-{
-  "success": true,
-  "code": "HEALTH_OK",
-  "data": {
-    "service": "LaundryPro Cloud API",
-    "version": "2.0.0",
-    "database": "connected"
-  }
-}
+```cron
+0 * * * * php DEPLOY_ROOT/cloud-api/scripts/clean_sessions.php >> DEPLOY_ROOT/cloud-api/logs/cron.log 2>&1
+*/15 * * * * php DEPLOY_ROOT/cloud-api/scripts/sync_health_collector.php >> DEPLOY_ROOT/cloud-api/logs/cron.log 2>&1
 ```
 
-### 2. Interactive Swagger / OpenAPI Documentation
-URL: `https://laundrypro-cloudapi.magnificentsolution.co.in/api/v1/docs`
-
-Loads live Swagger UI showing all endpoints across 35 operational domains.
-
-### 3. Super-Admin Web Portal
-URL: `https://laundrypro-cloudapi.magnificentsolution.co.in/admin/login`
-
-- Log in with `superadmin` and `SuperAdmin@LaundryPro2026!`.
-- You can now issue store licenses, inspect tenant synchronization, and monitor audit trails.
+Ensure `cloud-api/logs` and `cloud-api/storage` are writable by the web/PHP user (`chmod 755` or host default).
 
 ---
 
-## Step 6: Connecting Local Windows POS Terminals to Cloud Hub
+## 7. Verification
 
-On each local Windows POS workstation, update the `api/.env` file:
+| Check | URL |
+|-------|-----|
+| Health | `https://CLOUD_DOMAIN/api/v1/health` → `HEALTH_OK`, `database: connected` |
+| API docs | `https://CLOUD_DOMAIN/api/v1/docs` |
+| Super-admin | `https://CLOUD_DOMAIN/admin/login` |
+
+**Headers (optional smoke):** confirm HTTPS redirect, `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options` if enabled in server config.
+
+---
+
+## 8. Connect Windows POS terminals
+
+On each store workstation, in `api/.env` (see [`api/.env.production.template`](api/.env.production.template)):
 
 ```ini
-CLOUD_API_URL=https://laundrypro-cloudapi.magnificentsolution.co.in/api/v1
+CLOUD_API_URL=https://CLOUD_DOMAIN/api/v1
 SYNC_INTERVAL_SECONDS=300
 ```
 
-1. Launch the POS application.
-2. In the setup wizard, enter the license key generated from the Cloud Admin portal (e.g. `LP-DUBAI-2026-X89K-M210`).
-3. Click **Activate Station Online**.
-4. The station will establish a 3-way handshake with your cPanel cloud server, bind the machine's UMAC code, and begin synchronization.
+Register Windows tasks: `scripts/setup-task-scheduler.ps1` (sync every 5 minutes, backup daily).
+
+Desktop app: build with cloud URL — see [`scripts/build_prod.ps1`](scripts/build_prod.ps1).
 
 ---
 
-## Troubleshooting & Common Questions
+## 9. Troubleshooting
 
-### Q1: `php database/migrate.php` says "Could not connect to database"
-- **Solution:** Verify `DB_HOST=localhost` inside `cloud-api/.env`. If set to `cloud-db` (from Docker), PHP cannot resolve the hostname. Also verify `DB_USER` and `DB_PASSWORD` in cPanel.
+| Symptom | Fix |
+|---------|-----|
+| DB connection failed | `DB_HOST=localhost`; verify cPanel user privileges |
+| 404 on `/api/v1/health` | Enable rewrite; confirm document root or root `.htaccess` |
+| 401 on sync | Clock skew, JWT secret mismatch, or expired license |
+| Cron silent | Check `cloud-api/logs/cron.log`; PHP path in cron command |
 
-### Q2: Why does `curl -fsSL https://... | sudo gpg` fail?
-- **Answer:** In shared cPanel hosting (`[ihgzplwh@pace ...]$`), you are a restricted shell user and cannot run `sudo` or install root OS packages. You do not need to install anything; Apache, PHP 8.2, and MariaDB are already running natively on the server.
-
-### Q3: When I visit `https://.../api/v1/health`, I see 404 or Apache Directory Listing
-- **Solution:** Ensure `mod_rewrite` is active and `.htaccess` exists in both the root directory and `cloud-api/`. If subdomain document root in cPanel is pointed directly to `cloud-api/public`, the routes will work natively without prefix rewriting.
-
-### Q4: Permissions on `cloud-api/logs/`
-- Ensure the log directory is writable by PHP:
-  ```bash
-  chmod 755 /home/ihgzplwh/public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api/logs
-  ```
+Docker-based guides in [`docs/operations/DEPLOYMENT_GUIDE.md`](docs/operations/DEPLOYMENT_GUIDE.md) §2.2 are **legacy optional** — not used for this cPanel production pack.

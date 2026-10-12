@@ -13,7 +13,8 @@ and installs Flutter dependencies.
 param(
   [string]$PhpPath = "",
   [string]$MysqlPath = "",
-  [string]$FlutterPath = "E:\flutter\bin\flutter.bat"
+  [string]$FlutterPath = "",
+  [string]$RuntimeRoot = "C:\LaundryPro"
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,18 +26,20 @@ Write-Host "=============================================" -ForegroundColor Cyan
 
 # 1. Ensure runtime directories exist
 $dirs = @(
-  "E:\LaundryPro\invoices",
-  "E:\LaundryPro\images",
-  "E:\LaundryPro\backups",
-  "E:\LaundryPro\logs",
-  "E:\LaundryPro\exports"
+  "$RuntimeRoot\invoices",
+  "$RuntimeRoot\images",
+  "$RuntimeRoot\backups",
+  "$RuntimeRoot\logs",
+  "$RuntimeRoot\exports",
+  "$RuntimeRoot\temp",
+  "$RuntimeRoot\templates"
 )
 foreach ($dir in $dirs) {
   if (-not (Test-Path $dir)) {
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
   }
 }
-Write-Host "[x] Runtime directories verified under E:\LaundryPro" -ForegroundColor Green
+Write-Host "[x] Runtime directories verified under $RuntimeRoot" -ForegroundColor Green
 
 # 2. Run Database Migrations
 Write-Host "[*] Starting Database Migration Process..." -ForegroundColor Yellow
@@ -66,7 +69,14 @@ if (Test-Path $envFile) {
 }
 
 # 4. Flutter Dependencies
-if (Test-Path $FlutterPath) {
+if ([string]::IsNullOrWhiteSpace($FlutterPath)) {
+  if (Get-Command flutter -ErrorAction SilentlyContinue) {
+    $FlutterPath = (Get-Command flutter).Source
+  } elseif (Test-Path "E:\flutter\bin\flutter.bat") {
+    $FlutterPath = "E:\flutter\bin\flutter.bat"
+  }
+}
+if ($FlutterPath -and (Test-Path $FlutterPath)) {
   Write-Host "[*] Installing Flutter Dependencies..." -ForegroundColor Yellow
   $env:GIT_CONFIG_COUNT = '1'
   $env:GIT_CONFIG_KEY_0 = 'safe.directory'

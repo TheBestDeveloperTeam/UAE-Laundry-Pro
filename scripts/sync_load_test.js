@@ -1,3 +1,4 @@
+// Legacy k6 load test (requires Node + k6). Prefer: php scripts/sync_load_test.php
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 

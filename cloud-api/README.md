@@ -57,27 +57,20 @@ cloud-api/
 
 ## 3. Deployment Guide (cPanel / Shared Hosting / VPS)
 
-1. Upload the entire `cloud-api/` directory to your web server:
-   - **Target Path:** `public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api/`
-   - **Document Root:** `public_html/web/laundrypro-cloudapi.magnificentsolution.co.in/cloud-api/public`
-2. Configure database credentials (or copy `.env.production` to `.env`):
-   - **Host:** `localhost`
-   - **Port:** `3306`
-   - **Database:** `ihgzplwh_laundrypro`
-   - **Username:** `ihgzplwh_laundrypro`
-   - **Password:** `n33d@L0v3#0786`
-3. Point subdomain `laundrypro-cloudapi.magnificentsolution.co.in` directly to the `public/` folder.
+**Canonical runbook:** [deployment.md](../deployment.md) at the repository root.
+
+1. Upload `cloud-api/` to your cPanel subdomain tree.
+2. Set document root to `cloud-api/public` (recommended) or use root `.htaccess` routing.
+3. Copy `.env.production.example` → `.env` with real credentials (never commit).
+4. Run `php cloud-api/scripts/deploy.php`.
 
 ---
 
 ## 4. Super-Admin Portal Access
 
-- **Production Portal URL:** https://laundrypro-cloudapi.magnificentsolution.co.in/admin
-- **Local Dev Portal URL:** https://cloud-api/admin
-- **Default Username:** superadmin
-- **Default Password:** SuperAdmin@LaundryPro2026!
-
-*(Note: Change your password upon initial production login).*
+- **Path:** `https://<your-cloud-domain>/admin/login`
+- Provision super-admin via `deploy.php` or your controlled bootstrap process.
+- Change any bootstrap password immediately after first login.
 
 ---
 

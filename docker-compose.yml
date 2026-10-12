@@ -1,3 +1,4 @@
+# LEGACY / OPTIONAL — not part of the cPanel production pack. See deployment.md.
 version: '3.8'
 
 services:
