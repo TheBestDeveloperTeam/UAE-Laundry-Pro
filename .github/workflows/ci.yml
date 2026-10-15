@@ -32,6 +32,12 @@ jobs:
         run: |
           php scripts/verify_route_parity.php
 
+      - name: Local API unit smoke
+        run: |
+          php api/tests/autoload_test.php
+          php api/tests/routing_test.php
+          php api/tests/jwt_test.php
+
       - name: OpenAPI route registry drift check
         run: |
           php api/tests/openapi_drift_test.php

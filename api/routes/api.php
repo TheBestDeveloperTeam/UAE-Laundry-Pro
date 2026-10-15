@@ -38,7 +38,6 @@ use LaundryPro\Api\Controllers\SyncController;
 use LaundryPro\Api\Controllers\TerminalController;
 use LaundryPro\Api\Controllers\VendorController;
 use LaundryPro\Api\Core\Router;
-use LaundryPro\Api\Middleware\AuditMiddleware;
 use LaundryPro\Api\Middleware\AuthMiddleware;
 use LaundryPro\Api\Middleware\InstallRateLimitMiddleware;
 use LaundryPro\Api\Middleware\InstallTokenMiddleware;

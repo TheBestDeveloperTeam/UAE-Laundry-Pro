@@ -64,7 +64,7 @@ Measured on developer workstation (`E:\Projects\Flutter\UAE-Laundry-Pro`). Super
 
 ## R2 — Full-stack re-audit execution (2026-10-15 PM)
 
-**Git:** `main` @ `b7205ec` (R2 gates, CI, live smoke, closeout docs).
+**Git:** `main` @ R2 closeout commits (gates, CI, `cloud_live_smoke.ps1`, `AuditMiddleware` compat fix).
 
 ### Code gates (workstation)
 
@@ -87,7 +87,9 @@ Measured on developer workstation (`E:\Projects\Flutter\UAE-Laundry-Pro`). Super
 |-------|--------|
 | `verify_path_alignment.ps1` | Config OK; `health_canonical` **200** |
 | `cloud_live_smoke.ps1` | `health` **200**, `openapi` **200**; `deploy/status` **404**; `lp_deploy_apply.php` **404** |
-| `cloud_ftp_deploy.php` | Zip uploaded to `deploy_staging/`; `.env` patch **553**; apply **404**; bootstrap uploaded to FTP `cloud-api/public/` but HTTP still **404** |
+| `cloud_ftp_deploy.php` | Zip uploaded to `deploy_staging/`; `.env` patch **553** (no remote `.env`); apply **404**; `lp_deploy_apply.php` + `.htaccess` on FTP `cloud-api/public/` but HTTP bootstrap still **404** (docroot ≠ FTP tree until cPanel extract) |
+| Local unit smoke | `autoload_test.php` | **Pass** after `AuditMiddleware` delegate shim |
+| `run_api_tests.php` | **Not run** — local Apache/XAMPP API URL down on workstation |
 
 **Verdict:** Application **code + automated gates certified**. **Live deploy automation not certified** until cPanel extracts `deploy_staging/cloud-cpanel-upload.zip` at `DEPLOY_ROOT` and `cloud-api/.env` exists with `DEPLOY_AUTOMATION_TOKEN` + `DEPLOY_HTTP_ENABLED=true`. Re-run `scripts/cloud_deploy/cloud_live_smoke.ps1` after extract.
 

@@ -22,6 +22,7 @@ require_once __DIR__ . '/MiddlewareInterface.php';
 require_once __DIR__ . '/CorsMiddleware.php';
 require_once __DIR__ . '/AuthMiddleware.php';
 require_once __DIR__ . '/AuditLogMiddleware.php';
+require_once __DIR__ . '/AuditMiddleware.php';
 require_once __DIR__ . '/IdempotencyMiddleware.php';
 require_once __DIR__ . '/InstallTokenMiddleware.php';
 require_once __DIR__ . '/InstallRateLimitMiddleware.php';
