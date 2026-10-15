@@ -39,27 +39,6 @@ function write_export_file(string $path, string $contents): void
     }
 }
 
-function sanitize_for_json(mixed $data): mixed
-{
-    if (is_array($data)) {
-        $out = [];
-        foreach ($data as $key => $value) {
-            $out[$key] = sanitize_for_json($value);
-        }
-
-        return $out;
-    }
-    if (is_string($data)) {
-        if ($data === '' || mb_check_encoding($data, 'UTF-8')) {
-            return $data;
-        }
-
-        return mb_convert_encoding($data, 'UTF-8', 'UTF-8');
-    }
-
-    return $data;
-}
-
 function encode_openapi_json(mixed $data): string
 {
     $flags = JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES;
@@ -67,7 +46,7 @@ function encode_openapi_json(mixed $data): string
         $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
     }
 
-    return json_encode(sanitize_for_json($data), $flags);
+    return json_encode($data, $flags);
 }
 
 function array_to_yaml(mixed $data, int $indent = 0): string
@@ -127,6 +106,8 @@ function array_to_yaml(mixed $data, int $indent = 0): string
     return (string)$data . "\n";
 }
 
+$exportYaml = getenv('GITHUB_ACTIONS') !== 'true';
+
 try {
 RouteRegistry::reset();
 $router = new Router();
@@ -143,8 +124,12 @@ $docsDir = __DIR__ . '/../docs/swagger';
 $apiDocsDir = __DIR__ . '/../api/docs';
 
 write_export_file($apiDocsDir . '/openapi.json', encode_openapi_json($localSpec));
-write_export_file($docsDir . '/local-api.yaml', array_to_yaml($localSpec));
-echo "Generated local-api.yaml and openapi.json (" . count($localSpec['paths']) . " paths)\n";
+if ($exportYaml) {
+    write_export_file($docsDir . '/local-api.yaml', array_to_yaml($localSpec));
+}
+echo 'Generated local openapi.json'
+    . ($exportYaml ? ' and local-api.yaml' : '')
+    . ' (' . count($localSpec['paths']) . " paths)\n";
 
 // Now build Cloud API OpenAPI Specification
 $cloudSpec = [
@@ -609,10 +594,14 @@ if (!is_dir($cloudDocsDir)) {
 }
 
 // Write Cloud OpenAPI YAML and JSON
-write_export_file($docsDir . '/cloud-api.yaml', array_to_yaml($cloudSpec));
 write_export_file($docsDir . '/cloud-api.json', encode_openapi_json($cloudSpec));
 write_export_file($cloudDocsDir . '/openapi.json', encode_openapi_json($cloudSpec));
-echo "Generated cloud-api.yaml and cloud-api.json (" . count($cloudSpec['paths']) . " paths)\n";
+if ($exportYaml) {
+    write_export_file($docsDir . '/cloud-api.yaml', array_to_yaml($cloudSpec));
+}
+echo 'Generated cloud-api.json'
+    . ($exportYaml ? ' and cloud-api.yaml' : '')
+    . ' (' . count($cloudSpec['paths']) . " paths)\n";
 
 // Now build Unified OpenAPI Specification combining Local and Cloud
 $unifiedPaths = [];
@@ -677,8 +666,10 @@ $unifiedSpec = [
     ]
 ];
 
-write_export_file($docsDir . '/UNIFIED_SWAGGER.yaml', array_to_yaml($unifiedSpec));
-echo "Generated UNIFIED_SWAGGER.yaml (" . count($unifiedSpec['paths']) . " total unified paths)\n";
+if ($exportYaml) {
+    write_export_file($docsDir . '/UNIFIED_SWAGGER.yaml', array_to_yaml($unifiedSpec));
+    echo 'Generated UNIFIED_SWAGGER.yaml (' . count($unifiedSpec['paths']) . " total unified paths)\n";
+}
 echo "Swagger generation complete!\n";
 exit(0);
 } catch (Throwable $e) {

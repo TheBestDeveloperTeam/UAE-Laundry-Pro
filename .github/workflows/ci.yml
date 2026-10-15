@@ -24,6 +24,7 @@ jobs:
       - name: PHP Syntax Check
         run: |
           find api/src cloud-api/src -name "*.php" -print0 | xargs -0 -n1 php -l
+          php -l scripts/export_swagger.php
 
       - name: Verify Route Parity Across 35 Domains
         run: |
