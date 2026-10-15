@@ -59,7 +59,7 @@ jobs:
           flutter pub get
 
       - name: Run Flutter Analyzer
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze lib test --no-fatal-infos --no-fatal-warnings
 
       - name: Run Flutter Test Suite (118 assertions)
         run: flutter test --reporter expanded

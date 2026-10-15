@@ -17,7 +17,7 @@ function yaml_string_needs_quotes(string $data): bool
     if ($data === '') {
         return true;
     }
-    if (preg_match('/^\s|\s$/', $data)) {
+    if ($data !== trim($data)) {
         return true;
     }
     $lower = strtolower($data);
@@ -39,9 +39,35 @@ function write_export_file(string $path, string $contents): void
     }
 }
 
+function sanitize_for_json(mixed $data): mixed
+{
+    if (is_array($data)) {
+        $out = [];
+        foreach ($data as $key => $value) {
+            $out[$key] = sanitize_for_json($value);
+        }
+
+        return $out;
+    }
+    if (is_string($data)) {
+        if ($data === '' || mb_check_encoding($data, 'UTF-8')) {
+            return $data;
+        }
+
+        return mb_convert_encoding($data, 'UTF-8', 'UTF-8');
+    }
+
+    return $data;
+}
+
 function encode_openapi_json(mixed $data): string
 {
-    return json_encode($data, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $flags = JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+
+    return json_encode(sanitize_for_json($data), $flags);
 }
 
 function array_to_yaml(mixed $data, int $indent = 0): string
@@ -80,7 +106,9 @@ function array_to_yaml(mixed $data, int $indent = 0): string
             }
         } else {
             foreach ($data as $key => $val) {
-                $safeKey = is_string($key) && preg_match('/[:\s]/', $key) ? '"' . $key . '"' : (string)$key;
+                $safeKey = is_string($key) && (strpbrk($key, ":\t ") !== false)
+                    ? '"' . addcslashes($key, "\"\t\r\n\\") . '"'
+                    : (string) $key;
                 if (is_array($val)) {
                     if (empty($val)) {
                         $out .= $sp . $safeKey . ": {}\n";
