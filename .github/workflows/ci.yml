@@ -44,17 +44,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Flutter 3.29.x
+      - name: Setup Flutter 3.35.x
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: '3.35.6'
           channel: 'stable'
           cache: true
 
       - name: Install Flutter Dependencies
         shell: pwsh
         run: |
-          # Resolve for Flutter 3.29 (do not use lockfile generated on newer SDKs)
+          # Lockfile is generated on newer SDKs locally; resolve fresh on CI Flutter 3.35.6
           if (Test-Path pubspec.lock) { Remove-Item -Force pubspec.lock }
           flutter pub get
 

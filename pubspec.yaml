@@ -20,7 +20,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.3.2
   pdf: ^3.11.1
-  sqflite_common_ffi: ^2.3.6
+  sqflite_common_ffi: '>=2.3.4 <2.4.0'
   path_provider: ^2.1.5
   path: ^1.9.1
   synchronized: ^3.4.0

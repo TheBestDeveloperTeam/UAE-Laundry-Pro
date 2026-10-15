@@ -12,6 +12,38 @@ use LaundryPro\Api\Core\RouteRegistry;
 use LaundryPro\Api\Docs\OpenApiGenerator;
 use LaundryPro\Api\Docs\Schemas\ApiSchemas;
 
+function yaml_string_needs_quotes(string $data): bool
+{
+    if ($data === '') {
+        return true;
+    }
+    if (preg_match('/^\s|\s$/', $data)) {
+        return true;
+    }
+    $lower = strtolower($data);
+    if (in_array($lower, ['true', 'false', 'null', 'yes', 'no'], true)) {
+        return true;
+    }
+
+    return strpbrk($data, ":\t[]{}&*#?|<>=%@`\"'\\-\n\r") !== false;
+}
+
+function write_export_file(string $path, string $contents): void
+{
+    $dir = dirname($path);
+    if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+        throw new RuntimeException('Cannot create directory: ' . $dir);
+    }
+    if (file_put_contents($path, $contents) === false) {
+        throw new RuntimeException('Cannot write file: ' . $path);
+    }
+}
+
+function encode_openapi_json(mixed $data): string
+{
+    return json_encode($data, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+}
+
 function array_to_yaml(mixed $data, int $indent = 0): string
 {
     $sp = str_repeat('  ', $indent);
@@ -25,7 +57,7 @@ function array_to_yaml(mixed $data, int $indent = 0): string
         return $data . "\n";
     }
     if (is_string($data)) {
-        if ($data === '' || preg_match('/[:\[\]\{\},&*#?|<>=%@`\n\r-]/', $data) || in_array(strtolower($data), ['true', 'false', 'null', 'yes', 'no'], true)) {
+        if (yaml_string_needs_quotes($data)) {
             return '"' . addcslashes($data, "\"\t\r\n\\") . "\"\n";
         }
         return $data . "\n";
@@ -79,18 +111,11 @@ $localGen = new OpenApiGenerator(
 );
 $localSpec = $localGen->generate();
 
-// Write local JSON and YAML
 $docsDir = __DIR__ . '/../docs/swagger';
-if (!is_dir($docsDir)) {
-    mkdir($docsDir, 0777, true);
-}
 $apiDocsDir = __DIR__ . '/../api/docs';
-if (!is_dir($apiDocsDir)) {
-    mkdir($apiDocsDir, 0777, true);
-}
 
-file_put_contents($apiDocsDir . '/openapi.json', json_encode($localSpec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE));
-file_put_contents($docsDir . '/local-api.yaml', array_to_yaml($localSpec));
+write_export_file($apiDocsDir . '/openapi.json', encode_openapi_json($localSpec));
+write_export_file($docsDir . '/local-api.yaml', array_to_yaml($localSpec));
 echo "Generated local-api.yaml and openapi.json (" . count($localSpec['paths']) . " paths)\n";
 
 // Now build Cloud API OpenAPI Specification
@@ -556,9 +581,9 @@ if (!is_dir($cloudDocsDir)) {
 }
 
 // Write Cloud OpenAPI YAML and JSON
-file_put_contents($docsDir . '/cloud-api.yaml', array_to_yaml($cloudSpec));
-file_put_contents($docsDir . '/cloud-api.json', json_encode($cloudSpec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-file_put_contents($cloudDocsDir . '/openapi.json', json_encode($cloudSpec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+write_export_file($docsDir . '/cloud-api.yaml', array_to_yaml($cloudSpec));
+write_export_file($docsDir . '/cloud-api.json', encode_openapi_json($cloudSpec));
+write_export_file($cloudDocsDir . '/openapi.json', encode_openapi_json($cloudSpec));
 echo "Generated cloud-api.yaml and cloud-api.json (" . count($cloudSpec['paths']) . " paths)\n";
 
 // Now build Unified OpenAPI Specification combining Local and Cloud
@@ -624,7 +649,7 @@ $unifiedSpec = [
     ]
 ];
 
-file_put_contents($docsDir . '/UNIFIED_SWAGGER.yaml', array_to_yaml($unifiedSpec));
+write_export_file($docsDir . '/UNIFIED_SWAGGER.yaml', array_to_yaml($unifiedSpec));
 echo "Generated UNIFIED_SWAGGER.yaml (" . count($unifiedSpec['paths']) . " total unified paths)\n";
 echo "Swagger generation complete!\n";
 exit(0);

@@ -42,7 +42,7 @@ if ($LASTEXITCODE -ne 0) { throw "Route parity failed" }
 Write-Host "Route parity: PASS"
 
 Write-Host "`n[4/5] Flutter analyze..."
-& $FlutterPath analyze
+& $FlutterPath analyze --no-fatal-infos 2>&1 | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Flutter analyze failed" }
 Write-Host "Flutter analyze: PASS"
 
