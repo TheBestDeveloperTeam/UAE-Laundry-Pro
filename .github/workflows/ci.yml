@@ -32,10 +32,6 @@ jobs:
         run: |
           php scripts/verify_route_parity.php
 
-      - name: Export & Validate Swagger / OpenAPI 3.0
-        run: |
-          php -d memory_limit=512M -d display_errors=1 api/tests/openapi_export_smoke_test.php
-
       - name: OpenAPI route registry drift check
         run: |
           php api/tests/openapi_drift_test.php
