@@ -160,7 +160,7 @@ $cloudSpec = [
         ],
     ],
     'servers' => [
-        ['url' => 'https://api.cloud.laundrypro.ae/v1', 'description' => 'Production Cloud Gateway'],
+        ['url' => 'https://laundrypro-cloudapi.magnificentsolution.co.in', 'description' => 'Production Cloud (cPanel)'],
         ['url' => 'http://127.0.0.1:8081', 'description' => 'Local Cloud Staging / Dev'],
     ],
     'tags' => [
@@ -171,6 +171,7 @@ $cloudSpec = [
         ['name' => 'Reports', 'description' => 'Cross-tenant aggregation and executive reporting'],
         ['name' => 'Backup', 'description' => 'Encrypted snapshot storage and disaster recovery'],
         ['name' => 'SuperAdmin', 'description' => 'Central control plane operations'],
+        ['name' => 'DeployAutomation', 'description' => 'Internal FTP+HTTP release apply (token-gated; not public)'],
     ],
     'paths' => [
         '/api/v1/health' => [
@@ -558,7 +559,54 @@ $cloudSpec = [
                     ]
                 ]
             ]
-        ]
+        ],
+        '/api/v1/internal/deploy/apply' => [
+            'post' => [
+                'tags' => ['DeployAutomation'],
+                'summary' => 'Apply uploaded release zip (destructive fresh migrate)',
+                'operationId' => 'postInternalDeployApply',
+                'x-internal' => true,
+                'security' => [['deployAutomationToken' => []]],
+                'requestBody' => [
+                    'required' => true,
+                    'content' => [
+                        'application/json' => [
+                            'schema' => [
+                                'type' => 'object',
+                                'required' => ['package'],
+                                'properties' => [
+                                    'package' => ['type' => 'string', 'example' => 'deploy_staging/cloud-cpanel-upload.zip'],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+                'responses' => [
+                    '200' => ['description' => 'Apply finished'],
+                    '401' => ['description' => 'Invalid or missing deploy token'],
+                ],
+            ],
+        ],
+        '/api/v1/internal/deploy/logs' => [
+            'get' => [
+                'tags' => ['DeployAutomation'],
+                'summary' => 'Tail deploy and application logs',
+                'operationId' => 'getInternalDeployLogs',
+                'x-internal' => true,
+                'security' => [['deployAutomationToken' => []]],
+                'responses' => ['200' => ['description' => 'Log tail']],
+            ],
+        ],
+        '/api/v1/internal/deploy/status' => [
+            'get' => [
+                'tags' => ['DeployAutomation'],
+                'summary' => 'Last deploy apply status',
+                'operationId' => 'getInternalDeployStatus',
+                'x-internal' => true,
+                'security' => [['deployAutomationToken' => []]],
+                'responses' => ['200' => ['description' => 'Status JSON']],
+            ],
+        ],
     ],
     'components' => [
         'securitySchemes' => [
@@ -572,7 +620,13 @@ $cloudSpec = [
                 'in' => 'header',
                 'name' => 'Authorization',
                 'description' => 'Bearer <cloud_token> assigned to the tenant'
-            ]
+            ],
+            'deployAutomationToken' => [
+                'type' => 'apiKey',
+                'in' => 'header',
+                'name' => 'X-LaundryPro-Deploy-Token',
+                'description' => 'Matches DEPLOY_AUTOMATION_TOKEN in cloud-api/.env when DEPLOY_HTTP_ENABLED=true',
+            ],
         ],
         'schemas' => ApiSchemas::components()['schemas']
     ]

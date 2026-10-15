@@ -7,8 +7,16 @@
 *.zip
 .buildlog/
 .history
-
-
+.ssh-credentials-details
+cloud-laudry-pro-ssh
+cloud-laudry-pro-ssh.ppk
+cloud-laudry-pro-ssh.pub
+!.archive/ssh/cloud-laudry-pro-ssh.pub
+!.archive/ssh/cloud-laudry-pro-ssh.ppk
+!.archive/ssh/cloud-laudry-pro-ssh
+scripts/cloud_deploy/credentials.ini
+dist/
+.archive/dev-tools/
 
 # Flutter repo-specific
 /bin/cache/

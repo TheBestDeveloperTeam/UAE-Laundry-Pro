@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS settings (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   setting_key VARCHAR(150) NOT NULL,
   setting_value JSON NOT NULL,
-  scope ENUM('system', 'business', 'branch', 'terminal') NOT NULL DEFAULT 'business',
+  scope ENUM('system', 'business', 'branch', 'terminal', 'inventory') NOT NULL DEFAULT 'business',
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_settings_key_scope (setting_key, scope)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -398,7 +398,7 @@ CREATE TABLE IF NOT EXISTS inventory_adjustments (
   CONSTRAINT fk_adj_user FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO settings (setting_key, setting_value, scope) VALUES ('inventory.allow_negative_stock', JSON_QUOTE('false'), 'business');
+INSERT IGNORE INTO settings (setting_key, setting_value, scope) VALUES ('inventory.allow_negative_stock', JSON_QUOTE('false'), 'inventory');
 
 -- ===== 008_hr_payroll.sql =====
 CREATE TABLE IF NOT EXISTS employees (

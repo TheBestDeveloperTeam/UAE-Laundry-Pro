@@ -58,8 +58,8 @@ The entire UAE-Laundry-Pro system has undergone comprehensive end-to-end audit, 
 
 | Layer | Test Suite / Tool | Test Count | Pass Rate | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend API** | PHP CLI Test Runner (`run_api_tests.php`) | 197 assertions | **100%** (190 Passed, 0 Failed, 7 Skipped) | **PRODUCTION READY** |
-| **Frontend Unit / Widget** | Flutter Test Engine (`flutter test`) | 119 tests | **100%** (119 Passed, 0 Failed) | **PRODUCTION READY** |
+| **Backend API** | PHP CLI Test Runner (`run_api_tests.php`) | 190 passed (7 skipped) | **100%** pass rate (2026-10-15) | **CI GREEN** |
+| **Frontend Unit / Widget** | Flutter Test Engine (`flutter test`) | 119 tests | **100%** (2026-10-15) | **CI GREEN** |
 | **Dart Static Analysis** | `flutter analyze` | Entire repository | **0 Issues Found** | **PRODUCTION READY** |
 | **Windows Desktop Compilation** | `flutter build windows --debug` | Windows x64 binary | **Executable Compiled** | **PRODUCTION READY** |
 | **Localization & BiDi** | RTL / LTR English & Arabic | Both locales | **100% Verified** | **PRODUCTION READY** |
@@ -161,7 +161,7 @@ LaundryPro UAE features an abstracted, platform-agnostic peripheral driver frame
 - XAMPP (PHP 8.2, MariaDB 10.4+)
 - Visual Studio (C++ Desktop Development workload)
 
-**Production cloud:** [deployment.md](deployment.md) (cPanel / Apache / PHP — no Docker).
+**Production cloud:** [deployment.md](deployment.md) (cPanel / Apache / PHP — no Docker). SSH deploy: copy `scripts/cloud_deploy/credentials.example.ini` to gitignored `credentials.ini`; prefer key auth and **rotate** any plaintext password that was ever shared.
 
 ### 1. One-click local setup
 ```powershell

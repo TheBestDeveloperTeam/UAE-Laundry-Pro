@@ -25,6 +25,18 @@ LaundryPro UAE is a multi-tenant SaaS platform for commercial laundry operations
 | **Tests** | Dart unit/widget + PHP integration | 17 Flutter test files + 8 PHP test files | ~55 KB |
 | **Scripts** | PowerShell + PHP + Dart | 22 scripts | ~60 KB |
 
+### Post-UAT re-audit (2026-10-15)
+
+| Gate | Result |
+|:-----|:-------|
+| `run_api_tests.php` | 190 pass / 0 fail / 7 skip |
+| `flutter test` | 119 pass |
+| `openapi_drift_test.php` | Pass |
+| `export_swagger.php` | 144 local + 159 cloud paths |
+| Live cloud FTP apply | **Blocked** — docroot mismatch; see [docs/audit/POST_UAT_REAUDIT_2026-10.md](docs/audit/POST_UAT_REAUDIT_2026-10.md) |
+
+**Next phase:** Production staging UAT on live host after cPanel docroot fix or zip extract.
+
 ### Baseline Metrics (Verified 2026-10-11 IST)
 
 | Gate | Result | Status |

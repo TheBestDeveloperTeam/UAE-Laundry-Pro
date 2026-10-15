@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/widgets/laundry_lottie.dart';
 
 class EmptyState extends StatelessWidget {
   final String? title;
@@ -6,6 +7,7 @@ class EmptyState extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onAction;
   final String? actionLabel;
+  final String? lottieLogicalId;
 
   const EmptyState({
     super.key,
@@ -14,6 +16,7 @@ class EmptyState extends StatelessWidget {
     this.icon = Icons.inbox_outlined,
     this.onAction,
     this.actionLabel,
+    this.lottieLogicalId,
   });
 
   @override
@@ -40,15 +43,22 @@ class EmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                  shape: BoxShape.circle,
+              if (lottieLogicalId != null)
+                SizedBox(
+                  width: 96,
+                  height: 96,
+                  child: LaundryLottie(logicalId: lottieLogicalId!),
+                )
+              else
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, size: 36, color: theme.colorScheme.primary),
                 ),
-                child: Icon(icon, size: 36, color: theme.colorScheme.primary),
-              ),
               const SizedBox(height: 20),
               if (title != null) ...[
                 Text(

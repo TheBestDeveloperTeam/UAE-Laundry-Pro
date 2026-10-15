@@ -60,5 +60,5 @@ jobs:
       - name: Run Flutter Analyzer
         run: flutter analyze lib test --no-fatal-infos --no-fatal-warnings
 
-      - name: Run Flutter Test Suite (118 assertions)
+      - name: Run Flutter Test Suite
         run: flutter test --reporter expanded

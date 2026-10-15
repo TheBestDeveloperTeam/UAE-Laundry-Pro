@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/lottie/lottie_catalog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/app.dart';
 import 'package:laundrypro_uae/peripherals/bootstrap.dart';
@@ -14,6 +16,8 @@ import 'package:provider/provider.dart' as legacy_provider;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  unawaited(LottieCatalog.instance.ensureLoaded());
 
   // Initialise global path config + auto-create all directories
   await GlobalConfigService().init();

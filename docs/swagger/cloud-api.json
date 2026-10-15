@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.3",
     "info": {
-        "title": "LaundryPro UAE \u2014 Cloud Central Multi-Tenant API",
+        "title": "LaundryPro UAE - Cloud Central Multi-Tenant API",
         "version": "2.0.0",
         "description": "Authoritative Cloud Multi-Tenant REST API for Central Super-Admin, Licensing, and Franchise Sync Ingestion.",
         "contact": {
@@ -11,8 +11,8 @@
     },
     "servers": [
         {
-            "url": "https://api.cloud.laundrypro.ae/v1",
-            "description": "Production Cloud Gateway"
+            "url": "https://laundrypro-cloudapi.magnificentsolution.co.in",
+            "description": "Production Cloud (cPanel)"
         },
         {
             "url": "http://127.0.0.1:8081",
@@ -47,6 +47,10 @@
         {
             "name": "SuperAdmin",
             "description": "Central control plane operations"
+        },
+        {
+            "name": "DeployAutomation",
+            "description": "Internal FTP+HTTP release apply (token-gated; not public)"
         },
         {
             "name": "Identity",
@@ -910,6 +914,88 @@
                 }
             }
         },
+        "/api/v1/internal/deploy/apply": {
+            "post": {
+                "tags": [
+                    "DeployAutomation"
+                ],
+                "summary": "Apply uploaded release zip (destructive fresh migrate)",
+                "operationId": "postInternalDeployApply",
+                "x-internal": true,
+                "security": [
+                    {
+                        "deployAutomationToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "package"
+                                ],
+                                "properties": {
+                                    "package": {
+                                        "type": "string",
+                                        "example": "deploy_staging/cloud-cpanel-upload.zip"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Apply finished"
+                    },
+                    "401": {
+                        "description": "Invalid or missing deploy token"
+                    }
+                }
+            }
+        },
+        "/api/v1/internal/deploy/logs": {
+            "get": {
+                "tags": [
+                    "DeployAutomation"
+                ],
+                "summary": "Tail deploy and application logs",
+                "operationId": "getInternalDeployLogs",
+                "x-internal": true,
+                "security": [
+                    {
+                        "deployAutomationToken": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Log tail"
+                    }
+                }
+            }
+        },
+        "/api/v1/internal/deploy/status": {
+            "get": {
+                "tags": [
+                    "DeployAutomation"
+                ],
+                "summary": "Last deploy apply status",
+                "operationId": "getInternalDeployStatus",
+                "x-internal": true,
+                "security": [
+                    {
+                        "deployAutomationToken": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status JSON"
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "tags": [
@@ -972,7 +1058,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -1070,7 +1156,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1139,7 +1225,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1333,7 +1419,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1429,7 +1515,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1488,7 +1574,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1574,7 +1660,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -1896,7 +1982,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2038,7 +2124,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2180,7 +2266,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2266,7 +2352,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2352,7 +2438,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2477,7 +2563,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2563,7 +2649,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2649,7 +2735,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2715,7 +2801,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2861,7 +2947,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2900,7 +2986,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -2939,7 +3025,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3074,7 +3160,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3191,7 +3277,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3230,7 +3316,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3296,7 +3382,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3475,7 +3561,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3541,7 +3627,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3609,7 +3695,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3648,7 +3734,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3714,7 +3800,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3753,7 +3839,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3792,7 +3878,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3926,7 +4012,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -3992,7 +4078,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4058,7 +4144,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4136,7 +4222,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4175,7 +4261,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4214,7 +4300,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4290,7 +4376,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4471,7 +4557,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4652,7 +4738,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -4767,7 +4853,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5659,6 +5745,35 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    },
+                    {
+                        "cloudTokenAuth": []
+                    }
+                ]
+            }
+        },
+        "/license/sync": {
+            "post": {
+                "tags": [
+                    "License"
+                ],
+                "summary": "Synchronize license status",
+                "operationId": "cloud_post_license_sync_sync",
+                "responses": {
+                    "200": {
+                        "description": "LICENSE_SYNCED",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "$ref": "#/components/schemas/ApiEnvelope"
                                 }
                             }
@@ -5727,7 +5842,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5766,7 +5881,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5805,7 +5920,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5873,7 +5988,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -5961,7 +6076,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6000,7 +6115,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6039,7 +6154,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6144,7 +6259,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6286,7 +6401,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6614,7 +6729,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6760,7 +6875,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -6828,7 +6943,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -7040,7 +7155,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -7079,7 +7194,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -7118,7 +7233,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiEnvelope"
+                                    "$ref": "#/components/schemas/UnprocessableEntityResponse"
                                 }
                             }
                         }
@@ -7495,6 +7610,12 @@
                 "in": "header",
                 "name": "Authorization",
                 "description": "Bearer <cloud_token> assigned to the tenant"
+            },
+            "deployAutomationToken": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-LaundryPro-Deploy-Token",
+                "description": "Matches DEPLOY_AUTOMATION_TOKEN in cloud-api/.env when DEPLOY_HTTP_ENABLED=true"
             }
         },
         "schemas": {
@@ -7524,6 +7645,69 @@
                     }
                 }
             },
+            "ErrorResponse": {
+                "type": "object",
+                "required": [
+                    "success",
+                    "code",
+                    "message_key"
+                ],
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "BAD_REQUEST"
+                    },
+                    "message_key": {
+                        "type": "string",
+                        "example": "error.bad_request"
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/ApiMeta"
+                    }
+                }
+            },
+            "UnprocessableEntityResponse": {
+                "type": "object",
+                "required": [
+                    "success",
+                    "code",
+                    "message_key",
+                    "errors"
+                ],
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "VALIDATION_FAILED"
+                    },
+                    "message_key": {
+                        "type": "string",
+                        "example": "error.validation_failed"
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/ApiMeta"
+                    }
+                }
+            },
             "ApiMeta": {
                 "type": "object",
                 "properties": {
@@ -7541,15 +7725,23 @@
             },
             "ValidationError": {
                 "type": "object",
+                "required": [
+                    "field",
+                    "code",
+                    "message_key"
+                ],
                 "properties": {
                     "field": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "phone"
                     },
                     "code": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "INVALID_FORMAT"
                     },
                     "message_key": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "validation.phone_invalid"
                     }
                 }
             },

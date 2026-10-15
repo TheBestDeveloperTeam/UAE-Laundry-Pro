@@ -1,0 +1,29 @@
+{
+  "allow_root_entries": [
+    "cloud-api",
+    "deployment.md",
+    ".htaccess",
+    "deploy_staging"
+  ],
+  "protected_relative_paths": [
+    "cloud-api/.env",
+    "cloud-api/.env.production"
+  ],
+  "protected_directory_prefixes": [
+    "cloud-api/logs",
+    "cloud-api/storage"
+  ],
+  "prune_top_level_globs": [
+    "lib",
+    "test",
+    "windows",
+    "api",
+    "database",
+    "scripts",
+    "assets",
+    "pubspec.yaml",
+    "pubspec.lock",
+    "docker-compose.yml",
+    ".env"
+  ]
+}

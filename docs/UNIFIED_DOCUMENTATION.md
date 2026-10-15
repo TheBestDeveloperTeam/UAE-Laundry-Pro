@@ -2,6 +2,7 @@
 
 > **Generated:** 2026-10-05 16:47:22 UTC | **Platform Version:** 2.0.0 Enterprise
 > **Status:** 100% Architecture & API Parity Across All 35 Domains
+> **Re-audit (2026-10-15):** [POST_UAT_REAUDIT_2026-10.md](audit/POST_UAT_REAUDIT_2026-10.md) � [WORKFLOW_TRACEABILITY_MATRIX.md](audit/WORKFLOW_TRACEABILITY_MATRIX.md)
 
 ---
 
@@ -1470,55 +1471,55 @@ LaundryPro UAE is a **dual-API, dual-portal, dual-database, offline-first** ente
 ### 1.1 Component Map
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────────┝
 │                          CLOUD INFRASTRUCTURE                          │
 │                                                                         │
-│  ┌──────────────────────┐    ┌─────────────────────────────────────┐   │
+│  ┌──────────────────────┝    ┌─────────────────────────────────────┝   │
 │  │   Cloud Super-Admin  │    │         Cloud API (PHP 8.2)        │   │
 │  │    Portal (AdminLTE) │◄──►│  Multi-Tenant REST + Sync Receiver │   │
-│  │  ● Tenant Management │    │  ● License Validation              │   │
-│  │  ● License Issuance  │    │  ● Sync Push/Pull                  │   │
-│  │  ● Sync Inspector    │    │  ● Centralized Reports             │   │
-│  │  ● Audit Logs        │    │  ● Device Telemetry                │   │
+│  │  ◝ Tenant Management │    │  ◝ License Validation              │   │
+│  │  ◝ License Issuance  │    │  ◝ Sync Push/Pull                  │   │
+│  │  ◝ Sync Inspector    │    │  ◝ Centralized Reports             │   │
+│  │  ◝ Audit Logs        │    │  ◝ Device Telemetry                │   │
 │  └──────────────────────┘    └─────────────────┬───────────────────┘   │
 │                                                 │                       │
-│                              ┌──────────────────┴──────────────────┐   │
+│                              ┌──────────────────┴──────────────────┝   │
 │                              │    Cloud MariaDB (Multi-Tenant)     │   │
-│                              │  ● businesses, cloud_licenses       │   │
-│                              │  ● sync_records, sync_inbox         │   │
-│                              │  ● cloud_telemetry, audit_logs      │   │
+│                              │  ◝ businesses, cloud_licenses       │   │
+│                              │  ◝ sync_records, sync_inbox         │   │
+│                              │  ◝ cloud_telemetry, audit_logs      │   │
 │                              └──────────────────┬──────────────────┘   │
 └─────────────────────────────────────────────────┼──────────────────────┘
                                                   │
-                         ╔════════════════════════╧═════════════════╗
+                         ╔╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╧╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╗
                          ║   SYNC CHANNEL (HTTPS, Outbox/Inbox)    ║
                          ║   Local API ↔ Cloud API (background)    ║
                          ║   Flutter NEVER sees sync internals     ║
-                         ╚════════════════════════╤═════════════════╝
+                         ╚╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╤╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝╝
                                                   │
-┌─────────────────────────────────────────────────┼──────────────────────┐
+┌─────────────────────────────────────────────────┼──────────────────────┝
 │                     LOCAL WORKSTATION (Per Store)│                      │
 │                                                 │                      │
-│  ┌────────────────────┐    ┌───────────────────┴────────────────┐    │
+│  ┌────────────────────┝    ┌───────────────────┴────────────────┝    │
 │  │  Local Admin Portal │    │       Local API (PHP 8.2)         │    │
 │  │  (AdminLTE v4)      │◄──►│  Offline-First REST API           │    │
-│  │  ● Dashboard KPIs   │    │  ● 178 Endpoints                  │    │
-│  │  ● Sales/Orders     │    │  ● JWT Auth + RBAC                │    │
-│  │  ● HR/Payroll       │    │  ● Sync Outbox → Cloud            │    │
-│  │  ● Reports          │    │  ● License + UMAC Validation      │    │
+│  │  ◝ Dashboard KPIs   │    │  ◝ 178 Endpoints                  │    │
+│  │  ◝ Sales/Orders     │    │  ◝ JWT Auth + RBAC                │    │
+│  │  ◝ HR/Payroll       │    │  ◝ Sync Outbox → Cloud            │    │
+│  │  ◝ Reports          │    │  ◝ License + UMAC Validation      │    │
 │  └────────────────────┘    └───────────────────┬────────────────┘    │
 │                                                 │                      │
-│  ┌────────────────────┐    ┌───────────────────┴────────────────┐    │
+│  ┌────────────────────┝    ┌───────────────────┴────────────────┝    │
 │  │  Flutter Desktop   │    │    Local MariaDB (Single-Tenant)   │    │
-│  │  (Windows POS)     │◄──►│  ● ~90 Tables (full business data)│    │
-│  │  ● Offline-First   │    │  ● sync_outbox, sync_state         │    │
-│  │  ● SQLite Cache    │    │  ● audit_logs                      │    │
-│  │  ● ESC/POS Print   │    └────────────────────────────────────┘    │
-│  │  ● RFID/Barcode    │                                              │
-│  └────────────────────┘    ┌────────────────────────────────────┐    │
+│  │  (Windows POS)     │◄──►│  ◝ ~90 Tables (full business data)│    │
+│  │  ◝ Offline-First   │    │  ◝ sync_outbox, sync_state         │    │
+│  │  ◝ SQLite Cache    │    │  ◝ audit_logs                      │    │
+│  │  ◝ ESC/POS Print   │    └────────────────────────────────────┘    │
+│  │  ◝ RFID/Barcode    │                                              │
+│  └────────────────────┘    ┌────────────────────────────────────┝    │
 │                            │  Windows Registry (Write-Once)     │    │
-│                            │  ● UMAC Hardware Fingerprint       │    │
-│                            │  ● Install Pulse (Anti-Tamper)     │    │
+│                            │  ◝ UMAC Hardware Fingerprint       │    │
+│                            │  ◝ Install Pulse (Anti-Tamper)     │    │
 │                            └────────────────────────────────────┘    │
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -1560,34 +1561,34 @@ Both APIs share identical endpoint signatures but differ in scope:
 Client Request
     │
     ▼
-┌────────────────┐
-│   CORS Check   │  ← CorsMiddleware
+┌────────────────┝
+│   CORS Check   │  ↝ CorsMiddleware
 └───────┬────────┘
         ▼
-┌────────────────┐
-│  Rate Limiter  │  ← RateLimitMiddleware
+┌────────────────┝
+│  Rate Limiter  │  ↝ RateLimitMiddleware
 └───────┬────────┘
         ▼
-┌────────────────┐
-│  JWT Decode    │  ← AuthMiddleware (extracts user_id, role_id)
+┌────────────────┝
+│  JWT Decode    │  ↝ AuthMiddleware (extracts user_id, role_id)
 └───────┬────────┘
         ▼
-┌────────────────┐
-│  Permission    │  ← PermissionMiddleware (checks role.permissions vs route)
+┌────────────────┝
+│  Permission    │  ↝ PermissionMiddleware (checks role.permissions vs route)
 │  Check         │
 └───────┬────────┘
         ▼
-┌────────────────┐
-│  Idempotency   │  ← IdempotencyMiddleware (POST/PUT dedup via X-Idempotency-Key)
+┌────────────────┝
+│  Idempotency   │  ↝ IdempotencyMiddleware (POST/PUT dedup via X-Idempotency-Key)
 └───────┬────────┘
         ▼
-┌────────────────┐
-│  Controller    │  ← Domain logic
+┌────────────────┝
+│  Controller    │  ↝ Domain logic
 │  Method        │
 └───────┬────────┘
         ▼
-┌────────────────┐
-│  Audit Log     │  ← AuditLogMiddleware (records action to audit_logs)
+┌────────────────┝
+│  Audit Log     │  ↝ AuditLogMiddleware (records action to audit_logs)
 └───────┬────────┘
         ▼
 JSON Response Envelope
@@ -1627,30 +1628,30 @@ Every API response follows this structure:
 ### 3.2 Sync State Machine (Per Row)
 
 ```
-        ┌──────────────────────────────────────────────────────┐
+        ┌──────────────────────────────────────────────────────┝
         │                                                      │
         ▼                                                      │
-    ┌─────────┐    Push     ┌─────────┐   ACK    ┌─────────┐ │
+    ┌─────────┝    Push     ┌─────────┝   ACK    ┌─────────┝ │
     │ pending │──────────►│ pushing │────────►│ synced  │ │
     └─────────┘            └─────────┘          └─────────┘ │
         │                      │                     │        │
         │                      │ NACK/Timeout        │ Mutate │
         │                      ▼                     │        │
-        │               ┌──────────┐                 │        │
+        │               ┌──────────┝                 │        │
         │               │  failed  │                 │        │
         │               └──────────┘                 │        │
         │                    │ Retry                  │        │
         │                    │ (backoff)              │        │
         │                    ▼                        │        │
-        │            ┌──────────────┐                │        │
+        │            ┌──────────────┝                │        │
         │            │ dead_letter  │                │        │
         │            │ (attempts>10)│                │        │
         │            └──────────────┘                │        │
         │                                            │        │
         └────────────────────────────────────────────┘        │
                                                               │
-    ┌──────────┐                                              │
-    │ conflict │  ← 3-way merge detected divergence ──────────┘
+    ┌──────────┝                                              │
+    │ conflict │  ↝ 3-way merge detected divergence ──────────┘
     └──────────┘
 ```
 
@@ -1861,16 +1862,16 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 ```
 Current State (Fragmented)             Target State (Unified Architecture)
-┌───────────────────────────┐         ┌─────────────────────────────────┐
+┌───────────────────────────┝         ┌─────────────────────────────────┝
 │ database/schema.sql       │         │ Canonical Consolidated DDL      │
 │ (176 KB, 219 CREATE stmts)│────────▶│ • 95 Normalized Unique Tables   │
 │ Duplicate table blocks    │         │ • Strict Foreign Key Integrity  │
 └───────────────────────────┘         │ • Standardized Compound Indexes │
                                       └─────────────────────────────────┘
                                                        │
-                                      ┌────────────────┴────────────────┐
+                                      ┌────────────────┴────────────────┝
                                       ▼                                 ▼
-                         ┌──────────────────────────┐     ┌──────────────────────────┐
+                         ┌──────────────────────────┝     ┌──────────────────────────┝
                          │ Local Store Engine       │     │ Cloud Multi-Tenant Hub   │
                          │ (Edge SQLite / MariaDB)  │     │ (Clustered MariaDB)      │
                          │ + Local sync_outbox      │     │ + tenant_id multi-tenant │
@@ -4049,7 +4050,7 @@ Under UAE Federal Decree-Law No. 8 of 2017 on Value Added Tax, dry cleaning, lau
 
 ### 1.1 Mandatory Tax Invoice Fields
 Every tax invoice generated by LaundryPro UAE (A4 or thermal 80mm) strictly includes:
-1. The words **"Tax Invoice" / "فاتورة ضريبية"** clearly displayed at the top.
+1. The words **"Tax Invoice" / "ٝاتورة ضريبية"** clearly displayed at the top.
 2. Legal business trade name, address, and **15-digit Tax Registration Number (TRN)**.
 3. Customer name and address (and customer TRN if B2B registered corporate client).
 4. Sequential unique tax invoice number from a non-resettable series.
@@ -4440,7 +4441,7 @@ At the end of each cashier's shift:
 
 | Field Label | Field Key | Input Type | Validation Rules | Error Message (Bilingual) |
 |---|---|---|---|---|
-| **Mobile Number** | `phone` | Tel / Numeric | Required; Regex: `^(05\|+9715)[0-9]{8}$` | Invalid UAE mobile number / رقم الهاتف المتحرك غير صحيح |
+| **Mobile Number** | `phone` | Tel / Numeric | Required; Regex: `^(05\|+9715)[0-9]{8}$` | Invalid UAE mobile number / رقم الهاتٝ المتحرك غير صحيح |
 | **Customer Name** | `name` | Text | Required; Min 3, Max 100 characters | Name is required / يرجى إدخال اسم العميل |
 | **Customer Type** | `customer_type` | Radio / Select | Required; Options: `personal`, `corporate`, `walk_in` | Select customer type / حدد نوع العميل |
 | **Tax Number (TRN)**| `tax_number` | Text | Optional for retail; Required for corporate: 15 digits | 15-digit TRN required / الرقم الضريبي يتكون من 15 رقماً |
@@ -4559,7 +4560,7 @@ LaundryPro uses a **3-way license handshake** involving:
 ## 2. License Lifecycle
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┝
 │                        LICENSE LIFECYCLE                         │
 │                                                                 │
 │  TRIAL ──► ACTIVATE ──► ACTIVE ──► EXPIRED                     │
@@ -5066,7 +5067,7 @@ Heat-seal care tags must withstand continuous wash cycles up to 90°C and hydroc
 - **Barcode Symbology**: Code 128 (Auto subset) or compact DataMatrix.
 - **Tag Layout (Width: 35mm, Height: 25mm)**:
   ```text
-  ┌─────────────────────────┐
+  ┌─────────────────────────┝
   │ LP: DXB-2026-0042 [1/3] │
   │ KANDORA - DRY CLEAN     │
   │ *|||||||||||||||||||||* │

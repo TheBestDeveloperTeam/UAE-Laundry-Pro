@@ -19,7 +19,7 @@ Both the Local Station API and the Cloud Multi-Tenant API are documented with co
   - **Size:** 267 KB | 7,631 lines
   - **Endpoints:** 100+ routes across 28 distinct functional tags
   - **Multi-Tenancy:** Parameterized tenant authorization headers (`X-Tenant-Id`, `Bearer <JWT>`)
-  - **Live UI:** Interactive documentation at `https://api.cloud.laundrypro.ae/v1/docs`
+  - **Live UI:** `https://laundrypro-cloudapi.magnificentsolution.co.in/api/v1/docs` (production cPanel)
 
 ---
 

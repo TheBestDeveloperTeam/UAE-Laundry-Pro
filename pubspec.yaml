@@ -55,7 +55,8 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/images/branding/
-    - assets/animations/
+    - assets/animations/masters/
+    - assets/animations/manifest/
 
 msix_config:
   display_name: Laundry Pro UAE

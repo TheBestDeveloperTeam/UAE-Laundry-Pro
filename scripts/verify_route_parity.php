@@ -47,7 +47,7 @@ $domains = [
     'RFID' => ['rfid'],
     'Advanced Cycles/Sterilization' => ['cycles', 'sterilization'],
     'Storefront/Customer Portal' => ['storefront', 'portal'],
-    'LAN' => ['lan'],
+    'LAN' => ['/lan/', '/api/v1/lan'],
     'Accounting' => ['accounting'],
     'Localization' => ['localization'],
 ];

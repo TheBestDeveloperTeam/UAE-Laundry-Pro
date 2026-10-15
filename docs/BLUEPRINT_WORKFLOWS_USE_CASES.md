@@ -24,12 +24,9 @@
 | **UC-12** | Refund & Correction Memo | Manager | Immutable correction memo generated |
 | **UC-13** | Daily Shift Close | Cashier | Z-Report printed and variance logged |
 | **UC-14** | Low-Stock Reorder | System | Alert triggered and PO generated |
-| **UC-15** | Client Onboarding Wizard | Admin | 8-step initialization completed |
-| **UC-11** | Split Payment (Multi-Tender) | Front-Desk Cashier | Invoice settled across = 2 tender types, change calculated correctly, single receipt issued |
-| **UC-12** | Refund / Correction Memo | Cashier / Manager | Credit memo raised against original invoice; original invoice never mutated; ledger balanced |
-| **UC-13** | Shift Close / Cash Reconciliation | Shift Supervisor | Declared cash vs. system cash variance logged; Z-Report printed; drawer sealed |
-| **UC-14** | Inventory Low-Stock Reorder | Store Manager / System | Consumable stock falls below threshold; PO draft auto-generated; supplier notified |
-| **UC-15** | 8-Step Onboarding Wizard | Super-Admin / New Tenant | New branch node fully configured: business profile, hardware, license, services, and first test order |
+| **UC-15** | Client Onboarding Wizard | Super-Admin / New Tenant | 8-step initialization completed; first test order posted |
+
+Extended acceptance criteria for UC-11–UC-15 are documented in sections below (split tender, correction memos, shift close, low-stock PO, onboarding).
 
 ---
 

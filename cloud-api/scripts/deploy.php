@@ -71,11 +71,23 @@ if ($pdo === null) {
 echo " [OK]\n\n";
 
 // 3. Run Migrations
+$fresh = in_array('--fresh', $argv ?? [], true);
+if ($fresh && getenv('REBUILD_CONFIRM') !== '1') {
+    echo "ERROR: --fresh requires REBUILD_CONFIRM=1 (drops all tables).\n";
+    echo "Example: REBUILD_CONFIRM=1 php scripts/deploy.php --fresh\n";
+    exit(1);
+}
+
 require_once $baseDir . '/database/migrate.php';
 echo "[*] Executing database migrations...\n";
 $migrationsDir = $baseDir . '/database/migrations';
+if (!is_dir($migrationsDir) || count(glob($migrationsDir . '/*.sql') ?: []) === 0) {
+    echo "ERROR: Missing SQL migrations in {$migrationsDir}\n";
+    echo "Upload cloud-api/database/migrations/ (001, 002, 003) before deploying.\n";
+    exit(1);
+}
 $runner = new \LaundryPro\Cloud\Database\MigrationRunner($pdo, $migrationsDir);
-$results = $runner->run(in_array('--fresh', $argv ?? [], true));
+$results = $runner->run($fresh);
 
 foreach ($results as $r) {
     $icon = match ($r['action']) {
@@ -101,16 +113,15 @@ try {
         $defaultPassword = \LaundryPro\Cloud\Core\Env::get('ADMIN_DEFAULT_PASSWORD', 'Admin@LaundryPro2026!');
         $hash = password_hash($defaultPassword, PASSWORD_BCRYPT);
         $insert = $pdo->prepare('
-            INSERT INTO cloud_super_admins (id, username, email, password_hash, full_name, role, status, created_at, updated_at)
-            VALUES (UUID(), :username, :email, :hash, :name, :role, :status, NOW(), NOW())
+            INSERT INTO cloud_super_admins (username, email, password_hash, full_name, role, is_active)
+            VALUES (:username, :email, :hash, :name, :role, 1)
         ');
         $insert->execute([
             ':username' => 'superadmin',
             ':email' => 'admin@laundrypro.ae',
             ':hash' => $hash,
             ':name' => 'Super Administrator',
-            ':role' => 'SUPER_ADMIN',
-            ':status' => 'ACTIVE',
+            ':role' => 'super_admin',
         ]);
         echo "  [✓] Super-Admin 'superadmin' created successfully with default credentials.\n";
     }

@@ -7,7 +7,10 @@
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
     # Prevent access to source files, git, and local POS code from web
-    RewriteRule ^(\.git|api|lib|windows|test|scripts) - [F,L,NC]
+    RewriteRule ^(\.git|api|lib|windows|test|scripts|database) - [F,L,NC]
+
+    # HTTP deploy bootstrap (FTP-uploaded; token-protected)
+    RewriteRule ^cloud-api/public/lp_deploy_apply\.php$ - [L]
 
     # Route /api/* and /admin/* and cloud traffic directly to cloud-api/public/index.php
     RewriteCond %{REQUEST_URI} ^/api/ [OR]

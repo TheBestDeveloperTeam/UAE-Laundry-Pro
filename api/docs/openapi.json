@@ -1,13 +1,13 @@
 {
     "openapi": "3.0.3",
     "info": {
-        "title": "LaundryPro UAE API",
-        "version": "1.2.0",
+        "title": "LaundryPro UAE - Local Station API",
+        "version": "2.0.0",
         "description": "Live-generated OpenAPI specification for LaundryPro UAE API."
     },
     "servers": [
         {
-            "url": "https://laundrypro-api/api/v1"
+            "url": "http://127.0.0.1:8080"
         }
     ],
     "tags": [

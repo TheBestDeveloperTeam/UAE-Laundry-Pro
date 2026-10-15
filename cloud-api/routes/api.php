@@ -7,6 +7,7 @@ use LaundryPro\Cloud\Controllers\AuthController;
 use LaundryPro\Cloud\Controllers\CatalogController;
 use LaundryPro\Cloud\Controllers\ChallanController;
 use LaundryPro\Cloud\Controllers\CloudApiController;
+use LaundryPro\Cloud\Controllers\DeployAutomationController;
 use LaundryPro\Cloud\Controllers\CustomerController;
 use LaundryPro\Cloud\Controllers\DeliveryController;
 use LaundryPro\Cloud\Controllers\ExpenseController;
@@ -25,6 +26,10 @@ function register_cloud_api_routes(Router $router): void
 {
     // ===== 1. Platform & Telemetry =====
     $router->get('/api/v1/health', [CloudApiController::class, 'health']);
+
+    $router->post('/api/v1/internal/deploy/apply', [DeployAutomationController::class, 'apply']);
+    $router->get('/api/v1/internal/deploy/logs', [DeployAutomationController::class, 'logs']);
+    $router->get('/api/v1/internal/deploy/status', [DeployAutomationController::class, 'status']);
     $router->get('/api/v1/docs/openapi.json', [CloudApiController::class, 'openapiJson']);
     $router->get('/api/v1/docs', [CloudApiController::class, 'docs']);
 

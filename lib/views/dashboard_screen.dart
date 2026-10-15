@@ -8,6 +8,7 @@ import 'package:laundrypro_uae/services/notification_service.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
 import 'package:provider/provider.dart';
 import 'package:laundrypro_uae/models/dashboard_metrics_model.dart';
+import 'package:laundrypro_uae/widgets/laundry_lottie.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, this.reportsService});
@@ -134,7 +135,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: LaundryLottieBackground(
+        logicalId: 'dashboard.bg.light',
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,6 +340,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

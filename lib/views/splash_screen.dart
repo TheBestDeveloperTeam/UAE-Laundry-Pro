@@ -5,6 +5,7 @@ import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 
 import 'package:laundrypro_uae/providers/auth_provider.dart';
+import 'package:laundrypro_uae/widgets/laundry_lottie.dart';
 import 'package:laundrypro_uae/services/auth_service.dart';
 import 'package:laundrypro_uae/services/install_service.dart';
 import 'package:laundrypro_uae/services/license_service.dart';
@@ -112,7 +113,9 @@ class _SplashScreenState extends State<SplashScreen> {
     final l10n = context.l10n;
 
     return Scaffold(
-      body: Center(
+      body: LaundryLottieBackground(
+        logicalId: 'splash.bg.light',
+        child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: Padding(
@@ -225,6 +228,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

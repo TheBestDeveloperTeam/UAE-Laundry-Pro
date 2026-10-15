@@ -59,10 +59,12 @@ cloud-api/
 
 **Canonical runbook:** [deployment.md](../deployment.md) at the repository root.
 
-1. Upload `cloud-api/` to your cPanel subdomain tree.
-2. Set document root to `cloud-api/public` (recommended) or use root `.htaccess` routing.
-3. Copy `.env.production.example` → `.env` with real credentials (never commit).
-4. Run `php cloud-api/scripts/deploy.php`.
+1. Upload `cloud-api/` to your cPanel subdomain tree (`DEPLOY_ROOT` on the server).
+2. **Option A (recommended):** cPanel document root → `{DEPLOY_ROOT}/cloud-api/public` (not the subdomain folder alone). Match `ftp_remote_path` / `remote_home` to `DEPLOY_ROOT` in `scripts/cloud_deploy/credentials.ini`.
+3. **Option B:** document root = `DEPLOY_ROOT` + root [`.htaccess`](../.htaccess) routing.
+4. `cloud-api/public/.htaccess` issues a **301** from legacy `/cloud-api/public/*` URLs when Option A is active.
+5. Copy `.env.production.example` → `.env` with real credentials (never commit).
+6. Run `php cloud-api/scripts/deploy.php` (or automated FTP/SSH deploy per [deployment.md](../deployment.md) §12).
 
 ---
 

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: LaundryPro UAE — Unified API Specification
+  title: "LaundryPro UAE - Unified API Specification"
   version: 2.0.0
   description: "Complete unified specification for LaundryPro UAE enterprise system.\nIncludes both Local Workstation API endpoints (/local/api/v1/...) and Cloud Multi-Tenant Gateway endpoints (/cloud/api/v1/...)."
   contact:
@@ -87,6 +87,8 @@ tags:
     description: "Multi-tenant organization registration and onboarding"
   - name: SuperAdmin
     description: Central control plane operations
+  - name: DeployAutomation
+    description: "Internal FTP+HTTP release apply (token-gated; not public)"
 paths:
   /local/health:
     get:
@@ -125,7 +127,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/ErrorResponse"
         401:
           description: AUTH_SESSION_EXPIRED
           content:
@@ -175,7 +177,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         429:
           description: RATE_LIMIT_EXCEEDED
           content:
@@ -212,7 +214,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         429:
           description: RATE_LIMIT_EXCEEDED
           content:
@@ -317,7 +319,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       requestBody:
         required: true
         content:
@@ -370,7 +372,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/roles/{id}:
@@ -403,7 +405,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/business:
@@ -450,7 +452,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/install/status:
@@ -627,7 +629,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/customers/{id}:
@@ -703,7 +705,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/vendors/{id}:
@@ -779,7 +781,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/services/{id}:
@@ -826,7 +828,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/services/{id}/products:
@@ -873,7 +875,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/services/{id}/products/{productId}:
@@ -941,7 +943,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/products/{id}:
@@ -988,7 +990,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/products/{id}/modifiers:
@@ -1035,7 +1037,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/products:
@@ -1070,7 +1072,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/sales:
@@ -1148,7 +1150,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/sales/{id}/payment:
@@ -1169,7 +1171,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/sales/{id}/status:
@@ -1190,7 +1192,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         404:
           description: NOT_FOUND
           content:
@@ -1264,7 +1266,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/invoices:
@@ -1327,7 +1329,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/invoices/{id}/correction:
@@ -1348,7 +1350,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/employees:
@@ -1383,7 +1385,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/employees/{id}:
@@ -1479,7 +1481,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/leave-requests:
@@ -1514,7 +1516,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/leave-types:
@@ -1550,7 +1552,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/leave-requests/{id}/reject:
@@ -1571,7 +1573,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/payroll/periods:
@@ -1606,7 +1608,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/payroll/run:
@@ -1627,7 +1629,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/payroll/periods/{id}/run:
@@ -1648,7 +1650,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/payroll/runs:
@@ -1719,7 +1721,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/expense-categories:
@@ -1754,7 +1756,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/expenses:
@@ -1789,7 +1791,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/expenses/{id}:
@@ -1831,7 +1833,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/expenses/{id}/reject:
@@ -1852,7 +1854,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/expenses/{id}/attachments:
@@ -1873,7 +1875,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/delivery-tasks:
@@ -1914,7 +1916,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/delivery-tasks/{id}:
@@ -2011,7 +2013,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/challans/{id}:
@@ -2108,7 +2110,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/purchase-orders/{id}:
@@ -2170,7 +2172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/notifications:
@@ -2638,6 +2640,21 @@ paths:
           content:
             application/json:
               schema:
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
+      security:
+        - bearerAuth: {}
+  /local/license/sync:
+    post:
+      tags:
+        - License
+      summary: Synchronize license status
+      operationId: post_license_sync_sync
+      responses:
+        200:
+          description: LICENSE_SYNCED
+          content:
+            application/json:
+              schema:
                 $ref: "#/components/schemas/ApiEnvelope"
       security:
         - bearerAuth: {}
@@ -2674,7 +2691,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/inventory/adjustment:
@@ -2695,7 +2712,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/inventory/transfer:
@@ -2716,7 +2733,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/inventory/stock:
@@ -2752,7 +2769,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/backup/run:
@@ -2800,7 +2817,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/backup/restore/validate:
@@ -2821,7 +2838,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/backup/restore:
@@ -2842,7 +2859,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         500:
           description: RESTORE_FAILED
           content:
@@ -2898,7 +2915,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/branches/{id}:
@@ -2974,7 +2991,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/terminals/{id}/register:
@@ -3147,7 +3164,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/channels/{id}/test:
@@ -3225,7 +3242,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/storefront/catalog:
@@ -3259,7 +3276,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
     get:
       tags:
         - Storefront
@@ -3368,7 +3385,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/advanced-cycles/{id}/complete:
@@ -3389,7 +3406,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/advanced-cycles/{id}/process-logs:
@@ -3410,7 +3427,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
   /local/sterilization/batch:
@@ -3840,7 +3857,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiEnvelope"
         403:
-          description: "License expired, revoked, or UMAC device limit exceeded"
+          description: License expired, revoked, or UMAC device limit exceeded
   /cloud/api/v1/tenant/profile:
     get:
       tags:
@@ -4047,7 +4064,7 @@ paths:
     get:
       tags:
         - Reports
-      summary: "Get tenant sales, customer and VAT metrics"
+      summary: Get tenant sales, customer and VAT metrics
       operationId: getTenantReportsSummary
       security:
         - bearerAuth: {}
@@ -4058,6 +4075,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiEnvelope"
+  /cloud/api/v1/internal/deploy/apply:
+    post:
+      tags:
+        - DeployAutomation
+      summary: Apply uploaded release zip (destructive fresh migrate)
+      operationId: postInternalDeployApply
+      x-internal: true
+      security:
+        - deployAutomationToken: {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - package
+              properties:
+                package:
+                  type: string
+                  example: "deploy_staging/cloud-cpanel-upload.zip"
+      responses:
+        200:
+          description: Apply finished
+        401:
+          description: Invalid or missing deploy token
+  /cloud/api/v1/internal/deploy/logs:
+    get:
+      tags:
+        - DeployAutomation
+      summary: Tail deploy and application logs
+      operationId: getInternalDeployLogs
+      x-internal: true
+      security:
+        - deployAutomationToken: {}
+      responses:
+        200:
+          description: Log tail
+  /cloud/api/v1/internal/deploy/status:
+    get:
+      tags:
+        - DeployAutomation
+      summary: Last deploy apply status
+      operationId: getInternalDeployStatus
+      x-internal: true
+      security:
+        - deployAutomationToken: {}
+      responses:
+        200:
+          description: Status JSON
   /cloud/health:
     get:
       tags:
@@ -4098,7 +4165,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/ErrorResponse"
         401:
           description: AUTH_SESSION_EXPIRED
           content:
@@ -4154,7 +4221,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         429:
           description: RATE_LIMIT_EXCEEDED
           content:
@@ -4194,7 +4261,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         429:
           description: RATE_LIMIT_EXCEEDED
           content:
@@ -4305,7 +4372,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       requestBody:
         required: true
         content:
@@ -4360,7 +4427,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4394,7 +4461,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4443,7 +4510,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4628,7 +4695,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4708,7 +4775,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4788,7 +4855,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4837,7 +4904,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4886,7 +4953,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -4957,7 +5024,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5006,7 +5073,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5055,7 +5122,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5092,7 +5159,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5174,7 +5241,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5196,7 +5263,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5218,7 +5285,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         404:
           description: NOT_FOUND
           content:
@@ -5295,7 +5362,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5361,7 +5428,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5383,7 +5450,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5420,7 +5487,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5521,7 +5588,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5558,7 +5625,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5596,7 +5663,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5618,7 +5685,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5655,7 +5722,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5677,7 +5744,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5699,7 +5766,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5774,7 +5841,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5811,7 +5878,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5848,7 +5915,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5892,7 +5959,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5914,7 +5981,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5936,7 +6003,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -5979,7 +6046,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6081,7 +6148,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6183,7 +6250,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6248,7 +6315,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6744,6 +6811,22 @@ paths:
           content:
             application/json:
               schema:
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
+      security:
+        - bearerAuth: {}
+        - cloudTokenAuth: {}
+  /cloud/license/sync:
+    post:
+      tags:
+        - License
+      summary: Synchronize license status
+      operationId: cloud_post_license_sync_sync
+      responses:
+        200:
+          description: LICENSE_SYNCED
+          content:
+            application/json:
+              schema:
                 $ref: "#/components/schemas/ApiEnvelope"
       security:
         - bearerAuth: {}
@@ -6782,7 +6865,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6804,7 +6887,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6826,7 +6909,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6864,7 +6947,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6914,7 +6997,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6936,7 +7019,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -6958,7 +7041,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
         500:
           description: RESTORE_FAILED
           content:
@@ -7017,7 +7100,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7097,7 +7180,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7280,7 +7363,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7362,7 +7445,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7400,7 +7483,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7519,7 +7602,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7541,7 +7624,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7563,7 +7646,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiEnvelope"
+                $ref: "#/components/schemas/UnprocessableEntityResponse"
       security:
         - bearerAuth: {}
         - cloudTokenAuth: {}
@@ -7792,6 +7875,51 @@ components:
             $ref: "#/components/schemas/ValidationError"
         meta:
           $ref: "#/components/schemas/ApiMeta"
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message_key
+      properties:
+        success:
+          type: boolean
+          example: false
+        code:
+          type: string
+          example: BAD_REQUEST
+        message_key:
+          type: string
+          example: error.bad_request
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationError"
+        meta:
+          $ref: "#/components/schemas/ApiMeta"
+    UnprocessableEntityResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message_key
+        - errors
+      properties:
+        success:
+          type: boolean
+          example: false
+        code:
+          type: string
+          example: VALIDATION_FAILED
+        message_key:
+          type: string
+          example: error.validation_failed
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationError"
+        meta:
+          $ref: "#/components/schemas/ApiMeta"
     ApiMeta:
       type: object
       properties:
@@ -7804,13 +7932,20 @@ components:
           type: string
     ValidationError:
       type: object
+      required:
+        - field
+        - code
+        - message_key
       properties:
         field:
           type: string
+          example: phone
         code:
           type: string
+          example: INVALID_FORMAT
         message_key:
           type: string
+          example: validation.phone_invalid
     LoginRequest:
       type: object
       required:

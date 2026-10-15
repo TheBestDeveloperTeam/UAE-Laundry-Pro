@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS settings (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   setting_key VARCHAR(150) NOT NULL,
   setting_value JSON NOT NULL,
-  scope ENUM('system', 'business', 'branch', 'terminal') NOT NULL DEFAULT 'business',
+  scope ENUM('system', 'business', 'branch', 'terminal', 'inventory') NOT NULL DEFAULT 'business',
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_settings_key_scope (setting_key, scope)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

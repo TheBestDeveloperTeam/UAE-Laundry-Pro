@@ -31,7 +31,11 @@ The system uses a mixed testing methodology across the PHP backends and Flutter 
 
 ---
 
-## 3. Next Steps & Fix Roadmap
+## 3. Re-audit note (2026-10-15)
+
+CI runs `openapi_drift_test.php`, `verify_route_parity.php`, `run_api_tests.php` (190 pass), and `flutter test` (119 pass). G-031–033 remain **recommended** enhancements, not CI blockers. See [POST_UAT_REAUDIT_2026-10.md](POST_UAT_REAUDIT_2026-10.md).
+
+## 4. Next Steps & Fix Roadmap
 
 - **Sprint 1 (Immediate Blockers):**
   - None strictly blocking production deployment, but E2E Offline Mode tests (G-031) are highly recommended before final sign-off.

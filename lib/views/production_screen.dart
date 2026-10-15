@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
+import 'package:laundrypro_uae/widgets/laundry_lottie.dart';
 
 class ProductionScreen extends StatefulWidget {
   const ProductionScreen({super.key, this.salesService});
@@ -189,7 +190,9 @@ class _ProductionScreenState extends State<ProductionScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: LaundryLottieBackground(
+        logicalId: 'production.bg.light',
+        child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -218,6 +221,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                     : _buildTabularView(),
           ),
         ],
+        ),
       ),
     );
   }

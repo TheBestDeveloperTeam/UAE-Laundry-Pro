@@ -2,6 +2,12 @@
 RewriteCond %{HTTP:Authorization} .
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+# Legacy Option B URLs when cPanel docroot is cloud-api/public (Option A)
+RewriteRule ^cloud-api/public/(.*)$ /$1 [R=301,L,NC]
+
+# HTTP deploy bootstrap (direct script; must run before front controller)
+RewriteRule ^lp_deploy_apply\.php$ - [L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
