@@ -33,7 +33,7 @@ The system uses a mixed testing methodology across the PHP backends and Flutter 
 
 ## 3. Re-audit note (2026-10-15)
 
-CI runs `openapi_drift_test.php`, `verify_route_parity.php`, `run_api_tests.php` (190 pass), and `flutter test` (119 pass). G-031–033 remain **recommended** enhancements, not CI blockers. See [POST_UAT_REAUDIT_2026-10.md](POST_UAT_REAUDIT_2026-10.md).
+CI (ubuntu): PHP lint, `verify_route_parity.php`, `openapi_drift_test.php`, `openapi_export_smoke_test.php`, `cloud_core_test.php`, `cloud_route_registry_test.php`, `deploy_automation_smoke_test.php`, `cloud_domain_parity_test.php` (skips if no DB). CI (windows): `flutter analyze` + `flutter test` (120). Workstation: `run_api_tests.php` (190 pass) when local API HTTP is up. G-031–033 remain **recommended** enhancements. See [POST_UAT_REAUDIT_2026-10.md](POST_UAT_REAUDIT_2026-10.md) §R2.
 
 ## 4. Next Steps & Fix Roadmap
 

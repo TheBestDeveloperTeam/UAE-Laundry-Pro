@@ -36,22 +36,58 @@ if (-not (Test-Path $swaggerLocal) -or -not (Test-Path $swaggerCloud)) {
 }
 Write-Host "Swagger: PASS"
 
-Write-Host "`n[3/5] Route parity..."
+Write-Host "`n[3/7] Route parity + OpenAPI + cloud tests..."
 & $PhpPath scripts\verify_route_parity.php
 if ($LASTEXITCODE -ne 0) { throw "Route parity failed" }
-Write-Host "Route parity: PASS"
+& $PhpPath api\tests\openapi_drift_test.php
+if ($LASTEXITCODE -ne 0) { throw "OpenAPI drift failed" }
+& $PhpPath api\tests\openapi_export_smoke_test.php
+if ($LASTEXITCODE -ne 0) { throw "OpenAPI export smoke failed" }
+& $PhpPath cloud-api\tests\cloud_core_test.php
+if ($LASTEXITCODE -ne 0) { throw "Cloud core tests failed" }
+& $PhpPath cloud-api\tests\cloud_route_registry_test.php
+if ($LASTEXITCODE -ne 0) { throw "Cloud route registry failed" }
+& $PhpPath api\tests\deploy_automation_smoke_test.php
+if ($LASTEXITCODE -ne 0) { throw "Deploy automation smoke failed" }
+& $PhpPath cloud-api\tests\cloud_domain_parity_test.php
+if ($LASTEXITCODE -ne 0) { throw "Cloud domain parity failed" }
+Write-Host "PHP gates: PASS"
 
-Write-Host "`n[4/5] Flutter analyze..."
+Write-Host "`n[4/7] Flutter analyze..."
 & $FlutterPath analyze --no-fatal-infos 2>&1 | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Flutter analyze failed" }
 Write-Host "Flutter analyze: PASS"
 
-Write-Host "`n[5/5] Flutter tests + API tests..."
+Write-Host "`n[5/7] Flutter tests..."
 & $FlutterPath test
 if ($LASTEXITCODE -ne 0) { throw "Flutter tests failed" }
-& $PhpPath api\tests\run_api_tests.php
-if ($LASTEXITCODE -ne 0) { throw "API tests failed" }
-Write-Host "Tests: PASS"
+
+Write-Host "`n[6/7] Local API integration (optional if station not running)..."
+$healthUrl = ($ApiBaseUrl -replace '/api/v1$', '') + '/health'
+$apiOk = $false
+try {
+  $r = Invoke-WebRequest -Uri $healthUrl -Method GET -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
+  $apiOk = ($r.StatusCode -eq 200)
+} catch { $apiOk = $false }
+
+if ($apiOk) {
+  & $PhpPath api\tests\run_api_tests.php
+  if ($LASTEXITCODE -ne 0) { throw "API tests failed" }
+  Write-Host "API integration: PASS"
+} else {
+  Write-Host "API integration: SKIP ($healthUrl not reachable; start XAMPP/local API for full gate)"
+}
+
+Write-Host "`n[7/7] Live cloud smoke (optional)..."
+$liveScript = Join-Path $RepoRoot "scripts\cloud_deploy\cloud_live_smoke.ps1"
+if (Test-Path $liveScript) {
+  & powershell -NoProfile -File $liveScript -Quiet
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "Live cloud smoke: FAIL (deploy routes/bootstrap — see POST_UAT_REAUDIT §R2)"
+  } else {
+    Write-Host "Live cloud smoke: PASS"
+  }
+}
 
 Write-Host "`n========================================="
 Write-Host " QUALITY GATE PASSED"

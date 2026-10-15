@@ -42,3 +42,19 @@ All execution phases and recommendations from `unified_implementation_plan.md` h
 
 > *"The blueprint and all execution sprints are fully delivered, hardened, and verified with zero defects."*
 
+---
+
+## R2 certification addendum (2026-10-15)
+
+Supersedes blanket “zero defects” for **live cloud deploy** only. Authoritative measured state: [POST_UAT_REAUDIT_2026-10.md](POST_UAT_REAUDIT_2026-10.md) §R2.
+
+| Dimension | Verdict |
+|-----------|---------|
+| Local + cloud **source** quality gates | **GREEN** — drift, cloud registry, Flutter 120, deploy smoke |
+| GitHub Actions | **GREEN** when `main` CI passes (extended backend job) |
+| Live cloud **runtime** at `laundrypro-cloudapi.magnificentsolution.co.in` | **AMBER** — health/OpenAPI on prior build; internal deploy + bootstrap **404** until zip extract + `.env` |
+| Production closure for **desktop + local station** | **Certified** (same gates as Oct audit) |
+| Production closure for **cloud hub automation** | **Conditional** — one manual cPanel extract + env step, then re-smoke |
+
+**Operator checklist:** extract zip → create/patch `.env` → `cloud_live_smoke.ps1` → `cloud_deploy.ps1 -Transport Ftp`.
+

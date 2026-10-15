@@ -36,6 +36,17 @@ jobs:
         run: |
           php api/tests/openapi_drift_test.php
 
+      - name: OpenAPI export smoke (local registry)
+        run: |
+          php api/tests/openapi_export_smoke_test.php
+
+      - name: Cloud core, route registry, deploy smoke
+        run: |
+          php cloud-api/tests/cloud_core_test.php
+          php cloud-api/tests/cloud_route_registry_test.php
+          php api/tests/deploy_automation_smoke_test.php
+          php cloud-api/tests/cloud_domain_parity_test.php
+
   frontend-quality-gate:
     name: Flutter Lint & Automated Regression Tests
     runs-on: windows-latest

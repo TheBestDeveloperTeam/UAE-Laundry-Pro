@@ -48,7 +48,7 @@ Install/Setup and RFID/LAN on cloud: **0 routes** (intentional parity). Deploy a
 | Storekeeper | `storekeeper` | Inventory GRN | `run_api_tests.php` | Pass |
 | HR | `hr` | Payroll | `phase2_hr_test.dart` | Pass |
 | Auditor | `auditor` | Read-only reports | `run_api_tests.php` | Pass |
-| Cloud Super-Admin | `cloud_super_admins` | License / tenant console | cloud routes (when deployed) | NA until live deploy |
+| Cloud Super-Admin | `cloud_super_admins` | License / tenant console | cloud routes (when deployed) | **Amber** — prior build live; deploy routes pending extract |
 
 ---
 
@@ -62,7 +62,7 @@ Mapped to [.ai/UNIFIED_AI_LOGICS.md](../../.ai/UNIFIED_AI_LOGICS.md) department 
 | Quality (6) | Regression | Flutter + API suites | `flutter test`, `run_api_tests.php` | Pass |
 | Product (5) | UC coverage | UC-01…15 matrix | This document | Pass |
 | Data (5) | Schema | Migrations 001–003 local/cloud | `deploy.php`, migration SQL | Pass |
-| Operations (5) | Deploy/FTP | cPanel docroot + zip extract | `cloud_ftp_deploy.php` | **Blocked** (docroot) |
+| Operations (5) | Deploy/FTP | cPanel docroot + zip extract | `cloud_ftp_deploy.php`, `cloud_live_smoke.ps1` | **Amber** — health 200; apply/bootstrap 404 until zip extract |
 | Security (4) | Token/RBAC | Deploy token + JWT | `DeployAutomationController`, auth tests | Pass local |
 | HR (2) | WPS | Payroll endpoints | `phase2_hr_test.dart` | Pass |
 | Finance (3) | VAT/immutable invoices | Sales/invoices API | `run_api_tests.php` | Pass |

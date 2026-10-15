@@ -71,4 +71,35 @@ foreach ($domains as $domain => $keywords) {
     }
 }
 
-echo "\nCovered Domains: $coveredCount / " . count($domains) . " (100% Domain Parity)\n";
+$totalDomains = count($domains);
+$intentionalLocalOnly = [
+    'Install/Setup',
+    'RFID',
+    'LAN',
+];
+$uncovered = [];
+foreach ($domains as $domain => $keywords) {
+    $matched = 0;
+    foreach ($routes as $r) {
+        $p = $r['pattern'];
+        foreach ($keywords as $kw) {
+            if (str_contains($p, $kw)) {
+                $matched++;
+                break;
+            }
+        }
+    }
+    if ($matched === 0 && !in_array($domain, $intentionalLocalOnly, true)) {
+        $uncovered[] = $domain;
+    }
+}
+
+echo "\nCovered Domains: $coveredCount / $totalDomains";
+echo " (cloud hub; local-only by design: " . implode(', ', $intentionalLocalOnly) . ")\n";
+
+if ($uncovered !== []) {
+    fwrite(STDERR, "Unexpected uncovered domains:\n- " . implode("\n- ", $uncovered) . "\n");
+    exit(1);
+}
+
+exit(0);

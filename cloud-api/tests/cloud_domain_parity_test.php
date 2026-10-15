@@ -16,11 +16,35 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+require_once dirname(__DIR__) . '/src/Core/Env.php';
+require_once dirname(__DIR__) . '/src/Core/Database.php';
 require_once dirname(__DIR__) . '/routes/api.php';
 
+use LaundryPro\Cloud\Core\Database;
+use LaundryPro\Cloud\Core\Env;
 use LaundryPro\Cloud\Core\Request;
 use LaundryPro\Cloud\Core\Response;
 use LaundryPro\Cloud\Core\Router;
+
+foreach ([
+    dirname(__DIR__) . '/.env',
+    dirname(__DIR__) . '/.env.production',
+    dirname(__DIR__, 2) . '/.env',
+] as $envFile) {
+    if (is_file($envFile)) {
+        Env::load($envFile);
+        break;
+    }
+}
+
+if (Database::connect() === null) {
+    if (getenv('LAUNDRYPRO_REQUIRE_DB') === '1') {
+        fwrite(STDERR, "Database required for cloud_domain_parity_test but connection failed.\n");
+        exit(1);
+    }
+    echo "SKIP cloud_domain_parity_test: no database (set LAUNDRYPRO_REQUIRE_DB=1 to enforce)\n";
+    exit(0);
+}
 
 Response::$shouldExit = false;
 

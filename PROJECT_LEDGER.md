@@ -30,12 +30,13 @@ LaundryPro UAE is a multi-tenant SaaS platform for commercial laundry operations
 | Gate | Result |
 |:-----|:-------|
 | `run_api_tests.php` | 190 pass / 0 fail / 7 skip |
-| `flutter test` | 119 pass |
+| `flutter test` | 120 pass |
 | `openapi_drift_test.php` | Pass |
 | `export_swagger.php` | 144 local + 159 cloud paths |
-| Live cloud FTP apply | **Blocked** — docroot mismatch; see [docs/audit/POST_UAT_REAUDIT_2026-10.md](docs/audit/POST_UAT_REAUDIT_2026-10.md) |
+| Live cloud FTP apply | **Amber** — zip on server; extract + `.env` required; see [POST_UAT §R2](docs/audit/POST_UAT_REAUDIT_2026-10.md) |
+| `cloud_live_smoke.ps1` | health/openapi **200**; deploy/bootstrap **404** until extract |
 
-**Next phase:** Production staging UAT on live host after cPanel docroot fix or zip extract.
+**Next phase:** cPanel extract `deploy_staging/cloud-cpanel-upload.zip` → `cloud_live_smoke.ps1` PASS → full FTP deploy apply.
 
 ### Baseline Metrics (Verified 2026-10-11 IST)
 
