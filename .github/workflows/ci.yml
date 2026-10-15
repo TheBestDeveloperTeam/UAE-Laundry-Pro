@@ -34,7 +34,7 @@ jobs:
 
       - name: Export & Validate Swagger / OpenAPI 3.0
         run: |
-          php -d memory_limit=512M -d display_errors=1 scripts/export_swagger.php
+          php -d memory_limit=512M -d display_errors=1 api/tests/openapi_export_smoke_test.php
 
       - name: OpenAPI route registry drift check
         run: |
