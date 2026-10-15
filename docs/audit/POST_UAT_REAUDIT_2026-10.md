@@ -64,7 +64,7 @@ Measured on developer workstation (`E:\Projects\Flutter\UAE-Laundry-Pro`). Super
 
 ## R2 — Full-stack re-audit execution (2026-10-15 PM)
 
-**Git:** `main` after `e0edbbd` (deploy automation + Lottie); closure fixes pending push.
+**Git:** `main` @ `b7205ec` (R2 gates, CI, live smoke, closeout docs).
 
 ### Code gates (workstation)
 
