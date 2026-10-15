@@ -106,7 +106,8 @@ function array_to_yaml(mixed $data, int $indent = 0): string
     return (string)$data . "\n";
 }
 
-$exportYaml = getenv('GITHUB_ACTIONS') !== 'true';
+$runningOnActions = getenv('GITHUB_ACTIONS') === 'true';
+$exportYaml = !$runningOnActions;
 
 try {
 RouteRegistry::reset();
@@ -120,8 +121,16 @@ $localGen = new OpenApiGenerator(
 );
 $localSpec = $localGen->generate();
 
-$docsDir = __DIR__ . '/../docs/swagger';
-$apiDocsDir = __DIR__ . '/../api/docs';
+if ($runningOnActions) {
+    $runnerTemp = getenv('RUNNER_TEMP') ?: sys_get_temp_dir();
+    $docsDir = $runnerTemp . '/laundrypro-swagger';
+    $apiDocsDir = $runnerTemp . '/laundrypro-api-docs';
+    $cloudDocsDir = $runnerTemp . '/laundrypro-cloud-docs';
+} else {
+    $docsDir = __DIR__ . '/../docs/swagger';
+    $apiDocsDir = __DIR__ . '/../api/docs';
+    $cloudDocsDir = __DIR__ . '/../cloud-api/docs';
+}
 
 write_export_file($apiDocsDir . '/openapi.json', encode_openapi_json($localSpec));
 if ($exportYaml) {
@@ -587,12 +596,6 @@ foreach ($localSpec['tags'] as $t) {
 }
 $cloudSpec['tags'] = array_values($cloudTagsMap);
 
-// Create cloud docs directory if not exists
-$cloudDocsDir = __DIR__ . '/../cloud-api/docs';
-if (!is_dir($cloudDocsDir)) {
-    mkdir($cloudDocsDir, 0777, true);
-}
-
 // Write Cloud OpenAPI YAML and JSON
 write_export_file($docsDir . '/cloud-api.json', encode_openapi_json($cloudSpec));
 write_export_file($cloudDocsDir . '/openapi.json', encode_openapi_json($cloudSpec));
@@ -673,7 +676,8 @@ if ($exportYaml) {
 echo "Swagger generation complete!\n";
 exit(0);
 } catch (Throwable $e) {
-    fwrite(STDERR, 'export_swagger failed: ' . $e->getMessage() . PHP_EOL);
-    fwrite(STDERR, $e->getFile() . ':' . $e->getLine() . PHP_EOL);
+    $msg = 'export_swagger failed: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine();
+    echo $msg . PHP_EOL;
+    fwrite(STDERR, $msg . PHP_EOL);
     exit(1);
 }
