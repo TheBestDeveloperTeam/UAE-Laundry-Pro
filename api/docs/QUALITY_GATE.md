@@ -24,7 +24,7 @@ Order (fail-fast):
 4. `api/tests/jwt_test.php`
 5. `api/tests/run_api_tests.php` — 4 suites in `api/tests/cases/` (182 cases)
 6. `api-smoke.ps1` — Apache integration smoke
-7. `flutter analyze` + `flutter test` (116 tests)
+7. `flutter analyze` + `flutter test` (120 tests)
 8. `api/tests/openapi_drift_test.php` — 148 routes
 
 **Expected:** 173 API pass / 9 skip, 116 Flutter pass, analyze clean.

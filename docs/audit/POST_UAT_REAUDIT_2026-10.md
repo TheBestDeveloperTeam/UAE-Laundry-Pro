@@ -64,7 +64,7 @@ Measured on developer workstation (`E:\Projects\Flutter\UAE-Laundry-Pro`). Super
 
 ## R2 — Full-stack re-audit execution (2026-10-15 PM)
 
-**Git:** `main` @ R2 closeout commits (gates, CI, `cloud_live_smoke.ps1`, `AuditMiddleware` compat fix).
+**Git:** `main` @ `04312b1` (R2 gates, CI, `cloud_live_smoke.ps1`, `AuditMiddleware` compat fix).
 
 ### Code gates (workstation)
 
