@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+ini_set('memory_limit', '512M');
+
 require_once __DIR__ . '/../api/bootstrap.php';
 require_once __DIR__ . '/../api/routes/api.php';
 
@@ -23,7 +25,7 @@ function array_to_yaml(mixed $data, int $indent = 0): string
         return $data . "\n";
     }
     if (is_string($data)) {
-        if ($data === '' || preg_match('/[:\[\]\{\},&*#?|\-<>=!%@`\n\r]/', $data) || in_array(strtolower($data), ['true', 'false', 'null', 'yes', 'no'])) {
+        if ($data === '' || preg_match('/[:\[\]\{\},&*#?|<>=%@`\n\r-]/', $data) || in_array(strtolower($data), ['true', 'false', 'null', 'yes', 'no'], true)) {
             return '"' . addcslashes($data, "\"\t\r\n\\") . "\"\n";
         }
         return $data . "\n";
@@ -65,11 +67,13 @@ function array_to_yaml(mixed $data, int $indent = 0): string
     return (string)$data . "\n";
 }
 
+try {
+RouteRegistry::reset();
 $router = new Router();
 register_api_routes($router);
 
 $localGen = new OpenApiGenerator(
-    'LaundryPro UAE — Local Station API',
+    'LaundryPro UAE - Local Station API',
     '2.0.0',
     'http://127.0.0.1:8080'
 );
@@ -85,7 +89,7 @@ if (!is_dir($apiDocsDir)) {
     mkdir($apiDocsDir, 0777, true);
 }
 
-file_put_contents($apiDocsDir . '/openapi.json', json_encode($localSpec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+file_put_contents($apiDocsDir . '/openapi.json', json_encode($localSpec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE));
 file_put_contents($docsDir . '/local-api.yaml', array_to_yaml($localSpec));
 echo "Generated local-api.yaml and openapi.json (" . count($localSpec['paths']) . " paths)\n";
 
@@ -93,7 +97,7 @@ echo "Generated local-api.yaml and openapi.json (" . count($localSpec['paths']) 
 $cloudSpec = [
     'openapi' => '3.0.3',
     'info' => [
-        'title' => 'LaundryPro UAE — Cloud Central Multi-Tenant API',
+        'title' => 'LaundryPro UAE - Cloud Central Multi-Tenant API',
         'version' => '2.0.0',
         'description' => 'Authoritative Cloud Multi-Tenant REST API for Central Super-Admin, Licensing, and Franchise Sync Ingestion.',
         'contact' => [
@@ -569,13 +573,16 @@ foreach ($cloudSpec['paths'] as $path => $item) {
 $unifiedTags = array_merge($localSpec['tags'], $cloudSpec['tags']);
 $tagMap = [];
 foreach ($unifiedTags as $t) {
-    $tagMap[$t['name']] = $t;
+    if (!is_array($t) || !isset($t['name'])) {
+        continue;
+    }
+    $tagMap[(string) $t['name']] = $t;
 }
 
 $unifiedSpec = [
     'openapi' => '3.0.3',
     'info' => [
-        'title' => 'LaundryPro UAE — Unified API Specification',
+        'title' => 'LaundryPro UAE - Unified API Specification',
         'version' => '2.0.0',
         'description' => "Complete unified specification for LaundryPro UAE enterprise system.\nIncludes both Local Workstation API endpoints (/local/api/v1/...) and Cloud Multi-Tenant Gateway endpoints (/cloud/api/v1/...).",
         'contact' => [
@@ -620,3 +627,9 @@ $unifiedSpec = [
 file_put_contents($docsDir . '/UNIFIED_SWAGGER.yaml', array_to_yaml($unifiedSpec));
 echo "Generated UNIFIED_SWAGGER.yaml (" . count($unifiedSpec['paths']) . " total unified paths)\n";
 echo "Swagger generation complete!\n";
+exit(0);
+} catch (Throwable $e) {
+    fwrite(STDERR, 'export_swagger failed: ' . $e->getMessage() . PHP_EOL);
+    fwrite(STDERR, $e->getFile() . ':' . $e->getLine() . PHP_EOL);
+    exit(1);
+}

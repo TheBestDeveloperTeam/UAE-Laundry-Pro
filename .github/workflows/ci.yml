@@ -31,7 +31,11 @@ jobs:
 
       - name: Export & Validate Swagger / OpenAPI 3.0
         run: |
-          php scripts/export_swagger.php
+          php -d memory_limit=512M -d display_errors=1 scripts/export_swagger.php
+
+      - name: OpenAPI route registry drift check
+        run: |
+          php api/tests/openapi_drift_test.php
 
   frontend-quality-gate:
     name: Flutter Lint & Automated Regression Tests
@@ -48,7 +52,11 @@ jobs:
           cache: true
 
       - name: Install Flutter Dependencies
-        run: flutter pub get
+        shell: pwsh
+        run: |
+          # Resolve for Flutter 3.29 (do not use lockfile generated on newer SDKs)
+          if (Test-Path pubspec.lock) { Remove-Item -Force pubspec.lock }
+          flutter pub get
 
       - name: Run Flutter Analyzer
         run: flutter analyze --no-fatal-infos
