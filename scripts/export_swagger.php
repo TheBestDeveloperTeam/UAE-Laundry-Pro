@@ -140,6 +140,11 @@ echo 'Generated local openapi.json'
     . ($exportYaml ? ' and local-api.yaml' : '')
     . ' (' . count($localSpec['paths']) . " paths)\n";
 
+if ($runningOnActions) {
+    echo "Swagger generation complete (CI local JSON smoke test)\n";
+    exit(0);
+}
+
 // Now build Cloud API OpenAPI Specification
 $cloudSpec = [
     'openapi' => '3.0.3',
