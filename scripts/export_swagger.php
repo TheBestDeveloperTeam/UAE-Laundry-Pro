@@ -106,7 +106,9 @@ function array_to_yaml(mixed $data, int $indent = 0): string
     return (string)$data . "\n";
 }
 
-$runningOnActions = getenv('GITHUB_ACTIONS') === 'true';
+$runningOnActions = getenv('LAUNDRYPRO_EXPORT_CI') === '1'
+    || filter_var(getenv('GITHUB_ACTIONS') ?: '0', FILTER_VALIDATE_BOOLEAN)
+    || filter_var(getenv('CI') ?: '0', FILTER_VALIDATE_BOOLEAN);
 $exportYaml = !$runningOnActions;
 
 try {

@@ -10,6 +10,8 @@ jobs:
   backend-quality-gate:
     name: PHP API Lint, Parity & Tests
     runs-on: ubuntu-latest
+    env:
+      LAUNDRYPRO_EXPORT_CI: '1'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
