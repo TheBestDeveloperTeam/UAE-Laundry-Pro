@@ -208,7 +208,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
             child: Row(
               children: [
                 ChoiceChip(
-                  label: Text('All (${_items.length})'),
+                  label: Text(l10n.t('filter_all_count', {'count': '${_items.length}'})),
                   selected: _activeFilter == 'all',
                   onSelected: (val) {
                     if (val) setState(() => _activeFilter = 'all');
@@ -216,7 +216,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
                 ),
                 const SizedBox(width: 8),
                 ChoiceChip(
-                  label: const Text('Delivery'),
+                  label: Text(l10n.t('delivery_type')),
                   selected: _activeFilter == 'delivery',
                   onSelected: (val) {
                     if (val) setState(() => _activeFilter = 'delivery');
@@ -224,7 +224,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
                 ),
                 const SizedBox(width: 8),
                 ChoiceChip(
-                  label: const Text('Transfer'),
+                  label: Text(l10n.t('transfer_type')),
                   selected: _activeFilter == 'transfer',
                   onSelected: (val) {
                     if (val) setState(() => _activeFilter = 'transfer');

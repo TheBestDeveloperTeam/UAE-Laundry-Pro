@@ -183,7 +183,11 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       setState(() => _selectedCustomer = customer);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Customer Selected: ${customer.name}')),
+          SnackBar(
+            content: Text(
+              context.l10n.t('pos_customer_selected', {'name': customer.name}),
+            ),
+          ),
         );
       }
       return;
@@ -348,10 +352,11 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   void _selectCustomerDialog() {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Select Customer'),
+        title: Text(l10n.t('pos_select_customer_dialog_title')),
         content: SizedBox(
           width: 450,
           height: 350,
@@ -372,7 +377,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.t('cancel'))),
         ],
       ),
     );
@@ -404,27 +409,30 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         onKeyEvent: ref.read(scannerControllerProvider),
         child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              Text(l10n.t('pos')),
-              const SizedBox(width: 16),
-              // Customer Selection Chip
-              ActionChip(
-                avatar: const Icon(Icons.person, size: 16),
-                label: Text(
-                  _selectedCustomer != null
-                      ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
-                      : 'Walk-In Customer (Tap to select)',
-                  style: const TextStyle(fontSize: 12),
+          title: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                Text(l10n.t('pos')),
+                const SizedBox(width: 16),
+                // Customer Selection Chip
+                ActionChip(
+                  avatar: const Icon(Icons.person, size: 16),
+                  label: Text(
+                    _selectedCustomer != null
+                        ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
+                        : l10n.t('walk_in_customer'),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  onPressed: _selectCustomerDialog,
                 ),
-                onPressed: _selectCustomerDialog,
-              ),
-              if (_selectedCustomer != null)
-                IconButton(
-                  icon: const Icon(Icons.close, size: 16),
-                  onPressed: () => setState(() => _selectedCustomer = null),
-                ),
-            ],
+                if (_selectedCustomer != null)
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    onPressed: () => setState(() => _selectedCustomer = null),
+                  ),
+              ],
+            ),
           ),
           actions: [
             IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
@@ -432,22 +440,24 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         ),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
-            : Row(
-                children: [
-                  // Left: Catalog Items (Services & Products)
-                  Expanded(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxWidth < 600;
+                  final catalogWidget = Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(l10n.t('pos_services'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                               Text(
-                                '${_services.length} services • ${_products.length} products',
+                                l10n.t('pos_services_and_products_count', {
+                                  'services': _services.length.toString(),
+                                  'products': _products.length.toString(),
+                                }),
                                 style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                               ),
                             ],
@@ -456,7 +466,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                           TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
-                              hintText: 'Search services, garments, or barcodes...',
+                              hintText: l10n.t('search_services_hint'),
                               prefixIcon: const Icon(Icons.search, size: 20),
                               suffixIcon: _searchFilter.isNotEmpty
                                   ? IconButton(
@@ -503,11 +513,11 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                 }
 
                                 return GridView.builder(
-                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    childAspectRatio: 2.2,
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
+                                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: isCompact ? 180 : 160,
+                                    childAspectRatio: isCompact ? 1.6 : 1.4,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
                                   ),
                                   itemCount: filtered.length,
                                   itemBuilder: (context, i) {
@@ -541,134 +551,180 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  const VerticalDivider(width: 1),
-                  // Right: Cart, Tax Breakdown & Checkout
-                  Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(l10n.t('pos_cart'), style: Theme.of(context).textTheme.titleMedium),
-                              if (_cart.isNotEmpty)
-                                TextButton.icon(
-                                  icon: const Icon(Icons.delete_outline, size: 16),
-                                  label: const Text('Clear'),
-                                  onPressed: () => setState(() => _cart.clear()),
+                    );
+
+                  final cartWidget = Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(l10n.t('pos_cart'), style: Theme.of(context).textTheme.titleMedium),
+                            if (_cart.isNotEmpty)
+                              TextButton.icon(
+                                icon: const Icon(Icons.delete_outline, size: 16),
+                                label: Text(l10n.t('clear')),
+                                onPressed: () => setState(() => _cart.clear()),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: _cart.isEmpty
+                              ? Center(child: Text(l10n.t('pos_cart_empty')))
+                              : ListView.builder(
+                                  itemCount: _cart.length,
+                                  itemBuilder: (context, i) {
+                                    final line = _cart[i];
+                                    final rateText = l10n.t('pos_rate_qty', {
+                                      'rate': line.rate.toStringAsFixed(2),
+                                      'qty': line.quantity.toString(),
+                                    });
+                                    final discText = line.discount > 0
+                                        ? l10n.t('pos_disc_deduction', {
+                                            'disc': line.discount.toStringAsFixed(2),
+                                          })
+                                        : '';
+                                    return ListTile(
+                                      title: Text(line.name),
+                                      subtitle: Text('$rateText$discText'),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'AED ${line.lineTotal.toStringAsFixed(2)}',
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.remove_circle_outline),
+                                            onPressed: () {
+                                              setState(() {
+                                                if (line.quantity > 1) {
+                                                  line.quantity--;
+                                                } else {
+                                                  _cart.removeAt(i);
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: _cart.isEmpty
-                                ? Center(child: Text(l10n.t('pos_cart_empty')))
-                                : ListView.builder(
-                                    itemCount: _cart.length,
-                                    itemBuilder: (context, i) {
-                                      final line = _cart[i];
-                                      return ListTile(
-                                        title: Text(line.name),
-                                        subtitle: Text(
-                                          'Rate: AED ${line.rate.toStringAsFixed(2)} x ${line.quantity}'
-                                          '${line.discount > 0 ? ' • Disc: -AED ${line.discount.toStringAsFixed(2)}' : ''}',
-                                        ),
-                                        trailing: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              'AED ${line.lineTotal.toStringAsFixed(2)}',
-                                              style: const TextStyle(fontWeight: FontWeight.bold),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.remove_circle_outline),
-                                              onPressed: () {
-                                                setState(() {
-                                                  if (line.quantity > 1) {
-                                                    line.quantity--;
-                                                  } else {
-                                                    _cart.removeAt(i);
-                                                  }
-                                                });
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                          const Divider(),
-                          // Financial Breakdown
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        ),
+                        const Divider(),
+                        // Financial Breakdown
+                        SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Expanded(child: Text('Lines Subtotal:')),
-                              Text('AED ${_linesSubtotal.toStringAsFixed(2)}'),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(child: Text('${l10n.t('lines_subtotal')}:')),
+                                  Text('AED ${_linesSubtotal.toStringAsFixed(2)}'),
+                                ],
+                              ),
+                              if (_orderDiscount > 0)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(child: Text('${l10n.t('order_discount')}:')),
+                                    Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
+                                  ],
+                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(child: Text('${l10n.t('uae_vat_label')}:')),
+                                  Text('AED ${_vatAmount.toStringAsFixed(2)}'),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${l10n.t('pos_total')}:',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  Text(
+                                    'AED ${_grandTotal.toStringAsFixed(2)}',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              if (_confirmedOrder == null)
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton(
+                                    key: const Key('pos_confirm_btn'),
+                                    onPressed: _cart.isEmpty || _processing ? null : _confirmSale,
+                                    child: _processing
+                                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                        : Text(l10n.t('pos_confirm')),
+                                  ),
+                                )
+                              else ...[
+                                Text('${l10n.t('pos_confirmed')}: ${_confirmedOrder!.orderNo}'),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton(
+                                    key: const Key('pos_pay_btn'),
+                                    onPressed: _processing ? null : _pay,
+                                    child: Text(l10n.t('pos_pay')),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
-                          if (_orderDiscount > 0)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (isCompact) {
+                    return DefaultTabController(
+                      length: 2,
+                      child: Column(
+                        children: [
+                          TabBar(
+                            tabs: [
+                              Tab(icon: const Icon(Icons.grid_view), text: l10n.t('pos_catalog')),
+                              Tab(icon: const Icon(Icons.shopping_cart), text: l10n.t('pos_cart')),
+                            ],
+                          ),
+                          Expanded(
+                            child: TabBarView(
                               children: [
-                                const Expanded(child: Text('Order Discount:')),
-                                Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
+                                catalogWidget,
+                                cartWidget,
                               ],
                             ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Expanded(child: Text('UAE VAT (5%):')),
-                              Text('AED ${_vatAmount.toStringAsFixed(2)}'),
-                            ],
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${l10n.t('pos_total')}:',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              Text(
-                                'AED ${_grandTotal.toStringAsFixed(2)}',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          if (_confirmedOrder == null)
-                            FilledButton(
-                              key: const Key('pos_confirm_btn'),
-                              onPressed: _cart.isEmpty || _processing ? null : _confirmSale,
-                              child: _processing
-                                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                  : Text(l10n.t('pos_confirm')),
-                            )
-                          else ...[
-                            Text('${l10n.t('pos_confirmed')}: ${_confirmedOrder!.orderNo}'),
-                            const SizedBox(height: 8),
-                            FilledButton(
-                              key: const Key('pos_pay_btn'),
-                              onPressed: _processing ? null : _pay,
-                              child: Text(l10n.t('pos_pay')),
-                            ),
-                          ],
                         ],
                       ),
-                    ),
-                  ),
-                ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(flex: 3, child: catalogWidget),
+                      const VerticalDivider(width: 1),
+                      Expanded(flex: 2, child: cartWidget),
+                    ],
+                  );
+                },
               ),
       ),
     ),

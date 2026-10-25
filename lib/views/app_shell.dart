@@ -88,7 +88,12 @@ class _AppShellState extends State<AppShell> {
     final permissions = auth.user?.permissions ?? [];
     final isAdmin = auth.user?.role == 'administrator';
     final visible = _visibleItems(permissions, isAdmin);
-    final location = GoRouterState.of(context).uri.path;
+    String location = '/';
+    try {
+      location = GoRouterState.of(context).uri.path;
+    } catch (_) {
+      location = '/';
+    }
     final selected = _selectedIndex(location, visible);
     final onHr = _isHrRoute(location);
     final isRtl = Localizations.localeOf(context).languageCode == 'ar';
@@ -97,33 +102,37 @@ class _AppShellState extends State<AppShell> {
       textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              Icon(Icons.local_laundry_service, color: Theme.of(context).colorScheme.primary, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                l10n.t('app_name'),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(width: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4),
+          title: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.local_laundry_service, color: Theme.of(context).colorScheme.primary, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.t('app_name'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                child: Text('${l10n.t('branch')}: MAIN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text('${l10n.t('branch')}: MAIN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
                 ),
-                child: Text('${l10n.t('terminal')}: T01', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text('${l10n.t('terminal')}: T01', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
+                ),
+              ],
+            ),
           ),
           actions: [
             if (auth.user != null)
@@ -156,16 +165,27 @@ class _AppShellState extends State<AppShell> {
                 children: [
                   SizedBox(
                     width: isRtl ? 108 : 92,
-                    child: NavigationRail(
-                      selectedIndex: onHr ? null : (selected >= 0 ? selected : 0),
-                      onDestinationSelected: (i) => context.go(visible[i].route),
-                      labelType: NavigationRailLabelType.all,
-                      destinations: visible
-                          .map((item) => NavigationRailDestination(
-                                icon: Tooltip(message: l10n.t(item.labelKey), child: Icon(item.icon)),
-                                label: Text(l10n.t(item.labelKey), textAlign: TextAlign.center),
-                              ))
-                          .toList(),
+                    child: LayoutBuilder(
+                      builder: (context, constraint) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(minHeight: constraint.maxHeight),
+                            child: IntrinsicHeight(
+                              child: NavigationRail(
+                                selectedIndex: onHr ? null : (selected >= 0 ? selected : 0),
+                                onDestinationSelected: (i) => context.go(visible[i].route),
+                                labelType: NavigationRailLabelType.all,
+                                destinations: visible
+                                    .map((item) => NavigationRailDestination(
+                                          icon: Tooltip(message: l10n.t(item.labelKey), child: Icon(item.icon)),
+                                          label: Text(l10n.t(item.labelKey), textAlign: TextAlign.center),
+                                        ))
+                                    .toList(),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   if (_hrExpanded || onHr)

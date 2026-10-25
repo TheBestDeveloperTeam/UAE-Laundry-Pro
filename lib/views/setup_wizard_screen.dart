@@ -210,7 +210,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               steps: [
                 // Step 1: Business Profile
                 Step(
-                  title: const Text('Business'),
+                  title: Text(l10n.t('wizard_step_business')),
                   isActive: _currentStep >= 0,
                   content: Column(
                     children: [
@@ -256,7 +256,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
                 // Step 2: Language & Currency
                 Step(
-                  title: const Text('Locale'),
+                  title: Text(l10n.t('wizard_step_locale')),
                   isActive: _currentStep >= 1,
                   content: Column(
                     children: [
@@ -292,7 +292,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
                 // Step 3: Document Number Prefixes
                 Step(
-                  title: const Text('Prefixes'),
+                  title: Text(l10n.t('wizard_step_prefixes')),
                   isActive: _currentStep >= 2,
                   content: Column(
                     children: [
@@ -337,7 +337,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
                 // Step 4: Administrator Account
                 Step(
-                  title: const Text('Admin'),
+                  title: Text(l10n.t('wizard_step_admin')),
                   isActive: _currentStep >= 3,
                   content: Column(
                     children: [
@@ -383,7 +383,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
                 // Step 6: Printer Defaults
                 Step(
-                  title: const Text('Printers'),
+                  title: Text(l10n.t('wizard_step_printers')),
                   isActive: _currentStep >= 5,
                   content: Column(
                     children: [
@@ -406,7 +406,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
                 // Step 7: Workstation & Terminal
                 Step(
-                  title: const Text('Terminal'),
+                  title: Text(l10n.t('wizard_step_terminal')),
                   isActive: _currentStep >= 6,
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,7 +434,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
                 // Step 8: License Activation
                 Step(
-                  title: const Text('License'),
+                  title: Text(l10n.t('wizard_step_license')),
                   isActive: _currentStep >= 7,
                   content: Column(
                     children: [

@@ -89,7 +89,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(ctx.l10n.t('cancel')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -223,7 +223,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child: Text(ctx.l10n.t('cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -366,7 +366,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                         foregroundColor: Colors.white,
                       ),
                       icon: const Icon(Icons.verified, size: 18),
-                      label: const Text('Calibrate'),
+                      label: Text(context.l10n.t('calibrate_action')),
                       onPressed: () {
                         Navigator.pop(ctx);
                         _showCalibrationDialog(eq);
@@ -428,7 +428,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Search asset tag, machine type, or item...',
+                          hintText: context.l10n.t('search_equipment_hint'),
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(

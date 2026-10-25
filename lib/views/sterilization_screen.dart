@@ -222,7 +222,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(ctx.l10n.t('cancel')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -579,7 +579,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search lots, autoclave programs...',
+                      hintText: l10n.t('search_lots_hint'),
                       prefixIcon: const Icon(Icons.search),
                       isDense: true,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -589,7 +589,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                 ),
                 const SizedBox(width: 12),
                 ChoiceChip(
-                  label: const Text('All'),
+                  label: Text(l10n.t('all_filter')),
                   selected: _statusFilter == 'all',
                   onSelected: (val) {
                     if (val) setState(() => _statusFilter = 'all');
@@ -597,7 +597,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                 ),
                 const SizedBox(width: 6),
                 ChoiceChip(
-                  label: const Text('Validated'),
+                  label: Text(l10n.t('validated_filter')),
                   selected: _statusFilter == 'validated',
                   onSelected: (val) {
                     if (val) setState(() => _statusFilter = 'validated');

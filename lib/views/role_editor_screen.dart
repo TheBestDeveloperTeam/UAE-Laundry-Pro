@@ -3,20 +3,23 @@ import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
 
 class RoleEditorScreen extends StatefulWidget {
-  const RoleEditorScreen({super.key});
+  const RoleEditorScreen({super.key, this.apiClient});
+
+  final ApiClient? apiClient;
 
   @override
   State<RoleEditorScreen> createState() => _RoleEditorScreenState();
 }
 
 class _RoleEditorScreenState extends State<RoleEditorScreen> {
-  final ApiClient _api = ApiClient();
+  late final ApiClient _api;
   bool _loading = true;
   List<dynamic> _roles = [];
 
   @override
   void initState() {
     super.initState();
+    _api = widget.apiClient ?? ApiClient();
     _fetchRoles();
   }
 
@@ -273,7 +276,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.t('cancel')),
                 ),
                 FilledButton(
                   onPressed: () async {

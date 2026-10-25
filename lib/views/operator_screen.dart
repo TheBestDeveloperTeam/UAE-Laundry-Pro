@@ -220,7 +220,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.t('cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -330,7 +330,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     foregroundColor: Colors.white,
                   ),
                   icon: const Icon(Icons.close, size: 18),
-                  label: const Text('Close'),
+                  label: Text(context.l10n.t('close')),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ),
@@ -407,7 +407,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Search operator name, badge ID, certification...',
+                    hintText: context.l10n.t('search_operators_hint'),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(

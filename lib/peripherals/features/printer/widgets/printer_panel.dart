@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/paper_size.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/pos_receipt_builder.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/pos_receipt_model.dart';
@@ -89,11 +90,11 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.t('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogCtx, controller.text.trim()),
-            child: const Text('Save'),
+            child: Text(context.l10n.t('save')),
           ),
         ],
       ),
@@ -1019,18 +1020,18 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
             ),
             TextButton.icon(
               icon: const Icon(Icons.save),
-              label: const Text('Save'),
+              label: Text(context.l10n.t('save_label')),
               onPressed: _saveAsTemplate,
             ),
             TextButton.icon(
               icon: const Icon(Icons.add),
-              label: const Text('Add Line'),
+              label: Text(context.l10n.t('add_line')),
               onPressed: () => _addLine(),
             ),
             if (_lineControllers.isNotEmpty)
               TextButton.icon(
                 icon: const Icon(Icons.clear_all),
-                label: const Text('Clear'),
+                label: Text(context.l10n.t('clear')),
                 onPressed: _clearLines,
               ),
           ],

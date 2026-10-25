@@ -43,6 +43,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
   }
 
   Future<void> _openVendorDialog([VendorModel? existing]) async {
+    final l10n = context.l10n;
     final isNew = existing == null;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final phoneCtrl = TextEditingController(text: existing?.phone ?? '');
@@ -61,7 +62,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
             children: [
               Icon(isNew ? Icons.add_business : Icons.store, color: Theme.of(context).primaryColor),
               const SizedBox(width: 8),
-              Text(isNew ? 'Register New Supplier / Vendor' : 'Edit Vendor Profile'),
+              Text(isNew ? l10n.t('vendor_register_new') : l10n.t('vendor_edit_profile')),
             ],
           ),
           content: SizedBox(
@@ -73,7 +74,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                 children: [
                   TextField(
                     controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Company / Vendor Name *', border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: l10n.t('vendor_company_name'), border: const OutlineInputBorder()),
                     autofocus: true,
                   ),
                   const SizedBox(height: 12),
@@ -82,14 +83,14 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       Expanded(
                         child: TextField(
                           controller: phoneCtrl,
-                          decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_phone_number'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.phone)),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: emailCtrl,
-                          decoration: const InputDecoration(labelText: 'Email Address', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_email_address'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.email)),
                         ),
                       ),
                     ],
@@ -97,7 +98,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: addressCtrl,
-                    decoration: const InputDecoration(labelText: 'Physical / Billing Address', border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on)),
+                    decoration: InputDecoration(labelText: l10n.t('vendor_billing_address'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.location_on)),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -105,21 +106,21 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       Expanded(
                         child: TextField(
                           controller: trnCtrl,
-                          decoration: const InputDecoration(labelText: 'UAE TRN (15 digits)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.verified)),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_trn_label'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.verified)),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           initialValue: paymentTerms,
-                          decoration: const InputDecoration(labelText: 'Payment Terms', border: OutlineInputBorder()),
-                          items: const [
-                            DropdownMenuItem(value: 'Immediate / Cash', child: Text('Immediate / Cash')),
-                            DropdownMenuItem(value: 'Net 7', child: Text('Net 7 Days')),
-                            DropdownMenuItem(value: 'Net 15', child: Text('Net 15 Days')),
-                            DropdownMenuItem(value: 'Net 30', child: Text('Net 30 Days')),
-                            DropdownMenuItem(value: 'Net 60', child: Text('Net 60 Days')),
-                            DropdownMenuItem(value: 'Net 90', child: Text('Net 90 Days')),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_payment_terms'), border: const OutlineInputBorder()),
+                          items: [
+                            DropdownMenuItem(value: 'Immediate / Cash', child: Text(l10n.t('terms_immediate_cash'))),
+                            DropdownMenuItem(value: 'Net 7', child: Text(l10n.t('terms_net_7'))),
+                            DropdownMenuItem(value: 'Net 15', child: Text(l10n.t('terms_net_15'))),
+                            DropdownMenuItem(value: 'Net 30', child: Text(l10n.t('terms_net_30'))),
+                            DropdownMenuItem(value: 'Net 60', child: Text(l10n.t('terms_net_60'))),
+                            DropdownMenuItem(value: 'Net 90', child: Text(l10n.t('terms_net_90'))),
                           ],
                           onChanged: (val) {
                             if (val != null) setDlgState(() => paymentTerms = val);
@@ -132,17 +133,17 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   TextField(
                     controller: creditLimitCtrl,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Credit Limit (AED)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.account_balance_wallet)),
+                    decoration: InputDecoration(labelText: l10n.t('vendor_credit_limit'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.account_balance_wallet)),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: bankCtrl,
                     maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Bank Account & IBAN Details',
+                    decoration: InputDecoration(
+                      labelText: l10n.t('vendor_bank_details'),
                       hintText: 'e.g. Emirates NBD, IBAN: AE070260000000000000000',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.account_balance),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.account_balance),
                     ),
                   ),
                 ],
@@ -224,7 +225,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                           children: [
                             const Icon(Icons.storefront, size: 64, color: Colors.grey),
                             const SizedBox(height: 12),
-                            Text('No registered vendors found', style: Theme.of(context).textTheme.titleMedium),
+                            Text(l10n.t('vendor_none_found'), style: Theme.of(context).textTheme.titleMedium),
                           ],
                         ),
                       )
@@ -250,20 +251,20 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                     runSpacing: 4,
                                     children: [
                                       Chip(
-                                        label: Text('Terms: ${v.paymentTerms}'),
+                                        label: Text(l10n.t('terms_chip_label', {'terms': v.paymentTerms})),
                                         visualDensity: VisualDensity.compact,
                                         padding: EdgeInsets.zero,
                                       ),
                                       if (v.creditLimit > 0)
                                         Chip(
-                                          label: Text('Credit: AED ${v.creditLimit.toStringAsFixed(0)}'),
+                                          label: Text(l10n.t('credit_chip_label', {'credit': v.creditLimit.toStringAsFixed(0)})),
                                           visualDensity: VisualDensity.compact,
                                           padding: EdgeInsets.zero,
                                         ),
                                       if (v.trn != null && v.trn!.isNotEmpty)
                                         Chip(
                                           avatar: const Icon(Icons.verified, size: 14),
-                                          label: Text('TRN: ${v.trn}'),
+                                          label: Text(l10n.t('trn_chip_label', {'trn': v.trn!})),
                                           visualDensity: VisualDensity.compact,
                                           padding: EdgeInsets.zero,
                                         ),
@@ -291,7 +292,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openVendorDialog(),
         icon: const Icon(Icons.add_business),
-        label: const Text('Add Vendor'),
+        label: Text(l10n.t('vendor_add_button')),
       ),
     );
   }

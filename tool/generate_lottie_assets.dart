@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 /// Generates lightweight master Lottie JSON files + manifest with 5000+ logical bindings.
 /// Run: dart run tool/generate_lottie_assets.dart
+library;
 
 import 'dart:convert';
 import 'dart:io';

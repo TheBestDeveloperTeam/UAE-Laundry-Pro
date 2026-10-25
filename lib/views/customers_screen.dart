@@ -117,55 +117,61 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 const SizedBox(height: 8),
                 Text('Loyalty Program & VIP Status', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
-                    Expanded(
+                    SizedBox(
+                      width: 260,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         initialValue: tier,
-                        decoration: const InputDecoration(labelText: 'Loyalty Tier', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(labelText: 'Loyalty Tier', border: OutlineInputBorder(), isDense: true),
                         items: const [
-                          DropdownMenuItem(value: 'Bronze', child: Text('🥉 Bronze Tier')),
-                          DropdownMenuItem(value: 'Silver', child: Text('🥈 Silver Tier (5% Disc)')),
-                          DropdownMenuItem(value: 'Gold', child: Text('🥇 Gold Tier (10% Disc)')),
-                          DropdownMenuItem(value: 'Platinum', child: Text('💎 Platinum VIP (15% Disc)')),
+                          DropdownMenuItem(value: 'Bronze', child: Text('🥉 Bronze Tier', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Silver', child: Text('🥈 Silver Tier (5%)', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Gold', child: Text('🥇 Gold Tier (10%)', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Platinum', child: Text('💎 Platinum VIP (15%)', overflow: TextOverflow.ellipsis)),
                         ],
                         onChanged: (val) {
                           if (val != null) setDlgState(() => tier = val);
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade400),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Loyalty Points', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                                Text('$points pts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.teal)),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, size: 20),
-                                  onPressed: points > 50 ? () => setDlgState(() => points -= 50) : null,
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle_outline, size: 20, color: Colors.teal),
-                                  onPressed: () => setDlgState(() => points += 50),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('Loyalty Points', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                              Text('$points pts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.teal)),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.remove_circle_outline, size: 20),
+                            onPressed: points > 50 ? () => setDlgState(() => points -= 50) : null,
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.add_circle_outline, size: 20, color: Colors.teal),
+                            onPressed: () => setDlgState(() => points += 50),
+                          ),
+                        ],
                       ),
                     ),
                   ],

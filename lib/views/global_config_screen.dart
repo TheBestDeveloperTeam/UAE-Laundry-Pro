@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/user_model.dart';
 import 'package:laundrypro_uae/services/global_config_service.dart';
 
@@ -144,11 +145,11 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(ctx.l10n.t('cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Reset')),
+              child: Text(ctx.l10n.t('reset_action'))),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:laundrypro_uae/core/localization_extension.dart';
 
 import 'package:laundrypro_uae/peripherals/core/printer/paper_size.dart';
 import 'package:laundrypro_uae/peripherals/core/printer/pos_receipt_model.dart';
@@ -129,7 +130,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
                 children: [
                   TextButton(
                     onPressed: _printing ? null : () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.t('cancel')),
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton.icon(

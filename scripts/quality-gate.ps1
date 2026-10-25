@@ -81,9 +81,9 @@ if ($apiOk) {
 Write-Host "`n[7/7] Live cloud smoke (optional)..."
 $liveScript = Join-Path $RepoRoot "scripts\cloud_deploy\cloud_live_smoke.ps1"
 if (Test-Path $liveScript) {
-  & powershell -NoProfile -File $liveScript -Quiet
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $liveScript -Quiet
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "Live cloud smoke: FAIL (deploy routes/bootstrap — see POST_UAT_REAUDIT §R2)"
+    Write-Host "Live cloud smoke: FAIL (deploy routes/bootstrap - see POST_UAT_REAUDIT R2)"
   } else {
     Write-Host "Live cloud smoke: PASS"
   }

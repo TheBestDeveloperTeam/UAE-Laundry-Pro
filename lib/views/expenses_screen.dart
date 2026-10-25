@@ -31,12 +31,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     setState(() => _loading = true);
     try {
       final filter = _statusFilter == 'all' ? null : _statusFilter;
-      _items = await _expenses.list(status: filter);
-      _categories = await _expenses.listCategories();
+      final items = await _expenses.list(status: filter);
+      final categories = await _expenses.listCategories();
+      if (mounted) {
+        setState(() {
+          _items = items;
+          _categories = categories;
+          _loading = false;
+        });
+      }
     } catch (e, stack) {
       AppLogger.error('Failed to load expenses or categories', tag: 'ExpensesScreen', error: e, stackTrace: stack);
+      if (mounted) setState(() => _loading = false);
     }
-    setState(() => _loading = false);
   }
 
   double get _totalExpenses {
@@ -98,23 +105,29 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      FilledButton.tonalIcon(
-                        onPressed: () async {
-                          final result = await FilePicker.pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-                          );
-                          if (result != null && result.files.single.path != null) {
-                            setDialogState(() {
-                              attachmentPath = result.files.single.path;
-                              attachmentName = result.files.single.name;
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.attach_file),
-                        label: Text(attachmentName ?? 'Attach Receipt (Optional)'),
+                      Expanded(
+                        child: FilledButton.tonalIcon(
+                          onPressed: () async {
+                            final result = await FilePicker.pickFiles(
+                              type: FileType.custom,
+                              allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                            );
+                            if (result != null && result.files.single.path != null) {
+                              setDialogState(() {
+                                attachmentPath = result.files.single.path;
+                                attachmentName = result.files.single.name;
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.attach_file),
+                          label: Text(
+                            attachmentName ?? 'Attach Receipt (Optional)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
-                      if (attachmentPath != null)
+                      if (attachmentPath != null) ...[
+                        const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.clear, color: Colors.red),
                           onPressed: () => setDialogState(() {
@@ -122,6 +135,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                             attachmentName = null;
                           }),
                         ),
+                      ],
                     ],
                   ),
                 ],

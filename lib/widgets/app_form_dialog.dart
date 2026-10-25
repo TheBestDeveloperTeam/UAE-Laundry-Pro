@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/localization_extension.dart';
 
 class AppFormDialog extends StatelessWidget {
   final String title;
@@ -62,7 +63,7 @@ class AppFormDialog extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: isLoading ? null : (onCancel ?? () => Navigator.of(context).pop()),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.t('cancel')),
                 ),
                 const SizedBox(width: 12),
                 FilledButton(
@@ -73,7 +74,7 @@ class AppFormDialog extends StatelessWidget {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('Save'),
+                      : Text(context.l10n.t('save')),
                 ),
               ],
             ),

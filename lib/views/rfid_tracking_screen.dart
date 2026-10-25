@@ -174,7 +174,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Apply'),
+            child: Text(context.l10n.t('apply')),
           ),
         ],
       ),

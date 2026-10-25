@@ -260,11 +260,11 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
         title: const Text('Complete Cycle Run'),
         content: Text('Conclude cycle #${run['id']} for Order #${run['order_id']}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.t('cancel'))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentTeal, foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Complete'),
+            child: Text(ctx.l10n.t('complete_action')),
           ),
         ],
       ),
@@ -580,7 +580,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                             visualDensity: VisualDensity.compact,
                           ),
                           onPressed: () => _completeCycle(run),
-                          child: const Text('Complete'),
+                          child: Text(context.l10n.t('complete_action')),
                         ),
                     ],
                   ),

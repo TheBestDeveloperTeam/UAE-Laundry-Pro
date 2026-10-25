@@ -117,7 +117,7 @@ class ReceiptRenderer {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text('Billed To / العميل:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                      pw.Text(receipt.customerName ?? 'Walk-In Customer', style: const pw.TextStyle(fontSize: 11)),
+                      pw.Text(receipt.customerName ?? 'Walk-In Customer / عميل نقدي مباشر', style: const pw.TextStyle(fontSize: 11)),
                       if (receipt.customerPhone != null)
                         pw.Text('Phone: ${receipt.customerPhone}', style: const pw.TextStyle(fontSize: 10)),
                     ],
@@ -171,14 +171,14 @@ class ReceiptRenderer {
                         pw.Row(
                           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                           children: [
-                            pw.Text('Discount:'),
+                            pw.Text('Discount / الخصم:'),
                             pw.Text('-AED ${receipt.discount.toStringAsFixed(2)}', style: const pw.TextStyle(color: PdfColors.red)),
                           ],
                         ),
                       pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text('UAE VAT (5%):'),
+                          pw.Text('UAE VAT (5%) / ضريبة القيمة المضافة:'),
                           pw.Text('AED ${receipt.tax.toStringAsFixed(2)}'),
                         ],
                       ),
@@ -186,7 +186,7 @@ class ReceiptRenderer {
                       pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text('Grand Total:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13)),
+                          pw.Text('Grand Total / الإجمالي العام:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13)),
                           pw.Text('AED ${receipt.grandTotal.toStringAsFixed(2)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.blue900)),
                         ],
                       ),
@@ -194,14 +194,14 @@ class ReceiptRenderer {
                       pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text('Amount Paid:'),
+                          pw.Text('Amount Paid / المدفوع:'),
                           pw.Text('AED ${receipt.amountPaid.toStringAsFixed(2)}'),
                         ],
                       ),
                       pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text('Balance Due:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                          pw.Text('Balance Due / الرصيد المستحق:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                           pw.Text('AED ${receipt.balanceDue.toStringAsFixed(2)}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: receipt.balanceDue > 0 ? PdfColors.red800 : PdfColors.green800)),
                         ],
                       ),

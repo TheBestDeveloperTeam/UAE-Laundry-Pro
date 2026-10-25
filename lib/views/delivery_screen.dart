@@ -195,20 +195,20 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                                       visualDensity: VisualDensity.compact,
                                     ),
                                     icon: const Icon(Icons.payments_outlined, size: 14),
-                                    label: const Text('Reconcile COD'),
+                                    label: Text(l10n.t('reconcile_cod')),
                                     onPressed: () => _reconcileCod(t),
                                   ),
                                 const SizedBox(width: 8),
                                 if (status == 'pending')
                                   FilledButton.tonal(
                                     onPressed: () => _updateStatus(t, 'in_transit'),
-                                    child: const Text('Dispatch'),
+                                    child: Text(l10n.t('dispatch_action')),
                                   )
                                 else if (status == 'in_transit')
                                   FilledButton(
                                     style: FilledButton.styleFrom(backgroundColor: Colors.green),
                                     onPressed: () => _updateStatus(t, 'delivered'),
-                                    child: const Text('Mark Delivered'),
+                                    child: Text(l10n.t('mark_delivered')),
                                   ),
                                 PopupMenuButton<String>(
                                   onSelected: (s) => _updateStatus(t, s),
@@ -216,7 +216,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                                     PopupMenuItem(value: 'pending', child: Text(l10n.t('status_pending'))),
                                     PopupMenuItem(value: 'in_transit', child: Text(l10n.t('status_in_transit'))),
                                     PopupMenuItem(value: 'delivered', child: Text(l10n.t('status_delivered'))),
-                                    const PopupMenuItem(value: 'failed', child: Text('Failed / Rescheduled')),
+                                    PopupMenuItem(value: 'failed', child: Text(l10n.t('status_failed_rescheduled'))),
                                   ],
                                 ),
                               ],

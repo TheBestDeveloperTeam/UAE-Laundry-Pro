@@ -296,7 +296,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                   child: TextField(
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
-                      hintText: 'Search order #, customer name, phone...',
+                      hintText: context.l10n.t('search_orders_hint'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),
@@ -352,7 +352,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                         children: [
                           FilledButton.tonal(
                             onPressed: () => _openPaymentDialog(order),
-                            child: const Text('Pay'),
+                            child: Text(context.l10n.t('pay_action')),
                           ),
                           IconButton(
                             icon: const Icon(Icons.more_vert),

@@ -481,7 +481,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.t('cancel'))),
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: AppTheme.accentTeal, foregroundColor: Colors.white),
               icon: const Icon(Icons.check_circle_outline, size: 18),

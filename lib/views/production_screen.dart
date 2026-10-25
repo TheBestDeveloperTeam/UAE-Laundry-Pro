@@ -142,7 +142,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.l10n.t('cancel'))),
         ],
       ),
     );
@@ -202,7 +202,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                   child: TextField(
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.qr_code_scanner),
-                      hintText: 'Scan order barcode or search order number...',
+                      hintText: l10n.t('scan_or_search_orders_hint'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       isDense: true,
                     ),

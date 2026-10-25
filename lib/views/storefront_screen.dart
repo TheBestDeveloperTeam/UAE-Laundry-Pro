@@ -45,7 +45,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
         title: Text(ctx.l10n.t('convert')),
         content: Text(ctx.l10n.t('storefront_convert_confirm')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.t('cancel'))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryNavy, foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true),

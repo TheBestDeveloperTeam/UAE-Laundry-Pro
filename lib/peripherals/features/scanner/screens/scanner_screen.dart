@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/peripherals/core/scanner/scanner_models.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
 
@@ -98,10 +99,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
             enableInteractiveSelection: true,
             decoration: InputDecoration(
               labelText: 'Scanned value',
-              hintText: 'Waiting for scan...',
+              hintText: context.l10n.t('waiting_for_scan_hint'),
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
-                tooltip: 'Clear',
+                tooltip: context.l10n.t('clear'),
                 icon: const Icon(Icons.clear),
                 onPressed: _clearBeforeNewScan,
               ),
