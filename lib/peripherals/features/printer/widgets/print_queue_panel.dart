@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ class PrintQueuePanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final queue = ref.watch(printQueueStreamProvider);
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -21,7 +23,7 @@ class PrintQueuePanel extends ConsumerWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Refresh',
+              tooltip: l10n.t('print_queue_refresh'),
               icon: const Icon(Icons.refresh),
               onPressed: () => ref.invalidate(printQueueStreamProvider),
             ),
@@ -92,7 +94,7 @@ class _QueueRow extends ConsumerWidget {
             children: [
               if (status != 'printed')
                 IconButton(
-                  tooltip: 'Retry',
+                  tooltip: context.l10n.t('print_queue_retry'),
                   icon: const Icon(Icons.replay),
                   onPressed: () async {
                     await ref
@@ -102,7 +104,7 @@ class _QueueRow extends ConsumerWidget {
                   },
                 ),
               IconButton(
-                tooltip: 'Delete',
+                tooltip: context.l10n.t('print_queue_delete'),
                 icon: const Icon(Icons.delete_outline),
                 onPressed: () async {
                   await ref

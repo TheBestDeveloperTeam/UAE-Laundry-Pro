@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,6 +64,7 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final sqlState = ref.watch(remoteSqlControllerProvider);
     final controller = ref.read(remoteSqlControllerProvider.notifier);
     final theme = Theme.of(context);
@@ -132,14 +134,14 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
                                 controller.connect();
                               },
                         icon: const Icon(Icons.link),
-                        label: const Text('Connect'),
+                        label: Text(l10n.t('sql_connect')),
                       ),
                       OutlinedButton.icon(
                         onPressed: sqlState.isConnected
                             ? () => controller.disconnect()
                             : null,
                         icon: const Icon(Icons.link_off),
-                        label: const Text('Disconnect'),
+                        label: Text(l10n.t('sql_disconnect')),
                       ),
                       FilledButton.tonalIcon(
                         onPressed: sqlState.isConnected && !sqlState.querying
@@ -155,7 +157,7 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.table_chart),
-                        label: const Text('Query'),
+                        label: Text(l10n.t('sql_query')),
                       ),
                     ],
                   ),
@@ -189,6 +191,7 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
   }
 
   Widget _connectionStatusBanner(RemoteSqlState sqlState, ThemeData theme) {
+    final l10n = context.l10n;
     final Color bg;
     final Color fg;
     final IconData icon;
@@ -250,6 +253,7 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
   }) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TextField(
@@ -269,6 +273,7 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
   }
 
   Widget _countryResultsGrid(RemoteSqlState sqlState) {
+    final l10n = context.l10n;
     if (sqlState.querying) {
       return const Center(child: CircularProgressIndicator());
     }

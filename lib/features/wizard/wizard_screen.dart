@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme.dart';
@@ -15,21 +16,23 @@ class _WizardScreenState extends State<WizardScreen> {
   final TextEditingController _businessNameController = TextEditingController();
   final TextEditingController _trnController = TextEditingController();
 
-  List<Step> get _steps => [
+  List<Step> _steps(BuildContext context) {
+    final l10n = context.l10n;
+    return [
     Step(
-      title: const Text('Welcome'),
+      title: Text(l10n.t('wizard_welcome')),
       isActive: _currentStep >= 0,
       state: _currentStep > 0 ? StepState.complete : StepState.indexed,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Welcome to LaundryPro UAE!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(l10n.t('wizard_welcome_msg'), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          const Text('Select your preferred language:'),
+          Text(l10n.t('wizard_select_language')),
           const SizedBox(height: 8),
           Row(
             children: [
-              ElevatedButton(onPressed: () {}, child: const Text('English')),
+              ElevatedButton(onPressed: () {}, child: Text(l10n.t('english'))),
               const SizedBox(width: 16),
               OutlinedButton(onPressed: () {}, child: const Text('العربية')),
             ],
@@ -38,7 +41,7 @@ class _WizardScreenState extends State<WizardScreen> {
       ),
     ),
     Step(
-      title: const Text('Business Profile'),
+      title: Text(l10n.t('wizard_business_profile')),
       isActive: _currentStep >= 1,
       state: _currentStep > 1 ? StepState.complete : StepState.indexed,
       content: Column(
@@ -56,22 +59,22 @@ class _WizardScreenState extends State<WizardScreen> {
       ),
     ),
     Step(
-      title: const Text('Hardware Setup'),
+      title: Text(l10n.t('wizard_hardware_setup')),
       isActive: _currentStep >= 2,
       state: _currentStep > 2 ? StepState.complete : StepState.indexed,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Printers & Cash Drawers', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(l10n.t('wizard_printers_drawers'), style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.print, color: AppTheme.primaryBlue),
             title: const Text('Epson TM-T88VI (USB)'),
-            subtitle: const Text('Status: Connected'),
-            trailing: OutlinedButton(onPressed: () {}, child: const Text('Test Print')),
+            subtitle: Text(l10n.t('wizard_status_connected')),
+            trailing: OutlinedButton(onPressed: () {}, child: Text(l10n.t('wizard_test_print'))),
           ),
           const Divider(),
-          const Text('Scanners', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(l10n.t('wizard_scanners'), style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.qr_code_scanner, color: AppTheme.primaryBlue),
@@ -100,9 +103,11 @@ class _WizardScreenState extends State<WizardScreen> {
       ),
     ),
   ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
         title: const Text('LaundryPro Setup Wizard'),
@@ -118,7 +123,7 @@ class _WizardScreenState extends State<WizardScreen> {
           type: StepperType.horizontal,
           currentStep: _currentStep,
           onStepContinue: () {
-            if (_currentStep < _steps.length - 1) {
+            if (_currentStep < _steps(context).length - 1) {
               setState(() => _currentStep += 1);
             } else {
               // Finalize and navigate to POS
@@ -130,7 +135,7 @@ class _WizardScreenState extends State<WizardScreen> {
               setState(() => _currentStep -= 1);
             }
           },
-          steps: _steps,
+          steps: _steps(context),
         ),
       ),
     );

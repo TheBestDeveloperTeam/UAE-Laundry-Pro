@@ -52,6 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadSummary() async {
+    final l10n = context.l10n;
     if (!mounted) return;
     setState(() {
       _loading = true;
@@ -98,12 +99,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: Text(l10n.t('dashboard')),
         actions: [
-          IconButton(onPressed: _loadSummary, icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: _loadSummary, icon: Icon(Icons.refresh)),
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications),
+                icon: Icon(Icons.notifications),
                 onPressed: () => context.go('/notifications'),
               ),
               if (_unreadCount > 0)
@@ -113,8 +114,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: Text('$_unreadCount', style: const TextStyle(color: Colors.white, fontSize: 10), textAlign: TextAlign.center),
+                    constraints: BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text('$_unreadCount', style: TextStyle(color: Colors.white, fontSize: 10), textAlign: TextAlign.center),
                   ),
                 ),
             ],
@@ -130,7 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               await auth.logout();
               if (context.mounted) context.go('/login');
             },
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             tooltip: l10n.t('logout'),
           ),
         ],
@@ -151,9 +152,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   children: [
                     Icon(Icons.error_outline, color: Colors.red.shade700),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Text(_error!, style: TextStyle(color: Colors.red.shade700)),
-                    const Spacer(),
+                    Spacer(),
                     TextButton(onPressed: _loadSummary, child: Text(context.l10n.t('retry'))),
                   ],
                 ),
@@ -162,9 +163,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               l10n.t('today'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             if (_loading && _today == null)
-              const Center(child: CircularProgressIndicator())
+              Center(child: CircularProgressIndicator())
             else
               Wrap(
                 spacing: 16,
@@ -204,12 +205,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             Text(
               l10n.t('reports_sales'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             if (!_loading || _period != null)
               Wrap(
                 spacing: 16,
@@ -248,7 +249,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
-            const SizedBox(height: 40),
+            SizedBox(height: 40),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -263,30 +264,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             'Quick Actions',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20),
                           Wrap(
                             spacing: 12,
                             runSpacing: 12,
                             children: [
                               FilledButton.icon(
                                 onPressed: () => context.go('/pos'),
-                                icon: const Icon(Icons.point_of_sale_rounded),
+                                icon: Icon(Icons.point_of_sale_rounded),
                                 label: Text(l10n.t('pos')),
                               ),
                               OutlinedButton.icon(
                                 onPressed: () => context.go('/customers'),
-                                icon: const Icon(Icons.person_add_alt_1_outlined),
+                                icon: Icon(Icons.person_add_alt_1_outlined),
                                 label: Text(l10n.t('customers')),
                               ),
                               OutlinedButton.icon(
                                 onPressed: () => context.go('/pending'),
-                                icon: const Icon(Icons.receipt_outlined),
+                                icon: Icon(Icons.receipt_outlined),
                                 label: Text(l10n.t('pending_invoices')),
                               ),
                               if (isAdmin)
                                 OutlinedButton.icon(
                                   onPressed: () => context.go('/catalog'),
-                                  icon: const Icon(Icons.category_outlined),
+                                  icon: Icon(Icons.category_outlined),
                                   label: Text(l10n.t('catalog')),
                                 ),
                             ],
@@ -296,7 +297,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 24),
+                SizedBox(width: 24),
                 Expanded(
                   child: Card(
                     child: Padding(
@@ -308,25 +309,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             'HR & Payroll',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20),
                           Wrap(
                             spacing: 12,
                             runSpacing: 12,
                             children: [
                               FilledButton.icon(
                                 onPressed: () => context.go('/hr/employees'),
-                                icon: const Icon(Icons.people_alt_outlined),
+                                icon: Icon(Icons.people_alt_outlined),
                                 label: Text(l10n.t('hr_employees')),
                               ),
                               OutlinedButton.icon(
                                 onPressed: () => context.go('/hr/attendance'),
-                                icon: const Icon(Icons.access_time_rounded),
+                                icon: Icon(Icons.access_time_rounded),
                                 label: Text(l10n.t('hr_attendance')),
                               ),
                               if (isAdmin)
                                 OutlinedButton.icon(
                                   onPressed: () => context.go('/hr/payroll'),
-                                  icon: const Icon(Icons.monetization_on_outlined),
+                                  icon: Icon(Icons.monetization_on_outlined),
                                   label: Text(l10n.t('payroll')),
                                 ),
                             ],

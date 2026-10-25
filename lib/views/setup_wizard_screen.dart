@@ -103,6 +103,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   }
 
   Future<void> _loadInitial() async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       _status = await _install.status();
@@ -120,6 +121,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   }
 
   Future<void> _executeInstallPipeline() async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     final secret = _installSecretController.text.trim();
     final adminPass = _adminPasswordController.text.trim();
@@ -151,9 +153,8 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Color(0xFF0D6E6E),
-          content: Text('Installation & initial setup completed successfully!'),
+        SnackBar(backgroundColor: Color(0xFF0D6E6E),
+          content: Text(l10n.t('wizard_install_complete')),
         ),
       );
       context.go('/login');
@@ -162,7 +163,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red.shade800,
-            content: Text('Installation error: $e'),
+            content: Text(l10n.t('wizard_install_error').replaceAll('{error}', e.toString())),
           ),
         );
       }
@@ -218,7 +219,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         controller: _businessNameController,
                         decoration: InputDecoration(labelText: l10n.t('business_name')),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -227,28 +228,28 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                               decoration: InputDecoration(labelText: l10n.t('phone')),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: _emailController,
-                              decoration: const InputDecoration(labelText: 'Email'),
+                              decoration: InputDecoration(labelText: l10n.t('wizard_email_label')),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _selectedEmirate,
-                        decoration: const InputDecoration(labelText: 'Emirate'),
+                        decoration: InputDecoration(labelText: l10n.t('wizard_emirate_label')),
                         items: _emirates.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                         onChanged: (val) {
                           if (val != null) setState(() => _selectedEmirate = val);
                         },
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       TextField(
                         controller: _addressController,
-                        decoration: const InputDecoration(labelText: 'Physical Address'),
+                        decoration: InputDecoration(labelText: l10n.t('wizard_address_label')),
                       ),
                     ],
                   ),
@@ -274,13 +275,12 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           }
                         },
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _selectedCurrency,
-                        decoration: const InputDecoration(labelText: 'Currency'),
-                        items: const [
-                          DropdownMenuItem(value: 'AED', child: Text('UAE Dirham (AED / Fils)')),
-                          DropdownMenuItem(value: 'SAR', child: Text('Saudi Riyal (SAR / Halala)')),
+                        decoration: InputDecoration(labelText: l10n.t('wizard_currency_label')),
+                        items: [DropdownMenuItem(value: 'AED', child: Text(l10n.t('wizard_currency_aed'))),
+                          DropdownMenuItem(value: 'SAR', child: Text(l10n.t('wizard_currency_sar'))),
                         ],
                         onChanged: (val) {
                           if (val != null) setState(() => _selectedCurrency = val);
@@ -301,32 +301,32 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           Expanded(
                             child: TextField(
                               controller: _invPrefixController,
-                              decoration: const InputDecoration(labelText: 'Invoice Prefix (e.g. INV-)'),
+                              decoration: InputDecoration(labelText: l10n.t('wizard_invoice_prefix')),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: _recPrefixController,
-                              decoration: const InputDecoration(labelText: 'Receipt Prefix (e.g. REC-)'),
+                              decoration: InputDecoration(labelText: l10n.t('wizard_receipt_prefix')),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
                             child: TextField(
                               controller: _chlPrefixController,
-                              decoration: const InputDecoration(labelText: 'Challan Prefix (e.g. CHL-)'),
+                              decoration: InputDecoration(labelText: l10n.t('wizard_challan_prefix')),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: _grnPrefixController,
-                              decoration: const InputDecoration(labelText: 'GRN Prefix (e.g. GRN-)'),
+                              decoration: InputDecoration(labelText: l10n.t('wizard_grn_prefix')),
                             ),
                           ),
                         ],
@@ -345,17 +345,16 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         controller: _adminUsernameController,
                         decoration: InputDecoration(labelText: l10n.t('username')),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       TextField(
                         controller: _adminPasswordController,
                         obscureText: true,
                         decoration: InputDecoration(labelText: l10n.t('password')),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       TextField(
                         controller: _installSecretController,
-                        decoration: const InputDecoration(
-                          labelText: 'API Installation Secret (from api/.env)',
+                        decoration: InputDecoration(labelText: l10n.t('wizard_api_secret'),
                           helperText: 'Required to authorize database migrations and initial locks',
                         ),
                       ),
@@ -372,8 +371,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                     children: [
                       TextField(
                         controller: _backupPathController,
-                        decoration: const InputDecoration(
-                          labelText: 'Canonical Backup Directory (BACKUP_PATH)',
+                        decoration: InputDecoration(labelText: l10n.t('wizard_backup_dir'),
                           helperText: 'Defaults to C:/LaundryPro/backups/ with automatic write verification',
                         ),
                       ),
@@ -389,12 +387,11 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                     children: [
                       DropdownButtonFormField<String>(
                         initialValue: _selectedPrinter,
-                        decoration: const InputDecoration(labelText: 'Primary Slip Printer Default'),
-                        items: const [
-                          DropdownMenuItem(value: 'thermal_80mm', child: Text('Thermal Roll Paper (80mm / 48 chars)')),
-                          DropdownMenuItem(value: 'thermal_58mm', child: Text('Thermal Roll Paper (58mm / 32 chars)')),
-                          DropdownMenuItem(value: 'a4_laser', child: Text('Laser/Inkjet A4 Standard')),
-                          DropdownMenuItem(value: 'dot_matrix', child: Text('Dot-Matrix 80-Col (Carbon Copy)')),
+                        decoration: InputDecoration(labelText: l10n.t('wizard_printer_label')),
+                        items: [DropdownMenuItem(value: 'thermal_80mm', child: Text(l10n.t('wizard_printer_80mm'))),
+                          DropdownMenuItem(value: 'thermal_58mm', child: Text(l10n.t('wizard_printer_58mm'))),
+                          DropdownMenuItem(value: 'a4_laser', child: Text(l10n.t('wizard_printer_a4'))),
+                          DropdownMenuItem(value: 'dot_matrix', child: Text(l10n.t('wizard_printer_dot'))),
                         ],
                         onChanged: (val) {
                           if (val != null) setState(() => _selectedPrinter = val);
@@ -411,11 +408,10 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Hardware Binding & Installation Identification:',
+                      Text('Hardware Binding & Installation Identification:',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -425,7 +421,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         ),
                         child: SelectableText(
                           _machineCode,
-                          style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
                     ],
@@ -442,7 +438,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         controller: _licenseKeyController,
                         decoration: InputDecoration(
                           labelText: l10n.t('license_key'),
-                          hintText: 'Optional: Enter activation key or leave blank for 7-day evaluation',
+                          hintText: l10n.t('wizard_license_hint'),
                         ),
                       ),
                     ],

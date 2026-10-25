@@ -27,7 +27,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final filter = _statusFilter == 'all' ? null : _statusFilter;
       _items = await _delivery.list(status: filter);
@@ -38,6 +38,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   Future<void> _updateStatus(DeliveryModel task, String status) async {
+    final l10n = context.l10n;
     final id = task.id;
     try {
       await _delivery.update(id, {'status': status});
@@ -48,6 +49,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
   }
 
   Future<void> _reconcileCod(DeliveryModel task) async {
+    final l10n = context.l10n;
     try {
       await _delivery.update(task.id, {'cod_collected': 1});
       if (mounted) {
@@ -70,7 +72,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('delivery')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -86,19 +88,19 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Delivery Tasks (${_items.length} active)', style: const TextStyle(fontWeight: FontWeight.w600)),
-                          const Icon(Icons.local_shipping_outlined),
+                          Text('Delivery Tasks (${_items.length} active)', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Icon(Icons.local_shipping_outlined),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 SegmentedButton<String>(
                   segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
                     ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
-                    const ButtonSegment(value: 'in_transit', label: Text('Transit')),
+                    ButtonSegment(value: 'in_transit', label: Text('Transit')),
                     ButtonSegment(value: 'delivered', label: Text(context.l10n.t('status_delivered'))),
                   ],
                   selected: {_statusFilter},
@@ -110,10 +112,10 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(child: Text(l10n.t('delivery_empty')))
                     : ListView.separated(
@@ -141,25 +143,25 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                             ),
                             title: Row(
                               children: [
-                                Text('${l10n.t('orders')} #${t.salesOrderId}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(width: 8),
+                                Text('${l10n.t('orders')} #${t.salesOrderId}', style: TextStyle(fontWeight: FontWeight.bold)),
+                                SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: Colors.blueGrey.shade100,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: Text(t.routeZone, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                  child: Text(t.routeZone, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4),
                                 Text('Address: ${t.deliveryAddress ?? 'Counter Pickup'} · Driver: ${t.driverName ?? 'Unassigned'}'),
                                 if (t.codAmount > 0) ...[
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Row(
                                     children: [
                                       Container(
@@ -198,7 +200,7 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
                                     label: Text(l10n.t('reconcile_cod')),
                                     onPressed: () => _reconcileCod(t),
                                   ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 if (status == 'pending')
                                   FilledButton.tonal(
                                     onPressed: () => _updateStatus(t, 'in_transit'),

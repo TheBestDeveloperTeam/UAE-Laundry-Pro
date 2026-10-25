@@ -40,7 +40,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final filter = _statusFilter == 'all' ? null : _statusFilter;
       final results = await Future.wait([
@@ -99,8 +99,8 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              const Icon(Icons.add_shopping_cart, color: AppTheme.primaryNavy),
-              const SizedBox(width: 10),
+              Icon(Icons.add_shopping_cart, color: AppTheme.primaryNavy),
+              SizedBox(width: 10),
               Text(l10n.t('po_create')),
             ],
           ),
@@ -187,8 +187,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                               flex: 3,
                               child: DropdownButtonFormField<int>(
                                 initialValue: line['product_id'] as int?,
-                                decoration: const InputDecoration(
-                                  labelText: 'Product',
+                                decoration: InputDecoration(labelText: l10n.t('purchasing_product'),
                                   border: OutlineInputBorder(),
                                   isDense: true,
                                 ),
@@ -210,21 +209,21 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                                 },
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               flex: 1,
                               child: TextField(
                                 controller: line['qty_controller'] as TextEditingController,
-                                decoration: const InputDecoration(labelText: 'Qty', border: OutlineInputBorder(), isDense: true),
+                                decoration: InputDecoration(labelText: l10n.t('purchasing_qty'), border: OutlineInputBorder(), isDense: true),
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               flex: 2,
                               child: TextField(
                                 controller: line['cost_controller'] as TextEditingController,
-                                decoration: const InputDecoration(labelText: 'Unit Cost', border: OutlineInputBorder(), isDense: true, prefixText: 'AED '),
+                                decoration: InputDecoration(labelText: l10n.t('purchasing_unit_cost_label'), border: OutlineInputBorder(), isDense: true, prefixText: '${l10n.t('currency_aed')} '),
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
@@ -239,10 +238,10 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                       );
                     }),
 
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: notesController,
-                    decoration: InputDecoration(labelText: l10n.t('notes'), border: const OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: l10n.t('notes'), border: OutlineInputBorder()),
                     maxLines: 2,
                   ),
                 ],
@@ -253,7 +252,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.t('pos_close'))),
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
-              icon: const Icon(Icons.check, size: 18),
+              icon: Icon(Icons.check, size: 18),
               onPressed: () => Navigator.pop(ctx, true),
               label: Text(l10n.t('save')),
             ),
@@ -288,7 +287,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Purchase order created successfully'), backgroundColor: AppTheme.successGreen),
+          SnackBar(content: Text('Purchase order created successfully'), backgroundColor: AppTheme.successGreen),
         );
       }
       await _load();
@@ -299,6 +298,7 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
 
   /// Full GRN (Goods Received Note) quantity verification flow
   Future<void> _receiveGoods(PurchaseOrderModel po) async {
+    final l10n = context.l10n;
     final id = po.id;
     if (id == 0) return;
 
@@ -455,22 +455,20 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
                       ),
                     ),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextField(
                     controller: billOfLadingController,
-                    decoration: const InputDecoration(
-                      labelText: 'Supplier Delivery Note / Bill of Lading (BOL)',
-                      hintText: 'e.g. DN-984321',
+                    decoration: InputDecoration(labelText: l10n.t('purchasing_delivery_note'),
+                      hintText: l10n.t('purchasing_delivery_note_hint'),
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.receipt_long),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: receivingNotesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Receiving Inspector Notes / Quality Checks',
-                      hintText: 'Packaging intact, seals verified, stored in Bay A',
+                    decoration: InputDecoration(labelText: l10n.t('purchasing_inspector_notes'),
+                      hintText: l10n.t('purchasing_inspector_notes_hint'),
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.note_alt_outlined),
                     ),
@@ -588,10 +586,10 @@ class _PurchasingScreenState extends State<PurchasingScreen> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(child: Text(l10n.t('purchasing_empty')))
                     : ListView.separated(

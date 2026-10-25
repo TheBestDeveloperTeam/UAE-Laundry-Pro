@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final pages = <Widget>[
       _overviewPanel(),
       const ScannerScreen(),
@@ -55,7 +57,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
       onKeyEvent: ref.read(scannerControllerProvider),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Peripheral Framework Console'),
+          title: Text(l10n.t('peripheral_console')),
         ),
         body: Row(
           children: [
@@ -110,6 +112,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _overviewPanel() {
+    final l10n = context.l10n;
     final printers = ref.watch(printersProvider);
     final identity = ref.watch(machineIdentityProvider);
     return ListView(
@@ -163,7 +166,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
           title: 'Discovered Printers',
           subtitle: printers.when(
             data: (items) => Text('${items.length} printer(s) detected'),
-            loading: () => const Text('Detecting...'),
+            loading: () => Text(l10n.t('peripheral_detecting')),
             error: (e, _) => Text('Error: $e'),
           ),
           icon: Icons.print,
@@ -174,7 +177,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
           subtitle: identity.when(
             data: (value) =>
                 Text(value['fingerprintSha256']?.toString() ?? 'n/a'),
-            loading: () => const Text('Collecting...'),
+            loading: () => Text(l10n.t('peripheral_collecting')),
             error: (e, _) => Text('Error: $e'),
           ),
           icon: Icons.memory,
@@ -184,6 +187,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _scalePanel() {
+    final l10n = context.l10n;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -219,6 +223,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _cashDrawerPanel() {
+    final l10n = context.l10n;
     final selectedPrinter = ref.watch(selectedPrinterProvider);
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -237,7 +242,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
         const SizedBox(height: 12),
         FilledButton.icon(
           icon: const Icon(Icons.point_of_sale),
-          label: const Text('OPEN DRAWER'),
+          label: Text(l10n.t('peripheral_open_drawer')),
           onPressed: selectedPrinter == null
               ? null
               : () async {
@@ -258,6 +263,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _machineIdentityPanel() {
+    final l10n = context.l10n;
     final identity = ref.watch(machineIdentityProvider);
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -284,6 +290,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _logsPanel() {
+    final l10n = context.l10n;
     final logs = ref.watch(logsProvider);
     return logs.when(
       data: (rows) => ListView.builder(
@@ -311,6 +318,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
     required String subtitle,
     required IconData icon,
   }) {
+    final l10n = context.l10n;
     return SizedBox(
       width: 280,
       child: _navCard(
@@ -328,6 +336,7 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
     required Widget subtitle,
     required IconData icon,
   }) {
+    final l10n = context.l10n;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(

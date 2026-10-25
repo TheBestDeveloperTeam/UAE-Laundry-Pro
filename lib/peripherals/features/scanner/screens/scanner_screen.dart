@@ -65,6 +65,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): _clearBeforeNewScan,
@@ -122,12 +123,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              subtitle: const Text('Latest decoded barcode'),
+              subtitle: Text(l10n.t('scanner_latest_barcode')),
             ),
           ),
           const SizedBox(height: 12),
           ExpansionTile(
-            title: const Text('Raw packet JSON'),
+            title: Text(l10n.t('scanner_raw_json')),
             initiallyExpanded: false,
             children: [
               Padding(

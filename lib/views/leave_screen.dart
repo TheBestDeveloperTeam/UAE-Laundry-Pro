@@ -37,7 +37,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final results = await Future.wait([
         _payroll.listLeave(status: _statusFilter == 'all' ? null : _statusFilter),
@@ -130,23 +130,23 @@ class _LeaveScreenState extends State<LeaveScreen> {
                             color: AppTheme.infoBlue.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Icon(Icons.beach_access_outlined, color: AppTheme.infoBlue, size: 24),
+                          child: Icon(Icons.beach_access_outlined, color: AppTheme.infoBlue, size: 24),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             l10n.t('leave_create'),
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                           ),
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          icon: const Icon(Icons.close),
+                          icon: Icon(Icons.close),
                           splashRadius: 18,
                         ),
                       ],
                     ),
-                    const Divider(height: 24),
+                    Divider(height: 24),
 
                     // Employee dropdown
                     DropdownButtonFormField<int>(
@@ -163,13 +163,12 @@ class _LeaveScreenState extends State<LeaveScreen> {
                       initialValue: selectedEmpId,
                       onChanged: (val) => setDialogState(() => selectedEmpId = val),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
 
                     // Leave Type
                     if (_leaveTypes.isNotEmpty)
                       DropdownButtonFormField<int>(
-                        decoration: const InputDecoration(
-                          labelText: 'Leave Type',
+                        decoration: InputDecoration(labelText: l10n.t('leave_type_label'),
                           prefixIcon: Icon(Icons.category_outlined, size: 20),
                         ),
                         items: _leaveTypes.map((t) {
@@ -230,7 +229,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                             child: InputDecorator(
                               decoration: InputDecoration(
                                 labelText: l10n.t('end_date'),
-                                prefixIcon: const Icon(Icons.calendar_month_outlined, size: 18),
+                                prefixIcon: Icon(Icons.calendar_month_outlined, size: 18),
                               ),
                               child: Text(endDate.toIso8601String().split('T').first),
                             ),
@@ -238,7 +237,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
 
                     // Duration indicator
                     Container(
@@ -249,20 +248,19 @@ class _LeaveScreenState extends State<LeaveScreen> {
                       ),
                       child: Text(
                         'Duration: $days Day(s)',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight, fontSize: 12),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight, fontSize: 12),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
 
                     TextFormField(
                       controller: reasonController,
-                      decoration: const InputDecoration(
-                        labelText: 'Reason for Leave',
+                      decoration: InputDecoration(labelText: l10n.t('leave_reason'),
                         prefixIcon: Icon(Icons.notes, size: 18),
                       ),
                       maxLines: 2,
                     ),
-                    const Divider(height: 28),
+                    Divider(height: 28),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -271,13 +269,13 @@ class _LeaveScreenState extends State<LeaveScreen> {
                           onPressed: () => Navigator.pop(ctx, false),
                           child: Text(l10n.t('pos_close')),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         FilledButton.icon(
                           style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
                           onPressed: selectedEmpId == null
                               ? null
                               : () => Navigator.pop(ctx, true),
-                          icon: const Icon(Icons.check, size: 18),
+                          icon: Icon(Icons.check, size: 18),
                           label: Text(l10n.t('save')),
                         ),
                       ],
@@ -309,6 +307,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
   }
 
   Future<void> _handleApprove(int id) async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _payroll.approveLeave(id);
@@ -319,6 +318,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
   }
 
   Future<void> _handleReject(int id) async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _payroll.rejectLeave(id);
@@ -400,14 +400,14 @@ class _LeaveScreenState extends State<LeaveScreen> {
                     ),
                   ],
                 ),
-                const Spacer(),
+                Spacer(),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
                     backgroundColor: AppTheme.primaryNavy,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onPressed: _openLeaveDialog,
-                  icon: const Icon(Icons.add, size: 20),
+                  icon: Icon(Icons.add, size: 20),
                   label: Text(l10n.t('leave_create')),
                 ),
               ],
@@ -417,14 +417,14 @@ class _LeaveScreenState extends State<LeaveScreen> {
           // Leave Requests Table
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.beach_access_outlined, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(
                               l10n.t('leave_empty'),
                               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
@@ -442,7 +442,7 @@ class _LeaveScreenState extends State<LeaveScreen> {
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? 'EMP-${row['employee_id']}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -494,14 +494,14 @@ class _LeaveScreenState extends State<LeaveScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.check_circle_outline, color: AppTheme.successGreen, size: 20),
-                                        tooltip: 'Approve Leave',
+                                        icon: Icon(Icons.check_circle_outline, color: AppTheme.successGreen, size: 20),
+                                        tooltip: l10n.t('leave_approve_tooltip'),
                                         onPressed: () => _handleApprove(l.id),
                                         splashRadius: 18,
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.cancel_outlined, color: AppTheme.errorRed, size: 20),
-                                        tooltip: 'Reject Leave',
+                                        icon: Icon(Icons.cancel_outlined, color: AppTheme.errorRed, size: 20),
+                                        tooltip: l10n.t('leave_reject_tooltip'),
                                         onPressed: () => _handleReject(l.id),
                                         splashRadius: 18,
                                       ),

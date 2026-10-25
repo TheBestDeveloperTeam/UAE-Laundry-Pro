@@ -108,12 +108,12 @@ class _AppShellState extends State<AppShell> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.local_laundry_service, color: Theme.of(context).colorScheme.primary, size: 24),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   l10n.t('app_name'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -122,7 +122,7 @@ class _AppShellState extends State<AppShell> {
                   ),
                   child: Text('${l10n.t('branch')}: MAIN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -152,10 +152,10 @@ class _AppShellState extends State<AppShell> {
                 final current = Localizations.localeOf(context).languageCode;
                 context.read<LocaleProvider>().setLocale(current == 'ar' ? 'en' : 'ar');
               },
-              icon: const Icon(Icons.language, size: 18),
-              label: Text(Localizations.localeOf(context).languageCode.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              icon: Icon(Icons.language, size: 18),
+              label: Text(Localizations.localeOf(context).languageCode.toUpperCase(), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
           ],
         ),
         body: Column(
@@ -214,7 +214,7 @@ class _AppShellState extends State<AppShell> {
                         ),
                       ),
                     ),
-                  const VerticalDivider(width: 1),
+                  VerticalDivider(width: 1),
                   Expanded(child: widget.child),
                 ],
               ),
@@ -233,7 +233,7 @@ class _AppShellState extends State<AppShell> {
                     color: auth.apiHealthy ? Colors.green : Colors.red,
                     size: 14,
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6),
                   Text(
                     auth.apiHealthy ? l10n.t('api_online') : l10n.t('api_offline'),
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
@@ -263,16 +263,16 @@ class _AppShellState extends State<AppShell> {
                       );
                     },
                   ),
-                  const Icon(Icons.print_outlined, size: 14, color: Colors.blueGrey),
-                  const SizedBox(width: 4),
+                  Icon(Icons.print_outlined, size: 14, color: Colors.blueGrey),
+                  SizedBox(width: 4),
                   Text(l10n.t('printers_ready'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
-                  const SizedBox(width: 16),
-                  const Icon(Icons.qr_code_scanner, size: 14, color: Colors.blueGrey),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 16),
+                  Icon(Icons.qr_code_scanner, size: 14, color: Colors.blueGrey),
+                  SizedBox(width: 4),
                   Text(l10n.t('scanner_ready'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
-                  const Spacer(),
-                  const Icon(Icons.storage_outlined, size: 14, color: Colors.green),
-                  const SizedBox(width: 4),
+                  Spacer(),
+                  Icon(Icons.storage_outlined, size: 14, color: Colors.green),
+                  SizedBox(width: 4),
                   Text(l10n.t('disk_ok'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
                   const SizedBox(width: 16),
                   Text('v1.2.1', style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontFamily: 'monospace')),

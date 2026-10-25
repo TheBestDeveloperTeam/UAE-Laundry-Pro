@@ -30,7 +30,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final q = _searchController.text.trim();
       final path = q.isNotEmpty ? '/vendors?q=$q' : '/vendors';
@@ -61,7 +61,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
           title: Row(
             children: [
               Icon(isNew ? Icons.add_business : Icons.store, color: Theme.of(context).primaryColor),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(isNew ? l10n.t('vendor_register_new') : l10n.t('vendor_edit_profile')),
             ],
           ),
@@ -74,46 +74,46 @@ class _VendorsScreenState extends State<VendorsScreen> {
                 children: [
                   TextField(
                     controller: nameCtrl,
-                    decoration: InputDecoration(labelText: l10n.t('vendor_company_name'), border: const OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: l10n.t('vendor_company_name'), border: OutlineInputBorder()),
                     autofocus: true,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: phoneCtrl,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_phone_number'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.phone)),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_phone_number'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: emailCtrl,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_email_address'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.email)),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_email_address'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: addressCtrl,
-                    decoration: InputDecoration(labelText: l10n.t('vendor_billing_address'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.location_on)),
+                    decoration: InputDecoration(labelText: l10n.t('vendor_billing_address'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on)),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: trnCtrl,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_trn_label'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.verified)),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_trn_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.verified)),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           initialValue: paymentTerms,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_payment_terms'), border: const OutlineInputBorder()),
+                          decoration: InputDecoration(labelText: l10n.t('vendor_payment_terms'), border: OutlineInputBorder()),
                           items: [
                             DropdownMenuItem(value: 'Immediate / Cash', child: Text(l10n.t('terms_immediate_cash'))),
                             DropdownMenuItem(value: 'Net 7', child: Text(l10n.t('terms_net_7'))),
@@ -129,21 +129,21 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: creditLimitCtrl,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: l10n.t('vendor_credit_limit'), border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.account_balance_wallet)),
+                    decoration: InputDecoration(labelText: l10n.t('vendor_credit_limit'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.account_balance_wallet)),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: bankCtrl,
                     maxLines: 2,
                     decoration: InputDecoration(
                       labelText: l10n.t('vendor_bank_details'),
-                      hintText: 'e.g. Emirates NBD, IBAN: AE070260000000000000000',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.account_balance),
+                      hintText: l10n.t('vendor_bank_hint'),
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.account_balance),
                     ),
                   ),
                 ],
@@ -187,7 +187,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
     } catch (e, st) {
       AppLogger.error('Failed to save vendor', tag: 'VendorsScreen', error: e, stackTrace: st);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save vendor: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.t('vendor_save_failed').replaceAll('{error}', e.toString()))));
       }
     }
   }
@@ -198,7 +198,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('vendors')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -208,8 +208,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: '${l10n.t('search')} by vendor name, phone, or TRN...',
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
                 isDense: true,
               ),
               onSubmitted: (_) => _load(),
@@ -217,14 +217,14 @@ class _VendorsScreenState extends State<VendorsScreen> {
           ),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.storefront, size: 64, color: Colors.grey),
-                            const SizedBox(height: 12),
+                            Icon(Icons.storefront, size: 64, color: Colors.grey),
+                            SizedBox(height: 12),
                             Text(l10n.t('vendor_none_found'), style: Theme.of(context).textTheme.titleMedium),
                           ],
                         ),
@@ -241,11 +241,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                 backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                                 child: Text(v.name.isNotEmpty ? v.name[0].toUpperCase() : 'V', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
                               ),
-                              title: Text(v.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text(v.name, style: TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Wrap(
                                     spacing: 8,
                                     runSpacing: 4,
@@ -263,7 +263,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                         ),
                                       if (v.trn != null && v.trn!.isNotEmpty)
                                         Chip(
-                                          avatar: const Icon(Icons.verified, size: 14),
+                                          avatar: Icon(Icons.verified, size: 14),
                                           label: Text(l10n.t('trn_chip_label', {'trn': v.trn!})),
                                           visualDensity: VisualDensity.compact,
                                           padding: EdgeInsets.zero,
@@ -291,7 +291,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openVendorDialog(),
-        icon: const Icon(Icons.add_business),
+        icon: Icon(Icons.add_business),
         label: Text(l10n.t('vendor_add_button')),
       ),
     );

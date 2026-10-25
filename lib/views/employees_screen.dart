@@ -35,7 +35,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       _items = await _employees.list(query: _searchController.text.trim());
     } catch (e, stack) {
@@ -159,7 +159,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           child: Container(
             width: 650,
-            constraints: const BoxConstraints(maxHeight: 700),
+            constraints: BoxConstraints(maxHeight: 700),
             padding: const EdgeInsets.all(24),
             child: Form(
               key: formKey,
@@ -175,23 +175,23 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                           color: AppTheme.primaryNavy.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Icons.badge_outlined, color: AppTheme.primaryNavy, size: 24),
+                        child: Icon(Icons.badge_outlined, color: AppTheme.primaryNavy, size: 24),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           isEdit ? l10n.t('employee_edit') : l10n.t('employee_create'),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                         ),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        icon: const Icon(Icons.close),
+                        icon: Icon(Icons.close),
                         splashRadius: 18,
                       ),
                     ],
                   ),
-                  const Divider(height: 24),
+                  Divider(height: 24),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
@@ -200,9 +200,9 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                           // Personal Information
                           Text(
                             l10n.t('employee_details'),
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -211,19 +211,18 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                   controller: nameController,
                                   decoration: InputDecoration(
                                     labelText: '${l10n.t('full_name')} *',
-                                    prefixIcon: const Icon(Icons.person_outline, size: 18),
+                                    prefixIcon: Icon(Icons.person_outline, size: 18),
                                   ),
                                   validator: (v) => v == null || v.trim().isEmpty ? l10n.t('name') : null,
                                   autofocus: !isEdit,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Expanded(
                                 flex: 1,
                                 child: TextFormField(
                                   controller: pinController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'PIN (Clock-In)',
+                                  decoration: InputDecoration(labelText: l10n.t('employee_pin_label'),
                                     prefixIcon: Icon(Icons.lock_outline, size: 18),
                                   ),
                                   keyboardType: TextInputType.number,
@@ -232,7 +231,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -240,25 +239,25 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                   controller: phoneController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('phone'),
-                                    prefixIcon: const Icon(Icons.phone_outlined, size: 18),
+                                    prefixIcon: Icon(Icons.phone_outlined, size: 18),
                                   ),
                                   keyboardType: TextInputType.phone,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Expanded(
                                 child: TextFormField(
                                   controller: emailController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('email'),
-                                    prefixIcon: const Icon(Icons.email_outlined, size: 18),
+                                    prefixIcon: Icon(Icons.email_outlined, size: 18),
                                   ),
                                   keyboardType: TextInputType.emailAddress,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
 
                           // Job & Department
                           Row(
@@ -268,40 +267,39 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                   controller: titleController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('job_title'),
-                                    prefixIcon: const Icon(Icons.work_outline, size: 18),
+                                    prefixIcon: Icon(Icons.work_outline, size: 18),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Expanded(
                                 child: TextFormField(
                                   controller: deptController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('department'),
-                                    prefixIcon: const Icon(Icons.business_outlined, size: 18),
+                                    prefixIcon: Icon(Icons.business_outlined, size: 18),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Expanded(
                                 child: TextFormField(
                                   controller: salaryController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('base_salary'),
-                                    prefixIcon: const Icon(Icons.account_balance_wallet_outlined, size: 18),
+                                    prefixIcon: Icon(Icons.account_balance_wallet_outlined, size: 18),
                                   ),
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20),
 
                           // UAE Legal / Compliance
-                          const Divider(),
-                          const SizedBox(height: 8),
-                          const Row(
-                            children: [
+                          Divider(),
+                          SizedBox(height: 8),
+                          Row(children: [
                               Icon(Icons.shield_outlined, size: 16, color: AppTheme.accentCyan),
                               SizedBox(width: 6),
                               Text(
@@ -319,7 +317,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                   controller: civilIdController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('emirates_id'),
-                                    hintText: '784-XXXX-XXXXXXX-X',
+                                    hintText: l10n.t('employee_eid_hint'),
                                     prefixIcon: const Icon(Icons.credit_card_outlined, size: 18),
                                   ),
                                 ),
@@ -343,7 +341,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                   child: InputDecorator(
                                     decoration: InputDecoration(
                                       labelText: l10n.t('emirates_id_expiry'),
-                                      prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+                                      prefixIcon: Icon(Icons.calendar_today_outlined, size: 18),
                                     ),
                                     child: Text(
                                       civilIdExp != null
@@ -359,7 +357,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -391,7 +389,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                   child: InputDecorator(
                                     decoration: InputDecoration(
                                       labelText: l10n.t('visa_expiry'),
-                                      prefixIcon: const Icon(Icons.calendar_month_outlined, size: 18),
+                                      prefixIcon: Icon(Icons.calendar_month_outlined, size: 18),
                                     ),
                                     child: Text(
                                       visaExp != null
@@ -411,7 +409,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                       ),
                     ),
                   ),
-                  const Divider(height: 24),
+                  Divider(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -427,7 +425,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                             Navigator.pop(ctx, true);
                           }
                         },
-                        icon: const Icon(Icons.check, size: 18),
+                        icon: Icon(Icons.check, size: 18),
                         label: Text(l10n.t('save')),
                       ),
                     ],
@@ -505,7 +503,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
           IconButton(
             tooltip: l10n.t('refresh'),
             onPressed: _load,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
           ),
         ],
       ),
@@ -537,14 +535,14 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                     onSubmitted: (_) => _load(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
                     backgroundColor: AppTheme.primaryNavy,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                   onPressed: () => _openEmployeeDialog(),
-                  icon: const Icon(Icons.person_add_alt_1, size: 18),
+                  icon: Icon(Icons.person_add_alt_1, size: 18),
                   label: Text(l10n.t('employee_create')),
                 ),
               ],
@@ -563,12 +561,12 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded, color: AppTheme.warningOrange, size: 20),
-                  const SizedBox(width: 10),
+                  Icon(Icons.warning_amber_rounded, color: AppTheme.warningOrange, size: 20),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       '$expiringCount employee document(s) expired or expiring within 30 days. Please review Emirates ID / Visa dates.',
-                      style: const TextStyle(color: AppTheme.darkSlate, fontSize: 13, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: AppTheme.darkSlate, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -577,14 +575,14 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
 
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.badge_outlined, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(
                               l10n.t('employees_empty'),
                               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
@@ -602,7 +600,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? row['employee_id'] ?? '',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -612,7 +610,7 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(row['full_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  Text(row['full_name'] ?? '', style: TextStyle(fontWeight: FontWeight.w600)),
                                   if (row['email'] != null && row['email'].toString().isNotEmpty)
                                     Text(row['email'], style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                                 ],
@@ -666,14 +664,14 @@ class _EmployeesScreenState extends State<EmployeesScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.edit_outlined, size: 18, color: AppTheme.primaryNavy),
+                                      icon: Icon(Icons.edit_outlined, size: 18, color: AppTheme.primaryNavy),
                                       tooltip: l10n.t('employee_edit'),
                                       onPressed: () => _openEmployeeDialog(employee: emp),
                                       splashRadius: 18,
                                     ),
                                     if (emp.isActive)
                                       IconButton(
-                                        icon: const Icon(Icons.person_off_outlined, size: 18, color: AppTheme.errorRed),
+                                        icon: Icon(Icons.person_off_outlined, size: 18, color: AppTheme.errorRed),
                                         tooltip: l10n.t('deactivate'),
                                         onPressed: () => _confirmDeactivate(emp),
                                         splashRadius: 18,

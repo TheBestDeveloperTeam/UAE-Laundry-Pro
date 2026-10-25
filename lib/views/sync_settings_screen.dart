@@ -24,7 +24,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final api = context.read<ApiClient>();
       final res = await api.get('/sync/status');
@@ -39,6 +39,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
   }
 
   Future<void> _push() async {
+    final l10n = context.l10n;
     setState(() => _isSyncing = true);
     try {
       final api = context.read<ApiClient>();
@@ -54,7 +55,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sync Error: $e'), backgroundColor: AppTheme.errorRed),
+          SnackBar(content: Text(l10n.t('sync_error').replaceAll('{error}', e.toString())), backgroundColor: AppTheme.errorRed),
         );
       }
     } finally {
@@ -66,6 +67,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
   }
 
   void _showQueueInspectorModal(int pendingCount) {
+    final l10n = context.l10n;
     final mockQueue = [
       {
         'id': 'TX-8041',
@@ -179,6 +181,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
   }
 
   void _showConflictHistoryModal() {
+    final l10n = context.l10n;
     final conflictLogs = [
       {
         'entity': 'customer:12 (Ahmed Al Mansoori)',
@@ -199,7 +202,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Container(
         height: 480,
         padding: const EdgeInsets.all(20),
@@ -209,11 +212,10 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
+                Row(children: [
                     Icon(Icons.history_toggle_off, color: AppTheme.primaryNavy),
                     SizedBox(width: 8),
-                    Text('Sync Conflict Audit Log', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(l10n.t('sync_conflict_audit_log'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   ],
                 ),
                 IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
@@ -274,11 +276,11 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
       appBar: AppBar(
         title: Text(l10n.t('sync')),
         actions: [
-          IconButton(onPressed: _loading ? null : _load, icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: _loading ? null : _load, icon: Icon(Icons.refresh)),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
@@ -310,21 +312,21 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                             size: 32,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 l10n.t('sync_enabled'),
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Text(
                                 isEnabled
                                     ? 'Node is actively paired with cloud replication cluster'
                                     : 'Offline standalone mode',
-                                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                style: TextStyle(color: Colors.white70, fontSize: 13),
                               ),
                             ],
                           ),
@@ -332,7 +334,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   // Metrics Cards
                   Row(
@@ -348,9 +350,9 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                               children: [
                                 Text(
                                   l10n.t('sync_pending'),
-                                  style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                                 ),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6),
                                 Text(
                                   '$pendingCount',
                                   style: TextStyle(
@@ -364,7 +366,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Card(
                           elevation: 1,
@@ -376,13 +378,12 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                               children: [
                                 Text(
                                   l10n.t('sync_last_push'),
-                                  style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                                 ),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6),
                                 Text(
                                   lastPush.length > 10 ? lastPush.substring(0, 10) : lastPush,
-                                  style: const TextStyle(
-                                    fontSize: 18,
+                                  style: TextStyle(fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primaryNavy,
                                   ),
@@ -394,7 +395,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // Immediate Push Button
                   SizedBox(
@@ -407,20 +408,19 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       icon: _isSyncing
-                          ? const SizedBox(
-                              width: 18,
+                          ? SizedBox(width: 18,
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : const Icon(Icons.cloud_upload),
                       label: Text(
                         _isSyncing ? 'Synchronizing...' : l10n.t('sync_trigger_now'),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       onPressed: _isSyncing ? null : _push,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // Outbox Queue Inspector
                   Row(
@@ -428,16 +428,16 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                     children: [
                       Text(
                         l10n.t('sync_queue_inspector'),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       TextButton.icon(
-                        icon: const Icon(Icons.remove_red_eye, size: 16),
-                        label: const Text('Inspect Staged Payloads'),
+                        icon: Icon(Icons.remove_red_eye, size: 16),
+                        label: Text(l10n.t('sync_inspect_payloads')),
                         onPressed: () => _showQueueInspectorModal(pendingCount),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Card(
                     elevation: 1,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -452,7 +452,7 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                               pendingCount == 0 ? Icons.check_circle : Icons.hourglass_top,
                               color: pendingCount == 0 ? AppTheme.accentTeal : AppTheme.warningOrange,
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,9 +461,9 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                                     pendingCount == 0
                                         ? l10n.t('sync_clean')
                                         : '$pendingCount transactions staged in local SQLite outbox queue.',
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     'Click to inspect pending sales, payments, customer updates, and audit payloads.',
                                     style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
@@ -471,13 +471,13 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                                 ],
                               ),
                             ),
-                            const Icon(Icons.chevron_right, color: Colors.grey),
+                            Icon(Icons.chevron_right, color: Colors.grey),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   // Conflict Resolution Engine
                   Row(
@@ -485,23 +485,23 @@ class _SyncSettingsScreenState extends State<SyncSettingsScreen> {
                     children: [
                       Text(
                         l10n.t('sync_conflicts'),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       TextButton.icon(
-                        icon: const Icon(Icons.history, size: 16),
-                        label: const Text('View Conflict History'),
+                        icon: Icon(Icons.history, size: 16),
+                        label: Text(l10n.t('sync_view_conflicts')),
                         onPressed: _showConflictHistoryModal,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Card(
                     elevation: 1,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: ListTile(
-                      leading: const Icon(Icons.security, color: AppTheme.accentTeal),
-                      title: const Text('Deterministic 3-Way Merge Strategy Active'),
-                      subtitle: const Text('Cloud Master Sequence ID tracking with automated replay recovery.'),
+                      leading: Icon(Icons.security, color: AppTheme.accentTeal),
+                      title: Text(l10n.t('sync_merge_strategy_title')),
+                      subtitle: Text(l10n.t('sync_merge_strategy_desc')),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                       onTap: _showConflictHistoryModal,
                     ),

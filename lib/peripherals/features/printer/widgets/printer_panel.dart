@@ -78,7 +78,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
     final name = await showDialog<String>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Save Template'),
+        title: Text(dialogCtx.l10n.t('printer_save_template')),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -412,6 +412,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     ref.listen<AsyncValue<List<PrinterDeviceModel>>>(printersProvider,
         (_, next) {
       next.whenData((items) {
@@ -471,6 +472,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _header() {
+    final l10n = context.l10n;
     return Row(
       children: [
         const Expanded(
@@ -487,7 +489,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
           ),
         ),
         IconButton(
-          tooltip: 'Refresh printers',
+          tooltip: l10n.t('printer_refresh'),
           icon: const Icon(Icons.refresh),
           onPressed: () => ref.invalidate(printersProvider),
         ),
@@ -496,6 +498,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _connectionSection() {
+    final l10n = context.l10n;
     final mode = ref.watch(printerConnectionModeProvider);
     final printers = ref.watch(printersProvider);
     final selectedPrinter = ref.watch(selectedPrinterProvider);
@@ -596,7 +599,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    tooltip: 'Discover network printers',
+                    tooltip: l10n.t('printer_discover_network'),
                     icon: const Icon(Icons.travel_explore),
                     onPressed: _openNetworkScan,
                   ),
@@ -610,6 +613,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _formatSection() {
+    final l10n = context.l10n;
     final paper = ref.watch(paperSizeProvider);
     final copies = ref.watch(printCopiesProvider);
     final title = ref.watch(receiptTitleProvider);
@@ -678,6 +682,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _paperSourceDropdown() {
+    final l10n = context.l10n;
     final sourcesAsync = ref.watch(paperSourcesProvider);
     final selected = ref.watch(selectedPaperSourceProvider);
 
@@ -735,12 +740,13 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
           border: const OutlineInputBorder(),
           helperText: 'Tray lookup failed: $e',
         ),
-        child: const Text('Default / single source'),
+        child: Text(l10n.t('printer_default_source')),
       ),
     );
   }
 
   Widget _arabicSection() {
+    final l10n = context.l10n;
     final codePage = ref.watch(arabicCodePageProvider);
     final reverseRtl = ref.watch(reverseArabicRtlProvider);
     const knownCodePages = <int, String>{
@@ -838,7 +844,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
             value: reverseRtl,
             onChanged: (v) =>
                 ref.read(reverseArabicRtlProvider.notifier).state = v,
-            title: const Text('Reverse Arabic runs for RTL output'),
+            title: Text(l10n.t('printer_reverse_arabic')),
             subtitle: const Text(
               'Keep ON for most printers. Turn OFF only if Arabic text '
               'prints mirrored on your hardware.',
@@ -848,7 +854,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               icon: const Icon(Icons.science),
-              label: const Text('Insert Arabic sample lines'),
+              label: Text(l10n.t('printer_insert_arabic')),
               onPressed: () {
                 _replaceLines(<String>[
                   '[C][B]فاتورة[/B][/C]',
@@ -869,6 +875,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _posReceiptSection() {
+    final l10n = context.l10n;
     return Card(
       color: Theme.of(context).colorScheme.secondaryContainer.withValues(
             alpha: 0.25,
@@ -895,12 +902,12 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
               children: [
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.receipt_long),
-                  label: const Text('Preview POS Receipt'),
+                  label: Text(l10n.t('printer_preview_receipt')),
                   onPressed: _previewPosSample,
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.edit_note),
-                  label: const Text('Load into Editor'),
+                  label: Text(l10n.t('printer_load_editor')),
                   onPressed: _loadPosSampleLines,
                 ),
               ],
@@ -912,6 +919,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _quickCommandsSection() {
+    final l10n = context.l10n;
     final mode = ref.watch(printerConnectionModeProvider);
     final selectedPrinter = ref.watch(selectedPrinterProvider);
     final canSend = mode == PrinterConnectionMode.tcp ||
@@ -948,13 +956,13 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
               children: [
                 OutlinedButton.icon(
                   icon: const Icon(Icons.volume_up),
-                  label: const Text('Beep ×1'),
+                  label: Text(l10n.t('printer_beep_1')),
                   onPressed:
                       canSend ? () => send('Beep ×1', () => manager.buildBeep(times: 1)) : null,
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.notifications_active),
-                  label: const Text('Beep ×3'),
+                  label: Text(l10n.t('printer_beep_3')),
                   onPressed: canSend
                       ? () =>
                           send('Beep ×3', () => manager.buildBeep(times: 3))
@@ -962,19 +970,19 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.arrow_downward),
-                  label: const Text('Feed 3 lines'),
+                  label: Text(l10n.t('printer_feed_3')),
                   onPressed:
                       canSend ? () => send('Feed 3', () => manager.buildFeed(3)) : null,
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.keyboard_double_arrow_down),
-                  label: const Text('Feed 9 lines'),
+                  label: Text(l10n.t('printer_feed_9')),
                   onPressed:
                       canSend ? () => send('Feed 9', () => manager.buildFeed(9)) : null,
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.content_cut),
-                  label: const Text('Cut ×1'),
+                  label: Text(l10n.t('printer_cut_1')),
                   onPressed: canSend
                       ? () => send(
                             'Cut ×1',
@@ -984,7 +992,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                 ),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.cut),
-                  label: const Text('Cut ×3'),
+                  label: Text(l10n.t('printer_cut_3')),
                   onPressed: canSend
                       ? () => send(
                             'Cut ×3',
@@ -1002,6 +1010,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _linesSection() {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1015,7 +1024,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
             ),
             TextButton.icon(
               icon: const Icon(Icons.bookmark),
-              label: const Text('Load'),
+              label: Text(l10n.t('printer_load')),
               onPressed: _loadTemplate,
             ),
             TextButton.icon(
@@ -1067,7 +1076,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Remove line',
+                      tooltip: l10n.t('printer_remove_line'),
                       icon: const Icon(Icons.remove_circle_outline),
                       onPressed: () => _removeLine(entry.key),
                     ),
@@ -1080,6 +1089,7 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _actionsSection() {
+    final l10n = context.l10n;
     final mode = ref.watch(printerConnectionModeProvider);
     final selectedPrinter = ref.watch(selectedPrinterProvider);
     final canPrint = mode == PrinterConnectionMode.tcp ||
@@ -1090,27 +1100,27 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
       children: [
         FilledButton.icon(
           icon: const Icon(Icons.flash_on),
-          label: const Text('Silent Print (Ctrl+P)'),
+          label: Text(l10n.t('printer_silent_print')),
           onPressed: canPrint ? _print : null,
         ),
         FilledButton.tonalIcon(
           icon: const Icon(Icons.preview),
-          label: const Text('Preview & Print'),
+          label: Text(l10n.t('printer_preview_print')),
           onPressed: canPrint ? _previewAndPrint : null,
         ),
         OutlinedButton.icon(
           icon: const Icon(Icons.code),
-          label: const Text('Preview Hex'),
+          label: Text(l10n.t('printer_preview_hex')),
           onPressed: _showHexPreview,
         ),
         OutlinedButton.icon(
           icon: const Icon(Icons.playlist_add),
-          label: const Text('Queue Job'),
+          label: Text(l10n.t('printer_queue_job')),
           onPressed: canPrint ? _enqueue : null,
         ),
         OutlinedButton.icon(
           icon: const Icon(Icons.cloud_upload_outlined),
-          label: const Text('Flush Queue'),
+          label: Text(l10n.t('printer_flush_queue')),
           onPressed: mode == PrinterConnectionMode.spooler &&
                   selectedPrinter != null
               ? _flushQueue

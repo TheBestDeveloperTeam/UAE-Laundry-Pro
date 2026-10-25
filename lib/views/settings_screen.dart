@@ -39,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final data = await _settings.getSettings();
       final settings = data['settings'] as Map? ?? {};
@@ -52,6 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _saveSettings() async {
+    final l10n = context.l10n;
     await _settings.updateSettings({'business.name': _businessNameController.text.trim()});
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.t('saved'))));
@@ -59,6 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _runBackup() async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final result = await _backup.run();
@@ -87,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   result['verified'] == true ? Icons.check_circle : Icons.error,
                   color: result['verified'] == true ? AppTheme.successGreen : AppTheme.errorRed,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(result['verified'] == true ? l10n.t('backup_verified') : l10n.t('backup_failed')),
               ],
             ),
@@ -95,12 +97,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('File: $fileName', style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
+                Text(l10n.t('settings_file_label').replaceAll('{file}', fileName), style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
                 Text('${l10n.t('backup_checksum')}:', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
                 SelectableText(
                   result['checksum_sha256']?.toString() ?? 'N/A',
-                  style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                  style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
                 ),
               ],
             ),
@@ -138,8 +140,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: AppTheme.errorRed, size: 28),
-            const SizedBox(width: 10),
+            Icon(Icons.warning_amber_rounded, color: AppTheme.errorRed, size: 28),
+            SizedBox(width: 10),
             Text(l10n.t('restore_confirm_title')),
           ],
         ),
@@ -147,8 +149,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.t('restore_confirm_warning'), style: const TextStyle(color: AppTheme.errorRed, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
+            Text(l10n.t('restore_confirm_warning'), style: TextStyle(color: AppTheme.errorRed, fontWeight: FontWeight.bold)),
+            SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -158,8 +160,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Target Archive: $fileName', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
+                  Text(l10n.t('settings_target_archive').replaceAll('{file}', fileName), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 4),
                   Text('Dry Run Status: ${isCompatible ? "PASS" : "FAIL"} ($stCount SQL statements)', style: TextStyle(fontSize: 12, color: isCompatible ? AppTheme.successGreen : AppTheme.errorRed, fontWeight: FontWeight.bold)),
                 ],
               ),
@@ -210,7 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.t('settings'))),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
@@ -222,15 +224,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(l10n.t('settings_general'), style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         TextField(
                           controller: _businessNameController,
                           decoration: InputDecoration(
                             labelText: l10n.t('business_name'),
-                            prefixIcon: const Icon(Icons.storefront_outlined),
+                            prefixIcon: Icon(Icons.storefront_outlined),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         FilledButton(
                           style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
                           onPressed: _saveSettings,
@@ -240,39 +242,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Peripherals & Hardware Card
                 Card(
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.devices, color: AppTheme.primaryNavy),
-                        title: Text(l10n.t('peripherals'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                        leading: Icon(Icons.devices, color: AppTheme.primaryNavy),
+                        title: Text(l10n.t('peripherals'), style: TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(l10n.t('peripherals_settings_hint')),
-                        trailing: const Icon(Icons.chevron_right),
+                        trailing: Icon(Icons.chevron_right),
                         onTap: () => context.push('/settings/peripherals'),
                       ),
-                      const Divider(height: 1),
+                      Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.folder_outlined, color: AppTheme.primaryNavy),
-                        title: const Text('Global Paths & Directories', style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: const Text('Backup, logs, receipts, images, and export directories'),
-                        trailing: const Icon(Icons.chevron_right),
+                        leading: Icon(Icons.folder_outlined, color: AppTheme.primaryNavy),
+                        title: Text(l10n.t('settings_global_paths'), style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(l10n.t('settings_global_paths_desc')),
+                        trailing: Icon(Icons.chevron_right),
                         onTap: () => context.push('/settings/global-config'),
                       ),
-                      const Divider(height: 1),
+                      Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.security_outlined, color: AppTheme.primaryNavy),
-                        title: const Text('Roles & Permissions', style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: const Text('Manage user authorization and access roles'),
-                        trailing: const Icon(Icons.chevron_right),
+                        leading: Icon(Icons.security_outlined, color: AppTheme.primaryNavy),
+                        title: Text(l10n.t('settings_roles_perms'), style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(l10n.t('settings_roles_perms_desc')),
+                        trailing: Icon(Icons.chevron_right),
                         onTap: () => context.push('/settings/roles'),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Database Backup & Disaster Recovery Card (Sprint 20)
                 Card(
@@ -289,28 +291,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 color: AppTheme.accentCyan.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Icon(Icons.backup_outlined, color: AppTheme.primaryNavy),
+                              child: Icon(Icons.backup_outlined, color: AppTheme.primaryNavy),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(l10n.t('backup'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy)),
-                                  const Text('Disaster recovery, SHA-256 verification, and snapshot restore', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                  Text(l10n.t('backup'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy)),
+                                  Text(l10n.t('settings_disaster_recovery'), style: TextStyle(fontSize: 12, color: Colors.grey)),
                                 ],
                               ),
                             ),
                             FilledButton.icon(
                               style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
                               onPressed: _runBackup,
-                              icon: const Icon(Icons.cloud_upload_outlined, size: 16),
+                              icon: Icon(Icons.cloud_upload_outlined, size: 16),
                               label: Text(l10n.t('backup_run')),
                             ),
                           ],
                         ),
                         if (_lastBackupResult != null) ...[
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
@@ -319,21 +321,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.info_outline, size: 16, color: AppTheme.infoBlue),
-                                const SizedBox(width: 8),
-                                Text(_lastBackupResult!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                Icon(Icons.info_outline, size: 16, color: AppTheme.infoBlue),
+                                SizedBox(width: 8),
+                                Text(_lastBackupResult!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                               ],
                             ),
                           ),
                         ],
-                        const Divider(height: 24),
+                        Divider(height: 24),
 
-                        Text('Backup Snapshots History', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
-                        const SizedBox(height: 8),
+                        Text(l10n.t('settings_backup_snapshots'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+                        SizedBox(height: 8),
                         if (_backups.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Center(child: Text('No backup archives created yet.', style: TextStyle(color: Colors.grey))),
+                          Padding(padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Center(child: Text(l10n.t('settings_no_backups'), style: const TextStyle(color: Colors.grey))),
                           )
                         else
                           ListView.separated(
@@ -350,19 +351,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                               return ListTile(
                                 dense: true,
-                                leading: const Icon(Icons.archive_outlined, color: AppTheme.primaryNavy),
-                                title: Text(fileName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                leading: Icon(Icons.archive_outlined, color: AppTheme.primaryNavy),
+                                title: Text(fileName, style: TextStyle(fontWeight: FontWeight.w600)),
                                 subtitle: Text('$dateStr  •  $sizeKb KB'),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.verified_outlined, size: 18, color: AppTheme.infoBlue),
+                                      icon: Icon(Icons.verified_outlined, size: 18, color: AppTheme.infoBlue),
                                       tooltip: l10n.t('backup_checksum'),
                                       onPressed: () => _verifyBackupFile(fileName),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.restore_page_outlined, size: 18, color: AppTheme.errorRed),
+                                      icon: Icon(Icons.restore_page_outlined, size: 18, color: AppTheme.errorRed),
                                       tooltip: l10n.t('restore_run'),
                                       onPressed: () => _handleRestore(fileName),
                                     ),

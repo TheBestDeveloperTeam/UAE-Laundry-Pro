@@ -34,7 +34,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final items = await _inventory.listMovements();
       if (mounted) {
@@ -49,6 +49,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> _showReceiptDialog() async {
+    final l10n = context.l10n;
     final qtyController = TextEditingController();
     final costController = TextEditingController();
     final productIdController = TextEditingController();
@@ -65,13 +66,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
               decoration: InputDecoration(labelText: context.l10n.t('product_id')),
               keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: qtyController,
               decoration: InputDecoration(labelText: context.l10n.t('quantity')),
               keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: costController,
               decoration: InputDecoration(labelText: context.l10n.t('unit_cost')),
@@ -103,6 +104,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final filtered = _movements.where((m) {
       final q = _searchController.text.trim().toLowerCase();
       if (q.isEmpty) return true;
@@ -116,11 +118,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
         title: Text(context.l10n.t('inventory_management')),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: _load,
           ),
           IconButton(
-            icon: const Icon(Icons.add_box_outlined),
+            icon: Icon(Icons.add_box_outlined),
             tooltip: context.l10n.t('inventory_receipt'),
             onPressed: _showReceiptDialog,
           ),
@@ -133,13 +135,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search),
                 hintText: context.l10n.t('search_movements'),
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Expanded(
               child: AppDataTable(
                 columns: [

@@ -33,7 +33,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final pending = await _sales.listPending();
       final partial = await _sales.listPartial();
@@ -62,6 +62,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
   }
 
   Future<void> _openPaymentDialog(OrderModel order) async {
+    final l10n = context.l10n;
     final balance = double.tryParse(order.balanceDue?.toString() ?? '0') ?? 0;
     if (balance <= 0) return;
 
@@ -90,42 +91,40 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total: AED ${order.grandTotal}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text('Total: AED ${order.grandTotal}', style: TextStyle(fontWeight: FontWeight.w600)),
                         Text('Balance: AED ${balance.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.error)),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text('Payment Method / طريقة الدفع:', style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 16),
+                  Text(l10n.t('pending_payment_method'), style: Theme.of(context).textTheme.bodySmall),
+                  SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     initialValue: selectedMethod,
-                    decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                    items: const [
-                      DropdownMenuItem(value: 'cash', child: Text('Cash / نقدي')),
-                      DropdownMenuItem(value: 'card', child: Text('Card / بطاقة ائتمان')),
-                      DropdownMenuItem(value: 'cheque', child: Text('Cheque / شيك')),
-                      DropdownMenuItem(value: 'bank_transfer', child: Text('Bank Transfer / تحويل بنكي')),
+                    decoration: InputDecoration(border: OutlineInputBorder(), isDense: true),
+                    items: [DropdownMenuItem(value: 'cash', child: Text(l10n.t('pending_cash'))),
+                      DropdownMenuItem(value: 'card', child: Text(l10n.t('pending_card'))),
+                      DropdownMenuItem(value: 'cheque', child: Text(l10n.t('pending_cheque'))),
+                      DropdownMenuItem(value: 'bank_transfer', child: Text(l10n.t('pending_bank_transfer'))),
                     ],
                     onChanged: (val) {
                       if (val != null) setDialogState(() => selectedMethod = val);
                     },
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Amount (AED) / المبلغ',
+                    decoration: InputDecoration(border: OutlineInputBorder(),
+                      labelText: l10n.t('pending_amount_label'),
                       prefixText: 'AED ',
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: refController,
                     decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(),
                       labelText: selectedMethod == 'cheque'
                           ? 'Cheque No. / Bank'
                           : 'Reference / Auth No. (Optional)',
@@ -137,7 +136,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.t('pos_close'))),
               FilledButton.icon(
-                icon: const Icon(Icons.check_circle),
+                icon: Icon(Icons.check_circle),
                 onPressed: () => Navigator.pop(ctx, true),
                 label: Text(context.l10n.t('pos_pay')),
               ),
@@ -196,6 +195,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
   }
 
   void _showReceiptOptions(OrderModel order) {
+    final l10n = context.l10n;
     final receipt = ReceiptModel.fromOrderModel(order);
     showModalBottomSheet(
       context: context,
@@ -206,11 +206,11 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Receipt Options — ${receipt.orderNo}', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: const Text('View Thermal Receipt Preview'),
-              subtitle: const Text('Text format with 5% VAT breakdown'),
+              leading: Icon(Icons.receipt_long),
+              title: Text(l10n.t('pending_view_thermal')),
+              subtitle: Text(l10n.t('pending_thermal_desc')),
               onTap: () {
                 Navigator.pop(ctx);
                 final text = ReceiptRenderer.toThermal(receipt);
@@ -221,7 +221,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                     content: SingleChildScrollView(
                       child: SelectableText(
                         text,
-                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                        style: TextStyle(fontFamily: 'monospace', fontSize: 12),
                       ),
                     ),
                     actions: [
@@ -232,8 +232,8 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('Generate & View A4 Tax Invoice'),
+              leading: Icon(Icons.picture_as_pdf),
+              title: Text(l10n.t('pending_a4_invoice')),
               subtitle: const Text('Compliant UAE VAT Tax Invoice format'),
               onTap: () async {
                 Navigator.pop(ctx);
@@ -260,6 +260,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
   }
 
   Future<void> _updateStatus(OrderModel order) async {
+    final l10n = context.l10n;
     const statuses = ['confirmed', 'processing', 'ready', 'delivered', 'closed'];
     final selected = await showDialog<String>(
       context: context,
@@ -283,7 +284,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('pending_invoices')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -295,7 +296,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                   flex: 3,
                   child: TextField(
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: Icon(Icons.search),
                       hintText: context.l10n.t('search_orders_hint'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       isDense: true,
@@ -303,7 +304,7 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
                     onChanged: (val) => setState(() => _searchQuery = val),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 SegmentedButton<String>(
                   segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),

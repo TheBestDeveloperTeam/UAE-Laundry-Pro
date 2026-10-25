@@ -40,6 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootSequence() async {
+    final l10n = context.l10n;
     final auth = context.read<AuthProvider>();
     final authSvc = widget.authService ?? AuthService();
     final install = widget.installService ?? InstallService();
@@ -96,6 +97,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _triggerFatalNodeError() {
+    final l10n = context.l10n;
     if (!mounted) return;
     setState(() {
       _hasFatalError = true;
@@ -117,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen> {
         logicalId: 'splash.bg.light',
         child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
+          constraints: BoxConstraints(maxWidth: 480),
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Card(
@@ -132,27 +134,26 @@ class _SplashScreenState extends State<SplashScreen> {
                       size: 68,
                       color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       l10n.t('app_name'),
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       'Dedicated Workstation Node',
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
                     if (!_hasFatalError) ...[
-                      const LinearProgressIndicator(minHeight: 6),
-                      const SizedBox(height: 16),
+                      LinearProgressIndicator(minHeight: 6),
+                      SizedBox(height: 16),
                       Text(
                         l10n.t(_currentStepKey),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 13,
+                        style: TextStyle(fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF0D6E6E),
                         ),
@@ -175,7 +176,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                   Icons.error_outline_rounded,
                                   color: Theme.of(context).colorScheme.error,
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     l10n.t(_fatalErrorTitle!),
@@ -188,7 +189,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             Text(
                               l10n.t(_fatalErrorDesc!),
                               style: TextStyle(
@@ -213,7 +214,7 @@ class _SplashScreenState extends State<SplashScreen> {
                             },
                             child: Text(l10n.t('retry')),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           FilledButton(
                             style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
                             onPressed: _exitApplication,

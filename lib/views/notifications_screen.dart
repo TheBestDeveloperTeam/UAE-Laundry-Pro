@@ -24,7 +24,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       await _svc.generateAlerts(); // Generate fresh alerts
       final res = await _svc.list();
@@ -56,6 +56,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _markRead(int id) async {
+    final l10n = context.l10n;
     try {
       await _svc.markRead(id);
       await _load();
@@ -65,6 +66,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _markAllRead() async {
+    final l10n = context.l10n;
     try {
       await _svc.markAllRead();
       await _load();
@@ -90,7 +92,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: Colors.white),
               onPressed: _markAllRead,
-              icon: const Icon(Icons.done_all, size: 18),
+              icon: Icon(Icons.done_all, size: 18),
               label: Text(l10n.t('notifications_mark_all')),
             ),
           IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
@@ -111,7 +113,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     if (val) setState(() => _activeFilter = 'all');
                   },
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ChoiceChip(
                   label: Text('${l10n.t('notifications_unread_only')} ($unreadCount)'),
                   selected: _activeFilter == 'unread',
@@ -122,19 +124,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
 
           // Notification List
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : filtered.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.notifications_none, size: 64, color: AppTheme.secondaryGrey),
-                            const SizedBox(height: 12),
+                            Icon(Icons.notifications_none, size: 64, color: AppTheme.secondaryGrey),
+                            SizedBox(height: 12),
                             Text(
                               l10n.t('notifications_empty'),
                               style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 16),
@@ -201,7 +203,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const SizedBox(height: 6),
+                                    SizedBox(height: 6),
                                     Text(
                                       e['message'] ?? '',
                                       style: TextStyle(
@@ -209,18 +211,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                         fontSize: 13,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    SizedBox(height: 8),
                                     Text(
                                       dt.toLocal().toString().split('.')[0],
-                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 11),
+                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 11),
                                     ),
                                   ],
                                 ),
                                 trailing: read
                                     ? null
                                     : IconButton(
-                                        icon: const Icon(Icons.check_circle_outline, color: AppTheme.primaryNavy),
-                                        tooltip: 'Mark as read',
+                                        icon: Icon(Icons.check_circle_outline, color: AppTheme.primaryNavy),
+                                        tooltip: l10n.t('notification_mark_read'),
                                         onPressed: () => _markRead(id),
                                       ),
                               ),

@@ -44,7 +44,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final profile = await _business.getProfile();
       _nameController.text = profile['name']?.toString() ?? 'UAE Laundry Pro LLC';
@@ -63,6 +63,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
   }
 
   Future<void> _save() async {
+    final l10n = context.l10n;
     setState(() => _saving = true);
     try {
       await _business.updateProfile({
@@ -105,11 +106,11 @@ class _BusinessScreenState extends State<BusinessScreen> {
       appBar: AppBar(
         title: Text(l10n.t('business_profile')),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loading ? null : _load),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _loading ? null : _load),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -132,16 +133,16 @@ class _BusinessScreenState extends State<BusinessScreen> {
                             color: Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.business, color: Colors.white, size: 32),
+                          child: Icon(Icons.business, color: Colors.white, size: 32),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 _nameController.text.isEmpty ? 'UAE Laundry Pro LLC' : _nameController.text,
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -169,20 +170,20 @@ class _BusinessScreenState extends State<BusinessScreen> {
                             controller: _nameController,
                             decoration: InputDecoration(
                               labelText: l10n.t('business_name'),
-                              prefixIcon: const Icon(Icons.storefront, color: AppTheme.primaryNavy),
-                              border: const OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.storefront, color: AppTheme.primaryNavy),
+                              border: OutlineInputBorder(),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           TextField(
                             controller: _trnController,
                             decoration: InputDecoration(
                               labelText: l10n.t('business_trn'),
-                              prefixIcon: const Icon(Icons.receipt_long, color: AppTheme.accentTeal),
-                              border: const OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.receipt_long, color: AppTheme.accentTeal),
+                              border: OutlineInputBorder(),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Row(
                             children: [
                               Expanded(
@@ -190,25 +191,25 @@ class _BusinessScreenState extends State<BusinessScreen> {
                                   controller: _emailController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('business_email'),
-                                    prefixIcon: const Icon(Icons.email, color: AppTheme.primaryNavy),
-                                    border: const OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.email, color: AppTheme.primaryNavy),
+                                    border: OutlineInputBorder(),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Expanded(
                                 child: TextField(
                                   controller: _phoneController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('phone'),
-                                    prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryNavy),
-                                    border: const OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.phone, color: AppTheme.primaryNavy),
+                                    border: OutlineInputBorder(),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           TextField(
                             controller: _addressController,
                             decoration: InputDecoration(
@@ -224,7 +225,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
                                 flex: 3,
                                 child: DropdownButtonFormField<String>(
                                   initialValue: _selectedCurrency,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     labelText: 'Primary Business Currency',
                                     prefixIcon: Icon(Icons.currency_exchange, color: AppTheme.primaryNavy),
                                     border: OutlineInputBorder(),
@@ -248,7 +249,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
                                 flex: 2,
                                 child: DropdownButtonFormField<double>(
                                   initialValue: _vatRate,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     labelText: 'Standard VAT Rate',
                                     prefixIcon: Icon(Icons.percent, color: AppTheme.accentTeal),
                                     border: OutlineInputBorder(),
@@ -265,7 +266,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
@@ -277,12 +278,11 @@ class _BusinessScreenState extends State<BusinessScreen> {
                               ),
                               onPressed: _saving ? null : _save,
                               icon: _saving
-                                  ? const SizedBox(
-                                      width: 18,
+                                  ? SizedBox(width: 18,
                                       height: 18,
                                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                     )
-                                  : const Icon(Icons.save),
+                                  : Icon(Icons.save),
                               label: Text(
                                 _saving ? 'Saving...' : l10n.t('save'),
                                 style: const TextStyle(fontWeight: FontWeight.bold),

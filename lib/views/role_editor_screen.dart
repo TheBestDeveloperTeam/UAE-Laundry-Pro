@@ -24,6 +24,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
   }
 
   Future<void> _fetchRoles() async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final res = await _api.get('/roles');
@@ -35,7 +36,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load roles')),
+          SnackBar(content: Text(l10n.t('role_load_failed'))),
         );
       }
     } finally {
@@ -44,17 +45,18 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
   }
 
   Future<void> _updateRole(int id, String name, List<dynamic> permissions) async {
+    final l10n = context.l10n;
     try {
       await _api.put('/roles/$id', body: {'name': name, 'permissions': permissions});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Role updated successfully')),
+          SnackBar(content: Text(l10n.t('role_updated'))),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update role')),
+          SnackBar(content: Text(l10n.t('role_update_failed'))),
         );
       }
     }
@@ -135,6 +137,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
   };
 
   void _showRoleDialog(Map<dynamic, dynamic>? role) {
+    final l10n = context.l10n;
     final isNew = role == null;
     final nameController = TextEditingController(text: role?['name'] ?? '');
     final List<String> currentPermissions =
@@ -143,13 +146,14 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
     showDialog(
       context: context,
       builder: (context) {
+    final l10n = context.l10n;
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
               title: Row(
                 children: [
                   Icon(isNew ? Icons.add_moderator : Icons.security, color: Theme.of(context).primaryColor),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Text(isNew ? 'New Role Configuration' : 'Edit Role Permissions'),
                 ],
               ),
@@ -161,25 +165,24 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                   children: [
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Role Title (e.g. Branch Supervisor)',
+                      decoration: InputDecoration(labelText: l10n.t('role_title_hint'),
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.badge),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           '${currentPermissions.length} permissions granted',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         Row(
                           children: [
                             TextButton.icon(
-                              icon: const Icon(Icons.select_all, size: 16),
-                              label: const Text('Grant All (*)'),
+                              icon: Icon(Icons.select_all, size: 16),
+                              label: Text(l10n.t('role_grant_all')),
                               onPressed: () {
                                 setStateDialog(() {
                                   if (!currentPermissions.contains('*')) {
@@ -194,8 +197,8 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                               },
                             ),
                             TextButton.icon(
-                              icon: const Icon(Icons.clear_all, size: 16),
-                              label: const Text('Clear All'),
+                              icon: Icon(Icons.clear_all, size: 16),
+                              label: Text(l10n.t('role_clear_all')),
                               onPressed: () {
                                 setStateDialog(() {
                                   currentPermissions.clear();
@@ -292,7 +295,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                       } catch (_) {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Failed to create role')),
+                          SnackBar(content: Text('Failed to create role')),
                         );
                       }
                     } else {

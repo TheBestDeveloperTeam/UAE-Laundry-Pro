@@ -32,6 +32,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
   }
 
   Future<void> _scanTags() async {
+    final l10n = context.l10n;
     setState(() {
       _isScanning = true;
       _statusMessage = null;
@@ -101,6 +102,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
   }
 
   void _clearScan() {
+    final l10n = context.l10n;
     setState(() {
       _scannedItems.clear();
       _statusMessage = null;
@@ -108,6 +110,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
   }
 
   void _showReaderConfigDialog() {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -143,22 +146,20 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                   setState(() => _readerMode = val);
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               TextField(
                 controller: _readerHostController,
-                decoration: const InputDecoration(
-                  labelText: 'Reader IPv4 Address',
-                  hintText: '192.168.1.180',
+                decoration: InputDecoration(labelText: l10n.t('rfid_reader_ip'),
+                  hintText: l10n.t('rfid_reader_ip_hint'),
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lan),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextField(
                 controller: _readerPortController,
-                decoration: const InputDecoration(
-                  labelText: 'TCP Port (LLRP/ASCII)',
-                  hintText: '5084',
+                decoration: InputDecoration(labelText: l10n.t('rfid_tcp_port'),
+                  hintText: l10n.t('rfid_tcp_port_hint'),
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.numbers),
                 ),
@@ -190,14 +191,14 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
         title: Text(l10n.t('rfid_tracking')),
         actions: [
           IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'Reader Hardware Settings',
+            icon: Icon(Icons.tune),
+            tooltip: l10n.t('rfid_reader_settings'),
             onPressed: _showReaderConfigDialog,
           ),
           if (_scannedItems.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              tooltip: 'Clear Scanned',
+              icon: Icon(Icons.delete_sweep),
+              tooltip: l10n.t('rfid_clear_scanned'),
               onPressed: _clearScan,
             ),
         ],
@@ -224,7 +225,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                     color: _isScanning ? AppTheme.accentTeal : AppTheme.primaryNavy,
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,10 +238,10 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                           color: _isScanning ? AppTheme.accentTeal : AppTheme.primaryNavy,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         _statusMessage ?? 'Connected to ${_readerHostController.text}:${_readerPortController.text} (${_readerMode.toUpperCase()} Mode)',
-                        style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                        style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
                       ),
                     ],
                   ),
@@ -253,19 +254,18 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   icon: _isScanning
-                      ? const SizedBox(
-                          width: 16,
+                      ? SizedBox(width: 16,
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Icon(Icons.barcode_reader, size: 20),
+                      : Icon(Icons.barcode_reader, size: 20),
                   label: Text(l10n.t('rfid_scan_button')),
                   onPressed: _isScanning ? null : _scanTags,
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
 
           // EPC list header
           Padding(
@@ -275,11 +275,11 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
               children: [
                 Text(
                   l10n.t('rfid_epc_list'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
                   '${_scannedItems.length} Items Detected',
-                  style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                  style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
                 ),
               ],
             ),
@@ -293,7 +293,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade400),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         Text(
                           l10n.t('rfid_empty'),
                           style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 15),

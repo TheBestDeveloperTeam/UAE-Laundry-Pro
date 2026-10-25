@@ -30,7 +30,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final res = await _service.list();
       if (mounted) {
@@ -45,6 +45,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   void _showForm([CustomerModel? existing]) {
+    final l10n = context.l10n;
     final isNew = existing == null;
     final phoneCtrl = TextEditingController(text: existing?.phone ?? '');
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
@@ -82,39 +83,39 @@ class _CustomersScreenState extends State<CustomersScreen> {
               children: [
                 TextField(
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: 'Phone Number (Mobile) *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
+                  decoration: InputDecoration(labelText: l10n.t('customer_phone_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Full Customer Name *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
+                  decoration: InputDecoration(labelText: l10n.t('customer_name_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: TextField(
                         controller: emailCtrl,
-                        decoration: const InputDecoration(labelText: 'Email Address', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
+                        decoration: InputDecoration(labelText: l10n.t('customer_email_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: trnCtrl,
-                        decoration: const InputDecoration(labelText: 'Tax TRN (B2B)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.verified)),
+                        decoration: InputDecoration(labelText: l10n.t('customer_trn_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.verified)),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 TextField(
                   controller: addressCtrl,
-                  decoration: const InputDecoration(labelText: 'Delivery Address / Villa / Apt', border: OutlineInputBorder(), prefixIcon: Icon(Icons.home)),
+                  decoration: InputDecoration(labelText: l10n.t('customer_address_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.home)),
                 ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
+                SizedBox(height: 16),
+                Divider(),
+                SizedBox(height: 8),
                 Text('Loyalty Program & VIP Status', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 Wrap(
@@ -126,7 +127,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: tier,
-                        decoration: const InputDecoration(labelText: 'Loyalty Tier', border: OutlineInputBorder(), isDense: true),
+                        decoration: InputDecoration(labelText: l10n.t('customer_loyalty_label'), border: const OutlineInputBorder(), isDense: true),
                         items: const [
                           DropdownMenuItem(value: 'Bronze', child: Text('🥉 Bronze Tier', overflow: TextOverflow.ellipsis)),
                           DropdownMenuItem(value: 'Silver', child: Text('🥈 Silver Tier (5%)', overflow: TextOverflow.ellipsis)),
@@ -212,7 +213,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   width: 340,
                   child: TextField(
                     controller: _searchController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Search phone, name or email...',
                       prefixIcon: Icon(Icons.search),
                       border: OutlineInputBorder(),

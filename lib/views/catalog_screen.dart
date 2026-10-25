@@ -40,7 +40,7 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final services = await _catalog.listServices();
       final products = await _catalog.listProducts();
@@ -59,6 +59,7 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
   }
 
   void _showServiceDialog([Map<String, dynamic>? existing]) {
+    final l10n = context.l10n;
     final isNew = existing == null;
     final nameCtrl = TextEditingController(text: existing?['name']?.toString() ?? '');
     final codeCtrl = TextEditingController(text: existing?['code']?.toString() ?? '');
@@ -85,11 +86,11 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
         onSuccess: _load,
         content: Column(
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name *')),
+            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Name *')),
             const SizedBox(height: 16),
-            TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Code')),
+            TextField(controller: codeCtrl, decoration: InputDecoration(labelText: 'Code')),
             const SizedBox(height: 16),
-            TextField(controller: rateCtrl, decoration: const InputDecoration(labelText: 'Base Rate (AED) *'), keyboardType: TextInputType.number),
+            TextField(controller: rateCtrl, decoration: InputDecoration(labelText: 'Base Rate (AED) *'), keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -97,6 +98,7 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
   }
 
   void _showProductDialog([Map<String, dynamic>? existing]) {
+    final l10n = context.l10n;
     final isNew = existing == null;
     final nameCtrl = TextEditingController(text: existing?['name']?.toString() ?? '');
     final rateCtrl = TextEditingController(text: existing?['base_rate']?.toString() ?? '10.00');
@@ -119,9 +121,9 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
         onSuccess: _load,
         content: Column(
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Product Name *')),
+            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Product Name *')),
             const SizedBox(height: 16),
-            TextField(controller: rateCtrl, decoration: const InputDecoration(labelText: 'Rate (AED) *'), keyboardType: TextInputType.number),
+            TextField(controller: rateCtrl, decoration: InputDecoration(labelText: 'Rate (AED) *'), keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -150,9 +152,9 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
             _services,
             _showServiceDialog,
             [
-              const AppDataTableColumn(label: 'Name', key: 'name'),
-              const AppDataTableColumn(label: 'Code', key: 'code'),
-              const AppDataTableColumn(label: 'Base Rate', key: 'base_rate', numeric: true),
+              AppDataTableColumn(label: 'Name', key: 'name'),
+              AppDataTableColumn(label: 'Code', key: 'code'),
+              AppDataTableColumn(label: 'Base Rate', key: 'base_rate', numeric: true),
               AppDataTableColumn(label: 'Status', cellBuilder: (row) => Text(row['status'] ?? 'active')),
             ],
           ),
@@ -182,7 +184,7 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
                 width: 300,
                 child: TextField(
                   controller: _searchController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Search...',
                     prefixIcon: Icon(Icons.search),
                   ),

@@ -32,7 +32,7 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       _items = await _terminals.list();
       _branchList = await _branches.list();
@@ -45,9 +45,10 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
   }
 
   void _showAddTerminalDialog([Map<String, dynamic>? existing]) {
+    final l10n = context.l10n;
     if (_branchList.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please create a branch first before pairing terminals')),
+        SnackBar(content: Text(l10n.t('terminal_create_branch_first'))),
       );
       return;
     }
@@ -70,7 +71,7 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
           title: Row(
             children: [
               Icon(isNew ? Icons.add_to_queue : Icons.settings_ethernet, color: AppTheme.primaryNavy),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(isNew ? ctx.l10n.t('terminal_add') : 'Configure Terminal Hardware'),
             ],
           ),
@@ -97,7 +98,7 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
                       if (val != null) setModalState(() => selectedBranchId = val);
                     },
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -105,43 +106,41 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
                           controller: codeCtrl,
                           decoration: InputDecoration(
                             labelText: ctx.l10n.t('terminal_code'),
-                            border: const OutlineInputBorder(),
+                            border: OutlineInputBorder(),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: nameCtrl,
                           decoration: InputDecoration(
                             labelText: ctx.l10n.t('terminal_name'),
-                            border: const OutlineInputBorder(),
+                            border: OutlineInputBorder(),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: ipCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'LAN Binding IP Address',
-                            hintText: '192.168.1.100',
+                          decoration: InputDecoration(labelText: l10n.t('terminal_lan_ip'),
+                            hintText: l10n.t('terminal_lan_ip_hint'),
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.wifi),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: macCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Hardware MAC Address',
-                            hintText: 'XX:XX:XX:XX:XX:XX',
+                          decoration: InputDecoration(labelText: l10n.t('terminal_mac'),
+                            hintText: l10n.t('terminal_mac_hint'),
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.perm_device_information),
                           ),
@@ -149,16 +148,16 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: tokenCtrl,
                     decoration: InputDecoration(
-                      labelText: 'Hardware Security Auth Token',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.vpn_key),
+                      labelText: l10n.t('terminal_auth_token'),
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.vpn_key),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.refresh),
-                        tooltip: 'Regenerate Token',
+                        icon: Icon(Icons.refresh),
+                        tooltip: l10n.t('terminal_regen_token'),
                         onPressed: () {
                           setModalState(() {
                             tokenCtrl.text = 'LP-SEC-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
@@ -220,18 +219,18 @@ class _TerminalsScreenState extends State<TerminalsScreen> {
       appBar: AppBar(
         title: Text(l10n.t('terminals')),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _load),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primaryNavy,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_to_queue),
+        icon: Icon(Icons.add_to_queue),
         label: Text(l10n.t('terminal_add')),
         onPressed: _showAddTerminalDialog,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : _items.isEmpty
               ? Center(
                   child: Text(

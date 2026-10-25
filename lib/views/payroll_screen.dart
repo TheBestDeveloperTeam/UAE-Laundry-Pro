@@ -40,7 +40,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final results = await Future.wait([
         _payroll.listPeriods(),
@@ -73,15 +73,15 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
               controller: startController,
               decoration: InputDecoration(
                 labelText: l10n.t('start_date'),
-                prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+                prefixIcon: Icon(Icons.calendar_today_outlined, size: 18),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: endController,
               decoration: InputDecoration(
                 labelText: l10n.t('end_date'),
-                prefixIcon: const Icon(Icons.calendar_month_outlined, size: 18),
+                prefixIcon: Icon(Icons.calendar_month_outlined, size: 18),
               ),
             ),
           ],
@@ -111,6 +111,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
   }
 
   Future<void> _runPayroll(int periodId) async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _payroll.runPayroll(periodId);
@@ -131,6 +132,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
+    final l10n = ctx.l10n;
         return DraggableScrollableSheet(
           initialChildSize: 0.8,
           maxChildSize: 0.95,
@@ -150,9 +152,9 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                           color: AppTheme.primaryNavy.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Icons.receipt_long, color: AppTheme.primaryNavy, size: 24),
+                        child: Icon(Icons.receipt_long, color: AppTheme.primaryNavy, size: 24),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,27 +182,27 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                             ),
                           );
                         },
-                        icon: const Icon(Icons.download, size: 16, color: AppTheme.primaryNavy),
+                        icon: Icon(Icons.download, size: 16, color: AppTheme.primaryNavy),
                         label: Text(
                           l10n.t('wps_sif_export'),
-                          style: const TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
+                      SizedBox(width: 8),
+                      IconButton(onPressed: () => Navigator.pop(ctx), icon: Icon(Icons.close)),
                     ],
                   ),
-                  const Divider(height: 24),
+                  Divider(height: 24),
 
                   // Header metrics
                   Row(
                     children: [
                       _buildMiniKpi('Employees', '${run.lines.length}', AppTheme.primaryNavy),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       _buildMiniKpi(l10n.t('total_net_pay'), 'AED ${run.totalAmount.toStringAsFixed(2)}', AppTheme.successGreen),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   Text(
                     l10n.t('line_items'),
@@ -283,25 +285,25 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
           indicatorColor: AppTheme.accentCyan,
           indicatorWeight: 3,
           tabs: [
-            Tab(icon: const Icon(Icons.date_range), text: l10n.t('period_range')),
-            Tab(icon: const Icon(Icons.payments_outlined), text: l10n.t('payroll_runs')),
+            Tab(icon: Icon(Icons.date_range), text: l10n.t('period_range')),
+            Tab(icon: Icon(Icons.payments_outlined), text: l10n.t('payroll_runs')),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.money_off_csred_outlined),
+            icon: Icon(Icons.money_off_csred_outlined),
             tooltip: l10n.t('salary_advances'),
             onPressed: () => context.push('/hr/salary-advances'),
           ),
           IconButton(
             tooltip: l10n.t('refresh'),
             onPressed: _load,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
           ),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : TabBarView(
               controller: _tabController,
               children: [
@@ -312,7 +314,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.calendar_month, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(l10n.t('payroll_empty'), style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                           ],
                         ),
@@ -359,11 +361,11 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                                 final isClosed = row['status'] == 'closed';
                                 final id = row['id'] as int;
                                 return isClosed
-                                    ? const Text('Processed', style: TextStyle(color: Colors.grey))
+                                    ? Text('Processed', style: TextStyle(color: Colors.grey))
                                     : FilledButton.icon(
                                         style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
                                         onPressed: () => _runPayroll(id),
-                                        icon: const Icon(Icons.play_arrow, size: 16),
+                                        icon: Icon(Icons.play_arrow, size: 16),
                                         label: Text(l10n.t('payroll_run')),
                                       );
                               },
@@ -382,7 +384,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.receipt_long, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text('No payroll runs processed yet.', style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                           ],
                         ),
@@ -397,7 +399,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                               key: 'run_no',
                               cellBuilder: (row) => Text(
                                 row['run_no'] ?? '',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -423,7 +425,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                               key: 'status',
                               cellBuilder: (row) => Text(
                                 (row['status'] ?? 'POSTED').toString().toUpperCase(),
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                               ),
                             ),
                             AppDataTableColumn(
@@ -436,15 +438,15 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
                                     OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        side: const BorderSide(color: AppTheme.primaryNavy),
+                                        side: BorderSide(color: AppTheme.primaryNavy),
                                       ),
                                       onPressed: () => _showRunDetails(run),
-                                      icon: const Icon(Icons.visibility, size: 14),
-                                      label: const Text('View', style: TextStyle(fontSize: 12)),
+                                      icon: Icon(Icons.visibility, size: 14),
+                                      label: Text('View', style: TextStyle(fontSize: 12)),
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     IconButton(
-                                      icon: const Icon(Icons.download_rounded, color: AppTheme.accentGreen),
+                                      icon: Icon(Icons.download_rounded, color: AppTheme.accentGreen),
                                       tooltip: l10n.t('wps_sif_export'),
                                       onPressed: () {
                                         final sif = _payroll.generateWpsSif(run);
@@ -476,7 +478,7 @@ class _PayrollScreenState extends State<PayrollScreen> with SingleTickerProvider
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primaryNavy,
         onPressed: _createPeriod,
-        icon: const Icon(Icons.add),
+        icon: Icon(Icons.add),
         label: Text(l10n.t('payroll_period_create')),
       ),
     );

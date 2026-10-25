@@ -84,7 +84,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final services = await _sales.loadServices();
       final products = await _catalog.listProducts();
@@ -119,6 +119,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     required double rate,
     List<Map<String, dynamic>> modifiers = const [],
   }) {
+    final l10n = context.l10n;
     final existing = _cart.where((l) => l.itemType == itemType && l.itemId == itemId).toList();
     setState(() {
       if (existing.isNotEmpty && modifiers.isEmpty) {
@@ -136,6 +137,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   void _addService(ServiceModel service) {
+    final l10n = context.l10n;
     final id = service.id;
     final name = service.name;
     final rate = service.baseRate;
@@ -143,6 +145,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   void _addProduct(Map<String, dynamic> product) {
+    final l10n = context.l10n;
     final id = int.tryParse(product['id']?.toString() ?? '') ?? 0;
     final name = product['name']?.toString() ?? '';
     final rate = double.tryParse(product['base_rate']?.toString() ?? '0') ?? 0;
@@ -150,6 +153,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   Future<void> _handleScan(String code) async {
+    final l10n = context.l10n;
     if (code.trim().isEmpty || _processing) return;
     final scanned = code.trim();
 
@@ -401,7 +405,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             }
           }
         },
-        const SingleActivator(LogicalKeyboardKey.f5): _load,
+        SingleActivator(LogicalKeyboardKey.f5): _load,
       },
       child: KeyboardListener(
         autofocus: true,
@@ -414,10 +418,10 @@ class _PosScreenState extends ConsumerState<PosScreen> {
             child: Row(
               children: [
                 Text(l10n.t('pos')),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 // Customer Selection Chip
                 ActionChip(
-                  avatar: const Icon(Icons.person, size: 16),
+                  avatar: Icon(Icons.person, size: 16),
                   label: Text(
                     _selectedCustomer != null
                         ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
@@ -462,7 +466,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           TextField(
                             controller: _searchController,
                             decoration: InputDecoration(
@@ -492,6 +496,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                           Expanded(
                             child: Builder(
                               builder: (context) {
+    final l10n = context.l10n;
                                 final filtered = _services.where((s) {
                                   if (_searchFilter.isEmpty) return true;
                                   final name = s.name.toLowerCase();
@@ -505,7 +510,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(Icons.search_off_rounded, size: 40, color: Colors.grey.shade400),
-                                        const SizedBox(height: 8),
+                                        SizedBox(height: 8),
                                         Text(l10n.t('pos_no_services')),
                                       ],
                                     ),
@@ -564,13 +569,13 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                             Text(l10n.t('pos_cart'), style: Theme.of(context).textTheme.titleMedium),
                             if (_cart.isNotEmpty)
                               TextButton.icon(
-                                icon: const Icon(Icons.delete_outline, size: 16),
+                                icon: Icon(Icons.delete_outline, size: 16),
                                 label: Text(l10n.t('clear')),
                                 onPressed: () => setState(() => _cart.clear()),
                               ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Expanded(
                           child: _cart.isEmpty
                               ? Center(child: Text(l10n.t('pos_cart_empty')))
@@ -615,7 +620,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   },
                                 ),
                         ),
-                        const Divider(),
+                        Divider(),
                         // Financial Breakdown
                         SingleChildScrollView(
                           child: Column(
@@ -633,7 +638,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(child: Text('${l10n.t('order_discount')}:')),
-                                    Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
+                                    Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: TextStyle(color: Colors.red)),
                                   ],
                                 ),
                               Row(
@@ -643,7 +648,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   Text('AED ${_vatAmount.toStringAsFixed(2)}'),
                                 ],
                               ),
-                              const SizedBox(height: 6),
+                              SizedBox(height: 6),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -662,25 +667,25 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                               if (_confirmedOrder == null)
                                 SizedBox(
                                   width: double.infinity,
                                   child: FilledButton(
-                                    key: const Key('pos_confirm_btn'),
+                                    key: Key('pos_confirm_btn'),
                                     onPressed: _cart.isEmpty || _processing ? null : _confirmSale,
                                     child: _processing
-                                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                        ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                                         : Text(l10n.t('pos_confirm')),
                                   ),
                                 )
                               else ...[
                                 Text('${l10n.t('pos_confirmed')}: ${_confirmedOrder!.orderNo}'),
-                                const SizedBox(height: 8),
+                                SizedBox(height: 8),
                                 SizedBox(
                                   width: double.infinity,
                                   child: FilledButton(
-                                    key: const Key('pos_pay_btn'),
+                                    key: Key('pos_pay_btn'),
                                     onPressed: _processing ? null : _pay,
                                     child: Text(l10n.t('pos_pay')),
                                   ),
@@ -700,8 +705,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                         children: [
                           TabBar(
                             tabs: [
-                              Tab(icon: const Icon(Icons.grid_view), text: l10n.t('pos_catalog')),
-                              Tab(icon: const Icon(Icons.shopping_cart), text: l10n.t('pos_cart')),
+                              Tab(icon: Icon(Icons.grid_view), text: l10n.t('pos_catalog')),
+                              Tab(icon: Icon(Icons.shopping_cart), text: l10n.t('pos_cart')),
                             ],
                           ),
                           Expanded(
@@ -777,7 +782,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(labelText: l10n.t('pos_amount')),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'cash', label: Text(l10n.t('pos_payment_cash'))),

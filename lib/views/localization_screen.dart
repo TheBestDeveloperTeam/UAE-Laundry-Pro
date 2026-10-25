@@ -26,7 +26,7 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       _profiles = await _service.profiles();
       if (_profiles.isNotEmpty) {
@@ -45,6 +45,7 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
   }
 
   Future<void> _select(String code) async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _service.setCountry(code);
@@ -72,7 +73,7 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
         title: Text(l10n.t('country_profile')),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
@@ -98,26 +99,25 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                             color: Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.public, color: Colors.white, size: 28),
+                          child: Icon(Icons.public, color: Colors.white, size: 28),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 l10n.t('country_active'),
-                                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                style: TextStyle(color: Colors.white70, fontSize: 13),
                               ),
-                              const SizedBox(height: 2),
+                              SizedBox(height: 2),
                               Text(
                                 _activeCode == 'AE'
                                     ? 'United Arab Emirates (دولة الإمارات العربية المتحدة)'
                                     : _activeCode == 'SA'
                                         ? 'Kingdom of Saudi Arabia (المملكة العربية السعودية)'
                                         : _activeCode,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -128,7 +128,7 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   // Profiles list
                   Text(
@@ -148,7 +148,7 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: isSelected
-                            ? const BorderSide(color: AppTheme.accentTeal, width: 2)
+                            ? BorderSide(color: AppTheme.accentTeal, width: 2)
                             : BorderSide(color: Colors.grey.shade200),
                       ),
                       child: Padding(
@@ -158,19 +158,19 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                           children: [
                             Row(
                               children: [
-                                Text(flag, style: const TextStyle(fontSize: 28)),
-                                const SizedBox(width: 12),
+                                Text(flag, style: TextStyle(fontSize: 28)),
+                                SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         p['name']?.toString() ?? code,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                       ),
                                       Text(
                                         '${p['currency_code']} (${p['currency_symbol']}) • ${p['timezone']}',
-                                        style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                                        style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
                                       ),
                                     ],
                                   ),
@@ -184,8 +184,7 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                                     ),
                                     child: Text(
                                       l10n.t('country_active'),
-                                      style: const TextStyle(
-                                        color: AppTheme.accentTeal,
+                                      style: TextStyle(color: AppTheme.accentTeal,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
                                       ),
@@ -193,7 +192,7 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                                   ),
                               ],
                             ),
-                            const Divider(height: 24),
+                            Divider(height: 24),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -202,11 +201,11 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                                   children: [
                                     Text(
                                       l10n.t('country_vat_rate'),
-                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
                                     ),
                                     Text(
                                       '$vatRate',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                     ),
                                   ],
                                 ),
@@ -215,11 +214,11 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                                   children: [
                                     Text(
                                       l10n.t('country_currency'),
-                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
                                     ),
                                     Text(
                                       '${p['currency_code']}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                     ),
                                   ],
                                 ),
@@ -228,17 +227,17 @@ class _LocalizationScreenState extends State<LocalizationScreen> {
                                   children: [
                                     Text(
                                       l10n.t('country_timezone'),
-                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
                                     ),
                                     Text(
                                       p['timezone']?.toString().split('/').last ?? 'Asia',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(

@@ -51,6 +51,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final paper = ref.watch(paperSizeProvider);
     final copies = ref.watch(printCopiesProvider);
     final mode = ref.watch(printerConnectionModeProvider);
@@ -135,7 +136,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
                   const SizedBox(width: 8),
                   OutlinedButton.icon(
                     icon: const Icon(Icons.settings),
-                    label: const Text('Page Setup'),
+                    label: Text(l10n.t('print_page_setup')),
                     onPressed: _printing
                         ? null
                         : () => _showPageSetupSheet(context),
@@ -149,7 +150,7 @@ class _PrintPreviewDialogState extends ConsumerState<PrintPreviewDialog> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.print),
-                    label: const Text('Print'),
+                    label: Text(l10n.t('print_action')),
                     onPressed: _printing ? null : _confirmPrint,
                   ),
                 ],
@@ -253,7 +254,7 @@ class _PageSetupPanel extends ConsumerWidget {
           printers.when(
             data: (items) {
               if (items.isEmpty) {
-                return const Text('No printers found.');
+                return Text(context.l10n.t('print_no_printers'));
               }
               return DropdownButtonFormField<String>(
                 initialValue: selectedPrinter,

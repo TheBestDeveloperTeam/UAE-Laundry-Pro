@@ -27,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -59,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: BoxConstraints(maxWidth: 440),
               child: Card(
                 elevation: 2,
                 child: Padding(
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           size: 54,
                           color: Theme.of(context).colorScheme.primary,
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         Text(
                           l10n.t('app_name'),
                           textAlign: TextAlign.center,
@@ -87,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Text(
                           l10n.t('login'),
                           textAlign: TextAlign.center,
@@ -96,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.grey.shade600,
                                   ),
                         ),
-                        const SizedBox(height: 28),
+                        SizedBox(height: 28),
                         if (!auth.apiHealthy)
                           Container(
                             padding: const EdgeInsets.all(12),
@@ -119,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Icon(Icons.wifi_off_rounded,
                                     size: 20,
                                     color: Theme.of(context).colorScheme.error),
-                                const SizedBox(width: 10),
+                                SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     l10n.t('api_unavailable'),
@@ -137,14 +138,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _usernameController,
                           decoration: InputDecoration(
                             labelText: l10n.t('username'),
-                            prefixIcon: const Icon(Icons.person_outline),
+                            prefixIcon: Icon(Icons.person_outline),
                           ),
                           validator: (value) =>
                               value == null || value.trim().isEmpty
                                   ? l10n.t('username')
                                   : null,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         TextFormField(
                           controller: _passwordController,
                           decoration: InputDecoration(
@@ -168,12 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? l10n.t('password')
                               : null,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           initialValue: localeProvider.locale,
                           decoration: InputDecoration(
                             labelText: l10n.t('language'),
-                            prefixIcon: const Icon(Icons.language_outlined),
+                            prefixIcon: Icon(Icons.language_outlined),
                           ),
                           items: [
                             DropdownMenuItem(
@@ -188,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         if (auth.errorMessageKey != null) ...[
-                          const SizedBox(height: 14),
+                          SizedBox(height: 14),
                           Text(
                             l10n.t(auth.errorMessageKey!),
                             textAlign: TextAlign.center,
@@ -198,12 +199,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 28),
+                        SizedBox(height: 28),
                         FilledButton(
                           onPressed: auth.isLoading ? null : _submit,
                           child: auth.isLoading
-                              ? const SizedBox(
-                                  height: 20,
+                              ? SizedBox(height: 20,
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,

@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 
@@ -28,18 +29,19 @@ class _PosScreenState extends State<PosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
         title: const Text('LaundryPro POS Dashboard'),
         actions: [
           IconButton(
             icon: const Icon(Icons.sync),
-            tooltip: 'Manual Sync',
+            tooltip: l10n.t('pos_manual_sync'),
             onPressed: () {},
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Settings & Peripherals',
+            tooltip: l10n.t('pos_settings_peripherals'),
             onPressed: () {},
           )
         ],
@@ -155,6 +157,7 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Widget _buildServiceCard(String title, double price, IconData icon) {
+    final l10n = context.l10n;
     return InkWell(
       onTap: () => _addToCart(title, price),
       child: Card(

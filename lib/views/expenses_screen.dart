@@ -28,7 +28,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final filter = _statusFilter == 'all' ? null : _statusFilter;
       final items = await _expenses.list(status: filter);
@@ -84,17 +84,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                       if (val != null) setDialogState(() => selectedCatId = val);
                     },
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: amountController,
                     decoration: InputDecoration(
                       labelText: '${l10n.t('amount')} (AED)',
                       prefixText: 'AED ',
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
@@ -164,7 +164,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         await _expenses.uploadAttachment(expenseId, attachmentPath!);
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload attachment: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.t('expense_upload_failed').replaceAll('{error}', e.toString()))));
         }
       }
     }
@@ -173,6 +173,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Future<void> _approve(int id) async {
+    final l10n = context.l10n;
     try {
       await _expenses.approve(id);
       await _load();
@@ -182,6 +183,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Future<void> _reject(int id) async {
+    final l10n = context.l10n;
     try {
       await _expenses.reject(id);
       await _load();
@@ -196,7 +198,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.t('expenses')),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
+        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
       ),
       body: Column(
         children: [
@@ -212,19 +214,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Total Expenses (${_items.length} items):', style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text('Total Expenses (${_items.length} items):', style: TextStyle(fontWeight: FontWeight.w600)),
                           Text('AED ${_totalExpenses.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.primary)),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 SegmentedButton<String>(
                   segments: [
                     ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
                     ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
-                    const ButtonSegment(value: 'approved', label: Text('Approved')),
+                    ButtonSegment(value: 'approved', label: Text(l10n.t('expense_approved'))),
                   ],
                   selected: {_statusFilter},
                   onSelectionChanged: (set) {
@@ -235,10 +237,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(child: Text(l10n.t('expenses_empty')))
                     : ListView.separated(
@@ -265,25 +267,25 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                     : (isPending ? Colors.amber.shade900 : Colors.red.shade800),
                               ),
                             ),
-                            title: Text(e['description']?.toString() ?? l10n.t('expenses'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            title: Text(e['description']?.toString() ?? l10n.t('expenses'), style: TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Text('Category #${e['category_id'] ?? ''} - Status: ${status.toUpperCase()}'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   'AED ${double.tryParse(e['amount']?.toString() ?? '0')?.toStringAsFixed(2) ?? '0.00'}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                 ),
                                 if (isPending) ...[
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   IconButton(
-                                    icon: const Icon(Icons.check_circle, color: Colors.green),
-                                    tooltip: 'Approve',
+                                    icon: Icon(Icons.check_circle, color: Colors.green),
+                                    tooltip: l10n.t('expense_approve_tooltip'),
                                     onPressed: id > 0 ? () => _approve(id) : null,
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.cancel, color: Colors.red),
-                                    tooltip: 'Reject',
+                                    icon: Icon(Icons.cancel, color: Colors.red),
+                                    tooltip: l10n.t('expense_reject_tooltip'),
                                     onPressed: id > 0 ? () => _reject(id) : null,
                                   ),
                                 ],

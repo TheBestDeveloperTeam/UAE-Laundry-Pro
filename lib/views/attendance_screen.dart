@@ -36,7 +36,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     final dateStr = _selectedDate.toIso8601String().split('T').first;
     try {
       final results = await Future.wait([
@@ -130,23 +130,23 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           color: AppTheme.accentCyan.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Icons.alarm_on, color: AppTheme.primaryNavy, size: 24),
+                        child: Icon(Icons.alarm_on, color: AppTheme.primaryNavy, size: 24),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           l10n.t('attendance_record'),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                         ),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        icon: const Icon(Icons.close),
+                        icon: Icon(Icons.close),
                         splashRadius: 18,
                       ),
                     ],
                   ),
-                  const Divider(height: 24),
+                  Divider(height: 24),
 
                   // Quick lookup by PIN / Barcode / Employee selection
                   DropdownButtonFormField<int>(
@@ -167,7 +167,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       });
                     },
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
 
                   Row(
                     children: [
@@ -176,7 +176,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           controller: pinOrCodeController,
                           decoration: InputDecoration(
                             labelText: l10n.t('scan_badge_pin'),
-                            hintText: 'PIN or Badge Scan',
+                            hintText: l10n.t('attendance_pin_hint'),
                             prefixIcon: const Icon(Icons.qr_code_scanner, size: 20),
                           ),
                           onSubmitted: (val) {
@@ -192,7 +192,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
 
                   // Shift status
                   Text(l10n.t('status'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight)),
@@ -210,16 +210,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
 
                   TextField(
                     controller: notesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes / Remarks',
+                    decoration: InputDecoration(labelText: 'Notes / Remarks',
                       prefixIcon: Icon(Icons.note_alt_outlined, size: 18),
                     ),
                   ),
-                  const Divider(height: 28),
+                  Divider(height: 28),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -228,13 +227,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                         onPressed: () => Navigator.pop(ctx, false),
                         child: Text(l10n.t('pos_close')),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       FilledButton.icon(
                         style: FilledButton.styleFrom(backgroundColor: AppTheme.accentGreen),
                         onPressed: selectedEmpId == null
                             ? null
                             : () => Navigator.pop(ctx, true),
-                        icon: const Icon(Icons.check, size: 18, color: AppTheme.primaryNavy),
+                        icon: Icon(Icons.check, size: 18, color: AppTheme.primaryNavy),
                         label: Text(l10n.t('save'), style: const TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold)),
                       ),
                     ],
@@ -268,6 +267,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> _quickClockOut(AttendanceModel item) async {
+    final l10n = context.l10n;
     final now = DateTime.now();
     final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
@@ -409,14 +409,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     _load();
                   },
                 ),
-                const Spacer(),
+                Spacer(),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
                     backgroundColor: AppTheme.primaryNavy,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onPressed: _openClockInOutModal,
-                  icon: const Icon(Icons.fingerprint, size: 20),
+                  icon: Icon(Icons.fingerprint, size: 20),
                   label: Text(l10n.t('attendance_record')),
                 ),
               ],
@@ -429,11 +429,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             child: Row(
               children: [
                 _buildSummaryCard(l10n.t('total_present'), presentCount, AppTheme.successGreen, Icons.how_to_reg),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 _buildSummaryCard('Half Day', halfDayCount, AppTheme.warningOrange, Icons.timelapse),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 _buildSummaryCard(l10n.t('total_absent'), absentCount, AppTheme.errorRed, Icons.person_off_outlined),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 _buildSummaryCard(l10n.t('total_on_leave'), leaveCount, AppTheme.infoBlue, Icons.beach_access_outlined),
               ],
             ),
@@ -442,14 +442,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           // Attendance register table
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.event_busy, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(
                               l10n.t('attendance_empty'),
                               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
@@ -467,7 +467,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? 'EMP-${row['employee_id']}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -475,7 +475,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               key: 'employee_name',
                               cellBuilder: (row) => Text(
                                 row['employee_name'] ?? 'Employee #${row['employee_id']}',
-                                style: const TextStyle(fontWeight: FontWeight.w600),
+                                style: TextStyle(fontWeight: FontWeight.w600),
                               ),
                             ),
                             AppDataTableColumn(
@@ -490,7 +490,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 row['check_in'] != null && row['check_in'].toString().isNotEmpty
                                     ? row['check_in'].toString()
                                     : '--:--',
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: TextStyle(fontWeight: FontWeight.w500),
                               ),
                             ),
                             AppDataTableColumn(
@@ -500,7 +500,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                 row['check_out'] != null && row['check_out'].toString().isNotEmpty
                                     ? row['check_out'].toString()
                                     : '--:--',
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: TextStyle(fontWeight: FontWeight.w500),
                               ),
                             ),
                             AppDataTableColumn(
@@ -518,10 +518,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                                         style: OutlinedButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                           foregroundColor: AppTheme.warningOrange,
-                                          side: const BorderSide(color: AppTheme.warningOrange),
+                                          side: BorderSide(color: AppTheme.warningOrange),
                                         ),
                                         onPressed: () => _quickClockOut(att),
-                                        icon: const Icon(Icons.logout, size: 14),
+                                        icon: Icon(Icons.logout, size: 14),
                                         label: Text(l10n.t('clock_out'), style: const TextStyle(fontSize: 12)),
                                       )
                                     : const SizedBox.shrink();

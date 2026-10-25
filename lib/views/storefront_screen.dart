@@ -26,7 +26,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final statusParam = _selectedFilter == 'all' ? null : _selectedFilter;
       _orders = await _service.listOrders(status: statusParam);
@@ -39,6 +39,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
   }
 
   Future<void> _convert(int id) async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -85,7 +86,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
       appBar: AppBar(
         title: Text(l10n.t('storefront')),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _load),
         ],
       ),
       body: Column(
@@ -109,18 +110,18 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
                       children: [
                         Text(
                           l10n.t('storefront_filter_pending'),
-                          style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                          style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           '$pendingCount',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.warningOrange),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.warningOrange),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(12),
@@ -134,12 +135,12 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
                       children: [
                         Text(
                           l10n.t('storefront_filter_converted'),
-                          style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                          style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           '$convertedCount',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.accentTeal),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.accentTeal),
                         ),
                       ],
                     ),
@@ -164,7 +165,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
                     }
                   },
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('storefront_filter_pending')),
                   selected: _selectedFilter == 'pending',
@@ -175,7 +176,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
                     }
                   },
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('storefront_filter_converted')),
                   selected: _selectedFilter == 'converted',
@@ -193,7 +194,7 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
           // Orders list
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _orders.isEmpty
                     ? Center(child: Text(l10n.t('reports_empty'), style: const TextStyle(color: AppTheme.secondaryGrey)))
                     : RefreshIndicator(
@@ -224,24 +225,24 @@ class _StorefrontScreenState extends State<StorefrontScreen> {
                                         color: isPending ? AppTheme.warningOrange : AppTheme.accentTeal,
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
+                                    SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             o['customer_name']?.toString() ?? 'Online Customer',
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                           ),
-                                          const SizedBox(height: 4),
+                                          SizedBox(height: 4),
                                           Text(
                                             '${o['customer_phone'] ?? 'N/A'} • Ref: #${o['order_number'] ?? id}',
-                                            style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                                            style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
                                           ),
                                           if (total > 0)
                                             Text(
                                               '${total.toStringAsFixed(2)} AED',
-                                              style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                                              style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
                                             ),
                                         ],
                                       ),

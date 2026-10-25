@@ -35,7 +35,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       final results = await Future.wait([
         _payroll.listSalaryAdvances(),
@@ -131,23 +131,23 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                             color: AppTheme.accentGold.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Icon(Icons.request_quote_outlined, color: AppTheme.primaryNavy, size: 24),
+                          child: Icon(Icons.request_quote_outlined, color: AppTheme.primaryNavy, size: 24),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             l10n.t('salary_advance_create'),
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                           ),
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          icon: const Icon(Icons.close),
+                          icon: Icon(Icons.close),
                           splashRadius: 18,
                         ),
                       ],
                     ),
-                    const Divider(height: 24),
+                    Divider(height: 24),
 
                     // Employee selection
                     DropdownButtonFormField<int>(
@@ -164,7 +164,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                       initialValue: selectedEmpId,
                       onChanged: (val) => setDialogState(() => selectedEmpId = val),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
 
                     // Employee salary context card
                     if (selectedEmp.baseSalary > 0)
@@ -179,16 +179,16 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                           children: [
                             Text(
                               'Base Salary: AED ${selectedEmp.baseSalary.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                             ),
                             Text(
                               'Max 50% Policy: AED ${maxAllowedAdvance.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
                             ),
                           ],
                         ),
                       ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
 
                     TextFormField(
                       controller: amountController,
@@ -203,17 +203,16 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
 
                     TextFormField(
                       controller: notesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Reason / Notes',
+                      decoration: InputDecoration(labelText: l10n.t('salary_reason_notes'),
                         prefixIcon: Icon(Icons.notes, size: 18),
                       ),
                       maxLines: 2,
                     ),
-                    const Divider(height: 28),
+                    Divider(height: 28),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -230,7 +229,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                               Navigator.pop(ctx, true);
                             }
                           },
-                          icon: const Icon(Icons.check, size: 18),
+                          icon: Icon(Icons.check, size: 18),
                           label: Text(l10n.t('save')),
                         ),
                       ],
@@ -318,7 +317,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
           IconButton(
             tooltip: l10n.t('refresh'),
             onPressed: _load,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
           ),
         ],
       ),
@@ -335,14 +334,14 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                   AppTheme.warningOrange,
                   Icons.pending_actions,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 _buildMiniKpi(
                   'Recovered via Payroll',
                   'AED ${totalRecovered.toStringAsFixed(2)}',
                   AppTheme.successGreen,
                   Icons.task_alt,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 _buildMiniKpi(
                   'Active Advances',
                   '${openAdvances.length}',
@@ -356,14 +355,14 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
           // Advances Data Table
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.money_off, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(l10n.t('empty_data'), style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                           ],
                         ),
@@ -378,7 +377,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? 'EMP-${row['employee_id']}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -410,8 +409,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
                                 );
                               },
                             ),
-                            const AppDataTableColumn(
-                              label: 'Date',
+                            AppDataTableColumn(label: 'Date',
                               key: 'request_date',
                             ),
                             AppDataTableColumn(
@@ -436,7 +434,7 @@ class _SalaryAdvancesScreenState extends State<SalaryAdvancesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primaryNavy,
         onPressed: _openCreateDialog,
-        icon: const Icon(Icons.add),
+        icon: Icon(Icons.add),
         label: Text(l10n.t('salary_advance_create')),
       ),
     );

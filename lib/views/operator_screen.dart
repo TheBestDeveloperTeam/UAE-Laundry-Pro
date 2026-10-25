@@ -38,6 +38,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
   }
 
   Future<void> _loadData() async {
+    final l10n = context.l10n;
     setState(() => _isLoading = true);
     try {
       final certsFuture = _service.listCertifications();
@@ -97,10 +98,10 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
   }
 
   Future<void> _showCertifyDialog() async {
+    final l10n = context.l10n;
     if (_employees.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No employees found to certify. Add employees first.'),
+        SnackBar(content: Text(l10n.t('operator_no_employees')),
           backgroundColor: AppTheme.warningOrange,
         ),
       );
@@ -124,11 +125,10 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
+          title: Row(children: [
               Icon(Icons.verified_outlined, color: AppTheme.accentTeal),
               SizedBox(width: 8),
-              Text('Issue Operator Certification', style: TextStyle(fontSize: 18)),
+              Text(l10n.t('operator_issue_cert_title'), style: TextStyle(fontSize: 18)),
             ],
           ),
           content: SingleChildScrollView(
@@ -138,8 +138,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
               children: [
                 DropdownButtonFormField<EmployeeModel>(
                   initialValue: selectedEmployee,
-                  decoration: const InputDecoration(
-                    labelText: 'Select Employee *',
+                  decoration: InputDecoration(labelText: l10n.t('operator_select_employee'),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person),
                   ),
@@ -153,12 +152,11 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     if (val != null) setDialogState(() => selectedEmployee = val);
                   },
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 DropdownButtonFormField<String>(
                   initialValue: selectedCert,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Certification Program *',
+                  decoration: InputDecoration(labelText: l10n.t('operator_cert_program'),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.school_outlined),
                   ),
@@ -172,15 +170,15 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     if (val != null) setDialogState(() => selectedCert = val);
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   'Issue Date: ${issuedDate.toLocal().toString().split(' ')[0]}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.calendar_today, size: 16),
-                  label: const Text('Change Issue Date'),
+                  icon: Icon(Icons.calendar_today, size: 16),
+                  label: Text(l10n.t('operator_change_issue_date')),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: ctx,
@@ -193,15 +191,15 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 Text(
                   'Expiration Date: ${expiryDate.toLocal().toString().split(' ')[0]}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.event, size: 16),
-                  label: const Text('Change Expiration Date'),
+                  icon: Icon(Icons.event, size: 16),
+                  label: Text(l10n.t('operator_change_expiry')),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: ctx,
@@ -228,7 +226,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Issue Certificate'),
+              child: Text(l10n.t('operator_issue_cert_btn')),
             ),
           ],
         ),
@@ -245,8 +243,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         await _service.certify(selectedEmployee!.id, payload);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Operator certified successfully'),
+            SnackBar(content: Text(l10n.t('operator_certified_success')),
               backgroundColor: AppTheme.successGreen,
             ),
           );
@@ -256,7 +253,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to certify: $e'),
+              content: Text(l10n.t('operator_certify_failed').replaceAll('{error}', e.toString())),
               backgroundColor: AppTheme.errorRed,
             ),
           );
@@ -266,6 +263,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
   }
 
   void _showCertDetails(Map<String, dynamic> c) {
+    final l10n = context.l10n;
     final name = c['full_name'] ?? c['employee_name'] ?? 'Certified Operator';
     final badge = c['employee_no'] ?? c['badge_id'] ?? 'N/A';
     final certName = c['certification_name'] ?? c['certification_type'] ?? 'Cleanroom Standard';
@@ -281,6 +279,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
+    final l10n = ctx.l10n;
         return Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -293,7 +292,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                   Expanded(
                     child: Text(
                       name,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
@@ -315,13 +314,13 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                   ),
                 ],
               ),
-              const Divider(height: 24),
+              Divider(height: 24),
               _detailRow('Employee Badge', badge),
               _detailRow('Certification Program', certName),
               _detailRow('Date Issued', issued),
               _detailRow('Valid Until', expiry),
               _detailRow('Record ID', '#${c['id'] ?? 'N/A'}'),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -329,7 +328,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     backgroundColor: AppTheme.primaryNavy,
                     foregroundColor: Colors.white,
                   ),
-                  icon: const Icon(Icons.close, size: 18),
+                  icon: Icon(Icons.close, size: 18),
                   label: Text(context.l10n.t('close')),
                   onPressed: () => Navigator.pop(ctx),
                 ),
@@ -383,8 +382,8 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         title: Text(l10n.t('operators_title')),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            icon: Icon(Icons.refresh),
+            tooltip: l10n.t('refresh_action'),
             onPressed: _loadData,
           ),
         ],
@@ -392,8 +391,8 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.accentTeal,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Certify Operator'),
+        icon: Icon(Icons.add),
+        label: Text(l10n.t('operator_certify_btn')),
         onPressed: _showCertifyDialog,
       ),
       body: Column(
@@ -425,25 +424,25 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                   ),
                   onChanged: (val) => setState(() => _searchQuery = val),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
                       _filterChip(label: 'All (${_certs.length})', value: 'all'),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _filterChip(
                         label: 'Valid ($activeCount)',
                         value: 'active',
                         badgeColor: AppTheme.accentTeal,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _filterChip(
                         label: 'Expiring Soon ($warningCount)',
                         value: 'warning',
                         badgeColor: AppTheme.warningOrange,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _filterChip(
                         label: 'Expired ($expiredCount)',
                         value: 'expired',
@@ -455,7 +454,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
 
           // Main List
           Expanded(

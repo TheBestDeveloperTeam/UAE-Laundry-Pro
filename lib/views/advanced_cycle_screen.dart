@@ -130,6 +130,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Future<void> _loadPresets() async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final list = await _service.getPresets();
@@ -152,6 +153,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Future<void> _startCycle() async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final payload = {
@@ -185,7 +187,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Advanced Cycle started with calibrated parameters'),
             backgroundColor: AppTheme.successGreen,
           ),
@@ -204,6 +206,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Future<void> _recordMetric() async {
+    final l10n = context.l10n;
     final runId = _runIdController.text.trim();
     final reading = _readingController.text.trim();
     if (runId.isEmpty || reading.isEmpty) return;
@@ -253,11 +256,12 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Future<void> _completeCycle(Map<String, dynamic> run) async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Complete Cycle Run'),
+        title: Text(l10n.t('cycle_complete_run')),
         content: Text('Conclude cycle #${run['id']} for Order #${run['order_id']}?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.t('cancel'))),
@@ -278,7 +282,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Cycle marked as completed'),
               backgroundColor: AppTheme.successGreen,
             ),
@@ -295,11 +299,13 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   void _showRunDetails(Map<String, dynamic> run) {
+    final l10n = context.l10n;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
+    final l10n = ctx.l10n;
         final isRunning = run['status'] == 'running';
         final isException = run['status'] == 'exception';
         final logs = (run['logs'] as List?) ?? [];
@@ -321,7 +327,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       Expanded(
                         child: Text(
                           'Cycle #${run['id']} — Order #${run['order_id']}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                       Container(
@@ -350,7 +356,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     ],
                   ),
-                  const Divider(height: 24),
+                  Divider(height: 24),
                   _detailRow('Preset Program', run['preset_name']),
                   _detailRow('Operating Equipment', run['equipment']),
                   _detailRow('Certified Operator', run['operator']),
@@ -358,8 +364,8 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                   _detailRow('Current Solution pH', run['ph']),
                   _detailRow('Detergent Dosed', run['detergent_ml']),
                   _detailRow('Started At', run['started_at']),
-                  const SizedBox(height: 16),
-                  const Text('Process Logs & Quality Telemetry', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  SizedBox(height: 16),
+                  Text(l10n.t('cycle_process_logs'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 8),
                   ...logs.map((log) {
                     final pass = log['status'] == 'pass';
@@ -391,7 +397,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     );
                   }),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   if (isRunning)
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -399,8 +405,8 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      icon: const Icon(Icons.check),
-                      label: const Text('Complete Cycle Run'),
+                      icon: Icon(Icons.check),
+                      label: Text(l10n.t('cycle_complete_run')),
                       onPressed: () {
                         Navigator.pop(ctx);
                         _completeCycle(run);
@@ -416,6 +422,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Widget _detailRow(String label, String value) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -465,6 +472,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Widget _buildActiveRunsTab() {
+    final l10n = context.l10n;
     if (_activeRuns.isEmpty) {
       return const Center(
         child: Column(
@@ -523,10 +531,10 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                               size: 18,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10),
                           Text(
                             'Cycle Run #${run['id']} • Order #${run['order_id']}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),
@@ -543,25 +551,25 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Text(
                     run['preset_name'],
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     '${run['equipment']} • ${run['operator']}',
-                    style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                    style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                   ),
-                  const Divider(height: 20),
+                  Divider(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.thermostat, size: 16, color: AppTheme.warningOrange),
-                          const SizedBox(width: 4),
-                          Text('Temp: ${run['temp']}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Icon(Icons.thermostat, size: 16, color: AppTheme.warningOrange),
+                          SizedBox(width: 4),
+                          Text('Temp: ${run['temp']}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                           const SizedBox(width: 16),
                           const Icon(Icons.water_drop, size: 16, color: AppTheme.infoBlue),
                           const SizedBox(width: 4),
@@ -594,6 +602,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Widget _buildStartCycleTab() {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -606,8 +615,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppTheme.primaryNavy.withValues(alpha: 0.1)),
             ),
-            child: const Row(
-              children: [
+            child: Row(children: [
                 Icon(Icons.shield_outlined, color: AppTheme.primaryNavy, size: 28),
                 SizedBox(width: 14),
                 Expanded(
@@ -619,7 +627,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           Card(
             elevation: 2,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -628,12 +636,12 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Select Cycle Preset Program', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(l10n.t('cycle_select_preset'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<dynamic>(
                     initialValue: _selectedPreset,
                     isExpanded: true,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Cycle Preset *',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.tune),
@@ -645,7 +653,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                     onChanged: (val) => setState(() => _selectedPreset = val),
                   ),
                   if (_selectedPreset != null) ...[
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -658,49 +666,46 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                         children: [
                           Text(
                             'Chemical Formula: ${_selectedPreset['detergent_formula'] ?? 'Automatic multi-stage injection'}',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             'Allowed Temp: ${_selectedPreset['min_temperature']}°C – ${_selectedPreset['max_temperature']}°C • pH: ${_selectedPreset['min_ph']} – ${_selectedPreset['max_ph']} • Est. ${_selectedPreset['expected_duration_minutes']} min',
-                            style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 11),
+                            style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 11),
                           ),
                         ],
                       ),
                     ),
                   ],
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextField(
                     controller: _saleOrderIdController,
-                    decoration: const InputDecoration(
-                      labelText: 'Sale Order ID *',
-                      hintText: 'e.g. 101',
+                    decoration: InputDecoration(labelText: 'Sale Order ID *',
+                      hintText: l10n.t('cycle_rack_hint'),
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.receipt_long),
                     ),
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: _equipmentIdController,
-                          decoration: const InputDecoration(
-                            labelText: 'Equipment ID *',
-                            hintText: 'e.g. 1',
+                          decoration: InputDecoration(labelText: 'Equipment ID *',
+                            hintText: l10n.t('cycle_qty_hint'),
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.precision_manufacturing),
                           ),
                           keyboardType: TextInputType.number,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: _operatorIdController,
-                          decoration: const InputDecoration(
-                            labelText: 'Operator ID *',
+                          decoration: InputDecoration(labelText: 'Operator ID *',
                             hintText: 'e.g. 1',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.badge),
@@ -710,7 +715,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -721,9 +726,9 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       icon: _loading
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Icon(Icons.play_arrow),
-                      label: const Text('START ADVANCED CYCLE', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Icon(Icons.play_arrow),
+                      label: Text(l10n.t('cycle_start_advanced'), style: const TextStyle(fontWeight: FontWeight.bold)),
                       onPressed: _loading ? null : _startCycle,
                     ),
                   ),
@@ -737,6 +742,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Widget _buildProcessLogsTab() {
+    final l10n = context.l10n;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -750,7 +756,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Record Real-Time In-Cycle Telemetry', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(l10n.t('cycle_record_telemetry'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 6),
                   const Text(
                     'Direct sensor reading verification against programmed batch recipe thresholds.',
@@ -759,7 +765,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                   const SizedBox(height: 16),
                   TextField(
                     controller: _runIdController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Cycle Run ID *',
                       hintText: 'e.g. 1',
                       border: OutlineInputBorder(),
@@ -770,13 +776,12 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                   const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     initialValue: _metricType,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Metric Parameter *',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.analytics_outlined),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'pH', child: Text('pH Level (Acidity/Alkalinity)')),
+                    items: [DropdownMenuItem(value: 'pH', child: Text('pH Level (Acidity/Alkalinity)')),
                       DropdownMenuItem(value: 'temperature', child: Text('Bath Temperature (°C)')),
                       DropdownMenuItem(value: 'detergent_dosing', child: Text('Chemical Dosing Volume (ml)')),
                       DropdownMenuItem(value: 'conductivity', child: Text('Rinse Water Conductivity (µS/cm)')),
@@ -785,18 +790,18 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       if (val != null) setState(() => _metricType = val);
                     },
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   TextField(
                     controller: _readingController,
                     decoration: InputDecoration(
                       labelText: 'Sensor / Titration Reading *',
                       hintText: _metricType == 'temperature' ? 'e.g. 85.0' : 'e.g. 6.5',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.speed),
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.speed),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -807,9 +812,9 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       icon: _loading
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                           : const Icon(Icons.add_chart),
-                      label: const Text('RECORD METRIC & VALIDATE', style: TextStyle(fontWeight: FontWeight.bold)),
+                      label: Text(l10n.t('cycle_record_validate'), style: const TextStyle(fontWeight: FontWeight.bold)),
                       onPressed: _loading ? null : _recordMetric,
                     ),
                   ),

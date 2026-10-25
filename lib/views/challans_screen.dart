@@ -29,7 +29,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       _items = await _challans.list();
     } catch (e, stack) {
@@ -72,30 +72,30 @@ class _ChallansScreenState extends State<ChallansScreen> {
                     if (val != null) setDialogState(() => selectedType = val);
                   },
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 TextField(
                   controller: descController,
                   decoration: InputDecoration(
                     labelText: l10n.t('description'),
-                    hintText: 'e.g. Clean Linen Bundles',
-                    border: const OutlineInputBorder(),
+                    hintText: l10n.t('challan_desc_hint'),
+                    border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 TextField(
                   controller: qtyController,
                   decoration: InputDecoration(
                     labelText: l10n.t('quantity'),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 TextField(
                   controller: notesController,
                   decoration: InputDecoration(
                     labelText: l10n.t('notes'),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -137,6 +137,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
   }
 
   void _preview(ChallanModel item) {
+    final l10n = context.l10n;
     final thermal = DocumentRenderer.toThermal(item);
     showDialog(
       context: context,
@@ -144,8 +145,8 @@ class _ChallansScreenState extends State<ChallansScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.receipt, color: AppTheme.primaryNavy),
-            const SizedBox(width: 8),
+            Icon(Icons.receipt, color: AppTheme.primaryNavy),
+            SizedBox(width: 8),
             Text(item.challanNo),
           ],
         ),
@@ -159,7 +160,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
           child: SingleChildScrollView(
             child: Text(
               thermal,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+              style: TextStyle(fontFamily: 'monospace', fontSize: 13),
             ),
           ),
         ),
@@ -189,13 +190,13 @@ class _ChallansScreenState extends State<ChallansScreen> {
       appBar: AppBar(
         title: Text(l10n.t('challans')),
         actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: _load, icon: Icon(Icons.refresh)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primaryNavy,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
+        icon: Icon(Icons.add),
         label: Text(l10n.t('challan_create')),
         onPressed: _create,
       ),
@@ -214,7 +215,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
                     if (val) setState(() => _activeFilter = 'all');
                   },
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('delivery_type')),
                   selected: _activeFilter == 'delivery',
@@ -222,7 +223,7 @@ class _ChallansScreenState extends State<ChallansScreen> {
                     if (val) setState(() => _activeFilter = 'delivery');
                   },
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('transfer_type')),
                   selected: _activeFilter == 'transfer',
@@ -233,12 +234,12 @@ class _ChallansScreenState extends State<ChallansScreen> {
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
 
           // Challans List
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator())
                 : filtered.isEmpty
                     ? Center(
                         child: Text(

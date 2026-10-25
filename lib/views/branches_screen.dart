@@ -26,7 +26,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       _items = await _service.list();
     } catch (e, stack) {
@@ -38,6 +38,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
   }
 
   void _showAddBranchDialog([BranchModel? existing]) {
+    final l10n = context.l10n;
     final isNew = existing == null;
     final codeCtrl = TextEditingController(text: existing?.code ?? 'BR0${_items.length + 1}');
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
@@ -55,7 +56,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
           title: Row(
             children: [
               Icon(isNew ? Icons.add_business : Icons.store, color: AppTheme.primaryNavy),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(isNew ? ctx.l10n.t('branch_add') : 'Configure Branch'),
             ],
           ),
@@ -82,7 +83,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                         flex: 3,
                         child: DropdownButtonFormField<String>(
                           initialValue: selectedEmirate,
-                          decoration: const InputDecoration(labelText: 'Emirate', border: OutlineInputBorder()),
+                          decoration: InputDecoration(labelText: 'Emirate', border: OutlineInputBorder()),
                           items: const [
                             DropdownMenuItem(value: 'Abu Dhabi', child: Text('Abu Dhabi')),
                             DropdownMenuItem(value: 'Dubai', child: Text('Dubai')),
@@ -99,43 +100,41 @@ class _BranchesScreenState extends State<BranchesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: nameCtrl,
                     decoration: InputDecoration(
                       labelText: ctx.l10n.t('branch_name'),
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.business),
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.business),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: locCtrl,
                     decoration: InputDecoration(
                       labelText: ctx.l10n.t('branch_location'),
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.location_on),
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.location_on),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: phoneCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Branch Phone',
+                          decoration: InputDecoration(labelText: 'Branch Phone',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.phone),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: managerCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Branch Manager',
+                          decoration: InputDecoration(labelText: 'Branch Manager',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.person),
                           ),
@@ -143,12 +142,11 @@ class _BranchesScreenState extends State<BranchesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   TextField(
                     controller: hoursCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Operating Schedule / Hours',
-                      hintText: 'e.g. 08:00 - 22:00 (Sat-Thu), 14:00 - 22:00 (Fri)',
+                    decoration: InputDecoration(labelText: 'Operating Schedule / Hours',
+                      hintText: l10n.t('branch_hours_hint'),
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.schedule),
                     ),
@@ -207,18 +205,18 @@ class _BranchesScreenState extends State<BranchesScreen> {
       appBar: AppBar(
         title: Text(l10n.t('branches')),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _load),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primaryNavy,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_business),
+        icon: Icon(Icons.add_business),
         label: Text(l10n.t('branch_add')),
         onPressed: () => _showAddBranchDialog(),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : _items.isEmpty
               ? Center(
                   child: Text(

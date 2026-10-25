@@ -56,6 +56,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
   }
 
   Future<void> _loadAllStages() async {
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final allOrders = await _sales.list(limit: 200);
@@ -81,6 +82,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
   }
 
   Future<void> _changeStatus(OrderModel order, String newStatus, {String? notes}) async {
+    final l10n = context.l10n;
     final id = order.id;
 
     try {
@@ -96,6 +98,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
   }
 
   Future<void> _showStatusDialog(OrderModel order) async {
+    final l10n = context.l10n;
     final current = order.status;
     final notesController = TextEditingController();
 
@@ -123,19 +126,18 @@ class _ProductionScreenState extends State<ProductionScreen> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               ActionChip(
                 backgroundColor: Colors.amber.shade100,
-                avatar: const Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber),
-                label: const Text('Rework Required'),
+                avatar: Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber),
+                label: Text('Rework Required'),
                 onPressed: () => Navigator.pop(ctx, 'rework_required'),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'QC / Audit Notes (Optional)',
+                decoration: InputDecoration(border: OutlineInputBorder(),
+                  labelText: l10n.t('production_qc_notes'),
                 ),
               ),
             ],
@@ -185,7 +187,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
             onPressed: () => setState(() => _isKanbanMode = !_isKanbanMode),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: _loadAllStages,
           ),
         ],
@@ -201,7 +203,7 @@ class _ProductionScreenState extends State<ProductionScreen> {
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.qr_code_scanner),
+                      prefixIcon: Icon(Icons.qr_code_scanner),
                       hintText: l10n.t('scan_or_search_orders_hint'),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       isDense: true,

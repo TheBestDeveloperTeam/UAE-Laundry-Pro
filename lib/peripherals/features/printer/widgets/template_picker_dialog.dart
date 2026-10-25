@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -68,7 +69,7 @@ class TemplatePickerDialog extends ConsumerWidget {
                             '${t.createdAt.toIso8601String()}',
                           ),
                           trailing: IconButton(
-                            tooltip: 'Delete template',
+                            tooltip: context.l10n.t('printer_delete_template'),
                             icon: const Icon(Icons.delete_outline),
                             onPressed: () async {
                               await ref

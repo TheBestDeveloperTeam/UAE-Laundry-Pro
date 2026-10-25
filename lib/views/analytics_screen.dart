@@ -32,7 +32,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       _summary = await _service.summary();
       final to = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -295,7 +295,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         title: Text(l10n.t('analytics')),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             tooltip: l10n.t('refresh_data'),
             onPressed: () async {
               await _service.refresh();
@@ -305,7 +305,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -318,13 +318,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         color: AppTheme.primaryNavy.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(Icons.insights, color: AppTheme.primaryNavy, size: 20),
+                      child: Icon(Icons.insights, color: AppTheme.primaryNavy, size: 20),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         l10n.t('analytics_overview'),
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                       ),
                     ),
                     SegmentedButton<int>(
@@ -341,7 +341,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Top Executive Metric Row
                 Row(
@@ -352,21 +352,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       AppTheme.primaryNavy,
                       Icons.account_balance_wallet_outlined,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     _buildExecutiveKpi(
                       l10n.t('metric_orders'),
                       '${_summary.orderCount} Orders',
                       AppTheme.accentCyan,
                       Icons.local_mall_outlined,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     _buildExecutiveKpi(
                       l10n.t('metric_collected'),
                       fmt.format(_summary.amountPaid),
                       AppTheme.successGreen,
                       Icons.verified_outlined,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     _buildExecutiveKpi(
                       l10n.t('metric_outstanding'),
                       fmt.format(_summary.balanceDue),
@@ -375,7 +375,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Operational Performance & P&L Row
                 Row(
@@ -386,14 +386,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       Colors.teal.shade700,
                       Icons.trending_up,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     _buildExecutiveKpi(
                       'Aged A/R (>30d Overdue)',
                       fmt.format(_summary.balanceDue * 0.25),
                       _summary.balanceDue > 0 ? Colors.deepOrange : Colors.grey,
                       Icons.history_toggle_off,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     _buildExecutiveKpi(
                       'Production Throughput',
                       '${(_summary.orderCount * 4.2).toStringAsFixed(0)} pcs/day',
@@ -402,11 +402,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 // Revenue Trend Interactive Histogram
                 _buildTrendChart(_trends, fmt),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Daily Audit Table
                 Row(
@@ -415,11 +415,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     const SizedBox(width: 8),
                     Text(
                       l10n.t('daily_breakdown'),
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
 
                 if (_trends.isEmpty)
                   Card(

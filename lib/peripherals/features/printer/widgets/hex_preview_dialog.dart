@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:flutter/material.dart';
 
 class HexPreviewDialog extends StatelessWidget {
@@ -37,6 +38,7 @@ class HexPreviewDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Dialog(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720, maxHeight: 540),
@@ -79,7 +81,7 @@ class HexPreviewDialog extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Close'),
+                      child: Text(l10n.t('close')),
                     ),
                     const SizedBox(width: 8),
                     FilledButton.icon(

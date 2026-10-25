@@ -38,7 +38,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+setState(() => _loading = true);
     try {
       _batches = await _service.listBatches();
     } catch (e, stack) {
@@ -50,6 +50,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
   }
 
   Future<void> _export() async {
+    final l10n = context.l10n;
     final fmt = DateFormat('yyyy-MM-dd');
     final from = fmt.format(_startDate);
     final to = fmt.format(_endDate);
@@ -75,6 +76,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
   }
 
   void _showBatchDetails(Map<String, dynamic> batch) async {
+    final l10n = context.l10n;
     final batchId = batch['id'] is int ? batch['id'] as int : int.tryParse('${batch['id']}') ?? 0;
     Map<String, dynamic> details = batch;
     List<dynamic> lines = (batch['lines'] as List?) ?? [];
@@ -96,10 +98,9 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final l10n = ctx.l10n;
+    final l10n = ctx.l10n;
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(24),
@@ -114,20 +115,20 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                 children: [
                   Text(
                     '${l10n.t('accounting_lines')} #${details['uuid']?.toString().substring(0, 8) ?? batchId}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 '${details['period_start']} — ${details['period_end']} • ${details['adapter']?.toString().toUpperCase()}',
-                style: const TextStyle(color: AppTheme.secondaryGrey),
+                style: TextStyle(color: AppTheme.secondaryGrey),
               ),
-              const Divider(height: 24),
+              Divider(height: 24),
               Expanded(
                 child: lines.isEmpty
                     ? Center(child: Text(l10n.t('reports_empty')))
@@ -183,6 +184,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
   }
 
   void _exportFafAuditFile() {
+    final l10n = context.l10n;
     final csv = _service.generateFafAuditCsv(
       companyName: 'UAE Laundry Pro LLC',
       trn: '100492817200003',
@@ -203,6 +205,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
   }
 
   void _exportZatcaXml() {
+    final l10n = context.l10n;
     final end = DateFormat('yyyy-MM-dd').format(_endDate);
     final buffer = StringBuffer();
     buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
@@ -229,7 +232,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text('KSA ZATCA Phase 2 UBL XML copied to clipboard! Ready for Clearance/Reporting API.'),
         backgroundColor: AppTheme.successGreen,
       ),
@@ -250,8 +253,8 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
           unselectedLabelColor: Colors.white70,
           indicatorColor: AppTheme.accentTeal,
           tabs: [
-            Tab(icon: const Icon(Icons.history), text: l10n.t('accounting_export')),
-            Tab(icon: const Icon(Icons.verified_user), text: l10n.t('accounting_audit_tax')),
+            Tab(icon: Icon(Icons.history), text: l10n.t('accounting_export')),
+            Tab(icon: Icon(Icons.verified_user), text: l10n.t('accounting_audit_tax')),
           ],
         ),
       ),
@@ -262,7 +265,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
           RefreshIndicator(
             onRefresh: _load,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+              physics: AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,19 +281,18 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.date_range, color: AppTheme.primaryNavy),
-                              const SizedBox(width: 8),
+                              Icon(Icons.date_range, color: AppTheme.primaryNavy),
+                              SizedBox(width: 8),
                               Text(
                                 '${fmt.format(_startDate)}  ➔  ${fmt.format(_endDate)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                               ),
-                              const Spacer(),
+                              Spacer(),
                               DropdownButton<String>(
                                 value: _selectedAdapter,
                                 underline: const SizedBox(),
-                                items: const [
-                                  DropdownMenuItem(value: 'csv', child: Text('CSV (QuickBooks/Xero)')),
-                                  DropdownMenuItem(value: 'iif', child: Text('QuickBooks IIF')),
+                                items: [DropdownMenuItem(value: 'csv', child: Text('CSV (QuickBooks/Xero)')),
+                                  DropdownMenuItem(value: 'iif', child: Text(l10n.t('accounting_quickbooks_iif'))),
                                   DropdownMenuItem(value: 'json', child: Text('JSON Standard')),
                                   DropdownMenuItem(value: 'zatca', child: Text('KSA ZATCA Phase 2 (UBL 2.1 XML)')),
                                 ],
@@ -300,7 +302,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
@@ -310,7 +312,7 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              icon: const Icon(Icons.file_download),
+                              icon: Icon(Icons.file_download),
                               label: Text(l10n.t('accounting_generate_export')),
                               onPressed: _loading ? null : _export,
                             ),
@@ -319,14 +321,14 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Text(
                     l10n.t('reports_overview'),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   if (_loading)
-                    const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
+                    Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
                   else if (_batches.isEmpty)
                     Center(
                       child: Padding(
@@ -388,19 +390,18 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                                 color: AppTheme.accentTeal.withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.account_balance, color: AppTheme.accentTeal),
+                              child: Icon(Icons.account_balance, color: AppTheme.accentTeal),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     l10n.t('accounting_audit_tax'),
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
-                                  const Text(
-                                    'UAE Federal Tax Authority (FTA) Audit File v1.0',
+                                  Text('UAE Federal Tax Authority (FTA) Audit File v1.0',
                                     style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
                                   ),
                                 ],
@@ -408,40 +409,37 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                             ),
                           ],
                         ),
-                        const Divider(height: 24),
+                        Divider(height: 24),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(l10n.t('accounting_sales_rev')),
-                          trailing: const Text('12,500.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
+                          trailing: Text('12,500.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
-                        const ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text('Standard Output VAT (5%)'),
+                        ListTile(contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.t('accounting_output_vat')),
                           trailing: Text('625.00 AED', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.accentTeal)),
                         ),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(l10n.t('accounting_operating_exp')),
-                          trailing: const Text('4,200.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
+                          trailing: Text('4,200.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
-                        const ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text('Recoverable Input VAT (5%)'),
+                        ListTile(contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.t('accounting_input_vat')),
                           trailing: Text('210.00 AED', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.warningOrange)),
                         ),
-                        const Divider(height: 16),
+                        Divider(height: 16),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             l10n.t('accounting_net_payable'),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          trailing: const Text(
-                            '415.00 AED',
+                          trailing: Text('415.00 AED',
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryNavy),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -451,21 +449,21 @@ class _AccountingScreenState extends State<AccountingScreen> with SingleTickerPr
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
-                            icon: const Icon(Icons.copy),
+                            icon: Icon(Icons.copy),
                             label: Text(l10n.t('accounting_fta_faf')),
                             onPressed: _exportFafAuditFile,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(color: AppTheme.primaryNavy),
+                              side: BorderSide(color: AppTheme.primaryNavy),
                             ),
-                            icon: const Icon(Icons.code, color: AppTheme.primaryNavy),
-                            label: const Text('Export KSA ZATCA Phase 2 UBL XML', style: TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold)),
+                            icon: Icon(Icons.code, color: AppTheme.primaryNavy),
+                            label: Text(l10n.t('accounting_export_zatca'), style: const TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold)),
                             onPressed: _exportZatcaXml,
                           ),
                         ),

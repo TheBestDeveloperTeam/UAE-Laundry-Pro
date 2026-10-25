@@ -54,6 +54,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
   String _fmtDate(DateTime d) => d.toIso8601String().split('T').first;
 
   Future<void> _loadKpis() async {
+    final l10n = context.l10n;
     setState(() => _loadingKpis = true);
     try {
       _kpis = await _reports.dashboardKpis(date: _fmtDate(_to));
@@ -66,6 +67,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
   }
 
   Future<void> _loadTab({required bool force}) async {
+    final l10n = context.l10n;
     final idx = _tabs.index;
     if (!force && _cache.containsKey(idx)) return;
 
@@ -108,6 +110,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
   }
 
   Future<void> _applyDates() async {
+    final l10n = context.l10n;
     _cache.clear();
     await _loadTab(force: true);
   }
@@ -173,12 +176,12 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         ),
         actions: [
           IconButton(
-            tooltip: 'Export CSV',
+            tooltip: l10n.t('reports_export_csv'),
             icon: const Icon(Icons.download),
             onPressed: () {
               final activeData = _cache[_tabs.index] ?? {};
               if (activeData.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No report data available to export')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No report data available to export')));
                 return;
               }
               final buffer = StringBuffer();
@@ -202,12 +205,12 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
             },
           ),
           IconButton(
-            tooltip: 'Export PDF',
+            tooltip: l10n.t('reports_export_pdf'),
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: () async {
               final activeData = _cache[_tabs.index] ?? {};
               if (activeData.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No report data to print/export')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No report data to print/export')));
                 return;
               }
               final tabTitles = [
@@ -241,7 +244,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
             },
           ),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: l10n.t('reports_refresh'),
             onPressed: () {
               _loadTab(force: true);
               _loadKpis();

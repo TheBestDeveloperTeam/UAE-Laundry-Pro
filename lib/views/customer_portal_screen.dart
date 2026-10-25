@@ -36,6 +36,7 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
   }
 
   Future<void> _lookup() async {
+    final l10n = context.l10n;
     final token = _tokenController.text.trim();
     if (token.isEmpty) return;
 
@@ -63,6 +64,7 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
   }
 
   void _showScheduleDeliveryDialog() {
+    final l10n = context.l10n;
     final addressCtrl = TextEditingController(text: _order?['delivery_address']?.toString() ?? 'Villa / Apt, Dubai');
     DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
     String timeSlot = '14:00 - 18:00 (Afternoon)';
@@ -72,11 +74,10 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
+          title: Row(children: [
               Icon(Icons.local_shipping, color: AppTheme.accentTeal),
               SizedBox(width: 8),
-              Text('Request Home Delivery / Pickup'),
+              Text(l10n.t('portal_request_delivery')),
             ],
           ),
           content: SizedBox(
@@ -85,15 +86,13 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Choose preferred delivery date and time slot for your clean laundry items:',
+                Text('Choose preferred delivery date and time slot for your clean laundry items:',
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 TextField(
                   controller: addressCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Drop-off / Delivery Address *',
+                  decoration: InputDecoration(labelText: l10n.t('portal_address_label'),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.location_on),
                   ),
@@ -118,10 +117,10 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: timeSlot,
-                  decoration: const InputDecoration(labelText: 'Preferred Time Slot', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.t('portal_time_slot'), border: const OutlineInputBorder()),
                   items: const [
                     DropdownMenuItem(value: '09:00 - 13:00 (Morning)', child: Text('09:00 - 13:00 (Morning)')),
                     DropdownMenuItem(value: '14:00 - 18:00 (Afternoon)', child: Text('14:00 - 18:00 (Afternoon)')),
@@ -144,13 +143,12 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
               onPressed: () {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Delivery request booked! Driver will contact before arrival.'),
+                  SnackBar(content: Text(l10n.t('portal_delivery_booked')),
                     backgroundColor: AppTheme.successGreen,
                   ),
                 );
               },
-              child: const Text('Confirm Delivery Request'),
+              child: Text(l10n.t('portal_confirm_delivery')),
             ),
           ],
         ),
@@ -202,22 +200,21 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.local_laundry_service, color: AppTheme.accentTeal, size: 48),
-                  const SizedBox(height: 12),
+                  Icon(Icons.local_laundry_service, color: AppTheme.accentTeal, size: 48),
+                  SizedBox(height: 12),
                   Text(
                     l10n.t('customer_portal'),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Track laundry status, wash cycles, and collection readiness live',
+                  SizedBox(height: 6),
+                  Text('Track laundry status, wash cycles, and collection readiness live',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Token input card
             Card(
@@ -231,13 +228,13 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                       controller: _tokenController,
                       decoration: InputDecoration(
                         labelText: l10n.t('portal_token'),
-                        hintText: 'e.g. ORD-2026-0042 or 8-char token',
-                        prefixIcon: const Icon(Icons.qr_code_scanner, color: AppTheme.primaryNavy),
+                        hintText: l10n.t('portal_tracking_hint'),
+                        prefixIcon: Icon(Icons.qr_code_scanner, color: AppTheme.primaryNavy),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onSubmitted: (_) => _lookup(),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -247,7 +244,7 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        icon: const Icon(Icons.search),
+                        icon: Icon(Icons.search),
                         label: Text(l10n.t('portal_track_button')),
                         onPressed: _loading ? null : _lookup,
                       ),
@@ -256,10 +253,10 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             if (_loading)
-              const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
+              Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
 
             if (_errorMessage != null)
               Card(
@@ -269,12 +266,12 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: AppTheme.warningOrange),
-                      const SizedBox(width: 12),
+                      Icon(Icons.error_outline, color: AppTheme.warningOrange),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(color: AppTheme.warningOrange, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: AppTheme.warningOrange, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -297,7 +294,7 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                         children: [
                           Text(
                             '${l10n.t('order_no')}: #${_order!['order_no'] ?? _order!['sales_order_id'] ?? 'N/A'}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -307,8 +304,7 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                             ),
                             child: Text(
                               '${_order!['status']}'.toUpperCase(),
-                              style: const TextStyle(
-                                color: AppTheme.accentTeal,
+                              style: TextStyle(color: AppTheme.accentTeal,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -316,45 +312,44 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                           ),
                         ],
                       ),
-                      const Divider(height: 24),
+                      Divider(height: 24),
 
                       // Progress Steps Timeline
                       Text(
                         l10n.t('portal_order_timeline'),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       _buildTimeline(context, _getStatusStep(_order!['status']?.toString())),
 
-                      const Divider(height: 32),
+                      Divider(height: 32),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             l10n.t('total'),
-                            style: const TextStyle(fontSize: 15, color: AppTheme.secondaryGrey),
+                            style: TextStyle(fontSize: 15, color: AppTheme.secondaryGrey),
                           ),
                           Text(
                             '${_order!['grand_total'] ?? _order!['total'] ?? '0.00'} AED',
-                            style: const TextStyle(
-                              fontSize: 20,
+                            style: TextStyle(fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryNavy,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
-                                side: const BorderSide(color: AppTheme.primaryNavy),
+                                side: BorderSide(color: AppTheme.primaryNavy),
                               ),
-                              icon: const Icon(Icons.picture_as_pdf, color: AppTheme.primaryNavy),
-                              label: const Text('Download Receipt', style: TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold)),
+                              icon: Icon(Icons.picture_as_pdf, color: AppTheme.primaryNavy),
+                              label: Text(l10n.t('portal_download_receipt'), style: const TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold)),
                               onPressed: () async {
                                 final orderNo = _order!['order_no']?.toString() ?? 'ORDER';
                                 final total = double.tryParse('${_order!['grand_total'] ?? _order!['total'] ?? 0}') ?? 0.0;
@@ -385,14 +380,14 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                                 } catch (e) {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Failed to generate receipt: $e')),
+                                      SnackBar(content: Text(l10n.t('portal_receipt_failed').replaceAll('{error}', e.toString()))),
                                     );
                                   }
                                 }
                               },
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
@@ -400,8 +395,8 @@ class _CustomerPortalScreenState extends State<CustomerPortalScreen> {
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
-                              icon: const Icon(Icons.local_shipping),
-                              label: const Text('Schedule Delivery', style: TextStyle(fontWeight: FontWeight.bold)),
+                              icon: Icon(Icons.local_shipping),
+                              label: Text(l10n.t('portal_schedule_delivery'), style: const TextStyle(fontWeight: FontWeight.bold)),
                               onPressed: () => _showScheduleDeliveryDialog(),
                             ),
                           ),
