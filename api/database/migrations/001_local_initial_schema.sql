@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
   token_hash CHAR(64) NOT NULL UNIQUE,
-  expires_at TIMESTAMP NOT NULL,
+  expires_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   revoked_at TIMESTAMP NULL DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES users(id)
@@ -577,6 +577,7 @@ CREATE TABLE IF NOT EXISTS sync_state (
   last_pull_at TIMESTAMP NULL,
   cloud_api_url VARCHAR(500) NULL,
   cloud_token_hash VARCHAR(64) NULL,
+  cloud_token TEXT NULL,
   is_enabled TINYINT(1) NOT NULL DEFAULT 0,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -590,6 +591,9 @@ CREATE TABLE IF NOT EXISTS sync_outbox (
   payload JSON NOT NULL,
   synced_at TIMESTAMP NULL,
   sync_attempts INT UNSIGNED NOT NULL DEFAULT 0,
+  business_owner_id INT UNSIGNED NOT NULL DEFAULT 1,
+  status ENUM('pending', 'synced', 'failed') NOT NULL DEFAULT 'pending',
+  next_retry_at TIMESTAMP NULL DEFAULT NULL,
   last_error VARCHAR(500) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_outbox_pending (admin_id, synced_at, created_at),
@@ -940,8 +944,8 @@ ALTER TABLE sales_orders
 
 -- ALTER TABLE expenses branch_id
 
-UPDATE sales_orders SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
-UPDATE employees SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
+-- UPDATE sales_orders SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
+-- UPDATE employees SET branch_id = (SELECT id FROM branches LIMIT 1) WHERE branch_id IS NULL;
 
 -- ===== 021_terminal_sessions.sql =====
 CREATE TABLE IF NOT EXISTS terminal_sessions (
@@ -1118,7 +1122,7 @@ ALTER TABLE products
 
 ALTER TABLE sales_orders
   ADD INDEX IF NOT EXISTS idx_sales_cust_created (customer_id, created_at),
-  ADD INDEX IF NOT EXISTS idx_sales_status_promised (status, promised_date);
+  ADD INDEX IF NOT EXISTS idx_sales_status (status);
 
 ALTER TABLE inventory_movements
   ADD INDEX IF NOT EXISTS idx_inv_prod_created (product_id, created_at);
@@ -1303,7 +1307,7 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
   response_code INT NOT NULL,
   response_body JSON NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP NOT NULL,
+  expires_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_idemp_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- LaundryPro UAE Central Cloud Schema (Multi-Tenant & Super-Admin)

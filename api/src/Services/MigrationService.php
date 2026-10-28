@@ -39,6 +39,7 @@ final class MigrationService
   /** @return array{applied: array<int, string>, pending: array<int, string>, executed: array<int, string>} */
   public function runPending(): array
   {
+    $this->ensureMigrationsTable();
     $this->ensureBaselineForLegacyInstalls();
     $status = $this->status();
 
