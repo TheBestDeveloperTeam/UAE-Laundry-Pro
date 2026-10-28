@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:laundrypro_uae/core/localization.dart';
-import 'peripherals_test_support.dart';
+import 'support/peripherals_test_support.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/models/customer_model.dart';
 import 'package:laundrypro_uae/models/order_model.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:laundrypro_uae/views/role_editor_screen.dart';
-import '../peripherals_test_support.dart';
+import '../support/peripherals_test_support.dart';
 import 'flows_test_support.dart';
 
 void main() {

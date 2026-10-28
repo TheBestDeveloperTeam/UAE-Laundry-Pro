@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:laundrypro_uae/views/customers_screen.dart';
 import 'package:laundrypro_uae/views/expenses_screen.dart';
 import 'package:laundrypro_uae/views/pos_screen.dart';
-import '../peripherals_test_support.dart';
+import '../support/peripherals_test_support.dart';
 import 'flows_test_support.dart';
 
 void main() {

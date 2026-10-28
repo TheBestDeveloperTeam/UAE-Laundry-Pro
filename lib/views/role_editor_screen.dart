@@ -20,7 +20,9 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
   void initState() {
     super.initState();
     _api = widget.apiClient ?? ApiClient();
-    _fetchRoles();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _fetchRoles();
+    });
   }
 
   Future<void> _fetchRoles() async {

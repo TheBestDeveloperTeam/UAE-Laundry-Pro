@@ -10,7 +10,7 @@ import 'package:laundrypro_uae/providers/sync_provider.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
 import 'package:laundrypro_uae/services/auth_service.dart';
 import 'package:provider/provider.dart' as legacy_provider;
-import 'peripherals_test_support.dart';
+import 'support/peripherals_test_support.dart';
 
 // Screens
 import 'package:laundrypro_uae/views/login_screen.dart';

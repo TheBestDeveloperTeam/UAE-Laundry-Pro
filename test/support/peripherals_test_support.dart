@@ -23,3 +23,5 @@ Future<ProviderContainer> createTestPeripheralContainer() async {
     ],
   );
 }
+
+void main() {}
