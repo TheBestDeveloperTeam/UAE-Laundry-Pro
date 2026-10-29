@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
     setState(() => _currentStepKey = 'splash_step_connecting');
     try {
       final health = await authSvc.health().timeout(const Duration(seconds: 4));
-      if (health['status'] != 'ok') {
+      if (health['status'] != 'healthy' && health['status'] != 'ok' && health['database'] != 'ok') {
         _triggerFatalNodeError();
         return;
       }

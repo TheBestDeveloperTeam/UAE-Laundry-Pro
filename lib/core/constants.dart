@@ -1,6 +1,6 @@
 const String kApiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'https://laundrypro-api/api/v1',
+  defaultValue: 'http://laundrypro-api/api/v1',
 );
 
 const String kCloudApiBaseUrl = String.fromEnvironment(
