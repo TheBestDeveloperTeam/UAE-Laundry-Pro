@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
+import 'package:laundrypro_uae/core/design_system/responsive_layout.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/providers/locale_provider.dart';
-import 'package:laundrypro_uae/providers/sync_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:laundrypro_uae/widgets/hardware_status_bar.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.child});
-
   final Widget child;
 
   @override
   State<AppShell> createState() => _AppShellState();
 }
 
-class _NavItem {
-  const _NavItem(this.route, this.icon, this.labelKey, {this.permission});
-
+class _NavEntry {
+  const _NavEntry(this.route, this.icon, this.labelKey, {this.permission});
   final String route;
   final IconData icon;
   final String labelKey;
@@ -25,259 +25,98 @@ class _NavItem {
 }
 
 class _AppShellState extends State<AppShell> {
-  bool _hrExpanded = false;
+  final bool _sidebarExpanded = true;
 
-  static const _items = [
-    _NavItem('/dashboard', Icons.dashboard_outlined, 'dashboard'),
-    _NavItem('/advanced-cycles', Icons.loop_outlined, 'advanced_cycles', permission: 'advanced.cycle.run'),
-    _NavItem('/pos', Icons.point_of_sale_outlined, 'pos', permission: 'sales.write'),
-    _NavItem('/customers', Icons.people_outline, 'customers', permission: 'customers.read'),
-    _NavItem('/vendors', Icons.store_outlined, 'vendors', permission: 'vendors.read'),
-    _NavItem('/catalog', Icons.category_outlined, 'catalog', permission: 'catalog.read'),
-    _NavItem('/inventory', Icons.inventory_2_outlined, 'inventory_management', permission: 'inventory.read'),
-    _NavItem('/pending', Icons.receipt_long_outlined, 'pending_invoices', permission: 'sales.read'),
-    _NavItem('/production', Icons.precision_manufacturing_outlined, 'production', permission: 'sales.read'),
-    _NavItem('/equipment', Icons.build_outlined, 'equipment', permission: 'advanced.equipment.manage'),
-    _NavItem('/operators', Icons.badge_outlined, 'operator_certifications', permission: 'advanced.equipment.manage'),
-    _NavItem('/rfid', Icons.sensors_outlined, 'rfid_tracking', permission: 'advanced.equipment.manage'),
-    _NavItem('/sterilization', Icons.medical_services_outlined, 'sterilization', permission: 'advanced.cycle.run'),
-    _NavItem('/delivery', Icons.local_shipping_outlined, 'delivery', permission: 'delivery.read'),
-    _NavItem('/challans', Icons.description_outlined, 'challans', permission: 'challans.read'),
-    _NavItem('/purchasing', Icons.shopping_cart_outlined, 'purchasing', permission: 'purchasing.read'),
-    _NavItem('/expenses', Icons.payments_outlined, 'expenses', permission: 'expenses.read'),
-    _NavItem('/reports', Icons.bar_chart_outlined, 'reports', permission: 'reports.read'),
-    _NavItem('/analytics', Icons.insights_outlined, 'analytics', permission: 'reports.read'),
-    _NavItem('/notifications', Icons.notifications_outlined, 'notifications', permission: 'notifications.read'),
-    _NavItem('/admin/branches', Icons.hub_outlined, 'branches', permission: 'business.read'),
-    _NavItem('/admin/terminals', Icons.devices_outlined, 'terminals', permission: 'business.read'),
-    _NavItem('/settings/storefront', Icons.storefront_outlined, 'storefront', permission: 'sales.read'),
-    _NavItem('/customer', Icons.person_search_outlined, 'customer_portal'),
-    _NavItem('/business', Icons.business_outlined, 'business_profile', permission: 'business.read'),
-    _NavItem('/sync', Icons.cloud_sync_outlined, 'sync', permission: 'sync.read'),
-    _NavItem('/settings', Icons.settings_outlined, 'settings', permission: 'settings.read'),
+  // Workspace Nav Items
+  static const _workspaceGroup = [
+    _NavEntry('/dashboard', Icons.dashboard_rounded, 'dashboard'),
+    _NavEntry('/pending', Icons.access_time_rounded, 'live_orders', permission: 'sales.read'),
+    _NavEntry('/pos', Icons.point_of_sale_rounded, 'pos', permission: 'sales.write'),
   ];
 
-  static const _hrRoutes = [
-    '/hr/employees',
-    '/hr/attendance',
-    '/hr/leave',
-    '/hr/payroll',
+  // Operations Nav Items
+  static const _operationsGroup = [
+    _NavEntry('/production', Icons.settings_suggest_rounded, 'production', permission: 'sales.read'),
+    _NavEntry('/delivery', Icons.local_shipping_rounded, 'pickups_delivery', permission: 'delivery.read'),
+    _NavEntry('/customers', Icons.group_rounded, 'customers', permission: 'customers.read'),
+    _NavEntry('/vendors', Icons.store_rounded, 'vendors', permission: 'vendors.read'),
   ];
 
-  List<_NavItem> _visibleItems(List<String> permissions, bool isAdmin) {
-    return _items.where((item) {
-      if (item.permission == null) return true;
-      if (isAdmin) return true;
-      return permissions.contains(item.permission);
-    }).toList();
-  }
+  // Management Nav Items
+  static const _managementGroup = [
+    _NavEntry('/catalog', Icons.sell_rounded, 'catalog', permission: 'catalog.read'),
+    _NavEntry('/inventory', Icons.inventory_2_rounded, 'inventory', permission: 'inventory.read'),
+    _NavEntry('/hr/payroll', Icons.badge_rounded, 'staff_payroll', permission: 'business.read'),
+    _NavEntry('/expenses', Icons.account_balance_wallet_rounded, 'bookkeeping', permission: 'expenses.read'),
+    _NavEntry('/reports', Icons.bar_chart_rounded, 'reports', permission: 'reports.read'),
+  ];
 
-  int _selectedIndex(String location, List<_NavItem> visible) {
-    final idx = visible.indexWhere((i) => i.route == location);
-    if (idx >= 0) return idx;
-    if (_hrRoutes.contains(location)) return -2;
-    return 0;
-  }
-
-  bool _isHrRoute(String location) => _hrRoutes.contains(location);
+  // System Nav Items
+  static const _systemGroup = [
+    _NavEntry('/admin/branches', Icons.hub_rounded, 'branches_terminals', permission: 'business.read'),
+    _NavEntry('/settings', Icons.settings_rounded, 'settings', permission: 'settings.read'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final auth = context.watch<AuthProvider>();
-    final permissions = auth.user?.permissions ?? [];
-    final isAdmin = auth.user?.role == 'administrator';
-    final visible = _visibleItems(permissions, isAdmin);
-    String location = '/';
-    try {
-      location = GoRouterState.of(context).uri.path;
-    } catch (_) {
-      location = '/';
-    }
-    final selected = _selectedIndex(location, visible);
-    final onHr = _isHrRoute(location);
     final isRtl = Localizations.localeOf(context).languageCode == 'ar';
+    final screenType = ResponsiveLayout.getScreenType(context);
+    final autoCompact = screenType == DeviceScreenType.compactDesktop;
+    final isExpanded = !autoCompact && _sidebarExpanded;
+
+    String currentPath = '/dashboard';
+    try {
+      currentPath = GoRouterState.of(context).uri.path;
+    } catch (_) {}
 
     return Directionality(
       textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
-        appBar: AppBar(
-          title: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.local_laundry_service, color: Theme.of(context).colorScheme.primary, size: 24),
-                SizedBox(width: 8),
-                Text(
-                  l10n.t('app_name'),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text('${l10n.t('branch')}: MAIN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
-                ),
-                SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text('${l10n.t('terminal')}: T01', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            if (auth.user != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 16.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.person_outline, size: 18),
-                    const SizedBox(width: 4),
-                    Text(auth.user?.fullName ?? auth.user?.username ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            TextButton.icon(
-              style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-              onPressed: () {
-                final current = Localizations.localeOf(context).languageCode;
-                context.read<LocaleProvider>().setLocale(current == 'ar' ? 'en' : 'ar');
-              },
-              icon: Icon(Icons.language, size: 18),
-              label: Text(Localizations.localeOf(context).languageCode.toUpperCase(), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            ),
-            SizedBox(width: 8),
-          ],
-        ),
+        backgroundColor: AppTokens.canvas,
         body: Column(
           children: [
             Expanded(
               child: Row(
                 children: [
-                  SizedBox(
-                    width: isRtl ? 108 : 92,
-                    child: LayoutBuilder(
-                      builder: (context, constraint) {
-                        return SingleChildScrollView(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(minHeight: constraint.maxHeight),
-                            child: IntrinsicHeight(
-                              child: NavigationRail(
-                                selectedIndex: onHr ? null : (selected >= 0 ? selected : 0),
-                                onDestinationSelected: (i) => context.go(visible[i].route),
-                                labelType: NavigationRailLabelType.all,
-                                destinations: visible
-                                    .map((item) => NavigationRailDestination(
-                                          icon: Tooltip(message: l10n.t(item.labelKey), child: Icon(item.icon)),
-                                          label: Text(l10n.t(item.labelKey), textAlign: TextAlign.center),
-                                        ))
-                                    .toList(),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                  // 1. DARK NAVY SIDEBAR (260px / 76px)
+                  _buildSidebar(
+                    context: context,
+                    isExpanded: isExpanded,
+                    currentPath: currentPath,
+                    user: auth.user,
+                  ),
+
+                  // 2. MAIN WORKSPACE AREA (TOPBAR + SCROLLABLE CANVAS)
+                  Expanded(
+                    child: Column(
+                      children: [
+                        // Workspace Topbar (Breadcrumbs, Search, Branch, Terminal, Profile)
+                        _buildWorkspaceTopbar(
+                          context: context,
+                          currentPath: currentPath,
+                          user: auth.user,
+                          isRtl: isRtl,
+                        ),
+
+                        // Child Screen Content Canvas
+                        Expanded(
+                          child: widget.child,
+                        ),
+                      ],
                     ),
                   ),
-                  if (_hrExpanded || onHr)
-                    SizedBox(
-                      width: 160,
-                      child: Material(
-                        elevation: 1,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ListTile(
-                              dense: true,
-                              title: Text(l10n.t('hr'), style: Theme.of(context).textTheme.titleSmall),
-                              trailing: IconButton(
-                                icon: Icon(_hrExpanded ? Icons.expand_less : Icons.expand_more),
-                                onPressed: () => setState(() => _hrExpanded = !_hrExpanded),
-                              ),
-                            ),
-                            if (_hrExpanded) ...[
-                              _hrTile(context, l10n.t('employees'), '/hr/employees', location, Icons.badge_outlined),
-                              _hrTile(context, l10n.t('attendance'), '/hr/attendance', location, Icons.schedule_outlined),
-                              _hrTile(context, l10n.t('leave'), '/hr/leave', location, Icons.event_busy_outlined),
-                              _hrTile(context, l10n.t('payroll'), '/hr/payroll', location, Icons.account_balance_wallet_outlined),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  VerticalDivider(width: 1),
-                  Expanded(child: widget.child),
                 ],
               ),
             ),
-            Container(
-              height: 28,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border(top: BorderSide(color: Colors.grey.shade300)),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Icon(
-                    auth.apiHealthy ? Icons.check_circle : Icons.error_outline,
-                    color: auth.apiHealthy ? Colors.green : Colors.red,
-                    size: 14,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    auth.apiHealthy ? l10n.t('api_online') : l10n.t('api_offline'),
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(width: 16),
-                  Consumer<SyncProvider>(
-                    builder: (context, syncProvider, child) {
-                      if (!syncProvider.enabled) return const SizedBox.shrink();
-                      return Row(
-                        children: [
-                          Icon(
-                            syncProvider.isSyncing
-                                ? Icons.cloud_sync_outlined
-                                : (syncProvider.pendingCount > 0 ? Icons.cloud_queue_outlined : Icons.cloud_done_outlined),
-                            size: 14,
-                            color: syncProvider.isSyncing
-                                ? Colors.blue
-                                : (syncProvider.pendingCount > 0 ? Colors.orange : Colors.green),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${syncProvider.pendingCount}',
-                            style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
-                          ),
-                          const SizedBox(width: 16),
-                        ],
-                      );
-                    },
-                  ),
-                  Icon(Icons.print_outlined, size: 14, color: Colors.blueGrey),
-                  SizedBox(width: 4),
-                  Text(l10n.t('printers_ready'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
-                  SizedBox(width: 16),
-                  Icon(Icons.qr_code_scanner, size: 14, color: Colors.blueGrey),
-                  SizedBox(width: 4),
-                  Text(l10n.t('scanner_ready'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
-                  Spacer(),
-                  Icon(Icons.storage_outlined, size: 14, color: Colors.green),
-                  SizedBox(width: 4),
-                  Text(l10n.t('disk_ok'), style: TextStyle(fontSize: 11, color: Colors.grey.shade700)),
-                  const SizedBox(width: 16),
-                  Text('v1.2.1', style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontFamily: 'monospace')),
-                ],
-              ),
+
+            // 3. PERSISTENT HARDWARE & DATABASE HEALTH STATUS STRIP
+            const HardwareStatusBar(
+              isDbConnected: true,
+              isPrinterReady: true,
+              isScannerReady: true,
+              lastSyncTime: '10:42 AM',
+              version: 'v2.1.0',
             ),
           ],
         ),
@@ -285,14 +124,300 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
-  Widget _hrTile(BuildContext context, String label, String route, String location, IconData icon) {
-    final selected = location == route;
-    return ListTile(
-      dense: true,
-      selected: selected,
-      leading: Icon(icon, size: 20),
-      title: Text(label, style: const TextStyle(fontSize: 13)),
-      onTap: () => context.go(route),
+  Widget _buildSidebar({
+    required BuildContext context,
+    required bool isExpanded,
+    required String currentPath,
+    required dynamic user,
+  }) {
+    final sidebarWidth = isExpanded ? 260.0 : 76.0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: sidebarWidth,
+      color: AppTokens.brandNavy,
+      child: Column(
+        children: [
+          // Logo & Brand Lockup
+          Container(
+            height: 64,
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16),
+            alignment: Alignment.centerLeft,
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppTokens.brandTeal,
+                    borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                  ),
+                  child: const Icon(Icons.local_laundry_service_rounded, color: Colors.white, size: 22),
+                ),
+                if (isExpanded) ...[
+                  const SizedBox(width: AppTokens.space12),
+                  const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'LaundryPro UAE',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      Text(
+                        'BUSINESS OS',
+                        style: TextStyle(
+                          color: AppTokens.brandAqua,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppTokens.brandNavyBorder),
+
+          // Navigation Links
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: AppTokens.space12, horizontal: AppTokens.space8),
+              children: [
+                _buildGroupHeader('WORKSPACE', isExpanded),
+                ..._workspaceGroup.map((item) => _buildNavItem(item, currentPath, isExpanded)),
+                const SizedBox(height: AppTokens.space12),
+
+                _buildGroupHeader('OPERATIONS', isExpanded),
+                ..._operationsGroup.map((item) => _buildNavItem(item, currentPath, isExpanded)),
+                const SizedBox(height: AppTokens.space12),
+
+                _buildGroupHeader('MANAGEMENT', isExpanded),
+                ..._managementGroup.map((item) => _buildNavItem(item, currentPath, isExpanded)),
+                const SizedBox(height: AppTokens.space12),
+
+                _buildGroupHeader('SYSTEM', isExpanded),
+                ..._systemGroup.map((item) => _buildNavItem(item, currentPath, isExpanded)),
+              ],
+            ),
+          ),
+
+          // User Profile Block at Bottom
+          Container(
+            padding: const EdgeInsets.all(AppTokens.space12),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: AppTokens.brandNavyBorder, width: 1.0)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: AppTokens.brandTeal,
+                  child: Text(
+                    user?.username?.substring(0, 1).toUpperCase() ?? 'A',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                if (isExpanded) ...[
+                  const SizedBox(width: AppTokens.space10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.fullName ?? user?.username ?? 'System Admin',
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Text(
+                          'Main Branch',
+                          style: TextStyle(color: AppTokens.textMuted, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.logout_rounded, color: AppTokens.textMuted, size: 18),
+                    onPressed: () => context.read<AuthProvider>().logout(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildGroupHeader(String title, bool isExpanded) {
+    if (!isExpanded) return const SizedBox(height: AppTokens.space8);
+    return Padding(
+      padding: const EdgeInsets.only(left: AppTokens.space12, right: AppTokens.space12, top: AppTokens.space8, bottom: AppTokens.space4),
+      child: Text(title, style: AppTokens.groupLabel),
+    );
+  }
+
+  Widget _buildNavItem(_NavEntry item, String currentPath, bool isExpanded) {
+    final l10n = context.l10n;
+    final isActive = currentPath.startsWith(item.route);
+
+    return InkWell(
+      onTap: () => context.go(item.route),
+      borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+      child: Container(
+        height: 40,
+        margin: const EdgeInsets.symmetric(vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12),
+        decoration: BoxDecoration(
+          color: isActive ? AppTokens.brandTeal : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+        ),
+        child: Row(
+          children: [
+            Icon(item.icon, color: isActive ? Colors.white : AppTokens.textMuted, size: 20),
+            if (isExpanded) ...[
+              const SizedBox(width: AppTokens.space12),
+              Expanded(
+                child: Text(
+                  l10n.t(item.labelKey),
+                  style: TextStyle(
+                    color: isActive ? Colors.white : const Color(0xFFC7D2FE),
+                    fontSize: 13,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWorkspaceTopbar({
+    required BuildContext context,
+    required String currentPath,
+    required dynamic user,
+    required bool isRtl,
+  }) {
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24),
+      decoration: const BoxDecoration(
+        color: AppTokens.surfacePrimary,
+        border: Border(bottom: BorderSide(color: AppTokens.borderSubtle, width: 1.0)),
+      ),
+      child: Row(
+        children: [
+          // Breadcrumbs
+          Row(
+            children: [
+              const Icon(Icons.home_outlined, size: 18, color: AppTokens.textMuted),
+              const SizedBox(width: AppTokens.space8),
+              Text(
+                'Workspace / ${_formatPath(currentPath)}',
+                style: const TextStyle(fontSize: 13, color: AppTokens.textSecondary, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          const SizedBox(width: AppTokens.space24),
+
+          // Global Search Field
+          Expanded(
+            child: Container(
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12),
+              decoration: BoxDecoration(
+                color: AppTokens.surfaceSubtle,
+                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                border: Border.all(color: AppTokens.borderSubtle),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.search_rounded, size: 18, color: AppTokens.textMuted),
+                  SizedBox(width: AppTokens.space8),
+                  Expanded(
+                    child: Text(
+                      'Search orders, customers, invoices...',
+                      style: TextStyle(color: AppTokens.textMuted, fontSize: 13),
+                    ),
+                  ),
+                  Text('Ctrl K', style: TextStyle(color: AppTokens.textMuted, fontSize: 11, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: AppTokens.space24),
+
+          // Branch & Terminal Selectors
+          _buildSelectorPill(icon: Icons.location_on_outlined, label: 'MAIN BRANCH'),
+          const SizedBox(width: AppTokens.space8),
+          _buildSelectorPill(icon: Icons.computer_outlined, label: 'T01'),
+          const SizedBox(width: AppTokens.space12),
+
+          // Bilingual Language Switcher (EN | العربية)
+          InkWell(
+            onTap: () {
+              final curr = Localizations.localeOf(context).languageCode;
+              context.read<LocaleProvider>().setLocale(curr == 'ar' ? 'en' : 'ar');
+            },
+            borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppTokens.borderSubtle),
+                borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+              ),
+              child: Text(
+                isRtl ? 'English' : 'العربية',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTokens.textPrimary),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppTokens.space12),
+
+          // Notifications Bell
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, size: 20, color: AppTokens.textSecondary),
+            onPressed: () => context.go('/notifications'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectorPill({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTokens.surfaceSubtle,
+        borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+        border: Border.all(color: AppTokens.borderSubtle),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppTokens.textSecondary),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTokens.textPrimary)),
+          const SizedBox(width: 4),
+          const Icon(Icons.arrow_drop_down, size: 16, color: AppTokens.textMuted),
+        ],
+      ),
+    );
+  }
+
+  String _formatPath(String path) {
+    if (path.isEmpty || path == '/') return 'Dashboard';
+    final clean = path.replaceAll('/', ' ').trim();
+    return clean.substring(0, 1).toUpperCase() + clean.substring(1);
   }
 }
