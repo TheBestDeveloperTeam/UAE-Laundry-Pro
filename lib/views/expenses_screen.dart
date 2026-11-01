@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/services/expense_service.dart';
+import 'package:laundrypro_uae/widgets/status_badge.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key, this.expenseService});
@@ -28,7 +30,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Future<void> _load() async {
-setState(() => _loading = true);
+    setState(() => _loading = true);
     try {
       final filter = _statusFilter == 'all' ? null : _statusFilter;
       final items = await _expenses.list(status: filter);
@@ -63,7 +65,12 @@ setState(() => _loading = true);
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: Text(l10n.t('expense_create')),
+            backgroundColor: AppTokens.surfacePrimary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTokens.radiusLarge),
+              side: const BorderSide(color: AppTokens.borderSubtle),
+            ),
+            title: Text(l10n.t('expense_create'), style: AppTokens.sectionHeading),
             content: SizedBox(
               width: 380,
               child: Column(
@@ -84,17 +91,17 @@ setState(() => _loading = true);
                       if (val != null) setDialogState(() => selectedCatId = val);
                     },
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: AppTokens.space12),
                   TextField(
                     controller: amountController,
                     decoration: InputDecoration(
                       labelText: '${l10n.t('amount')} (AED)',
                       prefixText: 'AED ',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: AppTokens.space12),
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
@@ -102,11 +109,11 @@ setState(() => _loading = true);
                       border: const OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppTokens.space12),
                   Row(
                     children: [
                       Expanded(
-                        child: FilledButton.tonalIcon(
+                        child: OutlinedButton.icon(
                           onPressed: () async {
                             final result = await FilePicker.pickFiles(
                               type: FileType.custom,
@@ -119,7 +126,7 @@ setState(() => _loading = true);
                               });
                             }
                           },
-                          icon: const Icon(Icons.attach_file),
+                          icon: const Icon(Icons.attach_file, size: 16),
                           label: Text(
                             attachmentName ?? 'Attach Receipt (Optional)',
                             overflow: TextOverflow.ellipsis,
@@ -127,9 +134,9 @@ setState(() => _loading = true);
                         ),
                       ),
                       if (attachmentPath != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppTokens.space8),
                         IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
+                          icon: const Icon(Icons.clear, color: AppTokens.statusCancelled),
                           onPressed: () => setDialogState(() {
                             attachmentPath = null;
                             attachmentName = null;
@@ -142,8 +149,15 @@ setState(() => _loading = true);
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.t('pos_close'))),
-              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.t('save'))),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.t('pos_close'), style: const TextStyle(color: AppTokens.textSecondary)),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: AppTokens.brandTeal),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l10n.t('save')),
+              ),
             ],
           );
         },
@@ -173,7 +187,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _approve(int id) async {
-    final l10n = context.l10n;
     try {
       await _expenses.approve(id);
       await _load();
@@ -183,7 +196,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _reject(int id) async {
-    final l10n = context.l10n;
     try {
       await _expenses.reject(id);
       await _load();
@@ -195,109 +207,192 @@ setState(() => _loading = true);
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.t('expenses')),
-        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+      backgroundColor: AppTokens.canvas,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Page Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Card(
-                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.t('expenses'), style: AppTokens.pageHeading),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Petty cash disbursements, operational vouchers and receipt tracking',
+                      style: AppTokens.caption.copyWith(color: AppTokens.textSecondary),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  onPressed: _load,
+                  icon: const Icon(Icons.refresh_rounded, color: AppTokens.textSecondary),
+                  tooltip: l10n.t('refresh'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTokens.space16),
+
+            // Summary Bar
+            Container(
+              padding: const EdgeInsets.all(AppTokens.space12),
+              decoration: BoxDecoration(
+                color: AppTokens.surfacePrimary,
+                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                border: Border.all(color: AppTokens.borderSubtle),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: AppTokens.space10),
+                      decoration: BoxDecoration(
+                        color: AppTokens.surfaceSubtle,
+                        borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                        border: Border.all(color: AppTokens.borderSubtle),
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Total Expenses (${_items.length} items):', style: TextStyle(fontWeight: FontWeight.w600)),
-                          Text('AED ${_totalExpenses.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.primary)),
+                          Flexible(
+                            child: Text(
+                              'Total Expenses (${_items.length} items):',
+                              style: AppTokens.bodyStrong,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            'AED ${_totalExpenses.toStringAsFixed(2)}',
+                            style: AppTokens.metricLarge.copyWith(fontSize: 18, color: AppTokens.brandTeal),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 12),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
-                    ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
-                    ButtonSegment(value: 'approved', label: Text(l10n.t('expense_approved'))),
-                  ],
-                  selected: {_statusFilter},
-                  onSelectionChanged: (set) {
-                    setState(() => _statusFilter = set.first);
-                    _load();
-                  },
-                ),
-              ],
+                  const SizedBox(width: AppTokens.space12),
+                  Flexible(
+                    child: SegmentedButton<String>(
+                      segments: [
+                        ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
+                        ButtonSegment(value: 'pending', label: Text(context.l10n.t('pending_invoices'))),
+                        ButtonSegment(value: 'approved', label: Text(l10n.t('expense_approved'))),
+                      ],
+                      selected: {_statusFilter},
+                      onSelectionChanged: (set) {
+                        setState(() => _statusFilter = set.first);
+                        _load();
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Divider(height: 1),
-          Expanded(
-            child: _loading
-                ? Center(child: CircularProgressIndicator())
-                : _items.isEmpty
-                    ? Center(child: Text(l10n.t('expenses_empty')))
-                    : ListView.separated(
-                        itemCount: _items.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, i) {
-                          final e = _items[i];
-                          final id = int.tryParse(e['id']?.toString() ?? '0') ?? 0;
-                          final status = e['status']?.toString() ?? 'pending';
-                          final isPending = status == 'pending';
-                          final isApproved = status == 'approved';
+            const SizedBox(height: AppTokens.space16),
 
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: isApproved
-                                  ? Colors.green.shade100
-                                  : (isPending ? Colors.amber.shade100 : Colors.red.shade100),
-                              child: Icon(
-                                isApproved
-                                    ? Icons.check
-                                    : (isPending ? Icons.hourglass_top : Icons.close),
-                                color: isApproved
-                                    ? Colors.green.shade800
-                                    : (isPending ? Colors.amber.shade900 : Colors.red.shade800),
-                              ),
-                            ),
-                            title: Text(e['description']?.toString() ?? l10n.t('expenses'), style: TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('Category #${e['category_id'] ?? ''} - Status: ${status.toUpperCase()}'),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'AED ${double.tryParse(e['amount']?.toString() ?? '0')?.toStringAsFixed(2) ?? '0.00'}',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            // Expense Records List
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator(color: AppTokens.brandTeal))
+                  : _items.isEmpty
+                      ? Center(
+                          child: Text(
+                            l10n.t('expenses_empty'),
+                            style: AppTokens.bodyRegular.copyWith(color: AppTokens.textMuted),
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: _items.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: AppTokens.space8),
+                          itemBuilder: (context, i) {
+                            final e = _items[i];
+                            final id = int.tryParse(e['id']?.toString() ?? '0') ?? 0;
+                            final status = e['status']?.toString() ?? 'pending';
+                            final isPending = status == 'pending';
+                            final isApproved = status == 'approved';
+
+                            return Container(
+                              decoration: AppTokens.cardDecoration,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: AppTokens.space8),
+                                leading: CircleAvatar(
+                                  backgroundColor: isApproved
+                                      ? AppTokens.statusBgReady
+                                      : (isPending ? AppTokens.statusBgFinishing : AppTokens.statusBgCancelled),
+                                  child: Icon(
+                                    isApproved
+                                        ? Icons.check
+                                        : (isPending ? Icons.hourglass_top : Icons.close),
+                                    color: isApproved
+                                        ? AppTokens.statusReady
+                                        : (isPending ? AppTokens.statusFinishing : AppTokens.statusCancelled),
+                                  ),
                                 ),
-                                if (isPending) ...[
-                                  SizedBox(width: 8),
-                                  IconButton(
-                                    icon: Icon(Icons.check_circle, color: Colors.green),
-                                    tooltip: l10n.t('expense_approve_tooltip'),
-                                    onPressed: id > 0 ? () => _approve(id) : null,
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.cancel, color: Colors.red),
-                                    tooltip: l10n.t('expense_reject_tooltip'),
-                                    onPressed: id > 0 ? () => _reject(id) : null,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
+                                title: Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        e['description']?.toString() ?? l10n.t('expenses'),
+                                        style: AppTokens.bodyStrong,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppTokens.space8),
+                                    StatusBadge(
+                                      label: status.toUpperCase(),
+                                      stage: isApproved
+                                          ? OrderStage.ready
+                                          : (isPending ? OrderStage.finishing : OrderStage.cancelled),
+                                      compact: true,
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Text(
+                                  'Category #${e['category_id'] ?? ''}',
+                                  style: AppTokens.caption.copyWith(color: AppTokens.textSecondary),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'AED ${double.tryParse(e['amount']?.toString() ?? '0')?.toStringAsFixed(2) ?? '0.00'}',
+                                      style: AppTokens.bodyStrong,
+                                    ),
+                                    if (isPending) ...[
+                                      const SizedBox(width: AppTokens.space8),
+                                      IconButton(
+                                        icon: const Icon(Icons.check_circle, color: AppTokens.statusReady),
+                                        tooltip: l10n.t('expense_approve_tooltip'),
+                                        onPressed: id > 0 ? () => _approve(id) : null,
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.cancel, color: AppTokens.statusCancelled),
+                                        tooltip: l10n.t('expense_reject_tooltip'),
+                                        onPressed: id > 0 ? () => _reject(id) : null,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppTokens.brandTeal,
+        foregroundColor: Colors.white,
+        onPressed: _create,
+        icon: const Icon(Icons.add),
+        label: Text(l10n.t('expense_create')),
+      ),
     );
   }
 }
