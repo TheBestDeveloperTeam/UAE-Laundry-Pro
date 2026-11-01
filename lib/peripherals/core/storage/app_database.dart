@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'local_business_database.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((_) {
   throw UnimplementedError('Bootstrap did not initialize AppDatabase');
@@ -8,7 +9,7 @@ final appDatabaseProvider = Provider<AppDatabase>((_) {
 class AppDatabase {
   AppDatabase({this.dbPath = ':memory:'});
 
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 4;
 
   final String dbPath;
   Database? _db;
@@ -27,6 +28,8 @@ class AppDatabase {
           await _createV1(db);
           await _createV2(db);
           await _createV3(db);
+          await LocalBusinessDatabase.createSchema(db);
+          await LocalBusinessDatabase.seedIfEmpty(db);
         },
         onUpgrade: (db, fromVersion, toVersion) async {
           if (fromVersion < 2) {
@@ -34,6 +37,10 @@ class AppDatabase {
           }
           if (fromVersion < 3) {
             await _createV3(db);
+          }
+          if (fromVersion < 4) {
+            await LocalBusinessDatabase.createSchema(db);
+            await LocalBusinessDatabase.seedIfEmpty(db);
           }
         },
       ),
