@@ -51,12 +51,17 @@ class MetricCard extends StatelessWidget {
                   ),
                   child: Icon(icon, color: accentColor, size: 20),
                 ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppTokens.textSecondary,
+                const SizedBox(width: AppTokens.space8),
+                Expanded(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppTokens.textSecondary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

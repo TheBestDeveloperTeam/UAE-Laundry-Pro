@@ -156,29 +156,33 @@ class _AppShellState extends State<AppShell> {
                 ),
                 if (isExpanded) ...[
                   const SizedBox(width: AppTokens.space12),
-                  const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'LaundryPro UAE',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
+                  const Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'LaundryPro UAE',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      Text(
-                        'BUSINESS OS',
-                        style: TextStyle(
-                          color: AppTokens.brandAqua,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                        Text(
+                          'BUSINESS OS',
+                          style: TextStyle(
+                            color: AppTokens.brandAqua,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ],

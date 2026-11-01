@@ -272,8 +272,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Order pipeline', style: AppTokens.sectionHeading),
-                  Text('42 total today', style: TextStyle(fontSize: 12, color: AppTokens.textSecondary)),
+                  Expanded(
+                    child: Text(
+                      'Order pipeline',
+                      style: AppTokens.sectionHeading,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: AppTokens.space8),
+                  Text(
+                    '42 total today',
+                    style: TextStyle(fontSize: 12, color: AppTokens.textSecondary),
+                  ),
                 ],
               ),
               const SizedBox(height: AppTokens.space16),
