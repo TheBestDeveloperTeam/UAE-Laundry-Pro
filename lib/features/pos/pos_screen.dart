@@ -157,7 +157,6 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Widget _buildServiceCard(String title, double price, IconData icon) {
-    final l10n = context.l10n;
     return InkWell(
       onTap: () => _addToCart(title, price),
       child: Card(

@@ -187,7 +187,6 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _scalePanel() {
-    final l10n = context.l10n;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -263,7 +262,6 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _machineIdentityPanel() {
-    final l10n = context.l10n;
     final identity = ref.watch(machineIdentityProvider);
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -290,7 +288,6 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
   }
 
   Widget _logsPanel() {
-    final l10n = context.l10n;
     final logs = ref.watch(logsProvider);
     return logs.when(
       data: (rows) => ListView.builder(
@@ -318,7 +315,6 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
     required String subtitle,
     required IconData icon,
   }) {
-    final l10n = context.l10n;
     return SizedBox(
       width: 280,
       child: _navCard(
@@ -336,7 +332,6 @@ class _DashboardShellScreenState extends ConsumerState<DashboardShellScreen> {
     required Widget subtitle,
     required IconData icon,
   }) {
-    final l10n = context.l10n;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(

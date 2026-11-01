@@ -412,7 +412,6 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     ref.listen<AsyncValue<List<PrinterDeviceModel>>>(printersProvider,
         (_, next) {
       next.whenData((items) {
@@ -613,7 +612,6 @@ class _PrinterPanelState extends ConsumerState<PrinterPanel> {
   }
 
   Widget _formatSection() {
-    final l10n = context.l10n;
     final paper = ref.watch(paperSizeProvider);
     final copies = ref.watch(printCopiesProvider);
     final title = ref.watch(receiptTitleProvider);

@@ -107,7 +107,6 @@ class _WizardScreenState extends State<WizardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
         title: const Text('LaundryPro Setup Wizard'),

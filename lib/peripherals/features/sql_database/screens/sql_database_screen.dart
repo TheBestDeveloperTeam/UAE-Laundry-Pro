@@ -191,7 +191,6 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
   }
 
   Widget _connectionStatusBanner(RemoteSqlState sqlState, ThemeData theme) {
-    final l10n = context.l10n;
     final Color bg;
     final Color fg;
     final IconData icon;
@@ -253,7 +252,6 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
   }) {
-    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TextField(
@@ -273,7 +271,6 @@ class _SqlDatabaseScreenState extends ConsumerState<SqlDatabaseScreen> {
   }
 
   Widget _countryResultsGrid(RemoteSqlState sqlState) {
-    final l10n = context.l10n;
     if (sqlState.querying) {
       return const Center(child: CircularProgressIndicator());
     }
