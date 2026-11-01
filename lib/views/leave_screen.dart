@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
 import 'package:laundrypro_uae/models/leave_model.dart';
 import 'package:laundrypro_uae/services/employee_service.dart';
@@ -61,19 +61,19 @@ setState(() => _loading = true);
 
     switch (status.toLowerCase()) {
       case 'approved':
-        bg = AppTheme.successGreen.withValues(alpha: 0.12);
-        border = AppTheme.successGreen;
+        bg = AppTokens.statusReady.withValues(alpha: 0.12);
+        border = AppTokens.statusReady;
         icon = Icons.check_circle_outline;
         break;
       case 'rejected':
-        bg = AppTheme.errorRed.withValues(alpha: 0.12);
-        border = AppTheme.errorRed;
+        bg = AppTokens.statusCancelled.withValues(alpha: 0.12);
+        border = AppTokens.statusCancelled;
         icon = Icons.cancel_outlined;
         break;
       case 'pending':
       default:
-        bg = AppTheme.warningOrange.withValues(alpha: 0.12);
-        border = AppTheme.warningOrange;
+        bg = AppTokens.statusFinishing.withValues(alpha: 0.12);
+        border = AppTokens.statusFinishing;
         icon = Icons.hourglass_top;
     }
 
@@ -127,26 +127,26 @@ setState(() => _loading = true);
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppTheme.infoBlue.withValues(alpha: 0.12),
+                            color: AppTokens.statusWashing.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Icon(Icons.beach_access_outlined, color: AppTheme.infoBlue, size: 24),
+                          child: const Icon(Icons.beach_access_outlined, color: AppTokens.statusWashing, size: 24),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             l10n.t('leave_create'),
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                           ),
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          icon: Icon(Icons.close),
+                          icon: const Icon(Icons.close),
                           splashRadius: 18,
                         ),
                       ],
                     ),
-                    Divider(height: 24),
+                    const Divider(height: 24),
 
                     // Employee dropdown
                     DropdownButtonFormField<int>(
@@ -163,13 +163,13 @@ setState(() => _loading = true);
                       initialValue: selectedEmpId,
                       onChanged: (val) => setDialogState(() => selectedEmpId = val),
                     ),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
 
                     // Leave Type
                     if (_leaveTypes.isNotEmpty)
                       DropdownButtonFormField<int>(
                         decoration: InputDecoration(labelText: l10n.t('leave_type_label'),
-                          prefixIcon: Icon(Icons.category_outlined, size: 20),
+                          prefixIcon: const Icon(Icons.category_outlined, size: 20),
                         ),
                         items: _leaveTypes.map((t) {
                           return DropdownMenuItem<int>(
@@ -229,7 +229,7 @@ setState(() => _loading = true);
                             child: InputDecorator(
                               decoration: InputDecoration(
                                 labelText: l10n.t('end_date'),
-                                prefixIcon: Icon(Icons.calendar_month_outlined, size: 18),
+                                prefixIcon: const Icon(Icons.calendar_month_outlined, size: 18),
                               ),
                               child: Text(endDate.toIso8601String().split('T').first),
                             ),
@@ -237,30 +237,30 @@ setState(() => _loading = true);
                         ),
                       ],
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
                     // Duration indicator
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppTheme.accentCyan.withValues(alpha: 0.12),
+                        color: AppTokens.brandAqua.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         'Duration: $days Day(s)',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight, fontSize: 12),
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandNavyActive, fontSize: 12),
                       ),
                     ),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
 
                     TextFormField(
                       controller: reasonController,
                       decoration: InputDecoration(labelText: l10n.t('leave_reason'),
-                        prefixIcon: Icon(Icons.notes, size: 18),
+                        prefixIcon: const Icon(Icons.notes, size: 18),
                       ),
                       maxLines: 2,
                     ),
-                    Divider(height: 28),
+                    const Divider(height: 28),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -269,13 +269,13 @@ setState(() => _loading = true);
                           onPressed: () => Navigator.pop(ctx, false),
                           child: Text(l10n.t('pos_close')),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         FilledButton.icon(
-                          style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
+                          style: FilledButton.styleFrom(backgroundColor: AppTokens.brandNavy),
                           onPressed: selectedEmpId == null
                               ? null
                               : () => Navigator.pop(ctx, true),
-                          icon: Icon(Icons.check, size: 18),
+                          icon: const Icon(Icons.check, size: 18),
                           label: Text(l10n.t('save')),
                         ),
                       ],
@@ -307,7 +307,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _handleApprove(int id) async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _payroll.approveLeave(id);
@@ -318,7 +317,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _handleReject(int id) async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _payroll.rejectLeave(id);
@@ -400,14 +398,14 @@ setState(() => _loading = true);
                     ),
                   ],
                 ),
-                Spacer(),
+                const Spacer(),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.primaryNavy,
+                    backgroundColor: AppTokens.brandNavy,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onPressed: _openLeaveDialog,
-                  icon: Icon(Icons.add, size: 20),
+                  icon: const Icon(Icons.add, size: 20),
                   label: Text(l10n.t('leave_create')),
                 ),
               ],
@@ -417,14 +415,14 @@ setState(() => _loading = true);
           // Leave Requests Table
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.beach_access_outlined, size: 48, color: Colors.grey.shade400),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text(
                               l10n.t('leave_empty'),
                               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
@@ -442,7 +440,7 @@ setState(() => _loading = true);
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? 'EMP-${row['employee_id']}',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -494,13 +492,13 @@ setState(() => _loading = true);
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
-                                        icon: Icon(Icons.check_circle_outline, color: AppTheme.successGreen, size: 20),
+                                        icon: const Icon(Icons.check_circle_outline, color: AppTokens.statusReady, size: 20),
                                         tooltip: l10n.t('leave_approve_tooltip'),
                                         onPressed: () => _handleApprove(l.id),
                                         splashRadius: 18,
                                       ),
                                       IconButton(
-                                        icon: Icon(Icons.cancel_outlined, color: AppTheme.errorRed, size: 20),
+                                        icon: const Icon(Icons.cancel_outlined, color: AppTokens.statusCancelled, size: 20),
                                         tooltip: l10n.t('leave_reject_tooltip'),
                                         onPressed: () => _handleReject(l.id),
                                         splashRadius: 18,
@@ -512,7 +510,7 @@ setState(() => _loading = true);
                                   l.status.toUpperCase(),
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: l.status == 'approved' ? AppTheme.successGreen : AppTheme.errorRed,
+                                    color: l.status == 'approved' ? AppTokens.statusReady : AppTokens.statusCancelled,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 );

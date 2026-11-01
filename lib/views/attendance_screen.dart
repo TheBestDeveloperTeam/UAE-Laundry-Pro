@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/attendance_model.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
 import 'package:laundrypro_uae/services/attendance_service.dart';
@@ -59,28 +59,28 @@ setState(() => _loading = true);
 
     switch (status.toLowerCase()) {
       case 'present':
-        bg = AppTheme.successGreen.withValues(alpha: 0.12);
-        border = AppTheme.successGreen;
+        bg = AppTokens.statusReady.withValues(alpha: 0.12);
+        border = AppTokens.statusReady;
         icon = Icons.check_circle_outline;
         break;
       case 'absent':
-        bg = AppTheme.errorRed.withValues(alpha: 0.12);
-        border = AppTheme.errorRed;
+        bg = AppTokens.statusCancelled.withValues(alpha: 0.12);
+        border = AppTokens.statusCancelled;
         icon = Icons.cancel_outlined;
         break;
       case 'half_day':
-        bg = AppTheme.warningOrange.withValues(alpha: 0.12);
-        border = AppTheme.warningOrange;
+        bg = AppTokens.statusFinishing.withValues(alpha: 0.12);
+        border = AppTokens.statusFinishing;
         icon = Icons.timelapse;
         break;
       case 'leave':
-        bg = AppTheme.infoBlue.withValues(alpha: 0.12);
-        border = AppTheme.infoBlue;
+        bg = AppTokens.statusWashing.withValues(alpha: 0.12);
+        border = AppTokens.statusWashing;
         icon = Icons.beach_access_outlined;
         break;
       default:
-        bg = AppTheme.coolGray.withValues(alpha: 0.15);
-        border = AppTheme.coolGray;
+        bg = AppTokens.textMuted.withValues(alpha: 0.15);
+        border = AppTokens.textMuted;
         icon = Icons.help_outline;
     }
 
@@ -127,26 +127,26 @@ setState(() => _loading = true);
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.accentCyan.withValues(alpha: 0.15),
+                          color: AppTokens.brandAqua.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Icon(Icons.alarm_on, color: AppTheme.primaryNavy, size: 24),
+                        child: const Icon(Icons.alarm_on, color: AppTokens.brandNavy, size: 24),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           l10n.t('attendance_record'),
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                         ),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        icon: Icon(Icons.close),
+                        icon: const Icon(Icons.close),
                         splashRadius: 18,
                       ),
                     ],
                   ),
-                  Divider(height: 24),
+                  const Divider(height: 24),
 
                   // Quick lookup by PIN / Barcode / Employee selection
                   DropdownButtonFormField<int>(
@@ -167,7 +167,7 @@ setState(() => _loading = true);
                       });
                     },
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
                   Row(
                     children: [
@@ -192,10 +192,10 @@ setState(() => _loading = true);
                       ),
                     ],
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
 
                   // Shift status
-                  Text(l10n.t('status'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight)),
+                  Text(l10n.t('status'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTokens.brandNavyActive)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8,
@@ -210,15 +210,15 @@ setState(() => _loading = true);
                       );
                     }).toList(),
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
 
                   TextField(
                     controller: notesController,
-                    decoration: InputDecoration(labelText: 'Notes / Remarks',
+                    decoration: const InputDecoration(labelText: 'Notes / Remarks',
                       prefixIcon: Icon(Icons.note_alt_outlined, size: 18),
                     ),
                   ),
-                  Divider(height: 28),
+                  const Divider(height: 28),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -227,14 +227,14 @@ setState(() => _loading = true);
                         onPressed: () => Navigator.pop(ctx, false),
                         child: Text(l10n.t('pos_close')),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       FilledButton.icon(
-                        style: FilledButton.styleFrom(backgroundColor: AppTheme.accentGreen),
+                        style: FilledButton.styleFrom(backgroundColor: AppTokens.brandTeal),
                         onPressed: selectedEmpId == null
                             ? null
                             : () => Navigator.pop(ctx, true),
-                        icon: Icon(Icons.check, size: 18, color: AppTheme.primaryNavy),
-                        label: Text(l10n.t('save'), style: const TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.check, size: 18, color: AppTokens.brandNavy),
+                        label: Text(l10n.t('save'), style: const TextStyle(color: AppTokens.brandNavy, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -267,7 +267,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _quickClockOut(AttendanceModel item) async {
-    final l10n = context.l10n;
     final now = DateTime.now();
     final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
@@ -390,7 +389,7 @@ setState(() => _loading = true);
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 16, color: AppTheme.primaryNavy),
+                        const Icon(Icons.calendar_today, size: 16, color: AppTokens.brandNavy),
                         const SizedBox(width: 8),
                         Text(
                           _selectedDate.toIso8601String().split('T').first,
@@ -409,14 +408,14 @@ setState(() => _loading = true);
                     _load();
                   },
                 ),
-                Spacer(),
+                const Spacer(),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.primaryNavy,
+                    backgroundColor: AppTokens.brandNavy,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onPressed: _openClockInOutModal,
-                  icon: Icon(Icons.fingerprint, size: 20),
+                  icon: const Icon(Icons.fingerprint, size: 20),
                   label: Text(l10n.t('attendance_record')),
                 ),
               ],
@@ -428,13 +427,13 @@ setState(() => _loading = true);
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                _buildSummaryCard(l10n.t('total_present'), presentCount, AppTheme.successGreen, Icons.how_to_reg),
-                SizedBox(width: 12),
-                _buildSummaryCard('Half Day', halfDayCount, AppTheme.warningOrange, Icons.timelapse),
-                SizedBox(width: 12),
-                _buildSummaryCard(l10n.t('total_absent'), absentCount, AppTheme.errorRed, Icons.person_off_outlined),
-                SizedBox(width: 12),
-                _buildSummaryCard(l10n.t('total_on_leave'), leaveCount, AppTheme.infoBlue, Icons.beach_access_outlined),
+                _buildSummaryCard(l10n.t('total_present'), presentCount, AppTokens.statusReady, Icons.how_to_reg),
+                const SizedBox(width: 12),
+                _buildSummaryCard('Half Day', halfDayCount, AppTokens.statusFinishing, Icons.timelapse),
+                const SizedBox(width: 12),
+                _buildSummaryCard(l10n.t('total_absent'), absentCount, AppTokens.statusCancelled, Icons.person_off_outlined),
+                const SizedBox(width: 12),
+                _buildSummaryCard(l10n.t('total_on_leave'), leaveCount, AppTokens.statusWashing, Icons.beach_access_outlined),
               ],
             ),
           ),
@@ -442,14 +441,14 @@ setState(() => _loading = true);
           // Attendance register table
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.event_busy, size: 48, color: Colors.grey.shade400),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text(
                               l10n.t('attendance_empty'),
                               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
@@ -467,7 +466,7 @@ setState(() => _loading = true);
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? 'EMP-${row['employee_id']}',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -475,7 +474,7 @@ setState(() => _loading = true);
                               key: 'employee_name',
                               cellBuilder: (row) => Text(
                                 row['employee_name'] ?? 'Employee #${row['employee_id']}',
-                                style: TextStyle(fontWeight: FontWeight.w600),
+                                style: const TextStyle(fontWeight: FontWeight.w600),
                               ),
                             ),
                             AppDataTableColumn(
@@ -490,7 +489,7 @@ setState(() => _loading = true);
                                 row['check_in'] != null && row['check_in'].toString().isNotEmpty
                                     ? row['check_in'].toString()
                                     : '--:--',
-                                style: TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(fontWeight: FontWeight.w500),
                               ),
                             ),
                             AppDataTableColumn(
@@ -500,7 +499,7 @@ setState(() => _loading = true);
                                 row['check_out'] != null && row['check_out'].toString().isNotEmpty
                                     ? row['check_out'].toString()
                                     : '--:--',
-                                style: TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(fontWeight: FontWeight.w500),
                               ),
                             ),
                             AppDataTableColumn(
@@ -517,11 +516,11 @@ setState(() => _loading = true);
                                     ? OutlinedButton.icon(
                                         style: OutlinedButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                          foregroundColor: AppTheme.warningOrange,
-                                          side: BorderSide(color: AppTheme.warningOrange),
+                                          foregroundColor: AppTokens.statusFinishing,
+                                          side: const BorderSide(color: AppTokens.statusFinishing),
                                         ),
                                         onPressed: () => _quickClockOut(att),
-                                        icon: Icon(Icons.logout, size: 14),
+                                        icon: const Icon(Icons.logout, size: 14),
                                         label: Text(l10n.t('clock_out'), style: const TextStyle(fontSize: 12)),
                                       )
                                     : const SizedBox.shrink();

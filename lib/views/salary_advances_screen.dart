@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/employee_model.dart';
 import 'package:laundrypro_uae/models/salary_advance_model.dart';
 import 'package:laundrypro_uae/services/employee_service.dart';
@@ -57,23 +57,23 @@ setState(() => _loading = true);
 
     switch (status.toLowerCase()) {
       case 'open':
-        bg = AppTheme.warningOrange.withValues(alpha: 0.12);
-        border = AppTheme.warningOrange;
+        bg = AppTokens.statusFinishing.withValues(alpha: 0.12);
+        border = AppTokens.statusFinishing;
         icon = Icons.hourglass_bottom;
         break;
       case 'recovered':
-        bg = AppTheme.successGreen.withValues(alpha: 0.12);
-        border = AppTheme.successGreen;
+        bg = AppTokens.statusReady.withValues(alpha: 0.12);
+        border = AppTokens.statusReady;
         icon = Icons.check_circle_outline;
         break;
       case 'rejected':
-        bg = AppTheme.errorRed.withValues(alpha: 0.12);
-        border = AppTheme.errorRed;
+        bg = AppTokens.statusCancelled.withValues(alpha: 0.12);
+        border = AppTokens.statusCancelled;
         icon = Icons.cancel_outlined;
         break;
       default:
-        bg = AppTheme.coolGray.withValues(alpha: 0.15);
-        border = AppTheme.coolGray;
+        bg = AppTokens.textMuted.withValues(alpha: 0.15);
+        border = AppTokens.textMuted;
         icon = Icons.info_outline;
     }
 
@@ -128,26 +128,26 @@ setState(() => _loading = true);
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppTheme.accentGold.withValues(alpha: 0.15),
+                            color: AppTokens.brandGold.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Icon(Icons.request_quote_outlined, color: AppTheme.primaryNavy, size: 24),
+                          child: const Icon(Icons.request_quote_outlined, color: AppTokens.brandNavy, size: 24),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             l10n.t('salary_advance_create'),
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                           ),
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          icon: Icon(Icons.close),
+                          icon: const Icon(Icons.close),
                           splashRadius: 18,
                         ),
                       ],
                     ),
-                    Divider(height: 24),
+                    const Divider(height: 24),
 
                     // Employee selection
                     DropdownButtonFormField<int>(
@@ -164,14 +164,14 @@ setState(() => _loading = true);
                       initialValue: selectedEmpId,
                       onChanged: (val) => setDialogState(() => selectedEmpId = val),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
                     // Employee salary context card
                     if (selectedEmp.baseSalary > 0)
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryNavy.withValues(alpha: 0.05),
+                          color: AppTokens.brandNavy.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -179,16 +179,16 @@ setState(() => _loading = true);
                           children: [
                             Text(
                               'Base Salary: AED ${selectedEmp.baseSalary.toStringAsFixed(2)}',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                             ),
                             Text(
                               'Max 50% Policy: AED ${maxAllowedAdvance.toStringAsFixed(2)}',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTokens.brandNavyActive),
                             ),
                           ],
                         ),
                       ),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
 
                     TextFormField(
                       controller: amountController,
@@ -203,16 +203,16 @@ setState(() => _loading = true);
                         return null;
                       },
                     ),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
 
                     TextFormField(
                       controller: notesController,
                       decoration: InputDecoration(labelText: l10n.t('salary_reason_notes'),
-                        prefixIcon: Icon(Icons.notes, size: 18),
+                        prefixIcon: const Icon(Icons.notes, size: 18),
                       ),
                       maxLines: 2,
                     ),
-                    Divider(height: 28),
+                    const Divider(height: 28),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -223,13 +223,13 @@ setState(() => _loading = true);
                         ),
                         const SizedBox(width: 8),
                         FilledButton.icon(
-                          style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
+                          style: FilledButton.styleFrom(backgroundColor: AppTokens.brandNavy),
                           onPressed: () {
                             if (formKey.currentState?.validate() ?? false) {
                               Navigator.pop(ctx, true);
                             }
                           },
-                          icon: Icon(Icons.check, size: 18),
+                          icon: const Icon(Icons.check, size: 18),
                           label: Text(l10n.t('save')),
                         ),
                       ],
@@ -317,7 +317,7 @@ setState(() => _loading = true);
           IconButton(
             tooltip: l10n.t('refresh'),
             onPressed: _load,
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
           ),
         ],
       ),
@@ -331,21 +331,21 @@ setState(() => _loading = true);
                 _buildMiniKpi(
                   'Outstanding Balance',
                   'AED ${totalOutstanding.toStringAsFixed(2)}',
-                  AppTheme.warningOrange,
+                  AppTokens.statusFinishing,
                   Icons.pending_actions,
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 _buildMiniKpi(
                   'Recovered via Payroll',
                   'AED ${totalRecovered.toStringAsFixed(2)}',
-                  AppTheme.successGreen,
+                  AppTokens.statusReady,
                   Icons.task_alt,
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 _buildMiniKpi(
                   'Active Advances',
                   '${openAdvances.length}',
-                  AppTheme.primaryNavy,
+                  AppTokens.brandNavy,
                   Icons.receipt_outlined,
                 ),
               ],
@@ -355,14 +355,14 @@ setState(() => _loading = true);
           // Advances Data Table
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.money_off, size: 48, color: Colors.grey.shade400),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text(l10n.t('empty_data'), style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                           ],
                         ),
@@ -377,7 +377,7 @@ setState(() => _loading = true);
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? 'EMP-${row['employee_id']}',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -404,12 +404,12 @@ setState(() => _loading = true);
                                   'AED ${bal.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: isRecovered ? AppTheme.successGreen : AppTheme.errorRed,
+                                    color: isRecovered ? AppTokens.statusReady : AppTokens.statusCancelled,
                                   ),
                                 );
                               },
                             ),
-                            AppDataTableColumn(label: 'Date',
+                            const AppDataTableColumn(label: 'Date',
                               key: 'request_date',
                             ),
                             AppDataTableColumn(
@@ -432,9 +432,9 @@ setState(() => _loading = true);
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppTheme.primaryNavy,
+        backgroundColor: AppTokens.brandNavy,
         onPressed: _openCreateDialog,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: Text(l10n.t('salary_advance_create')),
       ),
     );

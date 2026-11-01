@@ -1,10 +1,10 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/dashboard_metrics_model.dart';
 import 'package:laundrypro_uae/models/report_config_model.dart';
 import 'package:laundrypro_uae/services/analytics_service.dart';
@@ -142,24 +142,24 @@ setState(() => _loading = true);
                     width: 10,
                     height: 10,
                     decoration: const BoxDecoration(
-                      color: AppTheme.accentTeal,
+                      color: AppTokens.brandTeal,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Revenue Velocity (Peak: ${fmt.format(maxVal)})',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primaryNavy),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTokens.brandNavy),
                   ),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryNavy.withValues(alpha: 0.06),
+                  color: AppTokens.brandNavy.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text('${points.length} Daily Intervals', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy)),
+                child: Text('${points.length} Daily Intervals', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTokens.brandNavy)),
               ),
             ],
           ),
@@ -252,7 +252,7 @@ setState(() => _loading = true);
                     spots: spots,
                     isCurved: true,
                     curveSmoothness: 0.35,
-                    color: AppTheme.accentTeal,
+                    color: AppTokens.brandTeal,
                     barWidth: 3,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
@@ -261,7 +261,7 @@ setState(() => _loading = true);
                         radius: 3.5,
                         color: Colors.white,
                         strokeWidth: 2,
-                        strokeColor: AppTheme.primaryNavy,
+                        strokeColor: AppTokens.brandNavy,
                       ),
                     ),
                     belowBarData: BarAreaData(
@@ -270,8 +270,8 @@ setState(() => _loading = true);
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          AppTheme.accentTeal.withValues(alpha: 0.35),
-                          AppTheme.accentTeal.withValues(alpha: 0.02),
+                          AppTokens.brandTeal.withValues(alpha: 0.35),
+                          AppTokens.brandTeal.withValues(alpha: 0.02),
                         ],
                       ),
                     ),
@@ -295,7 +295,7 @@ setState(() => _loading = true);
         title: Text(l10n.t('analytics')),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             tooltip: l10n.t('refresh_data'),
             onPressed: () async {
               await _service.refresh();
@@ -305,7 +305,7 @@ setState(() => _loading = true);
         ],
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -315,16 +315,16 @@ setState(() => _loading = true);
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryNavy.withValues(alpha: 0.08),
+                        color: AppTokens.brandNavy.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Icon(Icons.insights, color: AppTheme.primaryNavy, size: 20),
+                      child: const Icon(Icons.insights, color: AppTokens.brandNavy, size: 20),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         l10n.t('analytics_overview'),
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                       ),
                     ),
                     SegmentedButton<int>(
@@ -341,7 +341,7 @@ setState(() => _loading = true);
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Top Executive Metric Row
                 Row(
@@ -349,33 +349,33 @@ setState(() => _loading = true);
                     _buildExecutiveKpi(
                       l10n.t('metric_sales'),
                       fmt.format(_summary.salesTotal),
-                      AppTheme.primaryNavy,
+                      AppTokens.brandNavy,
                       Icons.account_balance_wallet_outlined,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     _buildExecutiveKpi(
                       l10n.t('metric_orders'),
                       '${_summary.orderCount} Orders',
-                      AppTheme.accentCyan,
+                      AppTokens.brandAqua,
                       Icons.local_mall_outlined,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     _buildExecutiveKpi(
                       l10n.t('metric_collected'),
                       fmt.format(_summary.amountPaid),
-                      AppTheme.successGreen,
+                      AppTokens.statusReady,
                       Icons.verified_outlined,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     _buildExecutiveKpi(
                       l10n.t('metric_outstanding'),
                       fmt.format(_summary.balanceDue),
-                      _summary.balanceDue > 0 ? AppTheme.errorRed : AppTheme.coolGray,
+                      _summary.balanceDue > 0 ? AppTokens.statusCancelled : AppTokens.textMuted,
                       Icons.pending_actions,
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Operational Performance & P&L Row
                 Row(
@@ -386,40 +386,40 @@ setState(() => _loading = true);
                       Colors.teal.shade700,
                       Icons.trending_up,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     _buildExecutiveKpi(
                       'Aged A/R (>30d Overdue)',
                       fmt.format(_summary.balanceDue * 0.25),
                       _summary.balanceDue > 0 ? Colors.deepOrange : Colors.grey,
                       Icons.history_toggle_off,
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     _buildExecutiveKpi(
                       'Production Throughput',
                       '${(_summary.orderCount * 4.2).toStringAsFixed(0)} pcs/day',
-                      AppTheme.accentTeal,
+                      AppTokens.brandTeal,
                       Icons.precision_manufacturing,
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 // Revenue Trend Interactive Histogram
                 _buildTrendChart(_trends, fmt),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
 
                 // Daily Audit Table
                 Row(
                   children: [
-                    const Icon(Icons.table_view_outlined, size: 18, color: AppTheme.primaryNavy),
+                    const Icon(Icons.table_view_outlined, size: 18, color: AppTokens.brandNavy),
                     const SizedBox(width: 8),
                     Text(
                       l10n.t('daily_breakdown'),
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
                 if (_trends.isEmpty)
                   Card(
@@ -446,15 +446,15 @@ setState(() => _loading = true);
                           leading: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryNavy.withValues(alpha: 0.05),
+                              color: AppTokens.brandNavy.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Icon(Icons.calendar_today, size: 14, color: AppTheme.primaryNavy),
+                            child: const Icon(Icons.calendar_today, size: 14, color: AppTokens.brandNavy),
                           ),
                           title: Text(dateStr, style: const TextStyle(fontWeight: FontWeight.w600)),
                           trailing: Text(
                             fmt.format(val),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primaryNavy),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTokens.brandNavy),
                           ),
                         );
                       },

@@ -1,8 +1,8 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/services/backup_service.dart';
 import 'package:laundrypro_uae/services/settings_service.dart';
 
@@ -52,7 +52,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _saveSettings() async {
-    final l10n = context.l10n;
     await _settings.updateSettings({'business.name': _businessNameController.text.trim()});
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.t('saved'))));
@@ -60,7 +59,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _runBackup() async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final result = await _backup.run();
@@ -87,9 +85,9 @@ setState(() => _loading = true);
               children: [
                 Icon(
                   result['verified'] == true ? Icons.check_circle : Icons.error,
-                  color: result['verified'] == true ? AppTheme.successGreen : AppTheme.errorRed,
+                  color: result['verified'] == true ? AppTokens.statusReady : AppTokens.statusCancelled,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(result['verified'] == true ? l10n.t('backup_verified') : l10n.t('backup_failed')),
               ],
             ),
@@ -97,12 +95,12 @@ setState(() => _loading = true);
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.t('settings_file_label').replaceAll('{file}', fileName), style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
+                Text(l10n.t('settings_file_label').replaceAll('{file}', fileName), style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
                 Text('${l10n.t('backup_checksum')}:', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
                 SelectableText(
                   result['checksum_sha256']?.toString() ?? 'N/A',
-                  style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                  style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
                 ),
               ],
             ),
@@ -140,8 +138,8 @@ setState(() => _loading = true);
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppTheme.errorRed, size: 28),
-            SizedBox(width: 10),
+            const Icon(Icons.warning_amber_rounded, color: AppTokens.statusCancelled, size: 28),
+            const SizedBox(width: 10),
             Text(l10n.t('restore_confirm_title')),
           ],
         ),
@@ -149,8 +147,8 @@ setState(() => _loading = true);
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.t('restore_confirm_warning'), style: TextStyle(color: AppTheme.errorRed, fontWeight: FontWeight.bold)),
-            SizedBox(height: 12),
+            Text(l10n.t('restore_confirm_warning'), style: const TextStyle(color: AppTokens.statusCancelled, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -160,9 +158,9 @@ setState(() => _loading = true);
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.t('settings_target_archive').replaceAll('{file}', fileName), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 4),
-                  Text('Dry Run Status: ${isCompatible ? "PASS" : "FAIL"} ($stCount SQL statements)', style: TextStyle(fontSize: 12, color: isCompatible ? AppTheme.successGreen : AppTheme.errorRed, fontWeight: FontWeight.bold)),
+                  Text(l10n.t('settings_target_archive').replaceAll('{file}', fileName), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('Dry Run Status: ${isCompatible ? "PASS" : "FAIL"} ($stCount SQL statements)', style: TextStyle(fontSize: 12, color: isCompatible ? AppTokens.statusReady : AppTokens.statusCancelled, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -171,7 +169,7 @@ setState(() => _loading = true);
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.t('pos_close'))),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorRed),
+            style: FilledButton.styleFrom(backgroundColor: AppTokens.statusCancelled),
             onPressed: isCompatible ? () => Navigator.pop(ctx, true) : null,
             child: Text(l10n.t('restore_run')),
           ),
@@ -188,7 +186,7 @@ setState(() => _loading = true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.t('restore_success')),
-            backgroundColor: AppTheme.successGreen,
+            backgroundColor: AppTokens.statusReady,
           ),
         );
       }
@@ -197,7 +195,7 @@ setState(() => _loading = true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.t('backup_failed')),
-            backgroundColor: AppTheme.errorRed,
+            backgroundColor: AppTokens.statusCancelled,
           ),
         );
       }
@@ -212,7 +210,7 @@ setState(() => _loading = true);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.t('settings'))),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
@@ -224,17 +222,17 @@ setState(() => _loading = true);
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(l10n.t('settings_general'), style: Theme.of(context).textTheme.titleMedium),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         TextField(
                           controller: _businessNameController,
                           decoration: InputDecoration(
                             labelText: l10n.t('business_name'),
-                            prefixIcon: Icon(Icons.storefront_outlined),
+                            prefixIcon: const Icon(Icons.storefront_outlined),
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         FilledButton(
-                          style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
+                          style: FilledButton.styleFrom(backgroundColor: AppTokens.brandNavy),
                           onPressed: _saveSettings,
                           child: Text(l10n.t('save')),
                         ),
@@ -242,39 +240,39 @@ setState(() => _loading = true);
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Peripherals & Hardware Card
                 Card(
                   child: Column(
                     children: [
                       ListTile(
-                        leading: Icon(Icons.devices, color: AppTheme.primaryNavy),
-                        title: Text(l10n.t('peripherals'), style: TextStyle(fontWeight: FontWeight.bold)),
+                        leading: const Icon(Icons.devices, color: AppTokens.brandNavy),
+                        title: Text(l10n.t('peripherals'), style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(l10n.t('peripherals_settings_hint')),
-                        trailing: Icon(Icons.chevron_right),
+                        trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/settings/peripherals'),
                       ),
-                      Divider(height: 1),
+                      const Divider(height: 1),
                       ListTile(
-                        leading: Icon(Icons.folder_outlined, color: AppTheme.primaryNavy),
-                        title: Text(l10n.t('settings_global_paths'), style: TextStyle(fontWeight: FontWeight.bold)),
+                        leading: const Icon(Icons.folder_outlined, color: AppTokens.brandNavy),
+                        title: Text(l10n.t('settings_global_paths'), style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(l10n.t('settings_global_paths_desc')),
-                        trailing: Icon(Icons.chevron_right),
+                        trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/settings/global-config'),
                       ),
-                      Divider(height: 1),
+                      const Divider(height: 1),
                       ListTile(
-                        leading: Icon(Icons.security_outlined, color: AppTheme.primaryNavy),
-                        title: Text(l10n.t('settings_roles_perms'), style: TextStyle(fontWeight: FontWeight.bold)),
+                        leading: const Icon(Icons.security_outlined, color: AppTokens.brandNavy),
+                        title: Text(l10n.t('settings_roles_perms'), style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(l10n.t('settings_roles_perms_desc')),
-                        trailing: Icon(Icons.chevron_right),
+                        trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/settings/roles'),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                 // Database Backup & Disaster Recovery Card (Sprint 20)
                 Card(
@@ -288,52 +286,52 @@ setState(() => _loading = true);
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppTheme.accentCyan.withValues(alpha: 0.15),
+                                color: AppTokens.brandAqua.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Icon(Icons.backup_outlined, color: AppTheme.primaryNavy),
+                              child: const Icon(Icons.backup_outlined, color: AppTokens.brandNavy),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(l10n.t('backup'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy)),
-                                  Text(l10n.t('settings_disaster_recovery'), style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                  Text(l10n.t('backup'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTokens.brandNavy)),
+                                  Text(l10n.t('settings_disaster_recovery'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                 ],
                               ),
                             ),
                             FilledButton.icon(
-                              style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
+                              style: FilledButton.styleFrom(backgroundColor: AppTokens.brandNavy),
                               onPressed: _runBackup,
-                              icon: Icon(Icons.cloud_upload_outlined, size: 16),
+                              icon: const Icon(Icons.cloud_upload_outlined, size: 16),
                               label: Text(l10n.t('backup_run')),
                             ),
                           ],
                         ),
                         if (_lastBackupResult != null) ...[
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppTheme.infoBlue.withValues(alpha: 0.1),
+                              color: AppTokens.statusWashing.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.info_outline, size: 16, color: AppTheme.infoBlue),
-                                SizedBox(width: 8),
-                                Text(_lastBackupResult!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                const Icon(Icons.info_outline, size: 16, color: AppTokens.statusWashing),
+                                const SizedBox(width: 8),
+                                Text(_lastBackupResult!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                               ],
                             ),
                           ),
                         ],
-                        Divider(height: 24),
+                        const Divider(height: 24),
 
                         Text(l10n.t('settings_backup_snapshots'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         if (_backups.isEmpty)
-                          Padding(padding: EdgeInsets.symmetric(vertical: 12),
+                          Padding(padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Center(child: Text(l10n.t('settings_no_backups'), style: const TextStyle(color: Colors.grey))),
                           )
                         else
@@ -351,19 +349,19 @@ setState(() => _loading = true);
 
                               return ListTile(
                                 dense: true,
-                                leading: Icon(Icons.archive_outlined, color: AppTheme.primaryNavy),
-                                title: Text(fileName, style: TextStyle(fontWeight: FontWeight.w600)),
+                                leading: const Icon(Icons.archive_outlined, color: AppTokens.brandNavy),
+                                title: Text(fileName, style: const TextStyle(fontWeight: FontWeight.w600)),
                                 subtitle: Text('$dateStr  •  $sizeKb KB'),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.verified_outlined, size: 18, color: AppTheme.infoBlue),
+                                      icon: const Icon(Icons.verified_outlined, size: 18, color: AppTokens.statusWashing),
                                       tooltip: l10n.t('backup_checksum'),
                                       onPressed: () => _verifyBackupFile(fileName),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.restore_page_outlined, size: 18, color: AppTheme.errorRed),
+                                      icon: const Icon(Icons.restore_page_outlined, size: 18, color: AppTokens.statusCancelled),
                                       tooltip: l10n.t('restore_run'),
                                       onPressed: () => _handleRestore(fileName),
                                     ),

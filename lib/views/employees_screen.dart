@@ -1,3 +1,4 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
@@ -65,16 +66,16 @@ setState(() => _loading = true);
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: AppTheme.errorRed.withValues(alpha: 0.12),
+          color: AppTokens.statusCancelled.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: AppTheme.errorRed.withValues(alpha: 0.5)),
+          border: Border.all(color: AppTokens.statusCancelled.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 12, color: AppTheme.errorRed),
+            const Icon(Icons.error_outline, size: 12, color: AppTokens.statusCancelled),
             const SizedBox(width: 4),
-            Text(formatted, style: const TextStyle(color: AppTheme.errorRed, fontSize: 11, fontWeight: FontWeight.bold)),
+            Text(formatted, style: const TextStyle(color: AppTokens.statusCancelled, fontSize: 11, fontWeight: FontWeight.bold)),
           ],
         ),
       );
@@ -83,16 +84,16 @@ setState(() => _loading = true);
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: AppTheme.warningOrange.withValues(alpha: 0.12),
+          color: AppTokens.statusFinishing.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: AppTheme.warningOrange.withValues(alpha: 0.5)),
+          border: Border.all(color: AppTokens.statusFinishing.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.warning_amber_rounded, size: 12, color: AppTheme.warningOrange),
+            const Icon(Icons.warning_amber_rounded, size: 12, color: AppTokens.statusFinishing),
             const SizedBox(width: 4),
-            Text(formatted, style: const TextStyle(color: AppTheme.warningOrange, fontSize: 11, fontWeight: FontWeight.bold)),
+            Text(formatted, style: const TextStyle(color: AppTokens.statusFinishing, fontSize: 11, fontWeight: FontWeight.bold)),
           ],
         ),
       );
@@ -102,17 +103,17 @@ setState(() => _loading = true);
 
   Widget _buildStatusBadge(bool isActive, String status, BuildContext context) {
     final l10n = context.l10n;
-    Color color = AppTheme.successGreen;
+    Color color = AppTokens.statusReady;
     String text = l10n.t('status_active');
 
     if (!isActive || status == 'terminated') {
-      color = AppTheme.errorRed;
+      color = AppTokens.statusCancelled;
       text = l10n.t('status_terminated');
     } else if (status == 'on_leave') {
-      color = AppTheme.warningOrange;
+      color = AppTokens.statusFinishing;
       text = l10n.t('status_on_leave');
     } else if (status == 'inactive') {
-      color = AppTheme.coolGray;
+      color = AppTokens.textMuted;
       text = l10n.t('status_inactive');
     }
 
@@ -159,7 +160,7 @@ setState(() => _loading = true);
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           child: Container(
             width: 650,
-            constraints: BoxConstraints(maxHeight: 700),
+            constraints: const BoxConstraints(maxHeight: 700),
             padding: const EdgeInsets.all(24),
             child: Form(
               key: formKey,
@@ -172,26 +173,26 @@ setState(() => _loading = true);
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryNavy.withValues(alpha: 0.08),
+                          color: AppTokens.brandNavy.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Icon(Icons.badge_outlined, color: AppTheme.primaryNavy, size: 24),
+                        child: const Icon(Icons.badge_outlined, color: AppTokens.brandNavy, size: 24),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           isEdit ? l10n.t('employee_edit') : l10n.t('employee_create'),
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                         ),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        icon: Icon(Icons.close),
+                        icon: const Icon(Icons.close),
                         splashRadius: 18,
                       ),
                     ],
                   ),
-                  Divider(height: 24),
+                  const Divider(height: 24),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
@@ -200,9 +201,9 @@ setState(() => _loading = true);
                           // Personal Information
                           Text(
                             l10n.t('employee_details'),
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTokens.brandNavyActive),
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -211,19 +212,19 @@ setState(() => _loading = true);
                                   controller: nameController,
                                   decoration: InputDecoration(
                                     labelText: '${l10n.t('full_name')} *',
-                                    prefixIcon: Icon(Icons.person_outline, size: 18),
+                                    prefixIcon: const Icon(Icons.person_outline, size: 18),
                                   ),
                                   validator: (v) => v == null || v.trim().isEmpty ? l10n.t('name') : null,
                                   autofocus: !isEdit,
                                 ),
                               ),
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
                               Expanded(
                                 flex: 1,
                                 child: TextFormField(
                                   controller: pinController,
                                   decoration: InputDecoration(labelText: l10n.t('employee_pin_label'),
-                                    prefixIcon: Icon(Icons.lock_outline, size: 18),
+                                    prefixIcon: const Icon(Icons.lock_outline, size: 18),
                                   ),
                                   keyboardType: TextInputType.number,
                                   maxLength: 6,
@@ -231,7 +232,7 @@ setState(() => _loading = true);
                               ),
                             ],
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -239,25 +240,25 @@ setState(() => _loading = true);
                                   controller: phoneController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('phone'),
-                                    prefixIcon: Icon(Icons.phone_outlined, size: 18),
+                                    prefixIcon: const Icon(Icons.phone_outlined, size: 18),
                                   ),
                                   keyboardType: TextInputType.phone,
                                 ),
                               ),
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: TextFormField(
                                   controller: emailController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('email'),
-                                    prefixIcon: Icon(Icons.email_outlined, size: 18),
+                                    prefixIcon: const Icon(Icons.email_outlined, size: 18),
                                   ),
                                   keyboardType: TextInputType.emailAddress,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
                           // Job & Department
                           Row(
@@ -267,44 +268,44 @@ setState(() => _loading = true);
                                   controller: titleController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('job_title'),
-                                    prefixIcon: Icon(Icons.work_outline, size: 18),
+                                    prefixIcon: const Icon(Icons.work_outline, size: 18),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: TextFormField(
                                   controller: deptController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('department'),
-                                    prefixIcon: Icon(Icons.business_outlined, size: 18),
+                                    prefixIcon: const Icon(Icons.business_outlined, size: 18),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: TextFormField(
                                   controller: salaryController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('base_salary'),
-                                    prefixIcon: Icon(Icons.account_balance_wallet_outlined, size: 18),
+                                    prefixIcon: const Icon(Icons.account_balance_wallet_outlined, size: 18),
                                   ),
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
                           // UAE Legal / Compliance
-                          Divider(),
-                          SizedBox(height: 8),
-                          Row(children: [
-                              Icon(Icons.shield_outlined, size: 16, color: AppTheme.accentCyan),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          const Row(children: [
+                              Icon(Icons.shield_outlined, size: 16, color: AppTokens.brandAqua),
                               SizedBox(width: 6),
                               Text(
                                 'UAE Compliance & Passports',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTokens.brandNavyActive),
                               ),
                             ],
                           ),
@@ -341,7 +342,7 @@ setState(() => _loading = true);
                                   child: InputDecorator(
                                     decoration: InputDecoration(
                                       labelText: l10n.t('emirates_id_expiry'),
-                                      prefixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+                                      prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
                                     ),
                                     child: Text(
                                       civilIdExp != null
@@ -349,7 +350,7 @@ setState(() => _loading = true);
                                           : 'Select Date',
                                       style: TextStyle(
                                         fontSize: 13,
-                                        color: civilIdExp != null ? AppTheme.darkSlate : AppTheme.coolGray,
+                                        color: civilIdExp != null ? AppTheme.darkSlate : AppTokens.textMuted,
                                       ),
                                     ),
                                   ),
@@ -357,7 +358,7 @@ setState(() => _loading = true);
                               ),
                             ],
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -389,7 +390,7 @@ setState(() => _loading = true);
                                   child: InputDecorator(
                                     decoration: InputDecoration(
                                       labelText: l10n.t('visa_expiry'),
-                                      prefixIcon: Icon(Icons.calendar_month_outlined, size: 18),
+                                      prefixIcon: const Icon(Icons.calendar_month_outlined, size: 18),
                                     ),
                                     child: Text(
                                       visaExp != null
@@ -397,7 +398,7 @@ setState(() => _loading = true);
                                           : 'Select Date',
                                       style: TextStyle(
                                         fontSize: 13,
-                                        color: visaExp != null ? AppTheme.darkSlate : AppTheme.coolGray,
+                                        color: visaExp != null ? AppTheme.darkSlate : AppTokens.textMuted,
                                       ),
                                     ),
                                   ),
@@ -409,7 +410,7 @@ setState(() => _loading = true);
                       ),
                     ),
                   ),
-                  Divider(height: 24),
+                  const Divider(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -419,13 +420,13 @@ setState(() => _loading = true);
                       ),
                       const SizedBox(width: 12),
                       FilledButton.icon(
-                        style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
+                        style: FilledButton.styleFrom(backgroundColor: AppTokens.brandNavy),
                         onPressed: () {
                           if (formKey.currentState?.validate() ?? false) {
                             Navigator.pop(ctx, true);
                           }
                         },
-                        icon: Icon(Icons.check, size: 18),
+                        icon: const Icon(Icons.check, size: 18),
                         label: Text(l10n.t('save')),
                       ),
                     ],
@@ -477,7 +478,7 @@ setState(() => _loading = true);
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.t('pos_close'))),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorRed),
+            style: FilledButton.styleFrom(backgroundColor: AppTokens.statusCancelled),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(l10n.t('deactivate')),
           ),
@@ -503,7 +504,7 @@ setState(() => _loading = true);
           IconButton(
             tooltip: l10n.t('refresh'),
             onPressed: _load,
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
           ),
         ],
       ),
@@ -535,14 +536,14 @@ setState(() => _loading = true);
                     onSubmitted: (_) => _load(),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.primaryNavy,
+                    backgroundColor: AppTokens.brandNavy,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                   onPressed: () => _openEmployeeDialog(),
-                  icon: Icon(Icons.person_add_alt_1, size: 18),
+                  icon: const Icon(Icons.person_add_alt_1, size: 18),
                   label: Text(l10n.t('employee_create')),
                 ),
               ],
@@ -555,18 +556,18 @@ setState(() => _loading = true);
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: AppTheme.warningOrange.withValues(alpha: 0.12),
+                color: AppTokens.statusFinishing.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppTheme.warningOrange.withValues(alpha: 0.4)),
+                border: Border.all(color: AppTokens.statusFinishing.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: AppTheme.warningOrange, size: 20),
-                  SizedBox(width: 10),
+                  const Icon(Icons.warning_amber_rounded, color: AppTokens.statusFinishing, size: 20),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       '$expiringCount employee document(s) expired or expiring within 30 days. Please review Emirates ID / Visa dates.',
-                      style: TextStyle(color: AppTheme.darkSlate, fontSize: 13, fontWeight: FontWeight.w600),
+                      style: const TextStyle(color: AppTheme.darkSlate, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -575,14 +576,14 @@ setState(() => _loading = true);
 
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.badge_outlined, size: 48, color: Colors.grey.shade400),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text(
                               l10n.t('employees_empty'),
                               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
@@ -600,7 +601,7 @@ setState(() => _loading = true);
                               key: 'employee_no',
                               cellBuilder: (row) => Text(
                                 row['employee_no'] ?? row['employee_id'] ?? '',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -610,7 +611,7 @@ setState(() => _loading = true);
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(row['full_name'] ?? '', style: TextStyle(fontWeight: FontWeight.w600)),
+                                  Text(row['full_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
                                   if (row['email'] != null && row['email'].toString().isNotEmpty)
                                     Text(row['email'], style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                                 ],
@@ -664,14 +665,14 @@ setState(() => _loading = true);
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.edit_outlined, size: 18, color: AppTheme.primaryNavy),
+                                      icon: const Icon(Icons.edit_outlined, size: 18, color: AppTokens.brandNavy),
                                       tooltip: l10n.t('employee_edit'),
                                       onPressed: () => _openEmployeeDialog(employee: emp),
                                       splashRadius: 18,
                                     ),
                                     if (emp.isActive)
                                       IconButton(
-                                        icon: Icon(Icons.person_off_outlined, size: 18, color: AppTheme.errorRed),
+                                        icon: const Icon(Icons.person_off_outlined, size: 18, color: AppTokens.statusCancelled),
                                         tooltip: l10n.t('deactivate'),
                                         onPressed: () => _confirmDeactivate(emp),
                                         splashRadius: 18,

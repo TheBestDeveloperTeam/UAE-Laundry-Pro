@@ -1,9 +1,9 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/services/accounting_service.dart';
 
 class AccountingScreen extends StatefulWidget {
@@ -50,7 +50,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _export() async {
-    final l10n = context.l10n;
     final fmt = DateFormat('yyyy-MM-dd');
     final from = fmt.format(_startDate);
     final to = fmt.format(_endDate);
@@ -65,7 +64,7 @@ setState(() => _loading = true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.t('accounting_copied')),
-            backgroundColor: AppTheme.successGreen,
+            backgroundColor: AppTokens.statusReady,
           ),
         );
       }
@@ -76,7 +75,6 @@ setState(() => _loading = true);
   }
 
   void _showBatchDetails(Map<String, dynamic> batch) async {
-    final l10n = context.l10n;
     final batchId = batch['id'] is int ? batch['id'] as int : int.tryParse('${batch['id']}') ?? 0;
     Map<String, dynamic> details = batch;
     List<dynamic> lines = (batch['lines'] as List?) ?? [];
@@ -100,7 +98,7 @@ setState(() => _loading = true);
       builder: (ctx) {
     final l10n = ctx.l10n;
         return Container(
-          decoration: BoxDecoration(color: Colors.white,
+          decoration: const BoxDecoration(color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(24),
@@ -115,20 +113,20 @@ setState(() => _loading = true);
                 children: [
                   Text(
                     '${l10n.t('accounting_lines')} #${details['uuid']?.toString().substring(0, 8) ?? batchId}',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close),
+                    icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 '${details['period_start']} — ${details['period_end']} • ${details['adapter']?.toString().toUpperCase()}',
-                style: TextStyle(color: AppTheme.secondaryGrey),
+                style: const TextStyle(color: AppTokens.textSecondary),
               ),
-              Divider(height: 24),
+              const Divider(height: 24),
               Expanded(
                 child: lines.isEmpty
                     ? Center(child: Text(l10n.t('reports_empty')))
@@ -143,14 +141,14 @@ setState(() => _loading = true);
                             contentPadding: EdgeInsets.zero,
                             leading: CircleAvatar(
                               backgroundColor: debit > 0
-                                  ? AppTheme.warningOrange.withValues(alpha: 0.15)
-                                  : AppTheme.accentTeal.withValues(alpha: 0.15),
+                                  ? AppTokens.statusFinishing.withValues(alpha: 0.15)
+                                  : AppTokens.brandTeal.withValues(alpha: 0.15),
                               child: Text(
                                 '${item['account_code'] ?? '0000'}',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: debit > 0 ? AppTheme.warningOrange : AppTheme.accentTeal,
+                                  color: debit > 0 ? AppTokens.statusFinishing : AppTokens.brandTeal,
                                 ),
                               ),
                             ),
@@ -163,12 +161,12 @@ setState(() => _loading = true);
                                 if (debit > 0)
                                   Text(
                                     'Dr: ${debit.toStringAsFixed(2)} AED',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.warningOrange),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.statusFinishing),
                                   ),
                                 if (credit > 0)
                                   Text(
                                     'Cr: ${credit.toStringAsFixed(2)} AED',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.accentTeal),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandTeal),
                                   ),
                               ],
                             ),
@@ -184,7 +182,6 @@ setState(() => _loading = true);
   }
 
   void _exportFafAuditFile() {
-    final l10n = context.l10n;
     final csv = _service.generateFafAuditCsv(
       companyName: 'UAE Laundry Pro LLC',
       trn: '100492817200003',
@@ -199,13 +196,12 @@ setState(() => _loading = true);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.t('accounting_copied')),
-        backgroundColor: AppTheme.successGreen,
+        backgroundColor: AppTokens.statusReady,
       ),
     );
   }
 
   void _exportZatcaXml() {
-    final l10n = context.l10n;
     final end = DateFormat('yyyy-MM-dd').format(_endDate);
     final buffer = StringBuffer();
     buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
@@ -232,9 +228,9 @@ setState(() => _loading = true);
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('KSA ZATCA Phase 2 UBL XML copied to clipboard! Ready for Clearance/Reporting API.'),
-        backgroundColor: AppTheme.successGreen,
+        backgroundColor: AppTokens.statusReady,
       ),
     );
   }
@@ -251,10 +247,10 @@ setState(() => _loading = true);
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          indicatorColor: AppTheme.accentTeal,
+          indicatorColor: AppTokens.brandTeal,
           tabs: [
-            Tab(icon: Icon(Icons.history), text: l10n.t('accounting_export')),
-            Tab(icon: Icon(Icons.verified_user), text: l10n.t('accounting_audit_tax')),
+            Tab(icon: const Icon(Icons.history), text: l10n.t('accounting_export')),
+            Tab(icon: const Icon(Icons.verified_user), text: l10n.t('accounting_audit_tax')),
           ],
         ),
       ),
@@ -265,7 +261,7 @@ setState(() => _loading = true);
           RefreshIndicator(
             onRefresh: _load,
             child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,20 +277,20 @@ setState(() => _loading = true);
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.date_range, color: AppTheme.primaryNavy),
-                              SizedBox(width: 8),
+                              const Icon(Icons.date_range, color: AppTokens.brandNavy),
+                              const SizedBox(width: 8),
                               Text(
                                 '${fmt.format(_startDate)}  ➔  ${fmt.format(_endDate)}',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                               ),
-                              Spacer(),
+                              const Spacer(),
                               DropdownButton<String>(
                                 value: _selectedAdapter,
                                 underline: const SizedBox(),
-                                items: [DropdownMenuItem(value: 'csv', child: Text('CSV (QuickBooks/Xero)')),
+                                items: [const DropdownMenuItem(value: 'csv', child: Text('CSV (QuickBooks/Xero)')),
                                   DropdownMenuItem(value: 'iif', child: Text(l10n.t('accounting_quickbooks_iif'))),
-                                  DropdownMenuItem(value: 'json', child: Text('JSON Standard')),
-                                  DropdownMenuItem(value: 'zatca', child: Text('KSA ZATCA Phase 2 (UBL 2.1 XML)')),
+                                  const DropdownMenuItem(value: 'json', child: Text('JSON Standard')),
+                                  const DropdownMenuItem(value: 'zatca', child: Text('KSA ZATCA Phase 2 (UBL 2.1 XML)')),
                                 ],
                                 onChanged: (val) {
                                   if (val != null) setState(() => _selectedAdapter = val);
@@ -302,17 +298,17 @@ setState(() => _loading = true);
                               ),
                             ],
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryNavy,
+                                backgroundColor: AppTokens.brandNavy,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
-                              icon: Icon(Icons.file_download),
+                              icon: const Icon(Icons.file_download),
                               label: Text(l10n.t('accounting_generate_export')),
                               onPressed: _loading ? null : _export,
                             ),
@@ -321,19 +317,19 @@ setState(() => _loading = true);
                       ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text(
                     l10n.t('reports_overview'),
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   if (_loading)
-                    Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
+                    const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
                   else if (_batches.isEmpty)
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(32),
-                        child: Text(l10n.t('reports_empty'), style: const TextStyle(color: AppTheme.secondaryGrey)),
+                        child: Text(l10n.t('reports_empty'), style: const TextStyle(color: AppTokens.textSecondary)),
                       ),
                     )
                   else
@@ -349,8 +345,8 @@ setState(() => _loading = true);
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: AppTheme.accentTeal.withValues(alpha: 0.15),
-                              child: const Icon(Icons.receipt_long, color: AppTheme.accentTeal),
+                              backgroundColor: AppTokens.brandTeal.withValues(alpha: 0.15),
+                              child: const Icon(Icons.receipt_long, color: AppTokens.brandTeal),
                             ),
                             title: Text(
                               '${b['period_start']} — ${b['period_end']}',
@@ -387,83 +383,83 @@ setState(() => _loading = true);
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppTheme.accentTeal.withValues(alpha: 0.15),
+                                color: AppTokens.brandTeal.withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.account_balance, color: AppTheme.accentTeal),
+                              child: const Icon(Icons.account_balance, color: AppTokens.brandTeal),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     l10n.t('accounting_audit_tax'),
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
-                                  Text('UAE Federal Tax Authority (FTA) Audit File v1.0',
-                                    style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                                  const Text('UAE Federal Tax Authority (FTA) Audit File v1.0',
+                                    style: TextStyle(color: AppTokens.textSecondary, fontSize: 12),
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        Divider(height: 24),
+                        const Divider(height: 24),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(l10n.t('accounting_sales_rev')),
-                          trailing: Text('12,500.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
+                          trailing: const Text('12,500.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         ListTile(contentPadding: EdgeInsets.zero,
                           title: Text(l10n.t('accounting_output_vat')),
-                          trailing: Text('625.00 AED', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.accentTeal)),
+                          trailing: const Text('625.00 AED', style: TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandTeal)),
                         ),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(l10n.t('accounting_operating_exp')),
-                          trailing: Text('4,200.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
+                          trailing: const Text('4,200.00 AED', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         ListTile(contentPadding: EdgeInsets.zero,
                           title: Text(l10n.t('accounting_input_vat')),
-                          trailing: Text('210.00 AED', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.warningOrange)),
+                          trailing: const Text('210.00 AED', style: TextStyle(fontWeight: FontWeight.bold, color: AppTokens.statusFinishing)),
                         ),
-                        Divider(height: 16),
+                        const Divider(height: 16),
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             l10n.t('accounting_net_payable'),
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          trailing: Text('415.00 AED',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryNavy),
+                          trailing: const Text('415.00 AED',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTokens.brandNavy),
                           ),
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.accentTeal,
+                              backgroundColor: AppTokens.brandTeal,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
-                            icon: Icon(Icons.copy),
+                            icon: const Icon(Icons.copy),
                             label: Text(l10n.t('accounting_fta_faf')),
                             onPressed: _exportFafAuditFile,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: BorderSide(color: AppTheme.primaryNavy),
+                              side: const BorderSide(color: AppTokens.brandNavy),
                             ),
-                            icon: Icon(Icons.code, color: AppTheme.primaryNavy),
-                            label: Text(l10n.t('accounting_export_zatca'), style: const TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold)),
+                            icon: const Icon(Icons.code, color: AppTokens.brandNavy),
+                            label: Text(l10n.t('accounting_export_zatca'), style: const TextStyle(color: AppTokens.brandNavy, fontWeight: FontWeight.bold)),
                             onPressed: _exportZatcaXml,
                           ),
                         ),

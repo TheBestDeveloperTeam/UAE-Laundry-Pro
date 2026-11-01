@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/branch_model.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
 
@@ -55,8 +55,8 @@ setState(() => _loading = true);
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              Icon(isNew ? Icons.add_business : Icons.store, color: AppTheme.primaryNavy),
-              SizedBox(width: 8),
+              Icon(isNew ? Icons.add_business : Icons.store, color: AppTokens.brandNavy),
+              const SizedBox(width: 8),
               Text(isNew ? ctx.l10n.t('branch_add') : 'Configure Branch'),
             ],
           ),
@@ -83,7 +83,7 @@ setState(() => _loading = true);
                         flex: 3,
                         child: DropdownButtonFormField<String>(
                           initialValue: selectedEmirate,
-                          decoration: InputDecoration(labelText: 'Emirate', border: OutlineInputBorder()),
+                          decoration: const InputDecoration(labelText: 'Emirate', border: OutlineInputBorder()),
                           items: const [
                             DropdownMenuItem(value: 'Abu Dhabi', child: Text('Abu Dhabi')),
                             DropdownMenuItem(value: 'Dubai', child: Text('Dubai')),
@@ -100,41 +100,41 @@ setState(() => _loading = true);
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: nameCtrl,
                     decoration: InputDecoration(
                       labelText: ctx.l10n.t('branch_name'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.business),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.business),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: locCtrl,
                     decoration: InputDecoration(
                       labelText: ctx.l10n.t('branch_location'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.location_on),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.location_on),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: phoneCtrl,
-                          decoration: InputDecoration(labelText: 'Branch Phone',
+                          decoration: const InputDecoration(labelText: 'Branch Phone',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.phone),
                           ),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: managerCtrl,
-                          decoration: InputDecoration(labelText: 'Branch Manager',
+                          decoration: const InputDecoration(labelText: 'Branch Manager',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.person),
                           ),
@@ -142,13 +142,13 @@ setState(() => _loading = true);
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: hoursCtrl,
                     decoration: InputDecoration(labelText: 'Operating Schedule / Hours',
                       hintText: l10n.t('branch_hours_hint'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.schedule),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.schedule),
                     ),
                   ),
                 ],
@@ -159,7 +159,7 @@ setState(() => _loading = true);
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l10n.t('cancel'))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryNavy,
+                backgroundColor: AppTokens.brandNavy,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
@@ -180,7 +180,7 @@ setState(() => _loading = true);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(context.l10n.t('branch_created')),
-                        backgroundColor: AppTheme.successGreen,
+                        backgroundColor: AppTokens.statusReady,
                       ),
                     );
                   }
@@ -205,23 +205,23 @@ setState(() => _loading = true);
       appBar: AppBar(
         title: Text(l10n.t('branches')),
         actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _load),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppTheme.primaryNavy,
+        backgroundColor: AppTokens.brandNavy,
         foregroundColor: Colors.white,
-        icon: Icon(Icons.add_business),
+        icon: const Icon(Icons.add_business),
         label: Text(l10n.t('branch_add')),
         onPressed: () => _showAddBranchDialog(),
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
               ? Center(
                   child: Text(
                     l10n.t('reports_empty'),
-                    style: const TextStyle(color: AppTheme.secondaryGrey),
+                    style: const TextStyle(color: AppTokens.textSecondary),
                   ),
                 )
               : RefreshIndicator(
@@ -243,8 +243,8 @@ setState(() => _loading = true);
                               Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundColor: AppTheme.accentTeal.withValues(alpha: 0.15),
-                                    child: const Icon(Icons.store, color: AppTheme.accentTeal),
+                                    backgroundColor: AppTokens.brandTeal.withValues(alpha: 0.15),
+                                    child: const Icon(Icons.store, color: AppTokens.brandTeal),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -254,7 +254,7 @@ setState(() => _loading = true);
                                         Text(b.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                         Text(
                                           'Code: ${b.code} • ${b.emirate} • ${b.location.isEmpty ? 'Main Outlet' : b.location}',
-                                          style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                                          style: const TextStyle(color: AppTokens.textSecondary, fontSize: 13),
                                         ),
                                       ],
                                     ),
@@ -262,13 +262,13 @@ setState(() => _loading = true);
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: AppTheme.successGreen.withValues(alpha: 0.12),
+                                      color: AppTokens.statusReady.withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Text(
                                       'ACTIVE',
                                       style: TextStyle(
-                                        color: AppTheme.successGreen,
+                                        color: AppTokens.statusReady,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 11,
                                       ),

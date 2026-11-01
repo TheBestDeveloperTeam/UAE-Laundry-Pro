@@ -1,8 +1,8 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/safe_parser.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/branch_model.dart';
 import 'package:laundrypro_uae/services/branch_service.dart';
 import 'package:laundrypro_uae/services/terminal_service.dart';
@@ -70,8 +70,8 @@ setState(() => _loading = true);
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              Icon(isNew ? Icons.add_to_queue : Icons.settings_ethernet, color: AppTheme.primaryNavy),
-              SizedBox(width: 8),
+              Icon(isNew ? Icons.add_to_queue : Icons.settings_ethernet, color: AppTokens.brandNavy),
+              const SizedBox(width: 8),
               Text(isNew ? ctx.l10n.t('terminal_add') : 'Configure Terminal Hardware'),
             ],
           ),
@@ -98,7 +98,7 @@ setState(() => _loading = true);
                       if (val != null) setModalState(() => selectedBranchId = val);
                     },
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -106,23 +106,23 @@ setState(() => _loading = true);
                           controller: codeCtrl,
                           decoration: InputDecoration(
                             labelText: ctx.l10n.t('terminal_code'),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: nameCtrl,
                           decoration: InputDecoration(
                             labelText: ctx.l10n.t('terminal_name'),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -130,33 +130,33 @@ setState(() => _loading = true);
                           controller: ipCtrl,
                           decoration: InputDecoration(labelText: l10n.t('terminal_lan_ip'),
                             hintText: l10n.t('terminal_lan_ip_hint'),
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.wifi),
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.wifi),
                           ),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: macCtrl,
                           decoration: InputDecoration(labelText: l10n.t('terminal_mac'),
                             hintText: l10n.t('terminal_mac_hint'),
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.perm_device_information),
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.perm_device_information),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: tokenCtrl,
                     decoration: InputDecoration(
                       labelText: l10n.t('terminal_auth_token'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.vpn_key),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.vpn_key),
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.refresh),
+                        icon: const Icon(Icons.refresh),
                         tooltip: l10n.t('terminal_regen_token'),
                         onPressed: () {
                           setModalState(() {
@@ -174,7 +174,7 @@ setState(() => _loading = true);
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l10n.t('cancel'))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryNavy,
+                backgroundColor: AppTokens.brandNavy,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
@@ -194,7 +194,7 @@ setState(() => _loading = true);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(context.l10n.t('terminal_paired')),
-                        backgroundColor: AppTheme.successGreen,
+                        backgroundColor: AppTokens.statusReady,
                       ),
                     );
                   }
@@ -219,23 +219,23 @@ setState(() => _loading = true);
       appBar: AppBar(
         title: Text(l10n.t('terminals')),
         actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _load),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppTheme.primaryNavy,
+        backgroundColor: AppTokens.brandNavy,
         foregroundColor: Colors.white,
-        icon: Icon(Icons.add_to_queue),
+        icon: const Icon(Icons.add_to_queue),
         label: Text(l10n.t('terminal_add')),
         onPressed: _showAddTerminalDialog,
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
               ? Center(
                   child: Text(
                     l10n.t('reports_empty'),
-                    style: const TextStyle(color: AppTheme.secondaryGrey),
+                    style: const TextStyle(color: AppTokens.textSecondary),
                   ),
                 )
               : RefreshIndicator(
@@ -254,8 +254,8 @@ setState(() => _loading = true);
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           leading: CircleAvatar(
-                            backgroundColor: AppTheme.primaryNavy.withValues(alpha: 0.12),
-                            child: const Icon(Icons.point_of_sale, color: AppTheme.primaryNavy),
+                            backgroundColor: AppTokens.brandNavy.withValues(alpha: 0.12),
+                            child: const Icon(Icons.point_of_sale, color: AppTokens.brandNavy),
                           ),
                           title: Text(t['name']?.toString() ?? 'Terminal POS', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           subtitle: Column(
@@ -263,12 +263,12 @@ setState(() => _loading = true);
                             children: [
                               Text(
                                 'ID: ${t['code']} • Branch: ${t['branch_code'] ?? 'MAIN'}',
-                                style: const TextStyle(color: AppTheme.secondaryGrey),
+                                style: const TextStyle(color: AppTokens.textSecondary),
                               ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.wifi, size: 14, color: AppTheme.accentTeal),
+                                  const Icon(Icons.wifi, size: 14, color: AppTokens.brandTeal),
                                   const SizedBox(width: 4),
                                   Text(ip, style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
                                   const SizedBox(width: 12),
@@ -285,20 +285,20 @@ setState(() => _loading = true);
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.accentTeal.withValues(alpha: 0.15),
+                                  color: AppTokens.brandTeal.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(
                                   'LAN BOUND',
                                   style: TextStyle(
-                                    color: AppTheme.accentTeal,
+                                    color: AppTokens.brandTeal,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 11,
                                   ),
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.tune, color: AppTheme.primaryNavy),
+                                icon: const Icon(Icons.tune, color: AppTokens.brandNavy),
                                 onPressed: () => _showAddTerminalDialog(t),
                               ),
                             ],

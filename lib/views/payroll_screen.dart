@@ -1,9 +1,9 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import 'package:laundrypro_uae/models/payroll_model.dart';
 import 'package:laundrypro_uae/services/payroll_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
@@ -73,15 +73,15 @@ setState(() => _loading = true);
               controller: startController,
               decoration: InputDecoration(
                 labelText: l10n.t('start_date'),
-                prefixIcon: Icon(Icons.calendar_today_outlined, size: 18),
+                prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TextField(
               controller: endController,
               decoration: InputDecoration(
                 labelText: l10n.t('end_date'),
-                prefixIcon: Icon(Icons.calendar_month_outlined, size: 18),
+                prefixIcon: const Icon(Icons.calendar_month_outlined, size: 18),
               ),
             ),
           ],
@@ -89,7 +89,7 @@ setState(() => _loading = true);
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.t('pos_close'))),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
+            style: FilledButton.styleFrom(backgroundColor: AppTokens.brandNavy),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(l10n.t('save')),
           ),
@@ -111,7 +111,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _runPayroll(int periodId) async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _payroll.runPayroll(periodId);
@@ -123,7 +122,6 @@ setState(() => _loading = true);
   }
 
   void _showRunDetails(PayrollRunModel run) {
-    final l10n = context.l10n;
 
     showModalBottomSheet(
       context: context,
@@ -149,19 +147,19 @@ setState(() => _loading = true);
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryNavy.withValues(alpha: 0.1),
+                          color: AppTokens.brandNavy.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Icon(Icons.receipt_long, color: AppTheme.primaryNavy, size: 24),
+                        child: const Icon(Icons.receipt_long, color: AppTokens.brandNavy, size: 24),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               '${l10n.t('payroll_run_details')} - ${run.runNo}',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                             ),
                             Text(
                               '${run.periodStart.toIso8601String().split('T').first} → ${run.periodEnd.toIso8601String().split('T').first}',
@@ -171,42 +169,42 @@ setState(() => _loading = true);
                         ),
                       ),
                       FilledButton.icon(
-                        style: FilledButton.styleFrom(backgroundColor: AppTheme.accentGreen),
+                        style: FilledButton.styleFrom(backgroundColor: AppTokens.brandTeal),
                         onPressed: () {
                           final sif = _payroll.generateWpsSif(run);
                           Clipboard.setData(ClipboardData(text: sif));
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('${l10n.t('wps_sif_downloaded')} (Copied to Clipboard)'),
-                              backgroundColor: AppTheme.primaryNavy,
+                              backgroundColor: AppTokens.brandNavy,
                             ),
                           );
                         },
-                        icon: Icon(Icons.download, size: 16, color: AppTheme.primaryNavy),
+                        icon: const Icon(Icons.download, size: 16, color: AppTokens.brandNavy),
                         label: Text(
                           l10n.t('wps_sif_export'),
-                          style: TextStyle(color: AppTheme.primaryNavy, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: AppTokens.brandNavy, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      SizedBox(width: 8),
-                      IconButton(onPressed: () => Navigator.pop(ctx), icon: Icon(Icons.close)),
+                      const SizedBox(width: 8),
+                      IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
                     ],
                   ),
-                  Divider(height: 24),
+                  const Divider(height: 24),
 
                   // Header metrics
                   Row(
                     children: [
-                      _buildMiniKpi('Employees', '${run.lines.length}', AppTheme.primaryNavy),
-                      SizedBox(width: 12),
-                      _buildMiniKpi(l10n.t('total_net_pay'), 'AED ${run.totalAmount.toStringAsFixed(2)}', AppTheme.successGreen),
+                      _buildMiniKpi('Employees', '${run.lines.length}', AppTokens.brandNavy),
+                      const SizedBox(width: 12),
+                      _buildMiniKpi(l10n.t('total_net_pay'), 'AED ${run.totalAmount.toStringAsFixed(2)}', AppTokens.statusReady),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   Text(
                     l10n.t('line_items'),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primaryNavyLight),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTokens.brandNavyActive),
                   ),
                   const SizedBox(height: 8),
 
@@ -221,8 +219,8 @@ setState(() => _loading = true);
                               final line = run.lines[i];
                               return ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: AppTheme.primaryNavy.withValues(alpha: 0.08),
-                                  child: Text('${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy)),
+                                  backgroundColor: AppTokens.brandNavy.withValues(alpha: 0.08),
+                                  child: Text('${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandNavy)),
                                 ),
                                 title: Text(line.employeeName ?? 'Employee #${line.employeeId}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                 subtitle: Text('Base: AED ${line.baseSalary.toStringAsFixed(2)} | Advance Deducted: AED ${line.advanceDeduction.toStringAsFixed(2)}'),
@@ -233,7 +231,7 @@ setState(() => _loading = true);
                                     const Text('Net Salary', style: TextStyle(fontSize: 10, color: Colors.grey)),
                                     Text(
                                       'AED ${line.netPay.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.successGreen),
+                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTokens.statusReady),
                                     ),
                                   ],
                                 ),
@@ -282,28 +280,28 @@ setState(() => _loading = true);
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          indicatorColor: AppTheme.accentCyan,
+          indicatorColor: AppTokens.brandAqua,
           indicatorWeight: 3,
           tabs: [
-            Tab(icon: Icon(Icons.date_range), text: l10n.t('period_range')),
-            Tab(icon: Icon(Icons.payments_outlined), text: l10n.t('payroll_runs')),
+            Tab(icon: const Icon(Icons.date_range), text: l10n.t('period_range')),
+            Tab(icon: const Icon(Icons.payments_outlined), text: l10n.t('payroll_runs')),
           ],
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.money_off_csred_outlined),
+            icon: const Icon(Icons.money_off_csred_outlined),
             tooltip: l10n.t('salary_advances'),
             onPressed: () => context.push('/hr/salary-advances'),
           ),
           IconButton(
             tooltip: l10n.t('refresh'),
             onPressed: _load,
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
           ),
         ],
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : TabBarView(
               controller: _tabController,
               children: [
@@ -314,7 +312,7 @@ setState(() => _loading = true);
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.calendar_month, size: 48, color: Colors.grey.shade400),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text(l10n.t('payroll_empty'), style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                           ],
                         ),
@@ -340,14 +338,14 @@ setState(() => _loading = true);
                                 return Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: (isClosed ? AppTheme.coolGray : AppTheme.successGreen).withValues(alpha: 0.12),
+                                    color: (isClosed ? AppTokens.textMuted : AppTokens.statusReady).withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: isClosed ? AppTheme.coolGray : AppTheme.successGreen),
+                                    border: Border.all(color: isClosed ? AppTokens.textMuted : AppTokens.statusReady),
                                   ),
                                   child: Text(
                                     (row['status'] ?? 'open').toString().toUpperCase(),
                                     style: TextStyle(
-                                      color: isClosed ? AppTheme.coolGray : AppTheme.successGreen,
+                                      color: isClosed ? AppTokens.textMuted : AppTokens.statusReady,
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -361,11 +359,11 @@ setState(() => _loading = true);
                                 final isClosed = row['status'] == 'closed';
                                 final id = row['id'] as int;
                                 return isClosed
-                                    ? Text('Processed', style: TextStyle(color: Colors.grey))
+                                    ? const Text('Processed', style: TextStyle(color: Colors.grey))
                                     : FilledButton.icon(
-                                        style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
+                                        style: FilledButton.styleFrom(backgroundColor: AppTokens.brandNavy),
                                         onPressed: () => _runPayroll(id),
-                                        icon: Icon(Icons.play_arrow, size: 16),
+                                        icon: const Icon(Icons.play_arrow, size: 16),
                                         label: Text(l10n.t('payroll_run')),
                                       );
                               },
@@ -384,7 +382,7 @@ setState(() => _loading = true);
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.receipt_long, size: 48, color: Colors.grey.shade400),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Text('No payroll runs processed yet.', style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
                           ],
                         ),
@@ -399,7 +397,7 @@ setState(() => _loading = true);
                               key: 'run_no',
                               cellBuilder: (row) => Text(
                                 row['run_no'] ?? '',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.brandNavy),
                               ),
                             ),
                             AppDataTableColumn(
@@ -416,7 +414,7 @@ setState(() => _loading = true);
                                 final amt = (row['total_amount'] as num?)?.toDouble() ?? 0.0;
                                 return Text(
                                   'AED ${amt.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.successGreen),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.statusReady),
                                 );
                               },
                             ),
@@ -425,7 +423,7 @@ setState(() => _loading = true);
                               key: 'status',
                               cellBuilder: (row) => Text(
                                 (row['status'] ?? 'POSTED').toString().toUpperCase(),
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                               ),
                             ),
                             AppDataTableColumn(
@@ -438,15 +436,15 @@ setState(() => _loading = true);
                                     OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        side: BorderSide(color: AppTheme.primaryNavy),
+                                        side: const BorderSide(color: AppTokens.brandNavy),
                                       ),
                                       onPressed: () => _showRunDetails(run),
-                                      icon: Icon(Icons.visibility, size: 14),
-                                      label: Text('View', style: TextStyle(fontSize: 12)),
+                                      icon: const Icon(Icons.visibility, size: 14),
+                                      label: const Text('View', style: TextStyle(fontSize: 12)),
                                     ),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     IconButton(
-                                      icon: Icon(Icons.download_rounded, color: AppTheme.accentGreen),
+                                      icon: const Icon(Icons.download_rounded, color: AppTokens.brandTeal),
                                       tooltip: l10n.t('wps_sif_export'),
                                       onPressed: () {
                                         final sif = _payroll.generateWpsSif(run);
@@ -454,7 +452,7 @@ setState(() => _loading = true);
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
                                             content: Text('${l10n.t('wps_sif_downloaded')} (Copied to Clipboard)'),
-                                            backgroundColor: AppTheme.primaryNavy,
+                                            backgroundColor: AppTokens.brandNavy,
                                           ),
                                         );
                                       },
@@ -476,9 +474,9 @@ setState(() => _loading = true);
               ],
             ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppTheme.primaryNavy,
+        backgroundColor: AppTokens.brandNavy,
         onPressed: _createPeriod,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: Text(l10n.t('payroll_period_create')),
       ),
     );
