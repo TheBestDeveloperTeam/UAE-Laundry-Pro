@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import '../services/rfid_service.dart';
 
 class RfidTrackingScreen extends ConsumerStatefulWidget {
@@ -32,7 +32,6 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
   }
 
   Future<void> _scanTags() async {
-    final l10n = context.l10n;
     setState(() {
       _isScanning = true;
       _statusMessage = null;
@@ -55,7 +54,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Direct TCP Reader: ${_scannedItems.length} tags identified'),
-                backgroundColor: AppTheme.successGreen,
+                backgroundColor: AppTokens.statusReady,
               ),
             );
           }
@@ -85,7 +84,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Bulk RFID Scan complete: ${_scannedItems.length} items'),
-            backgroundColor: AppTheme.successGreen,
+            backgroundColor: AppTokens.statusReady,
           ),
         );
       }
@@ -102,7 +101,6 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
   }
 
   void _clearScan() {
-    final l10n = context.l10n;
     setState(() {
       _scannedItems.clear();
       _statusMessage = null;
@@ -117,7 +115,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.settings_input_antenna, color: AppTheme.accentTeal),
+            Icon(Icons.settings_input_antenna, color: AppTokens.brandTeal),
             SizedBox(width: 8),
             Text('RFID Reader Configuration'),
           ],
@@ -146,22 +144,22 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                   setState(() => _readerMode = val);
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: _readerHostController,
                 decoration: InputDecoration(labelText: l10n.t('rfid_reader_ip'),
                   hintText: l10n.t('rfid_reader_ip_hint'),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lan),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lan),
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: _readerPortController,
                 decoration: InputDecoration(labelText: l10n.t('rfid_tcp_port'),
                   hintText: l10n.t('rfid_tcp_port_hint'),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.numbers),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.numbers),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -171,7 +169,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryNavy,
+              backgroundColor: AppTokens.brandNavy,
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(ctx),
@@ -191,13 +189,13 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
         title: Text(l10n.t('rfid_tracking')),
         actions: [
           IconButton(
-            icon: Icon(Icons.tune),
+            icon: const Icon(Icons.tune),
             tooltip: l10n.t('rfid_reader_settings'),
             onPressed: _showReaderConfigDialog,
           ),
           if (_scannedItems.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.delete_sweep),
+              icon: const Icon(Icons.delete_sweep),
               tooltip: l10n.t('rfid_clear_scanned'),
               onPressed: _clearScan,
             ),
@@ -215,17 +213,17 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: _isScanning
-                        ? AppTheme.accentTeal.withValues(alpha: 0.2)
-                        : AppTheme.primaryNavy.withValues(alpha: 0.1),
+                        ? AppTokens.brandTeal.withValues(alpha: 0.2)
+                        : AppTokens.brandNavy.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.sensors,
                     size: 36,
-                    color: _isScanning ? AppTheme.accentTeal : AppTheme.primaryNavy,
+                    color: _isScanning ? AppTokens.brandTeal : AppTokens.brandNavy,
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,37 +233,37 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: _isScanning ? AppTheme.accentTeal : AppTheme.primaryNavy,
+                          color: _isScanning ? AppTokens.brandTeal : AppTokens.brandNavy,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         _statusMessage ?? 'Connected to ${_readerHostController.text}:${_readerPortController.text} (${_readerMode.toUpperCase()} Mode)',
-                        style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                        style: const TextStyle(color: AppTokens.textSecondary, fontSize: 13),
                       ),
                     ],
                   ),
                 ),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isScanning ? Colors.grey : AppTheme.accentTeal,
+                    backgroundColor: _isScanning ? Colors.grey : AppTokens.brandTeal,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   icon: _isScanning
-                      ? SizedBox(width: 16,
+                      ? const SizedBox(width: 16,
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : Icon(Icons.barcode_reader, size: 20),
+                      : const Icon(Icons.barcode_reader, size: 20),
                   label: Text(l10n.t('rfid_scan_button')),
                   onPressed: _isScanning ? null : _scanTags,
                 ),
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
 
           // EPC list header
           Padding(
@@ -275,11 +273,11 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
               children: [
                 Text(
                   l10n.t('rfid_epc_list'),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
                   '${_scannedItems.length} Items Detected',
-                  style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                  style: const TextStyle(color: AppTokens.textSecondary, fontSize: 13),
                 ),
               ],
             ),
@@ -293,10 +291,10 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade400),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Text(
                           l10n.t('rfid_empty'),
-                          style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 15),
+                          style: const TextStyle(color: AppTokens.textSecondary, fontSize: 15),
                         ),
                       ],
                     ),
@@ -317,8 +315,8 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: AppTheme.accentTeal.withValues(alpha: 0.15),
-                            child: const Icon(Icons.qr_code, color: AppTheme.accentTeal),
+                            backgroundColor: AppTokens.brandTeal.withValues(alpha: 0.15),
+                            child: const Icon(Icons.qr_code, color: AppTokens.brandTeal),
                           ),
                           title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text('EPC: $epc\nSignal: $rssi dBm • Stage: $status'),
@@ -326,7 +324,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                           trailing: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryNavy.withValues(alpha: 0.1),
+                              color: AppTokens.brandNavy.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -334,7 +332,7 @@ class _RfidTrackingScreenState extends ConsumerState<RfidTrackingScreen> {
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryNavy,
+                                color: AppTokens.brandNavy,
                               ),
                             ),
                           ),

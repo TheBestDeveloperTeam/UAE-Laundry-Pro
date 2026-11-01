@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import '../models/inventory_model.dart';
 import '../services/equipment_service.dart';
 
@@ -37,7 +37,6 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
   }
 
   Future<void> _loadEquipment() async {
-    final l10n = context.l10n;
     setState(() => _isLoading = true);
     try {
       final list = await _service.listAll();
@@ -47,7 +46,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: AppTheme.errorRed,
+            backgroundColor: AppTokens.statusCancelled,
           ),
         );
       }
@@ -74,7 +73,6 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
   }
 
   Future<void> _toggleStatus(InventoryModel eq) async {
-    final l10n = context.l10n;
     final nextOos = !eq.outOfService;
     final actionLabel = nextOos ? 'Mark for Maintenance' : 'Mark as Active';
 
@@ -95,7 +93,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: nextOos ? AppTheme.warningOrange : AppTheme.successGreen,
+              backgroundColor: nextOos ? AppTokens.statusFinishing : AppTokens.statusReady,
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(ctx, true),
@@ -111,9 +109,9 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
       await _service.setOutOfService(eq.id, nextOos);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Equipment status updated successfully'),
-            backgroundColor: AppTheme.successGreen,
+            backgroundColor: AppTokens.statusReady,
           ),
         );
         _loadEquipment();
@@ -123,7 +121,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update status: $e'),
-            backgroundColor: AppTheme.errorRed,
+            backgroundColor: AppTokens.statusCancelled,
           ),
         );
       }
@@ -144,12 +142,12 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              Icon(Icons.verified_outlined, color: AppTheme.accentTeal),
-              SizedBox(width: 8),
+              const Icon(Icons.verified_outlined, color: AppTokens.brandTeal),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Log Calibration: ${eq.assetTag ?? eq.itemName}',
-                  style: TextStyle(fontSize: 18),
+                  style: const TextStyle(fontSize: 18),
                 ),
               ),
             ],
@@ -163,17 +161,17 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                   controller: techController,
                   decoration: InputDecoration(labelText: l10n.t('equipment_technician'),
                     hintText: l10n.t('equipment_technician_hint'),
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person_outline),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.person_outline),
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: certRefController,
                   decoration: InputDecoration(labelText: l10n.t('equipment_cert_ref'),
                     hintText: l10n.t('equipment_cert_ref_hint'),
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.receipt_long),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.receipt_long),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -228,16 +226,16 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentTeal,
+                backgroundColor: AppTokens.brandTeal,
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
                 if (techController.text.trim().isEmpty ||
                     certRefController.text.trim().isEmpty) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text('Please fill all required fields'),
-                      backgroundColor: AppTheme.errorRed,
+                      backgroundColor: AppTokens.statusCancelled,
                     ),
                   );
                   return;
@@ -262,9 +260,9 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         await _service.logCalibration(eq.id, payload);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Calibration logged & schedule updated'),
-              backgroundColor: AppTheme.successGreen,
+              backgroundColor: AppTokens.statusReady,
             ),
           );
           _loadEquipment();
@@ -274,7 +272,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to log calibration: $e'),
-              backgroundColor: AppTheme.errorRed,
+              backgroundColor: AppTokens.statusCancelled,
             ),
           );
         }
@@ -283,7 +281,6 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
   }
 
   void _showEquipmentDetails(InventoryModel eq) {
-    final l10n = context.l10n;
     final isOos = eq.outOfService;
     final calDue = eq.nextCalibrationDue != null
         ? eq.nextCalibrationDue!.toLocal().toString().split(' ')[0]
@@ -295,7 +292,6 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-    final l10n = ctx.l10n;
         return Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -318,14 +314,14 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: isOos
-                          ? AppTheme.errorRed.withValues(alpha: 0.12)
-                          : AppTheme.successGreen.withValues(alpha: 0.12),
+                          ? AppTokens.statusCancelled.withValues(alpha: 0.12)
+                          : AppTokens.statusReady.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       isOos ? 'MAINTENANCE' : 'ACTIVE',
                       style: TextStyle(
-                        color: isOos ? AppTheme.errorRed : AppTheme.successGreen,
+                        color: isOos ? AppTokens.statusCancelled : AppTokens.statusReady,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -347,12 +343,12 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                     child: OutlinedButton.icon(
                       icon: Icon(
                         isOos ? Icons.check_circle_outline : Icons.build_circle_outlined,
-                        color: isOos ? AppTheme.successGreen : AppTheme.warningOrange,
+                        color: isOos ? AppTokens.statusReady : AppTokens.statusFinishing,
                       ),
                       label: Text(
                         isOos ? 'Activate' : 'Maintenance',
                         style: TextStyle(
-                          color: isOos ? AppTheme.successGreen : AppTheme.warningOrange,
+                          color: isOos ? AppTokens.statusReady : AppTokens.statusFinishing,
                         ),
                       ),
                       onPressed: () {
@@ -361,14 +357,14 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                       },
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentTeal,
+                        backgroundColor: AppTokens.brandTeal,
                         foregroundColor: Colors.white,
                       ),
-                      icon: Icon(Icons.verified, size: 18),
+                      icon: const Icon(Icons.verified, size: 18),
                       label: Text(context.l10n.t('calibrate_action')),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -391,7 +387,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13)),
+          Text(label, style: const TextStyle(color: AppTokens.textSecondary, fontSize: 13)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         ],
       ),
@@ -411,7 +407,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
         title: Text(l10n.t('equipment_title')),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             tooltip: l10n.t('refresh_action'),
             onPressed: _loadEquipment,
           ),
@@ -452,36 +448,36 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     _filterChip(
                       label: 'All (${_equipmentList.length})',
                       value: 'all',
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _filterChip(
                       label: 'Active ($activeCount)',
                       value: 'active',
-                      badgeColor: AppTheme.successGreen,
+                      badgeColor: AppTokens.statusReady,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _filterChip(
                       label: 'Maintenance ($maintenanceCount)',
                       value: 'maintenance',
-                      badgeColor: AppTheme.errorRed,
+                      badgeColor: AppTokens.statusCancelled,
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
 
           // Content List
           Expanded(
             child: _isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : filtered.isEmpty
                     ? Center(
                         child: Column(
@@ -490,14 +486,14 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                             const Icon(
                               Icons.precision_manufacturing_outlined,
                               size: 48,
-                              color: AppTheme.secondaryGrey,
+                              color: AppTokens.textSecondary,
                             ),
                             const SizedBox(height: 12),
                             Text(
                               _equipmentList.isEmpty
                                   ? l10n.t('reports_empty')
                                   : 'No equipment matches current filter',
-                              style: const TextStyle(color: AppTheme.secondaryGrey),
+                              style: const TextStyle(color: AppTokens.textSecondary),
                             ),
                           ],
                         ),
@@ -524,7 +520,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 side: BorderSide(
                                   color: outOfService
-                                      ? AppTheme.errorRed.withValues(alpha: 0.3)
+                                      ? AppTokens.statusCancelled.withValues(alpha: 0.3)
                                       : Colors.transparent,
                                 ),
                               ),
@@ -537,14 +533,14 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                     children: [
                                       CircleAvatar(
                                         backgroundColor: outOfService
-                                            ? AppTheme.errorRed.withValues(alpha: 0.15)
-                                            : AppTheme.accentTeal.withValues(alpha: 0.15),
+                                            ? AppTokens.statusCancelled.withValues(alpha: 0.15)
+                                            : AppTokens.brandTeal.withValues(alpha: 0.15),
                                         child: Icon(
                                           outOfService ? Icons.build : Icons.precision_manufacturing,
-                                          color: outOfService ? AppTheme.errorRed : AppTheme.accentTeal,
+                                          color: outOfService ? AppTokens.statusCancelled : AppTokens.brandTeal,
                                         ),
                                       ),
-                                      SizedBox(width: 16),
+                                      const SizedBox(width: 16),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -554,27 +550,27 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                                 Expanded(
                                                   child: Text(
                                                     eq.assetTag ?? 'Asset #${eq.id}',
-                                                    style: TextStyle(fontWeight: FontWeight.bold,
+                                                    style: const TextStyle(fontWeight: FontWeight.bold,
                                                       fontSize: 16,
                                                     ),
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            SizedBox(height: 4),
+                                            const SizedBox(height: 4),
                                             Text(
                                               '${eq.itemName} • ${eq.machineType ?? 'Machine'}',
-                                              style: TextStyle(color: AppTheme.secondaryGrey,
+                                              style: const TextStyle(color: AppTokens.textSecondary,
                                                 fontSize: 13,
                                               ),
                                             ),
-                                            SizedBox(height: 4),
+                                            const SizedBox(height: 4),
                                             Row(
                                               children: [
                                                 Icon(
                                                   Icons.event_outlined,
                                                   size: 14,
-                                                  color: isOverdue ? AppTheme.errorRed : AppTheme.secondaryGrey,
+                                                  color: isOverdue ? AppTokens.statusCancelled : AppTokens.textSecondary,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
@@ -582,7 +578,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w600,
-                                                    color: isOverdue ? AppTheme.errorRed : null,
+                                                    color: isOverdue ? AppTokens.statusCancelled : null,
                                                   ),
                                                 ),
                                                 if (isOverdue) ...[
@@ -590,13 +586,13 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                                   Container(
                                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                                                     decoration: BoxDecoration(
-                                                      color: AppTheme.errorRed.withValues(alpha: 0.15),
+                                                      color: AppTokens.statusCancelled.withValues(alpha: 0.15),
                                                       borderRadius: BorderRadius.circular(4),
                                                     ),
                                                     child: const Text(
                                                       'OVERDUE',
                                                       style: TextStyle(
-                                                        color: AppTheme.errorRed,
+                                                        color: AppTokens.statusCancelled,
                                                         fontSize: 9,
                                                         fontWeight: FontWeight.bold,
                                                       ),
@@ -616,14 +612,14 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                             decoration: BoxDecoration(
                                               color: outOfService
-                                                  ? AppTheme.errorRed.withValues(alpha: 0.12)
-                                                  : AppTheme.successGreen.withValues(alpha: 0.12),
+                                                  ? AppTokens.statusCancelled.withValues(alpha: 0.12)
+                                                  : AppTokens.statusReady.withValues(alpha: 0.12),
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: Text(
                                               outOfService ? 'MAINTENANCE' : 'ACTIVE',
                                               style: TextStyle(
-                                                color: outOfService ? AppTheme.errorRed : AppTheme.successGreen,
+                                                color: outOfService ? AppTokens.statusCancelled : AppTokens.statusReady,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 11,
                                               ),
@@ -656,7 +652,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                                 value: 'calibrate',
                                                 child: Row(
                                                   children: [
-                                                    Icon(Icons.verified, size: 18, color: AppTheme.accentTeal),
+                                                    Icon(Icons.verified, size: 18, color: AppTokens.brandTeal),
                                                     SizedBox(width: 8),
                                                     Text('Log Calibration'),
                                                   ],
@@ -669,7 +665,7 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
                                                     Icon(
                                                       outOfService ? Icons.check_circle : Icons.build,
                                                       size: 18,
-                                                      color: outOfService ? AppTheme.successGreen : AppTheme.warningOrange,
+                                                      color: outOfService ? AppTokens.statusReady : AppTokens.statusFinishing,
                                                     ),
                                                     const SizedBox(width: 8),
                                                     Text(outOfService ? 'Mark Active' : 'Mark Maintenance'),
@@ -703,9 +699,9 @@ class _EquipmentScreenState extends ConsumerState<EquipmentScreen> {
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      selectedColor: (badgeColor ?? AppTheme.primaryNavy).withValues(alpha: 0.15),
+      selectedColor: (badgeColor ?? AppTokens.brandNavy).withValues(alpha: 0.15),
       labelStyle: TextStyle(
-        color: isSelected ? (badgeColor ?? AppTheme.primaryNavy) : AppTheme.secondaryGrey,
+        color: isSelected ? (badgeColor ?? AppTokens.brandNavy) : AppTokens.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         fontSize: 12,
       ),

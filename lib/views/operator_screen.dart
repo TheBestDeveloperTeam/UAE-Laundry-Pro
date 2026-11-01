@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import '../models/employee_model.dart';
 import '../services/operator_service.dart';
 
@@ -38,7 +38,6 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
   }
 
   Future<void> _loadData() async {
-    final l10n = context.l10n;
     setState(() => _isLoading = true);
     try {
       final certsFuture = _service.listCertifications();
@@ -56,7 +55,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: AppTheme.errorRed,
+            backgroundColor: AppTokens.statusCancelled,
           ),
         );
       }
@@ -102,7 +101,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
     if (_employees.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.t('operator_no_employees')),
-          backgroundColor: AppTheme.warningOrange,
+          backgroundColor: AppTokens.statusFinishing,
         ),
       );
       return;
@@ -126,9 +125,9 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         builder: (ctx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
-              Icon(Icons.verified_outlined, color: AppTheme.accentTeal),
-              SizedBox(width: 8),
-              Text(l10n.t('operator_issue_cert_title'), style: TextStyle(fontSize: 18)),
+              const Icon(Icons.verified_outlined, color: AppTokens.brandTeal),
+              const SizedBox(width: 8),
+              Text(l10n.t('operator_issue_cert_title'), style: const TextStyle(fontSize: 18)),
             ],
           ),
           content: SingleChildScrollView(
@@ -139,8 +138,8 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                 DropdownButtonFormField<EmployeeModel>(
                   initialValue: selectedEmployee,
                   decoration: InputDecoration(labelText: l10n.t('operator_select_employee'),
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.person),
                   ),
                   items: _employees.map((emp) {
                     return DropdownMenuItem(
@@ -152,13 +151,13 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     if (val != null) setDialogState(() => selectedEmployee = val);
                   },
                 ),
-                SizedBox(height: 14),
+                const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
                   initialValue: selectedCert,
                   isExpanded: true,
                   decoration: InputDecoration(labelText: l10n.t('operator_cert_program'),
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.school_outlined),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.school_outlined),
                   ),
                   items: certTypes.map((c) {
                     return DropdownMenuItem(
@@ -170,14 +169,14 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     if (val != null) setDialogState(() => selectedCert = val);
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Issue Date: ${issuedDate.toLocal().toString().split(' ')[0]}',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 OutlinedButton.icon(
-                  icon: Icon(Icons.calendar_today, size: 16),
+                  icon: const Icon(Icons.calendar_today, size: 16),
                   label: Text(l10n.t('operator_change_issue_date')),
                   onPressed: () async {
                     final picked = await showDatePicker(
@@ -191,14 +190,14 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                     }
                   },
                 ),
-                SizedBox(height: 14),
+                const SizedBox(height: 14),
                 Text(
                   'Expiration Date: ${expiryDate.toLocal().toString().split(' ')[0]}',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 OutlinedButton.icon(
-                  icon: Icon(Icons.event, size: 16),
+                  icon: const Icon(Icons.event, size: 16),
                   label: Text(l10n.t('operator_change_expiry')),
                   onPressed: () async {
                     final picked = await showDatePicker(
@@ -222,7 +221,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentTeal,
+                backgroundColor: AppTokens.brandTeal,
                 foregroundColor: Colors.white,
               ),
               onPressed: () => Navigator.pop(ctx, true),
@@ -244,7 +243,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.t('operator_certified_success')),
-              backgroundColor: AppTheme.successGreen,
+              backgroundColor: AppTokens.statusReady,
             ),
           );
           _loadData();
@@ -254,7 +253,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(l10n.t('operator_certify_failed').replaceAll('{error}', e.toString())),
-              backgroundColor: AppTheme.errorRed,
+              backgroundColor: AppTokens.statusCancelled,
             ),
           );
         }
@@ -263,7 +262,6 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
   }
 
   void _showCertDetails(Map<String, dynamic> c) {
-    final l10n = context.l10n;
     final name = c['full_name'] ?? c['employee_name'] ?? 'Certified Operator';
     final badge = c['employee_no'] ?? c['badge_id'] ?? 'N/A';
     final certName = c['certification_name'] ?? c['certification_type'] ?? 'Cleanroom Standard';
@@ -279,7 +277,6 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-    final l10n = ctx.l10n;
         return Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -292,21 +289,21 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                   Expanded(
                     child: Text(
                       name,
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: isExpired
-                          ? AppTheme.errorRed.withValues(alpha: 0.12)
-                          : AppTheme.accentTeal.withValues(alpha: 0.15),
+                          ? AppTokens.statusCancelled.withValues(alpha: 0.12)
+                          : AppTokens.brandTeal.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       isExpired ? 'EXPIRED' : 'VALID',
                       style: TextStyle(
-                        color: isExpired ? AppTheme.errorRed : AppTheme.accentTeal,
+                        color: isExpired ? AppTokens.statusCancelled : AppTokens.brandTeal,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -314,21 +311,21 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                   ),
                 ],
               ),
-              Divider(height: 24),
+              const Divider(height: 24),
               _detailRow('Employee Badge', badge),
               _detailRow('Certification Program', certName),
               _detailRow('Date Issued', issued),
               _detailRow('Valid Until', expiry),
               _detailRow('Record ID', '#${c['id'] ?? 'N/A'}'),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryNavy,
+                    backgroundColor: AppTokens.brandNavy,
                     foregroundColor: Colors.white,
                   ),
-                  icon: Icon(Icons.close, size: 18),
+                  icon: const Icon(Icons.close, size: 18),
                   label: Text(context.l10n.t('close')),
                   onPressed: () => Navigator.pop(ctx),
                 ),
@@ -346,7 +343,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13)),
+          Text(label, style: const TextStyle(color: AppTokens.textSecondary, fontSize: 13)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         ],
       ),
@@ -382,16 +379,16 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
         title: Text(l10n.t('operators_title')),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             tooltip: l10n.t('refresh_action'),
             onPressed: _loadData,
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppTheme.accentTeal,
+        backgroundColor: AppTokens.brandTeal,
         foregroundColor: Colors.white,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: Text(l10n.t('operator_certify_btn')),
         onPressed: _showCertifyDialog,
       ),
@@ -424,29 +421,29 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                   ),
                   onChanged: (val) => setState(() => _searchQuery = val),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
                       _filterChip(label: 'All (${_certs.length})', value: 'all'),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       _filterChip(
                         label: 'Valid ($activeCount)',
                         value: 'active',
-                        badgeColor: AppTheme.accentTeal,
+                        badgeColor: AppTokens.brandTeal,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       _filterChip(
                         label: 'Expiring Soon ($warningCount)',
                         value: 'warning',
-                        badgeColor: AppTheme.warningOrange,
+                        badgeColor: AppTokens.statusFinishing,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       _filterChip(
                         label: 'Expired ($expiredCount)',
                         value: 'expired',
-                        badgeColor: AppTheme.errorRed,
+                        badgeColor: AppTokens.statusCancelled,
                       ),
                     ],
                   ),
@@ -454,7 +451,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
 
           // Main List
           Expanded(
@@ -468,14 +465,14 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                             const Icon(
                               Icons.badge_outlined,
                               size: 48,
-                              color: AppTheme.secondaryGrey,
+                              color: AppTokens.textSecondary,
                             ),
                             const SizedBox(height: 12),
                             Text(
                               _certs.isEmpty
                                   ? l10n.t('reports_empty')
                                   : 'No operator certifications match current filter',
-                              style: const TextStyle(color: AppTheme.secondaryGrey),
+                              style: const TextStyle(color: AppTokens.textSecondary),
                             ),
                           ],
                         ),
@@ -501,10 +498,10 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                                 expDate.isBefore(now.add(const Duration(days: 30)));
 
                             final statusBadgeColor = isExpired
-                                ? AppTheme.errorRed
+                                ? AppTokens.statusCancelled
                                 : isWarning
-                                    ? AppTheme.warningOrange
-                                    : AppTheme.accentTeal;
+                                    ? AppTokens.statusFinishing
+                                    : AppTokens.brandTeal;
 
                             final statusBadgeText = isExpired
                                 ? 'EXPIRED'
@@ -518,7 +515,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                                 borderRadius: BorderRadius.circular(12),
                                 side: BorderSide(
                                   color: isExpired
-                                      ? AppTheme.errorRed.withValues(alpha: 0.3)
+                                      ? AppTokens.statusCancelled.withValues(alpha: 0.3)
                                       : Colors.transparent,
                                 ),
                               ),
@@ -549,7 +546,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                                             Text(
                                               '$certType • Badge: $badge',
                                               style: const TextStyle(
-                                                color: AppTheme.secondaryGrey,
+                                                color: AppTokens.textSecondary,
                                                 fontSize: 13,
                                               ),
                                             ),
@@ -558,7 +555,7 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
                                               'Expires: $expiry',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: isExpired ? AppTheme.errorRed : AppTheme.secondaryGrey,
+                                                color: isExpired ? AppTokens.statusCancelled : AppTokens.textSecondary,
                                                 fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
                                               ),
                                             ),
@@ -603,9 +600,9 @@ class _OperatorScreenState extends ConsumerState<OperatorScreen> {
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      selectedColor: (badgeColor ?? AppTheme.primaryNavy).withValues(alpha: 0.15),
+      selectedColor: (badgeColor ?? AppTokens.brandNavy).withValues(alpha: 0.15),
       labelStyle: TextStyle(
-        color: isSelected ? (badgeColor ?? AppTheme.primaryNavy) : AppTheme.secondaryGrey,
+        color: isSelected ? (badgeColor ?? AppTokens.brandNavy) : AppTokens.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         fontSize: 12,
       ),

@@ -1,7 +1,7 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import '../services/advanced_cycle_service.dart';
 
 class AdvancedCycleScreen extends ConsumerStatefulWidget {
@@ -130,7 +130,6 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Future<void> _loadPresets() async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final list = await _service.getPresets();
@@ -153,7 +152,6 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Future<void> _startCycle() async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final payload = {
@@ -187,9 +185,9 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Advanced Cycle started with calibrated parameters'),
-            backgroundColor: AppTheme.successGreen,
+            backgroundColor: AppTokens.statusReady,
           ),
         );
         _tabController.animateTo(0);
@@ -197,7 +195,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error starting cycle: $e'), backgroundColor: AppTheme.errorRed),
+          SnackBar(content: Text('Error starting cycle: $e'), backgroundColor: AppTokens.statusCancelled),
         );
       }
     } finally {
@@ -206,7 +204,6 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Future<void> _recordMetric() async {
-    final l10n = context.l10n;
     final runId = _runIdController.text.trim();
     final reading = _readingController.text.trim();
     if (runId.isEmpty || reading.isEmpty) return;
@@ -239,7 +236,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(pass ? 'Metric recorded — Verified within preset threshold' : 'WARNING: Reading exceeded tolerance! Cycle flagged exception.'),
-            backgroundColor: pass ? AppTheme.successGreen : AppTheme.warningOrange,
+            backgroundColor: pass ? AppTokens.statusReady : AppTokens.statusFinishing,
           ),
         );
         _tabController.animateTo(0);
@@ -247,7 +244,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error recording metric: $e'), backgroundColor: AppTheme.errorRed),
+          SnackBar(content: Text('Error recording metric: $e'), backgroundColor: AppTokens.statusCancelled),
         );
       }
     } finally {
@@ -266,7 +263,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.t('cancel'))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentTeal, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(ctx.l10n.t('complete_action')),
           ),
@@ -282,16 +279,16 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Cycle marked as completed'),
-              backgroundColor: AppTheme.successGreen,
+              backgroundColor: AppTokens.statusReady,
             ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error completing cycle: $e'), backgroundColor: AppTheme.errorRed),
+            SnackBar(content: Text('Error completing cycle: $e'), backgroundColor: AppTokens.statusCancelled),
           );
         }
       }
@@ -299,7 +296,6 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   void _showRunDetails(Map<String, dynamic> run) {
-    final l10n = context.l10n;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -327,17 +323,17 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       Expanded(
                         child: Text(
                           'Cycle #${run['id']} — Order #${run['order_id']}',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: (isRunning
-                                  ? AppTheme.accentTeal
+                                  ? AppTokens.brandTeal
                                   : isException
-                                      ? AppTheme.errorRed
-                                      : AppTheme.primaryNavy)
+                                      ? AppTokens.statusCancelled
+                                      : AppTokens.brandNavy)
                               .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -345,10 +341,10 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                           (run['status'] as String).toUpperCase(),
                           style: TextStyle(
                             color: isRunning
-                                ? AppTheme.accentTeal
+                                ? AppTokens.brandTeal
                                 : isException
-                                    ? AppTheme.errorRed
-                                    : AppTheme.primaryNavy,
+                                    ? AppTokens.statusCancelled
+                                    : AppTokens.brandNavy,
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
                           ),
@@ -356,7 +352,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     ],
                   ),
-                  Divider(height: 24),
+                  const Divider(height: 24),
                   _detailRow('Preset Program', run['preset_name']),
                   _detailRow('Operating Equipment', run['equipment']),
                   _detailRow('Certified Operator', run['operator']),
@@ -364,7 +360,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                   _detailRow('Current Solution pH', run['ph']),
                   _detailRow('Detergent Dosed', run['detergent_ml']),
                   _detailRow('Started At', run['started_at']),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(l10n.t('cycle_process_logs'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 8),
                   ...logs.map((log) {
@@ -375,20 +371,20 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                         dense: true,
                         leading: Icon(
                           pass ? Icons.check_circle : Icons.warning,
-                          color: pass ? AppTheme.successGreen : AppTheme.errorRed,
+                          color: pass ? AppTokens.statusReady : AppTokens.statusCancelled,
                         ),
                         title: Text(log['step'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
                         subtitle: Text('Temp: ${log['temp']} • pH: ${log['ph']}'),
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: (pass ? AppTheme.successGreen : AppTheme.errorRed).withValues(alpha: 0.12),
+                            color: (pass ? AppTokens.statusReady : AppTokens.statusCancelled).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             pass ? 'PASS' : 'FAIL',
                             style: TextStyle(
-                              color: pass ? AppTheme.successGreen : AppTheme.errorRed,
+                              color: pass ? AppTokens.statusReady : AppTokens.statusCancelled,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -397,15 +393,15 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     );
                   }),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   if (isRunning)
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentTeal,
+                        backgroundColor: AppTokens.brandTeal,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      icon: Icon(Icons.check),
+                      icon: const Icon(Icons.check),
                       label: Text(l10n.t('cycle_complete_run')),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -422,13 +418,12 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Widget _detailRow(String label, String value) {
-    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13)),
+          Text(label, style: const TextStyle(color: AppTokens.textSecondary, fontSize: 13)),
           Expanded(
             child: Text(
               value,
@@ -452,7 +447,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          indicatorColor: AppTheme.accentTeal,
+          indicatorColor: AppTokens.brandTeal,
           tabs: const [
             Tab(icon: Icon(Icons.loop), text: 'Active Runs'),
             Tab(icon: Icon(Icons.play_circle_outline), text: 'Start Cycle'),
@@ -472,15 +467,14 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
   }
 
   Widget _buildActiveRunsTab() {
-    final l10n = context.l10n;
     if (_activeRuns.isEmpty) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.loop, size: 48, color: AppTheme.secondaryGrey),
+            Icon(Icons.loop, size: 48, color: AppTokens.textSecondary),
             SizedBox(height: 12),
-            Text('No active garment cycles currently running', style: TextStyle(color: AppTheme.secondaryGrey)),
+            Text('No active garment cycles currently running', style: TextStyle(color: AppTokens.textSecondary)),
           ],
         ),
       );
@@ -496,17 +490,17 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
         final isException = run['status'] == 'exception';
 
         final badgeColor = isRunning
-            ? AppTheme.accentTeal
+            ? AppTokens.brandTeal
             : isException
-                ? AppTheme.errorRed
-                : AppTheme.primaryNavy;
+                ? AppTokens.statusCancelled
+                : AppTokens.brandNavy;
 
         return Card(
           elevation: 1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(
-              color: isException ? AppTheme.errorRed.withValues(alpha: 0.3) : Colors.transparent,
+              color: isException ? AppTokens.statusCancelled.withValues(alpha: 0.3) : Colors.transparent,
             ),
           ),
           child: InkWell(
@@ -531,10 +525,10 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                               size: 18,
                             ),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Text(
                             'Cycle Run #${run['id']} • Order #${run['order_id']}',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),
@@ -551,31 +545,31 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     run['preset_name'],
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTokens.brandNavy),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     '${run['equipment']} • ${run['operator']}',
-                    style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                    style: const TextStyle(fontSize: 12, color: AppTokens.textSecondary),
                   ),
-                  Divider(height: 20),
+                  const Divider(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.thermostat, size: 16, color: AppTheme.warningOrange),
-                          SizedBox(width: 4),
-                          Text('Temp: ${run['temp']}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          const Icon(Icons.thermostat, size: 16, color: AppTokens.statusFinishing),
+                          const SizedBox(width: 4),
+                          Text('Temp: ${run['temp']}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                           const SizedBox(width: 16),
-                          const Icon(Icons.water_drop, size: 16, color: AppTheme.infoBlue),
+                          const Icon(Icons.water_drop, size: 16, color: AppTokens.statusWashing),
                           const SizedBox(width: 4),
                           Text('pH: ${run['ph']}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                           const SizedBox(width: 16),
-                          const Icon(Icons.science, size: 16, color: AppTheme.accentTeal),
+                          const Icon(Icons.science, size: 16, color: AppTokens.brandTeal),
                           const SizedBox(width: 4),
                           Text('Dosing: ${run['detergent_ml']}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                         ],
@@ -583,8 +577,8 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       if (isRunning)
                         OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.accentTeal,
-                            side: const BorderSide(color: AppTheme.accentTeal),
+                            foregroundColor: AppTokens.brandTeal,
+                            side: const BorderSide(color: AppTokens.brandTeal),
                             visualDensity: VisualDensity.compact,
                           ),
                           onPressed: () => _completeCycle(run),
@@ -611,23 +605,23 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primaryNavy.withValues(alpha: 0.05),
+              color: AppTokens.brandNavy.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.primaryNavy.withValues(alpha: 0.1)),
+              border: Border.all(color: AppTokens.brandNavy.withValues(alpha: 0.1)),
             ),
-            child: Row(children: [
-                Icon(Icons.shield_outlined, color: AppTheme.primaryNavy, size: 28),
+            child: const Row(children: [
+                Icon(Icons.shield_outlined, color: AppTokens.brandNavy, size: 28),
                 SizedBox(width: 14),
                 Expanded(
                   child: Text(
                     'Enforces calibrated equipment & certified operator compliance before cycle execution.',
-                    style: TextStyle(fontSize: 13, color: AppTheme.primaryNavy),
+                    style: TextStyle(fontSize: 13, color: AppTokens.brandNavy),
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Card(
             elevation: 2,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -641,7 +635,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                   DropdownButtonFormField<dynamic>(
                     initialValue: _selectedPreset,
                     isExpanded: true,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Cycle Preset *',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.tune),
@@ -653,7 +647,7 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                     onChanged: (val) => setState(() => _selectedPreset = val),
                   ),
                   if (_selectedPreset != null) ...[
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -666,28 +660,28 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                         children: [
                           Text(
                             'Chemical Formula: ${_selectedPreset['detergent_formula'] ?? 'Automatic multi-stage injection'}',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             'Allowed Temp: ${_selectedPreset['min_temperature']}°C – ${_selectedPreset['max_temperature']}°C • pH: ${_selectedPreset['min_ph']} – ${_selectedPreset['max_ph']} • Est. ${_selectedPreset['expected_duration_minutes']} min',
-                            style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 11),
+                            style: const TextStyle(color: AppTokens.textSecondary, fontSize: 11),
                           ),
                         ],
                       ),
                     ),
                   ],
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: _saleOrderIdController,
                     decoration: InputDecoration(labelText: 'Sale Order ID *',
                       hintText: l10n.t('cycle_rack_hint'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.receipt_long),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.receipt_long),
                     ),
                     keyboardType: TextInputType.number,
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
                   Row(
                     children: [
                       Expanded(
@@ -695,17 +689,17 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                           controller: _equipmentIdController,
                           decoration: InputDecoration(labelText: 'Equipment ID *',
                             hintText: l10n.t('cycle_qty_hint'),
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.precision_manufacturing),
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.precision_manufacturing),
                           ),
                           keyboardType: TextInputType.number,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
                           controller: _operatorIdController,
-                          decoration: InputDecoration(labelText: 'Operator ID *',
+                          decoration: const InputDecoration(labelText: 'Operator ID *',
                             hintText: 'e.g. 1',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.badge),
@@ -715,19 +709,19 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentTeal,
+                        backgroundColor: AppTokens.brandTeal,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       icon: _loading
-                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : Icon(Icons.play_arrow),
+                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Icon(Icons.play_arrow),
                       label: Text(l10n.t('cycle_start_advanced'), style: const TextStyle(fontWeight: FontWeight.bold)),
                       onPressed: _loading ? null : _startCycle,
                     ),
@@ -760,12 +754,12 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                   const SizedBox(height: 6),
                   const Text(
                     'Direct sensor reading verification against programmed batch recipe thresholds.',
-                    style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                    style: TextStyle(color: AppTokens.textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _runIdController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Cycle Run ID *',
                       hintText: 'e.g. 1',
                       border: OutlineInputBorder(),
@@ -776,12 +770,12 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                   const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     initialValue: _metricType,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Metric Parameter *',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.analytics_outlined),
                     ),
-                    items: [DropdownMenuItem(value: 'pH', child: Text('pH Level (Acidity/Alkalinity)')),
+                    items: const [DropdownMenuItem(value: 'pH', child: Text('pH Level (Acidity/Alkalinity)')),
                       DropdownMenuItem(value: 'temperature', child: Text('Bath Temperature (°C)')),
                       DropdownMenuItem(value: 'detergent_dosing', child: Text('Chemical Dosing Volume (ml)')),
                       DropdownMenuItem(value: 'conductivity', child: Text('Rinse Water Conductivity (µS/cm)')),
@@ -790,29 +784,29 @@ class _AdvancedCycleScreenState extends ConsumerState<AdvancedCycleScreen> with 
                       if (val != null) setState(() => _metricType = val);
                     },
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
                   TextField(
                     controller: _readingController,
                     decoration: InputDecoration(
                       labelText: 'Sensor / Titration Reading *',
                       hintText: _metricType == 'temperature' ? 'e.g. 85.0' : 'e.g. 6.5',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.speed),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.speed),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryNavy,
+                        backgroundColor: AppTokens.brandNavy,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       icon: _loading
-                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                           : const Icon(Icons.add_chart),
                       label: Text(l10n.t('cycle_record_validate'), style: const TextStyle(fontWeight: FontWeight.bold)),
                       onPressed: _loading ? null : _recordMetric,

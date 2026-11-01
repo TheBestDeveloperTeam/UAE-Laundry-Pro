@@ -1,9 +1,9 @@
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
-import 'package:laundrypro_uae/core/theme.dart';
 import '../services/sterilization_service.dart';
 
 class SterilizationScreen extends ConsumerStatefulWidget {
@@ -120,14 +120,14 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n.t('sterilization_success')),
-            backgroundColor: AppTheme.successGreen,
+            backgroundColor: AppTokens.statusReady,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.t('sterilization_error').replaceAll('{error}', e.toString())), backgroundColor: AppTheme.errorRed),
+          SnackBar(content: Text(l10n.t('sterilization_error').replaceAll('{error}', e.toString())), backgroundColor: AppTokens.statusCancelled),
         );
       }
     } finally {
@@ -147,12 +147,12 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.draw, color: AppTheme.accentTeal),
-            SizedBox(width: 8),
+            const Icon(Icons.draw, color: AppTokens.brandTeal),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Electronic Signature: ${lot['lot_number']}',
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
               ),
             ),
           ],
@@ -162,52 +162,52 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('21 CFR Part 11 & DHA Electronic Signature Attestation',
-                style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+              const Text('21 CFR Part 11 & DHA Electronic Signature Attestation',
+                style: TextStyle(color: AppTokens.textSecondary, fontSize: 12),
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(labelText: l10n.t('sterilization_supervisor_name'),
                   hintText: l10n.t('sterilization_supervisor_hint'),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person_outline),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.person_outline),
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: pinController,
                 obscureText: true,
                 decoration: InputDecoration(labelText: l10n.t('sterilization_pin'),
                   hintText: l10n.t('sterilization_pin_hint'),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock_outline),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock_outline),
                 ),
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: remarksController,
                 decoration: InputDecoration(labelText: l10n.t('sterilization_attestation'),
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.verified_outlined),
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.verified_outlined),
                 ),
                 maxLines: 2,
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.infoBlue.withValues(alpha: 0.08),
+                  color: AppTokens.statusWashing.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(children: [
-                    Icon(Icons.info_outline, size: 18, color: AppTheme.infoBlue),
+                child: const Row(children: [
+                    Icon(Icons.info_outline, size: 18, color: AppTokens.statusWashing),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Signing cryptographically commits this validation log to permanent audit history.',
-                        style: TextStyle(fontSize: 11, color: AppTheme.infoBlue),
+                        style: TextStyle(fontSize: 11, color: AppTokens.statusWashing),
                       ),
                     ),
                   ],
@@ -223,14 +223,14 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.accentTeal,
+              backgroundColor: AppTokens.brandTeal,
               foregroundColor: Colors.white,
             ),
             onPressed: () {
               if (nameController.text.trim().isEmpty || pinController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
                   SnackBar(content: Text(l10n.t('sterilization_enter_details')),
-                    backgroundColor: AppTheme.errorRed,
+                    backgroundColor: AppTokens.statusCancelled,
                   ),
                 );
                 return;
@@ -263,14 +263,14 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.t('sterilization_lot_certified')),
-              backgroundColor: AppTheme.successGreen,
+              backgroundColor: AppTokens.statusReady,
             ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.t('sterilization_signing_error').replaceAll('{error}', e.toString())), backgroundColor: AppTheme.errorRed),
+            SnackBar(content: Text(l10n.t('sterilization_signing_error').replaceAll('{error}', e.toString())), backgroundColor: AppTokens.statusCancelled),
           );
         }
       }
@@ -278,7 +278,6 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
   }
 
   void _showLotDetails(Map<String, dynamic> lot) {
-    final l10n = context.l10n;
     final isValidated = lot['status'] == 'validated';
 
     showModalBottomSheet(
@@ -300,21 +299,21 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                   Expanded(
                     child: Text(
                       lot['lot_number'],
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: isValidated
-                          ? AppTheme.successGreen.withValues(alpha: 0.12)
-                          : AppTheme.warningOrange.withValues(alpha: 0.12),
+                          ? AppTokens.statusReady.withValues(alpha: 0.12)
+                          : AppTokens.statusFinishing.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       isValidated ? 'VALIDATED' : 'PENDING SIGNATURE',
                       style: TextStyle(
-                        color: isValidated ? AppTheme.successGreen : AppTheme.warningOrange,
+                        color: isValidated ? AppTokens.statusReady : AppTokens.statusFinishing,
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
                       ),
@@ -322,7 +321,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                   ),
                 ],
               ),
-              Divider(height: 24),
+              const Divider(height: 24),
               _detailRow('Autoclave Cycle', lot['cycle']),
               _detailRow('Saturated Steam Temp', lot['temp']),
               _detailRow('Operating Chamber Pressure', lot['pressure']),
@@ -330,17 +329,17 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
               _detailRow('Cycle Date', lot['date']),
               if (lot['signer'] != null) _detailRow('Certified By', lot['signer']),
               if (lot['signature'] != null) _detailRow('Cryptographic Hash', lot['signature']),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               if (!isValidated)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentTeal,
+                      backgroundColor: AppTokens.brandTeal,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    icon: Icon(Icons.draw, size: 18),
+                    icon: const Icon(Icons.draw, size: 18),
                     label: Text(l10n.t('sterilization_affix_signature')),
                     onPressed: () {
                       Navigator.pop(ctx);
@@ -353,10 +352,10 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryNavy,
+                      backgroundColor: AppTokens.brandNavy,
                       foregroundColor: Colors.white,
                     ),
-                    icon: Icon(Icons.close, size: 18),
+                    icon: const Icon(Icons.close, size: 18),
                     label: Text(l10n.t('sterilization_close_details')),
                     onPressed: () => Navigator.pop(ctx),
                   ),
@@ -374,7 +373,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13)),
+          Text(label, style: const TextStyle(color: AppTokens.textSecondary, fontSize: 13)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
         ],
       ),
@@ -416,7 +415,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppTheme.primaryNavy, AppTheme.primaryNavy.withValues(alpha: 0.85)],
+                  colors: [AppTokens.brandNavy, AppTokens.brandNavy.withValues(alpha: 0.85)],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -428,19 +427,19 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                       color: Colors.white.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.verified, color: AppTheme.accentTeal, size: 32),
+                    child: const Icon(Icons.verified, color: AppTokens.brandTeal, size: 32),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           l10n.t('sterilization'),
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        SizedBox(height: 4),
-                        Text('ISO 13485, 21 CFR Part 11 & DHA Cleanroom Sterilization Standards',
+                        const SizedBox(height: 4),
+                        const Text('ISO 13485, 21 CFR Part 11 & DHA Cleanroom Sterilization Standards',
                           style: TextStyle(color: Colors.white70, fontSize: 13),
                         ),
                       ],
@@ -449,7 +448,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Batch Lot Creation Card
             Card(
@@ -462,15 +461,15 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                   children: [
                     Text(
                       l10n.t('sterilization_batch_create'),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedProgram,
                       isExpanded: true,
                       decoration: InputDecoration(labelText: l10n.t('sterilization_autoclave_program'),
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.tune),
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.tune),
                       ),
                       items: _autoclavePrograms.map((prog) {
                         return DropdownMenuItem(value: prog, child: Text(prog, overflow: TextOverflow.ellipsis));
@@ -479,7 +478,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                         if (val != null) setState(() => _selectedProgram = val);
                       },
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -487,73 +486,73 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                             controller: _lotController,
                             decoration: InputDecoration(
                               labelText: l10n.t('sterilization_lot'),
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
                             ),
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: TextField(
                             controller: _orderController,
                             decoration: InputDecoration(
                               labelText: l10n.t('order_no'),
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: TextField(
                             controller: _tempController,
                             decoration: InputDecoration(labelText: l10n.t('sterilization_target_temp'),
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
                             ),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: TextField(
                             controller: _pressureController,
                             decoration: InputDecoration(labelText: l10n.t('sterilization_pressure'),
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
                             ),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: TextField(
                             controller: _durationController,
                             decoration: InputDecoration(labelText: l10n.t('sterilization_duration'),
-                              border: OutlineInputBorder(),
+                              border: const OutlineInputBorder(),
                             ),
                             keyboardType: TextInputType.number,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryNavy,
+                          backgroundColor: AppTokens.brandNavy,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         icon: _isLoading
-                            ? SizedBox(width: 16,
+                            ? const SizedBox(width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
-                            : Icon(Icons.check_circle_outline),
+                            : const Icon(Icons.check_circle_outline),
                         onPressed: _isLoading ? null : _createBatch,
                         label: Text(l10n.t('sterilization_batch_create')),
                       ),
@@ -562,7 +561,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // History Filter Bar
             Row(
@@ -571,14 +570,14 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: l10n.t('search_lots_hint'),
-                      prefixIcon: Icon(Icons.search),
+                      prefixIcon: const Icon(Icons.search),
                       isDense: true,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     onChanged: (val) => setState(() => _searchQuery = val),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 ChoiceChip(
                   label: Text(l10n.t('all_filter')),
                   selected: _statusFilter == 'all',
@@ -586,7 +585,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                     if (val) setState(() => _statusFilter = 'all');
                   },
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 ChoiceChip(
                   label: Text(l10n.t('validated_filter')),
                   selected: _statusFilter == 'validated',
@@ -594,7 +593,7 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                     if (val) setState(() => _statusFilter = 'validated');
                   },
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 ChoiceChip(
                   label: Text(l10n.t('sterilization_needs_sign')),
                   selected: _statusFilter == 'pending',
@@ -622,13 +621,13 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                   child: ListTile(
                     onTap: () => _showLotDetails(lot),
                     leading: CircleAvatar(
-                      backgroundColor: (isValidated ? AppTheme.accentTeal : AppTheme.warningOrange).withValues(alpha: 0.15),
+                      backgroundColor: (isValidated ? AppTokens.brandTeal : AppTokens.statusFinishing).withValues(alpha: 0.15),
                       child: Icon(
                         isValidated ? Icons.done_all : Icons.draw,
-                        color: isValidated ? AppTheme.accentTeal : AppTheme.warningOrange,
+                        color: isValidated ? AppTokens.brandTeal : AppTokens.statusFinishing,
                       ),
                     ),
-                    title: Text(lot['lot_number']!, style: TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(lot['lot_number']!, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text('${lot['cycle']} • ${lot['temp']} @ ${lot['pressure']} (${lot['duration'] ?? '18 min'})'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -636,22 +635,22 @@ class _SterilizationScreenState extends ConsumerState<SterilizationScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: (isValidated ? AppTheme.successGreen : AppTheme.warningOrange).withValues(alpha: 0.12),
+                            color: (isValidated ? AppTokens.statusReady : AppTokens.statusFinishing).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             isValidated ? 'VALIDATED' : 'NEEDS SIGN',
                             style: TextStyle(
-                              color: isValidated ? AppTheme.successGreen : AppTheme.warningOrange,
+                              color: isValidated ? AppTokens.statusReady : AppTokens.statusFinishing,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                         if (!isValidated) ...[
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           IconButton(
-                            icon: Icon(Icons.draw, color: AppTheme.accentTeal),
+                            icon: const Icon(Icons.draw, color: AppTokens.brandTeal),
                             tooltip: l10n.t('sterilization_affix_sig_tooltip'),
                             onPressed: () => _signLotDialog(lot),
                           ),
