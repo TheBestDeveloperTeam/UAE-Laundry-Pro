@@ -16,7 +16,7 @@ class AppDataTableColumn {
   });
 }
 
-class AppDataTable extends StatelessWidget {
+class AppDataTable extends StatefulWidget {
   const AppDataTable({
     super.key,
     required this.columns,
@@ -33,29 +33,48 @@ class AppDataTable extends StatelessWidget {
   final void Function(dynamic row)? onRowTap;
 
   @override
+  State<AppDataTable> createState() => _AppDataTableState();
+}
+
+class _AppDataTableState extends State<AppDataTable> {
+  final ScrollController _verticalController = ScrollController();
+  final ScrollController _horizontalController = ScrollController();
+
+  @override
+  void dispose() {
+    _verticalController.dispose();
+    _horizontalController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (widget.isLoading) {
       return const Center(child: CircularProgressIndicator(color: AppTokens.brandTeal));
     }
 
-    if (data.isEmpty) {
+    if (widget.data.isEmpty) {
       return EmptyState(
         icon: Icons.table_chart_outlined,
-        message: emptyMessage,
+        message: widget.emptyMessage,
       );
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scrollbar(
+          controller: _verticalController,
           thumbVisibility: true,
           child: SingleChildScrollView(
+            controller: _verticalController,
             scrollDirection: Axis.vertical,
             physics: const AlwaysScrollableScrollPhysics(),
             child: Scrollbar(
+              controller: _horizontalController,
               thumbVisibility: true,
               notificationPredicate: (notif) => notif.depth == 1,
               child: SingleChildScrollView(
+                controller: _horizontalController,
                 scrollDirection: Axis.horizontal,
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: ConstrainedBox(
@@ -79,11 +98,11 @@ class AppDataTable extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF1E293B),
                     ),
-                    columns: columns.map((c) => DataColumn(
+                    columns: widget.columns.map((c) => DataColumn(
                       label: Text(c.label),
                       numeric: c.numeric,
                     )).toList(),
-                    rows: data.map((row) {
+                    rows: widget.data.map((row) {
                       return DataRow(
                         color: WidgetStateProperty.resolveWith<Color?>((states) {
                           if (states.contains(WidgetState.hovered)) {
@@ -91,8 +110,8 @@ class AppDataTable extends StatelessWidget {
                           }
                           return Colors.white;
                         }),
-                        onSelectChanged: onRowTap != null ? (_) => onRowTap!(row) : null,
-                        cells: columns.map((c) {
+                        onSelectChanged: widget.onRowTap != null ? (_) => widget.onRowTap!(row) : null,
+                        cells: widget.columns.map((c) {
                           if (c.cellBuilder != null) {
                             return DataCell(c.cellBuilder!(row));
                           }
