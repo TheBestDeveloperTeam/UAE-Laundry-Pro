@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/customer_model.dart';
@@ -30,7 +31,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Future<void> _load() async {
-setState(() => _loading = true);
+    setState(() => _loading = true);
     try {
       final res = await _service.list();
       if (mounted) {
@@ -75,48 +76,64 @@ setState(() => _loading = true);
             } else {
               await _service.update(existing.id, data);
             }
+            if (ctx.mounted) Navigator.pop(ctx);
+            await _load();
           },
-          onSuccess: _load,
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextField(
                   controller: phoneCtrl,
-                  decoration: InputDecoration(labelText: l10n.t('customer_phone_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
+                  decoration: InputDecoration(
+                    labelText: l10n.t('customer_phone_label'),
+                    prefixIcon: const Icon(Icons.phone, size: 20, color: AppTokens.textMuted),
+                  ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: nameCtrl,
-                  decoration: InputDecoration(labelText: l10n.t('customer_name_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
+                  decoration: InputDecoration(
+                    labelText: l10n.t('customer_name_label'),
+                    prefixIcon: const Icon(Icons.person, size: 20, color: AppTokens.textMuted),
+                  ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: TextField(
                         controller: emailCtrl,
-                        decoration: InputDecoration(labelText: l10n.t('customer_email_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
+                        decoration: InputDecoration(
+                          labelText: l10n.t('customer_email_label'),
+                          prefixIcon: const Icon(Icons.email, size: 20, color: AppTokens.textMuted),
+                        ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: trnCtrl,
-                        decoration: InputDecoration(labelText: l10n.t('customer_trn_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.verified)),
+                        decoration: InputDecoration(
+                          labelText: l10n.t('customer_trn_label'),
+                          prefixIcon: const Icon(Icons.verified, size: 20, color: AppTokens.textMuted),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: addressCtrl,
-                  decoration: InputDecoration(labelText: l10n.t('customer_address_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.home)),
+                  decoration: InputDecoration(
+                    labelText: l10n.t('customer_address_label'),
+                    prefixIcon: const Icon(Icons.home, size: 20, color: AppTokens.textMuted),
+                  ),
                 ),
-                SizedBox(height: 16),
-                Divider(),
-                SizedBox(height: 8),
-                Text('Loyalty Program & VIP Status', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                const Divider(color: AppTokens.borderSubtle),
+                const SizedBox(height: 8),
+                const Text('Loyalty Program & VIP Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 12,
@@ -127,12 +144,15 @@ setState(() => _loading = true);
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: tier,
-                        decoration: InputDecoration(labelText: l10n.t('customer_loyalty_label'), border: const OutlineInputBorder(), isDense: true),
+                        decoration: InputDecoration(
+                          labelText: l10n.t('customer_loyalty_label'),
+                          isDense: true,
+                        ),
                         items: const [
-                          DropdownMenuItem(value: 'Bronze', child: Text('🥉 Bronze Tier', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Silver', child: Text('🥈 Silver Tier (5%)', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Gold', child: Text('🥇 Gold Tier (10%)', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Platinum', child: Text('💎 Platinum VIP (15%)', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Bronze', child: Text('Bronze Tier', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Silver', child: Text('Silver Tier (5%)', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Gold', child: Text('Gold Tier (10%)', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Platinum', child: Text('Platinum VIP (15%)', overflow: TextOverflow.ellipsis)),
                         ],
                         onChanged: (val) {
                           if (val != null) setDlgState(() => tier = val);
@@ -142,8 +162,9 @@ setState(() => _loading = true);
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade400),
-                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppTokens.borderSubtle),
+                        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                        color: AppTokens.surfaceSubtle,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -152,8 +173,8 @@ setState(() => _loading = true);
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('Loyalty Points', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                              Text('$points pts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.teal)),
+                              const Text('Loyalty Points', style: TextStyle(fontSize: 10, color: AppTokens.textMuted)),
+                              Text('$points pts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTokens.brandTeal)),
                             ],
                           ),
                           const SizedBox(width: 8),
@@ -161,7 +182,7 @@ setState(() => _loading = true);
                             visualDensity: VisualDensity.compact,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
-                            icon: const Icon(Icons.remove_circle_outline, size: 20),
+                            icon: const Icon(Icons.remove_circle_outline, size: 20, color: AppTokens.textMuted),
                             onPressed: points > 50 ? () => setDlgState(() => points -= 50) : null,
                           ),
                           const SizedBox(width: 4),
@@ -169,7 +190,7 @@ setState(() => _loading = true);
                             visualDensity: VisualDensity.compact,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
-                            icon: const Icon(Icons.add_circle_outline, size: 20, color: Colors.teal),
+                            icon: const Icon(Icons.add_circle_outline, size: 20, color: AppTokens.brandTeal),
                             onPressed: () => setDlgState(() => points += 50),
                           ),
                         ],
@@ -197,63 +218,96 @@ setState(() => _loading = true);
             (c.email != null && c.email!.toLowerCase().contains(query))).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.t('customers')),
-        actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+      backgroundColor: AppTokens.canvas,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Page Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SizedBox(
-                  width: 340,
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search phone, name or email...',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                      isDense: true,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.t('customers'), style: AppTokens.pageHeading),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_customers.length} registered customers & loyalty accounts',
+                      style: const TextStyle(fontSize: 13, color: AppTokens.textSecondary),
                     ),
-                    onChanged: (_) => setState(() {}),
-                  ),
+                  ],
                 ),
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: () => _showForm(),
-                  icon: const Icon(Icons.person_add),
-                  label: const Text('Add Customer'),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: AppTokens.textSecondary),
+                  onPressed: _load,
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              clipBehavior: Clip.antiAlias,
-              child: AppDataTable(
-                columns: const [
-                  AppDataTableColumn(label: 'Phone', key: 'phone'),
-                  AppDataTableColumn(label: 'Name', key: 'name'),
-                  AppDataTableColumn(label: 'Tier', key: 'loyalty_tier'),
-                  AppDataTableColumn(label: 'Points', key: 'loyalty_points', numeric: true),
-                  AppDataTableColumn(label: 'Balance', key: 'balance', numeric: true),
+            const SizedBox(height: AppTokens.space16),
+
+            // Search Bar & Action
+            Container(
+              padding: const EdgeInsets.all(AppTokens.space12),
+              decoration: AppTokens.cardDecoration,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search phone, name or email...',
+                        prefixIcon: const Icon(Icons.search, size: 20, color: AppTokens.textMuted),
+                        filled: true,
+                        fillColor: AppTokens.surfaceSubtle,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  const SizedBox(width: AppTokens.space16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white, elevation: 0),
+                    onPressed: () => _showForm(),
+                    icon: const Icon(Icons.person_add, size: 18),
+                    label: const Text('Add Customer', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
                 ],
-                data: filtered.map((c) => c.toJson()).toList(),
-                isLoading: _loading,
-                onRowTap: (row) {
-                  final id = row['id'] as int;
-                  final cust = _customers.firstWhere((c) => c.id == id);
-                  _showForm(cust);
-                },
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: AppTokens.space16),
+
+            // Customers Table
+            Expanded(
+              child: Container(
+                decoration: AppTokens.cardDecoration,
+                clipBehavior: Clip.antiAlias,
+                child: AppDataTable(
+                  columns: const [
+                    AppDataTableColumn(label: 'Phone', key: 'phone'),
+                    AppDataTableColumn(label: 'Customer Name', key: 'name'),
+                    AppDataTableColumn(label: 'Tier', key: 'loyalty_tier'),
+                    AppDataTableColumn(label: 'Points', key: 'loyalty_points', numeric: true),
+                    AppDataTableColumn(label: 'Balance (AED)', key: 'balance', numeric: true),
+                  ],
+                  data: filtered.map((c) => c.toJson()).toList(),
+                  isLoading: _loading,
+                  onRowTap: (row) {
+                    final id = row['id'] as int;
+                    final cust = _customers.firstWhere((c) => c.id == id);
+                    _showForm(cust);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

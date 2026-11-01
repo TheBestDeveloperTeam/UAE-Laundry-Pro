@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 
 class AppFormDialog extends StatelessWidget {
@@ -23,50 +24,57 @@ class AppFormDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: AppTokens.surfacePrimary,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusLarge)),
       child: Container(
         width: 500,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppTokens.space24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
+            Text(title, style: AppTokens.sectionHeading),
+            const SizedBox(height: AppTokens.space16),
             if (errorText != null) ...[
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppTokens.space12),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
+                  color: AppTokens.statusBgCancelled,
+                  borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                  border: Border.all(color: AppTokens.statusCancelled.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.error_outline, color: AppTokens.statusCancelled, size: 20),
+                    const SizedBox(width: AppTokens.space8),
                     Expanded(
                       child: Text(
                         errorText!,
-                        style: TextStyle(color: Colors.red.shade700, fontSize: 13),
+                        style: const TextStyle(color: AppTokens.statusCancelled, fontSize: 13),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppTokens.space16),
             ],
             Flexible(child: SingleChildScrollView(child: content)),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppTokens.space24),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                   onPressed: isLoading ? null : (onCancel ?? () => Navigator.of(context).pop()),
-                  child: Text(context.l10n.t('cancel')),
+                  child: Text(context.l10n.t('cancel'), style: const TextStyle(color: AppTokens.textSecondary)),
                 ),
-                const SizedBox(width: 12),
-                FilledButton(
+                const SizedBox(width: AppTokens.space12),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTokens.brandTeal,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
+                  ),
                   onPressed: isLoading ? null : onSave,
                   child: isLoading
                       ? const SizedBox(
@@ -74,7 +82,7 @@ class AppFormDialog extends StatelessWidget {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : Text(context.l10n.t('save')),
+                      : Text(context.l10n.t('save'), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

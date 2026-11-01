@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/services/api_client.dart';
@@ -30,16 +31,21 @@ class _VendorsScreenState extends State<VendorsScreen> {
   }
 
   Future<void> _load() async {
-setState(() => _loading = true);
+    setState(() => _loading = true);
     try {
       final q = _searchController.text.trim();
       final path = q.isNotEmpty ? '/vendors?q=$q' : '/vendors';
       final res = await _api.get(path);
-      _items = (res['data']?['vendors'] as List? ?? []).map((e) => VendorModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      if (mounted) {
+        setState(() {
+          _items = (res['data']?['vendors'] as List? ?? []).map((e) => VendorModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+          _loading = false;
+        });
+      }
     } catch (e, stack) {
       AppLogger.error('Failed to load vendors', tag: 'VendorsScreen', error: e, stackTrace: stack);
+      if (mounted) setState(() => _loading = false);
     }
-    setState(() => _loading = false);
   }
 
   Future<void> _openVendorDialog([VendorModel? existing]) async {
@@ -58,69 +64,40 @@ setState(() => _loading = true);
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(isNew ? Icons.add_business : Icons.store, color: Theme.of(context).primaryColor),
-              SizedBox(width: 8),
-              Text(isNew ? l10n.t('vendor_register_new') : l10n.t('vendor_edit_profile')),
-            ],
-          ),
+          backgroundColor: AppTokens.surfacePrimary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusLarge)),
+          title: Text(isNew ? l10n.t('vendor_add_title') : l10n.t('vendor_edit_title'), style: AppTokens.sectionHeading),
           content: SizedBox(
-            width: 620,
+            width: 480,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    controller: nameCtrl,
-                    decoration: InputDecoration(labelText: l10n.t('vendor_company_name'), border: OutlineInputBorder()),
-                    autofocus: true,
-                  ),
-                  SizedBox(height: 12),
+                  TextField(controller: nameCtrl, decoration: InputDecoration(labelText: '${l10n.t('vendor_name_field')} *')),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: phoneCtrl,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_phone_number'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: emailCtrl,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_email_address'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
-                        ),
-                      ),
+                      Expanded(child: TextField(controller: phoneCtrl, decoration: InputDecoration(labelText: l10n.t('phone_field')))),
+                      const SizedBox(width: 12),
+                      Expanded(child: TextField(controller: emailCtrl, decoration: InputDecoration(labelText: l10n.t('email_field')))),
                     ],
                   ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: addressCtrl,
-                    decoration: InputDecoration(labelText: l10n.t('vendor_billing_address'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.location_on)),
-                  ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                  TextField(controller: addressCtrl, decoration: InputDecoration(labelText: l10n.t('address_field'))),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(
-                        child: TextField(
-                          controller: trnCtrl,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_trn_label'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.verified)),
-                        ),
-                      ),
-                      SizedBox(width: 12),
+                      Expanded(child: TextField(controller: trnCtrl, decoration: const InputDecoration(labelText: 'UAE TRN (Tax No.)'))),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           initialValue: paymentTerms,
-                          decoration: InputDecoration(labelText: l10n.t('vendor_payment_terms'), border: OutlineInputBorder()),
-                          items: [
-                            DropdownMenuItem(value: 'Immediate / Cash', child: Text(l10n.t('terms_immediate_cash'))),
-                            DropdownMenuItem(value: 'Net 7', child: Text(l10n.t('terms_net_7'))),
-                            DropdownMenuItem(value: 'Net 15', child: Text(l10n.t('terms_net_15'))),
-                            DropdownMenuItem(value: 'Net 30', child: Text(l10n.t('terms_net_30'))),
-                            DropdownMenuItem(value: 'Net 60', child: Text(l10n.t('terms_net_60'))),
-                            DropdownMenuItem(value: 'Net 90', child: Text(l10n.t('terms_net_90'))),
+                          decoration: const InputDecoration(labelText: 'Payment Terms'),
+                          items: const [
+                            DropdownMenuItem(value: 'Immediate', child: Text('Immediate / Cash')),
+                            DropdownMenuItem(value: 'Net 15', child: Text('Net 15 Days')),
+                            DropdownMenuItem(value: 'Net 30', child: Text('Net 30 Days')),
+                            DropdownMenuItem(value: 'Net 60', child: Text('Net 60 Days')),
                           ],
                           onChanged: (val) {
                             if (val != null) setDlgState(() => paymentTerms = val);
@@ -129,35 +106,24 @@ setState(() => _loading = true);
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: creditLimitCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: l10n.t('vendor_credit_limit'), border: OutlineInputBorder(), prefixIcon: Icon(Icons.account_balance_wallet)),
-                  ),
-                  SizedBox(height: 12),
-                  TextField(
-                    controller: bankCtrl,
-                    maxLines: 2,
-                    decoration: InputDecoration(
-                      labelText: l10n.t('vendor_bank_details'),
-                      hintText: l10n.t('vendor_bank_hint'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.account_balance),
-                    ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: TextField(controller: creditLimitCtrl, decoration: const InputDecoration(labelText: 'Credit Limit (AED)'), keyboardType: TextInputType.number)),
+                      const SizedBox(width: 12),
+                      Expanded(child: TextField(controller: bankCtrl, decoration: const InputDecoration(labelText: 'Bank / IBAN Details'))),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.t('pos_close'))),
-            FilledButton(
-              onPressed: () {
-                if (nameCtrl.text.trim().isEmpty) return;
-                Navigator.pop(ctx, true);
-              },
-              child: Text(context.l10n.t('save')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.t('cancel'))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white, elevation: 0),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.t('save'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -166,15 +132,18 @@ setState(() => _loading = true);
 
     if (saved != true) return;
 
+    final name = nameCtrl.text.trim();
+    if (name.isEmpty) return;
+
     final body = {
-      'name': nameCtrl.text.trim(),
-      'phone': phoneCtrl.text.trim().isEmpty ? null : phoneCtrl.text.trim(),
-      'email': emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
-      'address': addressCtrl.text.trim().isEmpty ? null : addressCtrl.text.trim(),
-      'trn': trnCtrl.text.trim().isEmpty ? null : trnCtrl.text.trim(),
+      'name': name,
+      if (phoneCtrl.text.trim().isNotEmpty) 'phone': phoneCtrl.text.trim(),
+      if (emailCtrl.text.trim().isNotEmpty) 'email': emailCtrl.text.trim(),
+      if (addressCtrl.text.trim().isNotEmpty) 'address': addressCtrl.text.trim(),
+      if (trnCtrl.text.trim().isNotEmpty) 'trn': trnCtrl.text.trim(),
       'payment_terms': paymentTerms,
-      'credit_limit': double.tryParse(creditLimitCtrl.text.trim()) ?? 0.0,
-      'bank_details': bankCtrl.text.trim().isEmpty ? null : bankCtrl.text.trim(),
+      'credit_limit': double.tryParse(creditLimitCtrl.text.trim()) ?? 0,
+      if (bankCtrl.text.trim().isNotEmpty) 'bank_details': bankCtrl.text.trim(),
     };
 
     try {
@@ -195,104 +164,179 @@ setState(() => _loading = true);
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.t('vendors')),
-        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: '${l10n.t('search')} by vendor name, phone, or TRN...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              onSubmitted: (_) => _load(),
+      backgroundColor: AppTokens.canvas,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Page Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.t('vendors'), style: AppTokens.pageHeading),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_items.length} registered suppliers and commercial vendors',
+                      style: const TextStyle(fontSize: 13, color: AppTokens.textSecondary),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: AppTokens.textSecondary),
+                  onPressed: _load,
+                ),
+              ],
             ),
-          ),
-          Expanded(
-            child: _loading
-                ? Center(child: CircularProgressIndicator())
-                : _items.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.storefront, size: 64, color: Colors.grey),
-                            SizedBox(height: 12),
-                            Text(l10n.t('vendor_none_found'), style: Theme.of(context).textTheme.titleMedium),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        itemCount: _items.length,
-                        itemBuilder: (context, i) {
-                          final v = _items[i];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                child: Text(v.name.isNotEmpty ? v.name[0].toUpperCase() : 'V', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
-                              ),
-                              title: Text(v.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Column(
+            const SizedBox(height: AppTokens.space16),
+
+            // Search Bar & Action
+            Container(
+              padding: const EdgeInsets.all(AppTokens.space12),
+              decoration: AppTokens.cardDecoration,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: '${l10n.t('search')} by vendor name, phone, or TRN...',
+                        prefixIcon: const Icon(Icons.search, size: 20, color: AppTokens.textMuted),
+                        filled: true,
+                        fillColor: AppTokens.surfaceSubtle,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      onSubmitted: (_) => _load(),
+                    ),
+                  ),
+                  const SizedBox(width: AppTokens.space16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white, elevation: 0),
+                    onPressed: () => _openVendorDialog(),
+                    icon: const Icon(Icons.add_business, size: 18),
+                    label: Text(l10n.t('vendor_add_button'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppTokens.space16),
+
+            // Vendor Cards List
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _items.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.storefront_outlined, size: 64, color: AppTokens.textMuted),
+                              const SizedBox(height: 12),
+                              Text(l10n.t('vendor_none_found'), style: const TextStyle(color: AppTokens.textSecondary, fontSize: 16)),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: _items.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: AppTokens.space10),
+                          itemBuilder: (context, i) {
+                            final v = _items[i];
+                            return Container(
+                              decoration: AppTokens.cardDecoration,
+                              padding: const EdgeInsets.all(AppTokens.space16),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 4,
-                                    children: [
-                                      Chip(
-                                        label: Text(l10n.t('terms_chip_label', {'terms': v.paymentTerms})),
-                                        visualDensity: VisualDensity.compact,
-                                        padding: EdgeInsets.zero,
-                                      ),
-                                      if (v.creditLimit > 0)
-                                        Chip(
-                                          label: Text(l10n.t('credit_chip_label', {'credit': v.creditLimit.toStringAsFixed(0)})),
-                                          visualDensity: VisualDensity.compact,
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                      if (v.trn != null && v.trn!.isNotEmpty)
-                                        Chip(
-                                          avatar: Icon(Icons.verified, size: 14),
-                                          label: Text(l10n.t('trn_chip_label', {'trn': v.trn!})),
-                                          visualDensity: VisualDensity.compact,
-                                          padding: EdgeInsets.zero,
-                                        ),
-                                    ],
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: AppTokens.brandTeal.withValues(alpha: 0.12),
+                                    child: Text(
+                                      v.name.isNotEmpty ? v.name[0].toUpperCase() : 'V',
+                                      style: const TextStyle(color: AppTokens.brandTeal, fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
                                   ),
-                                  if (v.phone != null || v.email != null) ...[
-                                    const SizedBox(height: 4),
-                                    Text('${v.phone ?? ''} ${v.email != null ? '• ${v.email}' : ''}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                                  ],
+                                  const SizedBox(width: AppTokens.space16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(v.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTokens.textPrimary)),
+                                        const SizedBox(height: 4),
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 4,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: AppTokens.surfaceSubtle,
+                                                borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                                                border: Border.all(color: AppTokens.borderSubtle),
+                                              ),
+                                              child: Text(
+                                                l10n.t('terms_chip_label', {'terms': v.paymentTerms}),
+                                                style: const TextStyle(fontSize: 11, color: AppTokens.textSecondary),
+                                              ),
+                                            ),
+                                            if (v.creditLimit > 0)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: AppTokens.surfaceSubtle,
+                                                  borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                                                  border: Border.all(color: AppTokens.borderSubtle),
+                                                ),
+                                                child: Text(
+                                                  l10n.t('credit_chip_label', {'credit': v.creditLimit.toStringAsFixed(0)}),
+                                                  style: const TextStyle(fontSize: 11, color: AppTokens.textSecondary),
+                                                ),
+                                              ),
+                                            if (v.trn != null && v.trn!.isNotEmpty)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: AppTokens.statusBgReceived,
+                                                  borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                                                ),
+                                                child: Text(
+                                                  l10n.t('trn_chip_label', {'trn': v.trn!}),
+                                                  style: const TextStyle(fontSize: 11, color: AppTokens.statusReceived, fontWeight: FontWeight.w600),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        if (v.phone != null || v.email != null) ...[
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '${v.phone ?? ''} ${v.email != null ? '• ${v.email}' : ''}',
+                                            style: const TextStyle(color: AppTokens.textMuted, fontSize: 12),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, size: 20, color: AppTokens.textSecondary),
+                                    onPressed: () => _openVendorDialog(v),
+                                  ),
                                 ],
                               ),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.edit_outlined),
-                                onPressed: () => _openVendorDialog(v),
-                              ),
-                              isThreeLine: true,
-                              onTap: () => _openVendorDialog(v),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openVendorDialog(),
-        icon: Icon(Icons.add_business),
-        label: Text(l10n.t('vendor_add_button')),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/catalog_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
 import 'package:laundrypro_uae/widgets/app_form_dialog.dart';
+import 'package:laundrypro_uae/widgets/status_badge.dart';
 
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key, this.catalogService});
@@ -21,7 +23,7 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
   List<Map<String, dynamic>> _services = [];
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
-
+  String _searchFilter = '';
   final _searchController = TextEditingController();
 
   @override
@@ -40,7 +42,7 @@ class _CatalogScreenState extends State<CatalogScreen> with SingleTickerProvider
   }
 
   Future<void> _load() async {
-setState(() => _loading = true);
+    setState(() => _loading = true);
     try {
       final services = await _catalog.listServices();
       final products = await _catalog.listProducts();
@@ -59,7 +61,6 @@ setState(() => _loading = true);
   }
 
   void _showServiceDialog([Map<String, dynamic>? existing]) {
-    final l10n = context.l10n;
     final isNew = existing == null;
     final nameCtrl = TextEditingController(text: existing?['name']?.toString() ?? '');
     final codeCtrl = TextEditingController(text: existing?['code']?.toString() ?? '');
@@ -82,15 +83,16 @@ setState(() => _loading = true);
           } else {
             await _catalog.updateService(existing['id'] as int, data);
           }
+          if (ctx.mounted) Navigator.pop(ctx);
+          await _load();
         },
-        onSuccess: _load,
         content: Column(
           children: [
-            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Name *')),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name *')),
             const SizedBox(height: 16),
-            TextField(controller: codeCtrl, decoration: InputDecoration(labelText: 'Code')),
+            TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Code / SKU')),
             const SizedBox(height: 16),
-            TextField(controller: rateCtrl, decoration: InputDecoration(labelText: 'Base Rate (AED) *'), keyboardType: TextInputType.number),
+            TextField(controller: rateCtrl, decoration: const InputDecoration(labelText: 'Base Rate (AED) *'), keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -98,7 +100,6 @@ setState(() => _loading = true);
   }
 
   void _showProductDialog([Map<String, dynamic>? existing]) {
-    final l10n = context.l10n;
     final isNew = existing == null;
     final nameCtrl = TextEditingController(text: existing?['name']?.toString() ?? '');
     final rateCtrl = TextEditingController(text: existing?['base_rate']?.toString() ?? '10.00');
@@ -117,13 +118,14 @@ setState(() => _loading = true);
           } else {
             await _catalog.updateProduct(existing['id'] as int, data);
           }
+          if (ctx.mounted) Navigator.pop(ctx);
+          await _load();
         },
-        onSuccess: _load,
         content: Column(
           children: [
-            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: 'Product Name *')),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Product Name *')),
             const SizedBox(height: 16),
-            TextField(controller: rateCtrl, decoration: InputDecoration(labelText: 'Rate (AED) *'), keyboardType: TextInputType.number),
+            TextField(controller: rateCtrl, decoration: const InputDecoration(labelText: 'Rate (AED) *'), keyboardType: TextInputType.number),
           ],
         ),
       ),
@@ -134,78 +136,151 @@ setState(() => _loading = true);
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.t('catalog')),
-        bottom: TabBar(
-          controller: _tabs,
-          tabs: [
-            Tab(text: l10n.t('services')),
-            Tab(text: l10n.t('products_inventory')),
+      backgroundColor: AppTokens.canvas,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Page Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.t('catalog'), style: AppTokens.pageHeading),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Manage garment care service catalog and retail inventory items',
+                      style: TextStyle(fontSize: 13, color: AppTokens.textSecondary),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: AppTokens.textSecondary),
+                  onPressed: _load,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTokens.space16),
+
+            // Tab Navigation Strip
+            Container(
+              decoration: BoxDecoration(
+                color: AppTokens.surfacePrimary,
+                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                border: Border.all(color: AppTokens.borderSubtle),
+              ),
+              child: TabBar(
+                controller: _tabs,
+                labelColor: AppTokens.brandTeal,
+                unselectedLabelColor: AppTokens.textSecondary,
+                indicatorColor: AppTokens.brandTeal,
+                tabs: [
+                  Tab(text: l10n.t('services')),
+                  Tab(text: l10n.t('products_inventory')),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppTokens.space16),
+
+            // Tab Views
+            Expanded(
+              child: TabBarView(
+                controller: _tabs,
+                children: [
+                  _buildTab(
+                    l10n.t('services'),
+                    _services,
+                    _showServiceDialog,
+                    [
+                      const AppDataTableColumn(label: 'Service Name', key: 'name'),
+                      const AppDataTableColumn(label: 'SKU / Code', key: 'code'),
+                      const AppDataTableColumn(label: 'Base Rate (AED)', key: 'base_rate', numeric: true),
+                      AppDataTableColumn(
+                        label: 'Status',
+                        cellBuilder: (row) {
+                          final status = row['status']?.toString().toLowerCase() ?? 'active';
+                          return StatusBadge(
+                            label: status.toUpperCase(),
+                            stage: status == 'active' ? OrderStage.ready : OrderStage.cancelled,
+                            compact: true,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  _buildTab(
+                    l10n.t('products_inventory'),
+                    _products,
+                    _showProductDialog,
+                    [
+                      const AppDataTableColumn(label: 'Product Name', key: 'name'),
+                      const AppDataTableColumn(label: 'Rate (AED)', key: 'base_rate', numeric: true),
+                      const AppDataTableColumn(label: 'Stock Qty', key: 'stock_quantity', numeric: true),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabs,
-        children: [
-          _buildTab(
-            l10n.t('services'),
-            _services,
-            _showServiceDialog,
-            [
-              AppDataTableColumn(label: 'Name', key: 'name'),
-              AppDataTableColumn(label: 'Code', key: 'code'),
-              AppDataTableColumn(label: 'Base Rate', key: 'base_rate', numeric: true),
-              AppDataTableColumn(label: 'Status', cellBuilder: (row) => Text(row['status'] ?? 'active')),
-            ],
-          ),
-          _buildTab(
-            l10n.t('products_inventory'),
-            _products,
-            _showProductDialog,
-            [
-              const AppDataTableColumn(label: 'Product Name', key: 'name'),
-              const AppDataTableColumn(label: 'Rate', key: 'base_rate', numeric: true),
-              const AppDataTableColumn(label: 'Stock Qty', key: 'stock_quantity', numeric: true),
-            ],
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildTab(String title, List<Map<String, dynamic>> items, void Function([Map<String, dynamic>?]) onAdd, List<AppDataTableColumn> cols) {
+    final filtered = items.where((item) {
+      if (_searchFilter.isEmpty) return true;
+      final name = (item['name'] ?? '').toString().toLowerCase();
+      final code = (item['code'] ?? '').toString().toLowerCase();
+      return name.contains(_searchFilter) || code.contains(_searchFilter);
+    }).toList();
+
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
+        Container(
+          padding: const EdgeInsets.all(AppTokens.space12),
+          decoration: AppTokens.cardDecoration,
           child: Row(
             children: [
-              SizedBox(
-                width: 300,
+              Expanded(
+                flex: 3,
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    labelText: 'Search...',
-                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search $title...',
+                    prefixIcon: const Icon(Icons.search, size: 20, color: AppTokens.textMuted),
+                    filled: true,
+                    fillColor: AppTokens.surfaceSubtle,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
+                  onChanged: (val) => setState(() => _searchFilter = val.trim().toLowerCase()),
                 ),
               ),
-              const Spacer(),
-              FilledButton.icon(
+              const SizedBox(width: AppTokens.space16),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white, elevation: 0),
                 onPressed: () => onAdd(),
-                icon: const Icon(Icons.add),
-                label: Text('New $title'),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text('New $title', style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
         ),
+        const SizedBox(height: AppTokens.space16),
         Expanded(
-          child: Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Container(
+            decoration: AppTokens.cardDecoration,
             clipBehavior: Clip.antiAlias,
             child: AppDataTable(
               columns: cols,
-              data: items,
+              data: filtered,
               isLoading: _loading,
               onRowTap: (row) => onAdd(row as Map<String, dynamic>),
             ),

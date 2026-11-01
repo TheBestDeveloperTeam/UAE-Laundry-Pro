@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/services/inventory_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
 import 'package:laundrypro_uae/widgets/app_form_dialog.dart';
+import 'package:laundrypro_uae/widgets/status_badge.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key, this.inventoryService});
@@ -34,7 +36,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> _load() async {
-setState(() => _loading = true);
+    setState(() => _loading = true);
     try {
       final items = await _inventory.listMovements();
       if (mounted) {
@@ -49,7 +51,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _showReceiptDialog() async {
-    final l10n = context.l10n;
     final qtyController = TextEditingController();
     final costController = TextEditingController();
     final productIdController = TextEditingController();
@@ -66,13 +67,13 @@ setState(() => _loading = true);
               decoration: InputDecoration(labelText: context.l10n.t('product_id')),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TextField(
               controller: qtyController,
               decoration: InputDecoration(labelText: context.l10n.t('quantity')),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TextField(
               controller: costController,
               decoration: InputDecoration(labelText: context.l10n.t('unit_cost')),
@@ -104,7 +105,6 @@ setState(() => _loading = true);
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final filtered = _movements.where((m) {
       final q = _searchController.text.trim().toLowerCase();
       if (q.isEmpty) return true;
@@ -114,62 +114,111 @@ setState(() => _loading = true);
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.t('inventory_management')),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _load,
-          ),
-          IconButton(
-            icon: Icon(Icons.add_box_outlined),
-            tooltip: context.l10n.t('inventory_receipt'),
-            onPressed: _showReceiptDialog,
-          ),
-        ],
-      ),
+      backgroundColor: AppTokens.canvas,
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: context.l10n.t('search_movements'),
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (_) => setState(() {}),
+            // Page Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(context.l10n.t('inventory_management'), style: AppTokens.pageHeading),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_movements.length} logged stock receipts, issues, and adjustments',
+                      style: const TextStyle(fontSize: 13, color: AppTokens.textSecondary),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: AppTokens.textSecondary),
+                  onPressed: _load,
+                ),
+              ],
             ),
-            SizedBox(height: 16),
-            Expanded(
-              child: AppDataTable(
-                columns: [
-                  AppDataTableColumn(
-                    label: context.l10n.t('id'),
-                    cellBuilder: (row) => Text(row['id']?.toString() ?? '-'),
+            const SizedBox(height: AppTokens.space16),
+
+            // Search Bar & Action
+            Container(
+              padding: const EdgeInsets.all(AppTokens.space12),
+              decoration: AppTokens.cardDecoration,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: context.l10n.t('search_movements'),
+                        prefixIcon: const Icon(Icons.search, size: 20, color: AppTokens.textMuted),
+                        filled: true,
+                        fillColor: AppTokens.surfaceSubtle,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
                   ),
-                  AppDataTableColumn(
-                    label: context.l10n.t('product'),
-                    cellBuilder: (row) => Text(row['product_name']?.toString() ?? 'ID: ${row['product_id'] ?? '-' }'),
-                  ),
-                  AppDataTableColumn(
-                    label: context.l10n.t('type'),
-                    cellBuilder: (row) => Text(row['movement_type']?.toString() ?? 'RECEIPT'),
-                  ),
-                  AppDataTableColumn(
-                    label: context.l10n.t('quantity'),
-                    numeric: true,
-                    cellBuilder: (row) => Text(row['quantity']?.toString() ?? '0'),
-                  ),
-                  AppDataTableColumn(
-                    label: context.l10n.t('date'),
-                    cellBuilder: (row) => Text(row['created_at']?.toString() ?? '-'),
+                  const SizedBox(width: AppTokens.space16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white, elevation: 0),
+                    onPressed: _showReceiptDialog,
+                    icon: const Icon(Icons.add_box_outlined, size: 18),
+                    label: Text(context.l10n.t('inventory_receipt'), style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
-                data: filtered,
-                isLoading: _loading,
-                emptyMessage: context.l10n.t('no_inventory_data'),
+              ),
+            ),
+            const SizedBox(height: AppTokens.space16),
+
+            // Movements Table
+            Expanded(
+              child: Container(
+                decoration: AppTokens.cardDecoration,
+                clipBehavior: Clip.antiAlias,
+                child: AppDataTable(
+                  columns: [
+                    AppDataTableColumn(
+                      label: context.l10n.t('id'),
+                      cellBuilder: (row) => Text(row['id']?.toString() ?? '-', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    AppDataTableColumn(
+                      label: context.l10n.t('product'),
+                      cellBuilder: (row) => Text(row['product_name']?.toString() ?? 'ID: ${row['product_id'] ?? '-' }'),
+                    ),
+                    AppDataTableColumn(
+                      label: context.l10n.t('type'),
+                      cellBuilder: (row) {
+                        final type = row['movement_type']?.toString().toUpperCase() ?? 'RECEIPT';
+                        return StatusBadge(
+                          label: type,
+                          stage: type == 'RECEIPT' ? OrderStage.ready : OrderStage.washing,
+                          compact: true,
+                        );
+                      },
+                    ),
+                    AppDataTableColumn(
+                      label: context.l10n.t('quantity'),
+                      numeric: true,
+                      cellBuilder: (row) => Text(row['quantity']?.toString() ?? '0', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                    AppDataTableColumn(
+                      label: context.l10n.t('date'),
+                      cellBuilder: (row) => Text(row['created_at']?.toString() ?? '-', style: const TextStyle(color: AppTokens.textMuted)),
+                    ),
+                  ],
+                  data: filtered,
+                  isLoading: _loading,
+                  emptyMessage: context.l10n.t('no_inventory_data'),
+                ),
               ),
             ),
           ],

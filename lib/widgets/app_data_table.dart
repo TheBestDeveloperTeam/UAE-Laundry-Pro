@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/widgets/empty_state.dart';
 
 class AppDataTableColumn {
@@ -34,7 +35,7 @@ class AppDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppTokens.brandTeal));
     }
 
     if (data.isEmpty) {
@@ -52,9 +53,18 @@ class AppDataTable extends StatelessWidget {
             constraints: BoxConstraints(minWidth: constraints.maxWidth),
             child: DataTable(
               showCheckboxColumn: false,
-              headingRowColor: WidgetStateProperty.all(Colors.grey.shade100),
+              headingRowColor: WidgetStateProperty.all(AppTokens.surfaceSubtle),
+              headingTextStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: AppTokens.textPrimary,
+              ),
+              dataTextStyle: const TextStyle(
+                fontSize: 13,
+                color: AppTokens.textPrimary,
+              ),
               columns: columns.map((c) => DataColumn(
-                label: Text(c.label, style: const TextStyle(fontWeight: FontWeight.bold)),
+                label: Text(c.label),
                 numeric: c.numeric,
               )).toList(),
               rows: data.map((row) {
