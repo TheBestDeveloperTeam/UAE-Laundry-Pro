@@ -103,7 +103,6 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   }
 
   Future<void> _loadInitial() async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       _status = await _install.status();
@@ -153,7 +152,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(backgroundColor: Color(0xFF0D6E6E),
+        SnackBar(backgroundColor: const Color(0xFF0D6E6E),
           content: Text(l10n.t('wizard_install_complete')),
         ),
       );
@@ -219,7 +218,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         controller: _businessNameController,
                         decoration: InputDecoration(labelText: l10n.t('business_name')),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -228,7 +227,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                               decoration: InputDecoration(labelText: l10n.t('phone')),
                             ),
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: _emailController,
@@ -237,7 +236,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _selectedEmirate,
                         decoration: InputDecoration(labelText: l10n.t('wizard_emirate_label')),
@@ -246,7 +245,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           if (val != null) setState(() => _selectedEmirate = val);
                         },
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: _addressController,
                         decoration: InputDecoration(labelText: l10n.t('wizard_address_label')),
@@ -275,7 +274,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           }
                         },
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: _selectedCurrency,
                         decoration: InputDecoration(labelText: l10n.t('wizard_currency_label')),
@@ -304,7 +303,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                               decoration: InputDecoration(labelText: l10n.t('wizard_invoice_prefix')),
                             ),
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: _recPrefixController,
@@ -313,7 +312,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -322,7 +321,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                               decoration: InputDecoration(labelText: l10n.t('wizard_challan_prefix')),
                             ),
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
                               controller: _grnPrefixController,
@@ -345,13 +344,13 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         controller: _adminUsernameController,
                         decoration: InputDecoration(labelText: l10n.t('username')),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: _adminPasswordController,
                         obscureText: true,
                         decoration: InputDecoration(labelText: l10n.t('password')),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: _installSecretController,
                         decoration: InputDecoration(labelText: l10n.t('wizard_api_secret'),
@@ -408,10 +407,10 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                   content: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Hardware Binding & Installation Identification:',
+                      const Text('Hardware Binding & Installation Identification:',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -421,7 +420,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         ),
                         child: SelectableText(
                           _machineCode,
-                          style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 16),
+                          style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
                     ],

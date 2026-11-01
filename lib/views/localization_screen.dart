@@ -45,7 +45,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _select(String code) async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       await _service.setCountry(code);
@@ -73,7 +72,7 @@ setState(() => _loading = true);
         title: Text(l10n.t('country_profile')),
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
@@ -99,25 +98,25 @@ setState(() => _loading = true);
                             color: Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.public, color: Colors.white, size: 28),
+                          child: const Icon(Icons.public, color: Colors.white, size: 28),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 l10n.t('country_active'),
-                                style: TextStyle(color: Colors.white70, fontSize: 13),
+                                style: const TextStyle(color: Colors.white70, fontSize: 13),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
                                 _activeCode == 'AE'
                                     ? 'United Arab Emirates (دولة الإمارات العربية المتحدة)'
                                     : _activeCode == 'SA'
                                         ? 'Kingdom of Saudi Arabia (المملكة العربية السعودية)'
                                         : _activeCode,
-                                style: TextStyle(color: Colors.white,
+                                style: const TextStyle(color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -128,7 +127,7 @@ setState(() => _loading = true);
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Profiles list
                   Text(
@@ -148,7 +147,7 @@ setState(() => _loading = true);
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: isSelected
-                            ? BorderSide(color: AppTheme.accentTeal, width: 2)
+                            ? const BorderSide(color: AppTheme.accentTeal, width: 2)
                             : BorderSide(color: Colors.grey.shade200),
                       ),
                       child: Padding(
@@ -158,19 +157,19 @@ setState(() => _loading = true);
                           children: [
                             Row(
                               children: [
-                                Text(flag, style: TextStyle(fontSize: 28)),
-                                SizedBox(width: 12),
+                                Text(flag, style: const TextStyle(fontSize: 28)),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         p['name']?.toString() ?? code,
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                       ),
                                       Text(
                                         '${p['currency_code']} (${p['currency_symbol']}) • ${p['timezone']}',
-                                        style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                                        style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
                                       ),
                                     ],
                                   ),
@@ -184,7 +183,7 @@ setState(() => _loading = true);
                                     ),
                                     child: Text(
                                       l10n.t('country_active'),
-                                      style: TextStyle(color: AppTheme.accentTeal,
+                                      style: const TextStyle(color: AppTheme.accentTeal,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
                                       ),
@@ -192,7 +191,7 @@ setState(() => _loading = true);
                                   ),
                               ],
                             ),
-                            Divider(height: 24),
+                            const Divider(height: 24),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -201,11 +200,11 @@ setState(() => _loading = true);
                                   children: [
                                     Text(
                                       l10n.t('country_vat_rate'),
-                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
                                     ),
                                     Text(
                                       '$vatRate',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                     ),
                                   ],
                                 ),
@@ -214,11 +213,11 @@ setState(() => _loading = true);
                                   children: [
                                     Text(
                                       l10n.t('country_currency'),
-                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
                                     ),
                                     Text(
                                       '${p['currency_code']}',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                     ),
                                   ],
                                 ),
@@ -227,17 +226,17 @@ setState(() => _loading = true);
                                   children: [
                                     Text(
                                       l10n.t('country_timezone'),
-                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
+                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 12),
                                     ),
                                     Text(
                                       p['timezone']?.toString().split('/').last ?? 'Asia',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(

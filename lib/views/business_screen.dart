@@ -63,7 +63,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _save() async {
-    final l10n = context.l10n;
     setState(() => _saving = true);
     try {
       await _business.updateProfile({
@@ -106,11 +105,11 @@ setState(() => _loading = true);
       appBar: AppBar(
         title: Text(l10n.t('business_profile')),
         actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _loading ? null : _load),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loading ? null : _load),
         ],
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -133,16 +132,16 @@ setState(() => _loading = true);
                             color: Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.business, color: Colors.white, size: 32),
+                          child: const Icon(Icons.business, color: Colors.white, size: 32),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 _nameController.text.isEmpty ? 'UAE Laundry Pro LLC' : _nameController.text,
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -170,20 +169,20 @@ setState(() => _loading = true);
                             controller: _nameController,
                             decoration: InputDecoration(
                               labelText: l10n.t('business_name'),
-                              prefixIcon: Icon(Icons.storefront, color: AppTheme.primaryNavy),
-                              border: OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.storefront, color: AppTheme.primaryNavy),
+                              border: const OutlineInputBorder(),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           TextField(
                             controller: _trnController,
                             decoration: InputDecoration(
                               labelText: l10n.t('business_trn'),
-                              prefixIcon: Icon(Icons.receipt_long, color: AppTheme.accentTeal),
-                              border: OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.receipt_long, color: AppTheme.accentTeal),
+                              border: const OutlineInputBorder(),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Row(
                             children: [
                               Expanded(
@@ -191,25 +190,25 @@ setState(() => _loading = true);
                                   controller: _emailController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('business_email'),
-                                    prefixIcon: Icon(Icons.email, color: AppTheme.primaryNavy),
-                                    border: OutlineInputBorder(),
+                                    prefixIcon: const Icon(Icons.email, color: AppTheme.primaryNavy),
+                                    border: const OutlineInputBorder(),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 12),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: TextField(
                                   controller: _phoneController,
                                   decoration: InputDecoration(
                                     labelText: l10n.t('phone'),
-                                    prefixIcon: Icon(Icons.phone, color: AppTheme.primaryNavy),
-                                    border: OutlineInputBorder(),
+                                    prefixIcon: const Icon(Icons.phone, color: AppTheme.primaryNavy),
+                                    border: const OutlineInputBorder(),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           TextField(
                             controller: _addressController,
                             decoration: InputDecoration(
@@ -225,7 +224,7 @@ setState(() => _loading = true);
                                 flex: 3,
                                 child: DropdownButtonFormField<String>(
                                   initialValue: _selectedCurrency,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     labelText: 'Primary Business Currency',
                                     prefixIcon: Icon(Icons.currency_exchange, color: AppTheme.primaryNavy),
                                     border: OutlineInputBorder(),
@@ -249,7 +248,7 @@ setState(() => _loading = true);
                                 flex: 2,
                                 child: DropdownButtonFormField<double>(
                                   initialValue: _vatRate,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     labelText: 'Standard VAT Rate',
                                     prefixIcon: Icon(Icons.percent, color: AppTheme.accentTeal),
                                     border: OutlineInputBorder(),
@@ -266,7 +265,7 @@ setState(() => _loading = true);
                               ),
                             ],
                           ),
-                          SizedBox(height: 24),
+                          const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
@@ -278,11 +277,11 @@ setState(() => _loading = true);
                               ),
                               onPressed: _saving ? null : _save,
                               icon: _saving
-                                  ? SizedBox(width: 18,
+                                  ? const SizedBox(width: 18,
                                       height: 18,
                                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                     )
-                                  : Icon(Icons.save),
+                                  : const Icon(Icons.save),
                               label: Text(
                                 _saving ? 'Saving...' : l10n.t('save'),
                                 style: const TextStyle(fontWeight: FontWeight.bold),

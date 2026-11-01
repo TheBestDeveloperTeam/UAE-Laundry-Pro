@@ -93,7 +93,6 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
   // ─── Save ─────────────────────────────────────────────────────────────────
 
   Future<void> _save() async {
-    final l10n = context.l10n;
     if (_isReadOnly) return;
     setState(() {
       _saving = true;
@@ -136,13 +135,12 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
   // ─── Reset ────────────────────────────────────────────────────────────────
 
   Future<void> _resetAll() async {
-    final l10n = context.l10n;
     if (_isReadOnly) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Reset All Paths to Defaults?'),
-        content: Text('This will reset all paths to factory defaults:\nC:/LaundryPro/...'),
+        title: const Text('Reset All Paths to Defaults?'),
+        content: const Text('This will reset all paths to factory defaults:\nC:/LaundryPro/...'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -165,7 +163,7 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('All paths reset to defaults.'),
         behavior: SnackBarBehavior.floating,
       ),
@@ -173,7 +171,6 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
   }
 
   Future<void> _resetSingle(String key) async {
-    final l10n = context.l10n;
     if (_isReadOnly) return;
     await _config.resetPath(key);
     _controllers[key]!.text = _config.allPaths[key] ?? '';
@@ -185,7 +182,6 @@ class _GlobalConfigScreenState extends State<GlobalConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -303,7 +299,6 @@ class _AccessBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     if (!isReadOnly) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -388,7 +383,7 @@ class _PathField extends StatelessWidget {
               children: [
                 Icon(icon,
                     size: 18, color: theme.colorScheme.primary),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(label,
                       style: theme.textTheme.titleSmall
@@ -413,11 +408,11 @@ class _PathField extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(description,
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: Colors.grey.shade600)),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
 
             // Text field
             Row(
@@ -427,7 +422,7 @@ class _PathField extends StatelessWidget {
                   child: TextField(
                     controller: controller,
                     readOnly: isReadOnly,
-                    style: TextStyle(fontFamily: 'monospace', fontSize: 13),
+                    style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
                     decoration: InputDecoration(
                       hintText: l10n.t('config_backup_path_hint'),
                       errorText: hasError ? error : null,

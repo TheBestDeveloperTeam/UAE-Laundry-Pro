@@ -67,7 +67,6 @@ setState(() => _loading = true);
   }
 
   void _showQueueInspectorModal(int pendingCount) {
-    final l10n = context.l10n;
     final mockQueue = [
       {
         'id': 'TX-8041',
@@ -202,7 +201,7 @@ setState(() => _loading = true);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Container(
         height: 480,
         padding: const EdgeInsets.all(20),
@@ -213,8 +212,8 @@ setState(() => _loading = true);
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(children: [
-                    Icon(Icons.history_toggle_off, color: AppTheme.primaryNavy),
-                    SizedBox(width: 8),
+                    const Icon(Icons.history_toggle_off, color: AppTheme.primaryNavy),
+                    const SizedBox(width: 8),
                     Text(l10n.t('sync_conflict_audit_log'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   ],
                 ),
@@ -276,11 +275,11 @@ setState(() => _loading = true);
       appBar: AppBar(
         title: Text(l10n.t('sync')),
         actions: [
-          IconButton(onPressed: _loading ? null : _load, icon: Icon(Icons.refresh)),
+          IconButton(onPressed: _loading ? null : _load, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
@@ -312,21 +311,21 @@ setState(() => _loading = true);
                             size: 32,
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 l10n.t('sync_enabled'),
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 isEnabled
                                     ? 'Node is actively paired with cloud replication cluster'
                                     : 'Offline standalone mode',
-                                style: TextStyle(color: Colors.white70, fontSize: 13),
+                                style: const TextStyle(color: Colors.white70, fontSize: 13),
                               ),
                             ],
                           ),
@@ -334,7 +333,7 @@ setState(() => _loading = true);
                       ],
                     ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Metrics Cards
                   Row(
@@ -350,9 +349,9 @@ setState(() => _loading = true);
                               children: [
                                 Text(
                                   l10n.t('sync_pending'),
-                                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                                  style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                                 ),
-                                SizedBox(height: 6),
+                                const SizedBox(height: 6),
                                 Text(
                                   '$pendingCount',
                                   style: TextStyle(
@@ -366,7 +365,7 @@ setState(() => _loading = true);
                           ),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Card(
                           elevation: 1,
@@ -378,12 +377,12 @@ setState(() => _loading = true);
                               children: [
                                 Text(
                                   l10n.t('sync_last_push'),
-                                  style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                                  style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                                 ),
-                                SizedBox(height: 6),
+                                const SizedBox(height: 6),
                                 Text(
                                   lastPush.length > 10 ? lastPush.substring(0, 10) : lastPush,
-                                  style: TextStyle(fontSize: 18,
+                                  style: const TextStyle(fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primaryNavy,
                                   ),
@@ -395,7 +394,7 @@ setState(() => _loading = true);
                       ),
                     ],
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                   // Immediate Push Button
                   SizedBox(
@@ -408,19 +407,19 @@ setState(() => _loading = true);
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       icon: _isSyncing
-                          ? SizedBox(width: 18,
+                          ? const SizedBox(width: 18,
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : const Icon(Icons.cloud_upload),
                       label: Text(
                         _isSyncing ? 'Synchronizing...' : l10n.t('sync_trigger_now'),
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       onPressed: _isSyncing ? null : _push,
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
                   // Outbox Queue Inspector
                   Row(
@@ -428,16 +427,16 @@ setState(() => _loading = true);
                     children: [
                       Text(
                         l10n.t('sync_queue_inspector'),
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       TextButton.icon(
-                        icon: Icon(Icons.remove_red_eye, size: 16),
+                        icon: const Icon(Icons.remove_red_eye, size: 16),
                         label: Text(l10n.t('sync_inspect_payloads')),
                         onPressed: () => _showQueueInspectorModal(pendingCount),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Card(
                     elevation: 1,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -452,7 +451,7 @@ setState(() => _loading = true);
                               pendingCount == 0 ? Icons.check_circle : Icons.hourglass_top,
                               color: pendingCount == 0 ? AppTheme.accentTeal : AppTheme.warningOrange,
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,9 +460,9 @@ setState(() => _loading = true);
                                     pendingCount == 0
                                         ? l10n.t('sync_clean')
                                         : '$pendingCount transactions staged in local SQLite outbox queue.',
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                                   ),
-                                  SizedBox(height: 4),
+                                  const SizedBox(height: 4),
                                   Text(
                                     'Click to inspect pending sales, payments, customer updates, and audit payloads.',
                                     style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
@@ -471,13 +470,13 @@ setState(() => _loading = true);
                                 ],
                               ),
                             ),
-                            Icon(Icons.chevron_right, color: Colors.grey),
+                            const Icon(Icons.chevron_right, color: Colors.grey),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
                   // Conflict Resolution Engine
                   Row(
@@ -485,21 +484,21 @@ setState(() => _loading = true);
                     children: [
                       Text(
                         l10n.t('sync_conflicts'),
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       TextButton.icon(
-                        icon: Icon(Icons.history, size: 16),
+                        icon: const Icon(Icons.history, size: 16),
                         label: Text(l10n.t('sync_view_conflicts')),
                         onPressed: _showConflictHistoryModal,
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Card(
                     elevation: 1,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: ListTile(
-                      leading: Icon(Icons.security, color: AppTheme.accentTeal),
+                      leading: const Icon(Icons.security, color: AppTheme.accentTeal),
                       title: Text(l10n.t('sync_merge_strategy_title')),
                       subtitle: Text(l10n.t('sync_merge_strategy_desc')),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),

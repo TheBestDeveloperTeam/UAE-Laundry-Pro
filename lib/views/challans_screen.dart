@@ -72,30 +72,30 @@ setState(() => _loading = true);
                     if (val != null) setDialogState(() => selectedType = val);
                   },
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: descController,
                   decoration: InputDecoration(
                     labelText: l10n.t('description'),
                     hintText: l10n.t('challan_desc_hint'),
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: qtyController,
                   decoration: InputDecoration(
                     labelText: l10n.t('quantity'),
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: notesController,
                   decoration: InputDecoration(
                     labelText: l10n.t('notes'),
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -137,7 +137,6 @@ setState(() => _loading = true);
   }
 
   void _preview(ChallanModel item) {
-    final l10n = context.l10n;
     final thermal = DocumentRenderer.toThermal(item);
     showDialog(
       context: context,
@@ -145,8 +144,8 @@ setState(() => _loading = true);
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.receipt, color: AppTheme.primaryNavy),
-            SizedBox(width: 8),
+            const Icon(Icons.receipt, color: AppTheme.primaryNavy),
+            const SizedBox(width: 8),
             Text(item.challanNo),
           ],
         ),
@@ -160,7 +159,7 @@ setState(() => _loading = true);
           child: SingleChildScrollView(
             child: Text(
               thermal,
-              style: TextStyle(fontFamily: 'monospace', fontSize: 13),
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
             ),
           ),
         ),
@@ -190,13 +189,13 @@ setState(() => _loading = true);
       appBar: AppBar(
         title: Text(l10n.t('challans')),
         actions: [
-          IconButton(onPressed: _load, icon: Icon(Icons.refresh)),
+          IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppTheme.primaryNavy,
         foregroundColor: Colors.white,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: Text(l10n.t('challan_create')),
         onPressed: _create,
       ),
@@ -215,7 +214,7 @@ setState(() => _loading = true);
                     if (val) setState(() => _activeFilter = 'all');
                   },
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('delivery_type')),
                   selected: _activeFilter == 'delivery',
@@ -223,7 +222,7 @@ setState(() => _loading = true);
                     if (val) setState(() => _activeFilter = 'delivery');
                   },
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('transfer_type')),
                   selected: _activeFilter == 'transfer',
@@ -234,12 +233,12 @@ setState(() => _loading = true);
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
 
           // Challans List
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : filtered.isEmpty
                     ? Center(
                         child: Text(

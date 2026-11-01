@@ -56,7 +56,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _markRead(int id) async {
-    final l10n = context.l10n;
     try {
       await _svc.markRead(id);
       await _load();
@@ -66,7 +65,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _markAllRead() async {
-    final l10n = context.l10n;
     try {
       await _svc.markAllRead();
       await _load();
@@ -92,7 +90,7 @@ setState(() => _loading = true);
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: Colors.white),
               onPressed: _markAllRead,
-              icon: Icon(Icons.done_all, size: 18),
+              icon: const Icon(Icons.done_all, size: 18),
               label: Text(l10n.t('notifications_mark_all')),
             ),
           IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
@@ -113,7 +111,7 @@ setState(() => _loading = true);
                     if (val) setState(() => _activeFilter = 'all');
                   },
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 ChoiceChip(
                   label: Text('${l10n.t('notifications_unread_only')} ($unreadCount)'),
                   selected: _activeFilter == 'unread',
@@ -124,19 +122,19 @@ setState(() => _loading = true);
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
 
           // Notification List
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : filtered.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.notifications_none, size: 64, color: AppTheme.secondaryGrey),
-                            SizedBox(height: 12),
+                            const Icon(Icons.notifications_none, size: 64, color: AppTheme.secondaryGrey),
+                            const SizedBox(height: 12),
                             Text(
                               l10n.t('notifications_empty'),
                               style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 16),
@@ -203,7 +201,7 @@ setState(() => _loading = true);
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    SizedBox(height: 6),
+                                    const SizedBox(height: 6),
                                     Text(
                                       e['message'] ?? '',
                                       style: TextStyle(
@@ -211,17 +209,17 @@ setState(() => _loading = true);
                                         fontSize: 13,
                                       ),
                                     ),
-                                    SizedBox(height: 8),
+                                    const SizedBox(height: 8),
                                     Text(
                                       dt.toLocal().toString().split('.')[0],
-                                      style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 11),
+                                      style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 11),
                                     ),
                                   ],
                                 ),
                                 trailing: read
                                     ? null
                                     : IconButton(
-                                        icon: Icon(Icons.check_circle_outline, color: AppTheme.primaryNavy),
+                                        icon: const Icon(Icons.check_circle_outline, color: AppTheme.primaryNavy),
                                         tooltip: l10n.t('notification_mark_read'),
                                         onPressed: () => _markRead(id),
                                       ),

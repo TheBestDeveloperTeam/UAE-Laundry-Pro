@@ -99,8 +99,8 @@ setState(() => _loading = true);
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              Icon(Icons.add_shopping_cart, color: AppTheme.primaryNavy),
-              SizedBox(width: 10),
+              const Icon(Icons.add_shopping_cart, color: AppTheme.primaryNavy),
+              const SizedBox(width: 10),
               Text(l10n.t('po_create')),
             ],
           ),
@@ -188,7 +188,7 @@ setState(() => _loading = true);
                               child: DropdownButtonFormField<int>(
                                 initialValue: line['product_id'] as int?,
                                 decoration: InputDecoration(labelText: l10n.t('purchasing_product'),
-                                  border: OutlineInputBorder(),
+                                  border: const OutlineInputBorder(),
                                   isDense: true,
                                 ),
                                 items: _products.map((p) {
@@ -209,21 +209,21 @@ setState(() => _loading = true);
                                 },
                               ),
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Expanded(
                               flex: 1,
                               child: TextField(
                                 controller: line['qty_controller'] as TextEditingController,
-                                decoration: InputDecoration(labelText: l10n.t('purchasing_qty'), border: OutlineInputBorder(), isDense: true),
+                                decoration: InputDecoration(labelText: l10n.t('purchasing_qty'), border: const OutlineInputBorder(), isDense: true),
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Expanded(
                               flex: 2,
                               child: TextField(
                                 controller: line['cost_controller'] as TextEditingController,
-                                decoration: InputDecoration(labelText: l10n.t('purchasing_unit_cost_label'), border: OutlineInputBorder(), isDense: true, prefixText: '${l10n.t('currency_aed')} '),
+                                decoration: InputDecoration(labelText: l10n.t('purchasing_unit_cost_label'), border: const OutlineInputBorder(), isDense: true, prefixText: '${l10n.t('currency_aed')} '),
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
@@ -238,10 +238,10 @@ setState(() => _loading = true);
                       );
                     }),
 
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: notesController,
-                    decoration: InputDecoration(labelText: l10n.t('notes'), border: OutlineInputBorder()),
+                    decoration: InputDecoration(labelText: l10n.t('notes'), border: const OutlineInputBorder()),
                     maxLines: 2,
                   ),
                 ],
@@ -252,7 +252,7 @@ setState(() => _loading = true);
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.t('pos_close'))),
             FilledButton.icon(
               style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryNavy),
-              icon: Icon(Icons.check, size: 18),
+              icon: const Icon(Icons.check, size: 18),
               onPressed: () => Navigator.pop(ctx, true),
               label: Text(l10n.t('save')),
             ),
@@ -287,7 +287,7 @@ setState(() => _loading = true);
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Purchase order created successfully'), backgroundColor: AppTheme.successGreen),
+          const SnackBar(content: Text('Purchase order created successfully'), backgroundColor: AppTheme.successGreen),
         );
       }
       await _load();
@@ -455,22 +455,22 @@ setState(() => _loading = true);
                       ),
                     ),
 
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: billOfLadingController,
                     decoration: InputDecoration(labelText: l10n.t('purchasing_delivery_note'),
                       hintText: l10n.t('purchasing_delivery_note_hint'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.receipt_long),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.receipt_long),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: receivingNotesController,
                     decoration: InputDecoration(labelText: l10n.t('purchasing_inspector_notes'),
                       hintText: l10n.t('purchasing_inspector_notes_hint'),
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.note_alt_outlined),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.note_alt_outlined),
                     ),
                     maxLines: 2,
                   ),
@@ -586,10 +586,10 @@ setState(() => _loading = true);
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : _items.isEmpty
                     ? Center(child: Text(l10n.t('purchasing_empty')))
                     : ListView.separated(

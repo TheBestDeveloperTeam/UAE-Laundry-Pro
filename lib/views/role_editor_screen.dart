@@ -139,7 +139,6 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
   };
 
   void _showRoleDialog(Map<dynamic, dynamic>? role) {
-    final l10n = context.l10n;
     final isNew = role == null;
     final nameController = TextEditingController(text: role?['name'] ?? '');
     final List<String> currentPermissions =
@@ -155,7 +154,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
               title: Row(
                 children: [
                   Icon(isNew ? Icons.add_moderator : Icons.security, color: Theme.of(context).primaryColor),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(isNew ? 'New Role Configuration' : 'Edit Role Permissions'),
                 ],
               ),
@@ -168,22 +167,22 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                     TextField(
                       controller: nameController,
                       decoration: InputDecoration(labelText: l10n.t('role_title_hint'),
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.badge),
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.badge),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           '${currentPermissions.length} permissions granted',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         Row(
                           children: [
                             TextButton.icon(
-                              icon: Icon(Icons.select_all, size: 16),
+                              icon: const Icon(Icons.select_all, size: 16),
                               label: Text(l10n.t('role_grant_all')),
                               onPressed: () {
                                 setStateDialog(() {
@@ -199,7 +198,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                               },
                             ),
                             TextButton.icon(
-                              icon: Icon(Icons.clear_all, size: 16),
+                              icon: const Icon(Icons.clear_all, size: 16),
                               label: Text(l10n.t('role_clear_all')),
                               onPressed: () {
                                 setStateDialog(() {
@@ -297,7 +296,7 @@ class _RoleEditorScreenState extends State<RoleEditorScreen> {
                       } catch (_) {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to create role')),
+                          const SnackBar(content: Text('Failed to create role')),
                         );
                       }
                     } else {

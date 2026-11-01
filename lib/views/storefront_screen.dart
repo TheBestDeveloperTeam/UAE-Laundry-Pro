@@ -39,7 +39,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _convert(int id) async {
-    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -86,7 +85,7 @@ setState(() => _loading = true);
       appBar: AppBar(
         title: Text(l10n.t('storefront')),
         actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _load),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
       ),
       body: Column(
@@ -110,18 +109,18 @@ setState(() => _loading = true);
                       children: [
                         Text(
                           l10n.t('storefront_filter_pending'),
-                          style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                          style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           '$pendingCount',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.warningOrange),
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.warningOrange),
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.all(12),
@@ -135,12 +134,12 @@ setState(() => _loading = true);
                       children: [
                         Text(
                           l10n.t('storefront_filter_converted'),
-                          style: TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
+                          style: const TextStyle(fontSize: 12, color: AppTheme.secondaryGrey),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           '$convertedCount',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.accentTeal),
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.accentTeal),
                         ),
                       ],
                     ),
@@ -165,7 +164,7 @@ setState(() => _loading = true);
                     }
                   },
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('storefront_filter_pending')),
                   selected: _selectedFilter == 'pending',
@@ -176,7 +175,7 @@ setState(() => _loading = true);
                     }
                   },
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 ChoiceChip(
                   label: Text(l10n.t('storefront_filter_converted')),
                   selected: _selectedFilter == 'converted',
@@ -194,7 +193,7 @@ setState(() => _loading = true);
           // Orders list
           Expanded(
             child: _loading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : _orders.isEmpty
                     ? Center(child: Text(l10n.t('reports_empty'), style: const TextStyle(color: AppTheme.secondaryGrey)))
                     : RefreshIndicator(
@@ -225,24 +224,24 @@ setState(() => _loading = true);
                                         color: isPending ? AppTheme.warningOrange : AppTheme.accentTeal,
                                       ),
                                     ),
-                                    SizedBox(width: 16),
+                                    const SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             o['customer_name']?.toString() ?? 'Online Customer',
-                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                           ),
-                                          SizedBox(height: 4),
+                                          const SizedBox(height: 4),
                                           Text(
                                             '${o['customer_phone'] ?? 'N/A'} • Ref: #${o['order_number'] ?? id}',
-                                            style: TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
+                                            style: const TextStyle(color: AppTheme.secondaryGrey, fontSize: 13),
                                           ),
                                           if (total > 0)
                                             Text(
                                               '${total.toStringAsFixed(2)} AED',
-                                              style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                                              style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
                                             ),
                                         ],
                                       ),

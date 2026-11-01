@@ -28,7 +28,6 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
   }
 
   void _navigateTo(int index) {
-    final l10n = context.l10n;
     if (_index == index) return;
     setState(() => _index = index);
   }
@@ -62,39 +61,39 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
               labelType: NavigationRailLabelType.all,
               destinations: [
                 NavigationRailDestination(
-                  icon: Icon(Icons.dashboard),
+                  icon: const Icon(Icons.dashboard),
                   label: Text(l10n.t('peripherals_overview')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.qr_code_scanner),
+                  icon: const Icon(Icons.qr_code_scanner),
                   label: Text(l10n.t('peripherals_scanner')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.scale),
+                  icon: const Icon(Icons.scale),
                   label: Text(l10n.t('peripherals_scale')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.print),
+                  icon: const Icon(Icons.print),
                   label: Text(l10n.t('peripherals_printer')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.queue),
+                  icon: const Icon(Icons.queue),
                   label: Text(l10n.t('peripherals_queue')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.point_of_sale),
+                  icon: const Icon(Icons.point_of_sale),
                   label: Text(l10n.t('peripherals_drawer')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.memory),
+                  icon: const Icon(Icons.memory),
                   label: Text(l10n.t('peripherals_identity')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.list_alt),
+                  icon: const Icon(Icons.list_alt),
                   label: Text(l10n.t('peripherals_logs')),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.storage),
+                  icon: const Icon(Icons.storage),
                   label: Text(l10n.t('peripherals_sql')),
                 ),
               ],
@@ -117,7 +116,7 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
           l10n.t('peripherals_dev_note'),
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -160,7 +159,7 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         _navCard(
           destinationIndex: 3,
           title: l10n.t('peripherals_discovered_printers'),
@@ -202,7 +201,7 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
             setState(() => _scaleJson = encoded);
           },
           decoration: InputDecoration(
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
             labelText: l10n.t('peripherals_scale_input'),
           ),
         ),
@@ -226,15 +225,15 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
           l10n.t('peripherals_drawer'),
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           selectedPrinter == null
               ? l10n.t('peripherals_drawer_no_printer')
               : l10n.t('peripherals_drawer_ready').replaceAll('{printer}', selectedPrinter),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         FilledButton.icon(
-          icon: Icon(Icons.point_of_sale),
+          icon: const Icon(Icons.point_of_sale),
           label: Text(l10n.t('peripherals_open_drawer')),
           onPressed: selectedPrinter == null
               ? null
@@ -339,7 +338,6 @@ class _PeripheralsScreenState extends ConsumerState<PeripheralsScreen> {
   }
 
   void _toast(String message) {
-    final l10n = context.l10n;
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );

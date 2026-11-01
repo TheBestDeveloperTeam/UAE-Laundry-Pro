@@ -38,7 +38,6 @@ class _LicenseScreenState extends State<LicenseScreen> {
   }
 
   Future<void> _loadStatus() async {
-    final l10n = context.l10n;
     try {
       final data = await _license.status();
       final hw = await SystemGuardService.getHardwareInfo();
@@ -55,7 +54,6 @@ class _LicenseScreenState extends State<LicenseScreen> {
 
 
   Future<void> _exportLicenseRequest() async {
-    final l10n = context.l10n;
     try {
       final reqJson = await SystemGuardService.generateLicenseRequestJson();
       final downloadsDir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
@@ -112,7 +110,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
         padding: const EdgeInsets.all(28),
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 640),
+            constraints: const BoxConstraints(maxWidth: 640),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -127,7 +125,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                         Row(
                           children: [
                             Icon(Icons.shield_outlined, color: Theme.of(context).colorScheme.primary),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               l10n.t('trial_active_title'),
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -136,21 +134,21 @@ class _LicenseScreenState extends State<LicenseScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Wrap(
                           spacing: 12,
                           runSpacing: 8,
                           children: [
                             Chip(
-                              avatar: Icon(Icons.timer_outlined, size: 16),
+                              avatar: const Icon(Icons.timer_outlined, size: 16),
                               label: Text(l10n.t('trial_days_remaining', {'days': (_status['trial_days_remaining'] ?? 7).toString()})),
                             ),
                             Chip(
-                              avatar: Icon(Icons.receipt_outlined, size: 16),
+                              avatar: const Icon(Icons.receipt_outlined, size: 16),
                               label: Text(l10n.t('trial_invoices_used', {'used': (_status['invoice_count'] ?? 0).toString()})),
                             ),
                             Chip(
-                              avatar: Icon(Icons.people_outline, size: 16),
+                              avatar: const Icon(Icons.people_outline, size: 16),
                               label: Text(l10n.t('trial_customers_used', {'used': (_status['customer_count'] ?? 0).toString()})),
                             ),
                           ],
@@ -160,7 +158,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 // Activation Card
                 Card(
@@ -171,10 +169,10 @@ class _LicenseScreenState extends State<LicenseScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(l10n.t('license_subtitle'), style: Theme.of(context).textTheme.titleSmall),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         if (_umac != null) ...[
-                          Text(l10n.t('license_umac'), style: TextStyle(fontWeight: FontWeight.w600)),
-                          SizedBox(height: 6),
+                          Text(l10n.t('license_umac'), style: const TextStyle(fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
@@ -184,10 +182,10 @@ class _LicenseScreenState extends State<LicenseScreen> {
                             ),
                             child: SelectableText(
                               _umac!,
-                              style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
+                              style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold),
                             ),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                         ],
                         TextField(
                           controller: _controller,
@@ -196,26 +194,26 @@ class _LicenseScreenState extends State<LicenseScreen> {
                             hintText: l10n.t('wizard_license_stamp'),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         FilledButton(
                           onPressed: _loading ? null : _activate,
                           child: _loading
-                              ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                               : Text(l10n.t('license_activate')),
                         ),
-                        SizedBox(height: 24),
-                        Divider(),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 24),
+                        const Divider(),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: _exportLicenseRequest,
-                                icon: Icon(Icons.file_upload_outlined),
+                                icon: const Icon(Icons.file_upload_outlined),
                                 label: Text(l10n.t('export_license_request')),
                               ),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () {
@@ -223,7 +221,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                                     SnackBar(content: Text(l10n.t('license_paste_hint'))),
                                   );
                                 },
-                                icon: Icon(Icons.file_download_outlined),
+                                icon: const Icon(Icons.file_download_outlined),
                                 label: Text(l10n.t('import_signed_license')),
                               ),
                             ),
