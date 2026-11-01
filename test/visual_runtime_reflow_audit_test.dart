@@ -98,7 +98,15 @@ void main() {
       await tester.pumpWidget(buildReflowHarness(const AppShell(child: DashboardScreen())));
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err != null) {
+        if (err is FlutterError) {
+          debugPrint('FULL FLUTTER ERROR:\n' + err.toStringDeep());
+        } else {
+          debugPrint('DEBUG OVERFLOW: ' + err.toString());
+        }
+      }
+      expect(err, isNull);
       expect(find.byType(DashboardScreen), findsOneWidget);
     });
 
@@ -110,7 +118,15 @@ void main() {
       await tester.pumpWidget(buildReflowHarness(const AppShell(child: DashboardScreen())));
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err != null) {
+        if (err is FlutterError) {
+          debugPrint('FULL FLUTTER ERROR:\n' + err.toStringDeep());
+        } else {
+          debugPrint('DEBUG OVERFLOW: ' + err.toString());
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('Dashboard reflows on POS Touch Screen (1024x768) with zero overflow', (tester) async {
@@ -121,7 +137,15 @@ void main() {
       await tester.pumpWidget(buildReflowHarness(const AppShell(child: DashboardScreen())));
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err != null) {
+        if (err is FlutterError) {
+          debugPrint('FULL FLUTTER ERROR:\n' + err.toStringDeep());
+        } else {
+          debugPrint('DEBUG OVERFLOW: ' + err.toString());
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('Arabic RTL mirrors layout and renders cleanly', (tester) async {
@@ -132,7 +156,15 @@ void main() {
       await tester.pumpWidget(buildReflowHarness(const AppShell(child: DashboardScreen()), isRtl: true));
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err != null) {
+        if (err is FlutterError) {
+          debugPrint('FULL FLUTTER ERROR:\n' + err.toStringDeep());
+        } else {
+          debugPrint('DEBUG OVERFLOW: ' + err.toString());
+        }
+      }
+      expect(err, isNull);
     });
   });
 }

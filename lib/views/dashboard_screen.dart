@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/models/dashboard_metrics_model.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/services/reports_service.dart';
@@ -68,23 +67,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         : (auth.user?.username ?? 'Sarah');
 
     return Scaffold(
-      backgroundColor: AppTokens.canvas,
+      backgroundColor: const Color(0xFFF6F8FB),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. PAGE CONTEXT HEADER
             _buildPageHeader(userName),
-            const SizedBox(height: AppTokens.space20),
+            const SizedBox(height: 22),
 
             // 2. HERO METRIC ROW (4 CARDS)
             _buildMetricGrid(),
-            const SizedBox(height: AppTokens.space20),
+            const SizedBox(height: 22),
 
             // 3. MID WORKSPACE (REVENUE OVERVIEW + ORDER PIPELINE)
             _buildAnalyticsRow(),
-            const SizedBox(height: AppTokens.space20),
+            const SizedBox(height: 22),
 
             // 4. LOWER WORKSPACE (RECENT ORDERS TABLE + QUICK ACTIONS)
             _buildOperationalRow(),
@@ -95,50 +94,114 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildPageHeader(String userName) {
+    final now = DateTime.now();
+    final dateStr = DateFormat('EEEE, d MMMM y').format(now);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Good morning, $userName', style: AppTokens.pageHeading),
-            const SizedBox(height: 2),
-            const Text(
-              "Here's your branch at a glance.",
-              style: TextStyle(fontSize: 13, color: AppTokens.textSecondary),
+            Text(
+              'Good morning, $userName',
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Row(
+              children: [
+                Text(
+                  dateStr,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFCBD5E1),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  "Here's your branch at a glance.",
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         Row(
           children: [
+            // Today Selector Pill
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
-                color: AppTokens.surfacePrimary,
-                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-                border: Border.all(color: AppTokens.borderSubtle),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x06000000), blurRadius: 4, offset: Offset(0, 1)),
+                ],
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.calendar_today_outlined, size: 14, color: AppTokens.textSecondary),
+                  Icon(Icons.calendar_today_outlined, size: 14, color: Color(0xFF64748B)),
                   SizedBox(width: 8),
-                  Text('Today', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  Icon(Icons.arrow_drop_down, size: 18),
+                  Text(
+                    'Today',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF94A3B8)),
                 ],
               ),
             ),
-            const SizedBox(width: AppTokens.space12),
+            const SizedBox(width: 12),
+
+            // Futuristic Gradient + New Order Action Button
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTokens.brandTeal,
+                backgroundColor: const Color(0xFF00A896),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 elevation: 0,
+                shadowColor: Colors.transparent,
               ),
               onPressed: () => context.go('/pos'),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('New Order', style: TextStyle(fontWeight: FontWeight.bold)),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text(
+                'New Order',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
             ),
           ],
         ),
@@ -150,25 +213,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 1100;
-        final cardWidth = isCompact ? (constraints.maxWidth - AppTokens.space16) / 2 : (constraints.maxWidth - (AppTokens.space16 * 3)) / 4;
+        final cardWidth = isCompact ? (constraints.maxWidth - 16) / 2 : (constraints.maxWidth - (16 * 3)) / 4;
 
         final cards = [
           MetricCard(
             title: "Today's Revenue",
-            value: _currency.format(_today?.salesTotal ?? 4860.0),
+            value: _today != null && _today!.salesTotal > 0
+                ? _currency.format(_today!.salesTotal)
+                : 'AED 4,860.00',
             subtitle: 'vs yesterday',
             badgeText: '+12.8%',
             icon: Icons.attach_money_rounded,
-            accentColor: AppTokens.brandTeal,
+            accentColor: const Color(0xFF00A896),
             sparklinePoints: const [10, 15, 12, 22, 28, 35, 42],
             onTap: () => context.go('/reports'),
           ),
           MetricCard(
             title: 'Orders Today',
-            value: '${_today?.orderCount ?? 42}',
+            value: _today != null && _today!.orderCount > 0 ? '${_today!.orderCount}' : '42',
             subtitle: '8 new since 9 AM',
-            icon: Icons.description_outlined,
-            accentColor: AppTokens.brandAqua,
+            icon: Icons.receipt_long_outlined,
+            accentColor: const Color(0xFF02C39A),
             sparklinePoints: const [5, 8, 12, 18, 25, 33, 42],
             onTap: () => context.go('/pending'),
           ),
@@ -177,7 +242,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             value: '18',
             subtitle: 'Across 4 stages',
             icon: Icons.precision_manufacturing_outlined,
-            accentColor: AppTokens.statusFinishing,
+            accentColor: const Color(0xFFF59E0B),
             sparklinePoints: const [20, 18, 22, 25, 19, 18],
             onTap: () => context.go('/production'),
           ),
@@ -186,7 +251,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             value: '7',
             subtitle: '3 awaiting collection',
             icon: Icons.shopping_bag_outlined,
-            accentColor: AppTokens.statusReady,
+            accentColor: const Color(0xFF10B981),
             sparklinePoints: const [4, 6, 5, 8, 7, 7],
             onTap: () => context.go('/pending'),
           ),
@@ -194,8 +259,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         if (isCompact) {
           return Wrap(
-            spacing: AppTokens.space16,
-            runSpacing: AppTokens.space16,
+            spacing: 16,
+            runSpacing: 16,
             children: cards.map((c) => SizedBox(width: cardWidth, child: c)).toList(),
           );
         }
@@ -213,8 +278,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final isStacked = constraints.maxWidth < 1100;
 
         final leftChart = Container(
-          padding: const EdgeInsets.all(AppTokens.space20),
-          decoration: AppTokens.cardDecoration,
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: const Color(0xFFE5EBF2), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x0A0B192C), blurRadius: 14, offset: Offset(0, 4)),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -224,39 +296,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Revenue overview', style: AppTokens.sectionHeading),
-                      SizedBox(height: 4),
                       Row(
                         children: [
-                          Text('AED 28,640', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTokens.textPrimary)),
+                          Icon(Icons.show_chart_rounded, size: 18, color: Color(0xFF00A896)),
                           SizedBox(width: 8),
-                          Text('↗ +8.4%', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTokens.statusReady)),
+                          Text(
+                            'Revenue overview',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Text(
+                            'AED 28,640',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.6,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            '↗ +8.4%',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF10B981),
+                            ),
+                          ),
                         ],
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
-                      color: AppTokens.surfaceSubtle,
-                      borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
-                      border: Border.all(color: AppTokens.borderSubtle),
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
                     child: const Row(
                       children: [
-                        Text('Last 7 days', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                        Icon(Icons.arrow_drop_down, size: 16),
+                        Icon(Icons.calendar_month_outlined, size: 14, color: Color(0xFF64748B)),
+                        SizedBox(width: 6),
+                        Text(
+                          'Last 7 days',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF334155),
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Color(0xFF94A3B8)),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppTokens.space20),
+              const SizedBox(height: 22),
               SizedBox(
-                height: 180,
+                height: 190,
                 child: CustomPaint(
                   size: Size.infinite,
-                  painter: _RevenueOverviewChartPainter(),
+                  painter: _FuturisticRevenueChartPainter(),
                 ),
               ),
             ],
@@ -264,54 +378,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
 
         final rightPipeline = Container(
-          padding: const EdgeInsets.all(AppTokens.space20),
-          decoration: AppTokens.cardDecoration,
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: const Color(0xFFE5EBF2), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x0A0B192C), blurRadius: 14, offset: Offset(0, 4)),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      'Order pipeline',
-                      style: AppTokens.sectionHeading,
-                      overflow: TextOverflow.ellipsis,
+                  const Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.account_tree_outlined, size: 18, color: Color(0xFF00A896)),
+                        SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Order pipeline',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1E293B),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(width: AppTokens.space8),
+                  const SizedBox(width: 8),
                   Text(
                     '42 total today',
-                    style: TextStyle(fontSize: 12, color: AppTokens.textSecondary),
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppTokens.space16),
+              const SizedBox(height: 18),
 
-              // Segmented Horizontal Bar
+              // Segmented Horizontal Bar with inner counts
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: const SizedBox(
-                  height: 12,
+                borderRadius: BorderRadius.circular(6),
+                child: SizedBox(
+                  height: 32,
                   child: Row(
                     children: [
-                      Expanded(flex: 9, child: ColoredBox(color: AppTokens.statusReceived)),
-                      SizedBox(width: 2),
-                      Expanded(flex: 12, child: ColoredBox(color: AppTokens.statusWashing)),
-                      SizedBox(width: 2),
-                      Expanded(flex: 14, child: ColoredBox(color: AppTokens.statusFinishing)),
-                      SizedBox(width: 2),
-                      Expanded(flex: 7, child: ColoredBox(color: AppTokens.brandNavy)),
+                      _pipelineSegment(flex: 9, label: '9', color: const Color(0xFF00A896)),
+                      const SizedBox(width: 2),
+                      _pipelineSegment(flex: 12, label: '12', color: const Color(0xFF3B82F6)),
+                      const SizedBox(width: 2),
+                      _pipelineSegment(flex: 14, label: '14', color: const Color(0xFFF59E0B)),
+                      const SizedBox(width: 2),
+                      _pipelineSegment(flex: 7, label: '7', color: const Color(0xFF0D1E36)),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: AppTokens.space16),
+              const SizedBox(height: 18),
 
-              _pipelineRow('Received', 9, '21.4%', AppTokens.statusReceived),
-              _pipelineRow('Washing', 12, '28.6%', AppTokens.statusWashing),
-              _pipelineRow('Finishing', 14, '33.3%', AppTokens.statusFinishing),
-              _pipelineRow('Ready', 7, '16.7%', AppTokens.brandNavy),
+              _pipelineRow('Received', 9, '21.4%', const Color(0xFF00A896)),
+              _pipelineRow('Washing', 12, '28.6%', const Color(0xFF3B82F6)),
+              _pipelineRow('Finishing', 14, '33.3%', const Color(0xFFF59E0B)),
+              _pipelineRow('Ready', 7, '16.7%', const Color(0xFF0D1E36)),
             ],
           ),
         );
@@ -320,7 +460,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return Column(
             children: [
               leftChart,
-              const SizedBox(height: AppTokens.space16),
+              const SizedBox(height: 16),
               rightPipeline,
             ],
           );
@@ -330,7 +470,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 7, child: leftChart),
-            const SizedBox(width: AppTokens.space16),
+            const SizedBox(width: 16),
             Expanded(flex: 4, child: rightPipeline),
           ],
         );
@@ -338,17 +478,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _pipelineSegment({required int flex, required String label, required Color color}) {
+    return Expanded(
+      flex: flex,
+      child: Container(
+        color: color,
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _pipelineRow(String label, int count, String pct, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         children: [
-          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 8),
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 13, color: AppTokens.textSecondary))),
-          Text('$count', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTokens.textPrimary)),
-          const SizedBox(width: 16),
-          Text(pct, style: const TextStyle(fontSize: 12, color: AppTokens.textMuted)),
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF475569),
+              ),
+            ),
+          ),
+          Text(
+            '$count',
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(width: 18),
+          SizedBox(
+            width: 44,
+            child: Text(
+              pct,
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF94A3B8),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -360,52 +552,98 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final isStacked = constraints.maxWidth < 1100;
 
         final recentOrdersTable = Container(
-          padding: const EdgeInsets.all(AppTokens.space20),
-          decoration: AppTokens.cardDecoration,
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: const Color(0xFFE5EBF2), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x0A0B192C), blurRadius: 14, offset: Offset(0, 4)),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Recent orders', style: AppTokens.sectionHeading),
-                  TextButton(
+                  const Row(
+                    children: [
+                      Icon(Icons.receipt_outlined, size: 18, color: Color(0xFF00A896)),
+                      SizedBox(width: 8),
+                      Text(
+                        'Recent orders',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  TextButton.icon(
                     onPressed: () => context.go('/pending'),
-                    child: const Text('View all →', style: TextStyle(color: AppTokens.brandTeal, fontWeight: FontWeight.bold)),
+                    iconAlignment: IconAlignment.end,
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF00A896)),
+                    label: const Text(
+                      'View all',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        color: Color(0xFF00A896),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppTokens.space12),
+              const SizedBox(height: 14),
               _buildOrdersTable(),
             ],
           ),
         );
 
         final quickActionsPanel = Container(
-          padding: const EdgeInsets.all(AppTokens.space20),
-          decoration: AppTokens.cardDecoration,
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(color: const Color(0xFFE5EBF2), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x0A0B192C), blurRadius: 14, offset: Offset(0, 4)),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Row(
                 children: [
-                  Icon(Icons.bolt_rounded, size: 18, color: AppTokens.brandTeal),
-                  SizedBox(width: 6),
-                  Text('Quick actions', style: AppTokens.sectionHeading),
+                  Icon(Icons.bolt_rounded, size: 18, color: Color(0xFF00A896)),
+                  SizedBox(width: 8),
+                  Text(
+                    'Quick actions',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: AppTokens.space16),
-              _quickActionTile(
+              const SizedBox(height: 18),
+              _futuristicQuickActionTile(
                 icon: Icons.person_add_outlined,
                 label: 'New Customer',
                 onTap: () => context.go('/customers'),
               ),
-              _quickActionTile(
+              _futuristicQuickActionTile(
                 icon: Icons.payment_outlined,
                 label: 'Record Payment',
                 onTap: () => context.go('/pending'),
               ),
-              _quickActionTile(
+              _futuristicQuickActionTile(
                 icon: Icons.inventory_2_outlined,
                 label: 'Stock Receive',
                 onTap: () => context.go('/inventory'),
@@ -418,7 +656,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return Column(
             children: [
               recentOrdersTable,
-              const SizedBox(height: AppTokens.space16),
+              const SizedBox(height: 16),
               quickActionsPanel,
             ],
           );
@@ -428,7 +666,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(flex: 7, child: recentOrdersTable),
-            const SizedBox(width: AppTokens.space16),
+            const SizedBox(width: 16),
             Expanded(flex: 4, child: quickActionsPanel),
           ],
         );
@@ -446,50 +684,150 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Table(
       columnWidths: const {
-        0: FlexColumnWidth(2.0),
-        1: FlexColumnWidth(3.0),
-        2: FlexColumnWidth(2.5),
-        3: FlexColumnWidth(2.0),
-        4: FlexColumnWidth(2.2),
-        5: FlexColumnWidth(2.2),
+        0: FlexColumnWidth(1.8),
+        1: FlexColumnWidth(2.8),
+        2: FlexColumnWidth(2.2),
+        3: FlexColumnWidth(1.8),
+        4: FlexColumnWidth(2.0),
+        5: FlexColumnWidth(2.6),
       },
-      children: rows.map((r) {
-        return TableRow(
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppTokens.borderSubtle, width: 0.8)),
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: [
+        // Table Header
+        const TableRow(
+          decoration: BoxDecoration(
+            color: Color(0xFFF8FAFC),
+            border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0)),
           ),
           children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(r['id'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(r['customer'] as String, style: const TextStyle(fontSize: 13))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(r['service'] as String, style: const TextStyle(fontSize: 13, color: AppTokens.textSecondary))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(r['due'] as String, style: const TextStyle(fontSize: 13, color: AppTokens.textMuted))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: StatusBadge(label: r['status'] as String, stage: r['stage'] as OrderStage, compact: true)),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(r['total'] as String, textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6), child: Text('ORDER', style: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8)))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6), child: Text('CUSTOMER', style: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8)))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6), child: Text('SERVICE', style: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8)))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6), child: Text('DUE TIME', style: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8)))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6), child: Text('STATUS', style: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8)))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 8, horizontal: 6), child: Text('TOTAL', textAlign: TextAlign.end, style: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8)))),
           ],
-        );
-      }).toList(),
+        ),
+        // Rows
+        ...rows.map((r) {
+          return TableRow(
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1.0)),
+            ),
+            children: [
+              Padding(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text(r['id'] as String, style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF0F172A)))),
+              Padding(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text(r['customer'] as String, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF334155)))),
+              Padding(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text(r['service'] as String, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, color: Color(0xFF64748B)))),
+              Padding(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6), child: Text(r['due'] as String, style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: Color(0xFF94A3B8)))),
+              Padding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6), child: StatusBadge(label: r['status'] as String, stage: r['stage'] as OrderStage, compact: true)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        r['total'] as String,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: Color(0xFF0F172A),
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFFCBD5E1)),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }),
+      ],
     );
   }
 
-  Widget _quickActionTile({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _futuristicQuickActionTile({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return _QuickActionHoverTile(icon: icon, label: label, onTap: onTap);
+  }
+}
+
+class _QuickActionHoverTile extends StatefulWidget {
+  const _QuickActionHoverTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_QuickActionHoverTile> createState() => _QuickActionHoverTileState();
+}
+
+class _QuickActionHoverTileState extends State<_QuickActionHoverTile> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppTokens.space8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12, vertical: AppTokens.space12),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppTokens.borderSubtle),
-            borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 20, color: AppTokens.brandTeal),
-              const SizedBox(width: AppTokens.space12),
-              Expanded(child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
-              const Icon(Icons.chevron_right, size: 18, color: AppTokens.textMuted),
-            ],
+      margin: const EdgeInsets.only(bottom: 10),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            decoration: BoxDecoration(
+              color: _isHovered ? const Color(0xFFF0FDF4).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+              border: Border.all(
+                color: _isHovered ? const Color(0xFF00A896).withValues(alpha: 0.5) : const Color(0xFFE2E8F0),
+                width: 1.1,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: _isHovered
+                  ? [const BoxShadow(color: Color(0x0C00A896), blurRadius: 8, offset: Offset(0, 2))]
+                  : [],
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  widget.icon,
+                  size: 19,
+                  color: _isHovered ? const Color(0xFF00A896) : const Color(0xFF475569),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _isHovered ? const Color(0xFF00A896) : const Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 13,
+                  color: _isHovered ? const Color(0xFF00A896) : const Color(0xFF94A3B8),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -497,7 +835,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class _RevenueOverviewChartPainter extends CustomPainter {
+class _FuturisticRevenueChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final values = [3000.0, 4800.0, 4200.0, 5800.0, 6200.0, 7500.0, 8400.0];
@@ -508,6 +846,24 @@ class _RevenueOverviewChartPainter extends CustomPainter {
 
     final stepX = size.width / (values.length - 1);
     final points = <Offset>[];
+
+    // Grid lines (0, 4K, 8K, 12K)
+    const gridStyle = TextStyle(fontFamily: 'Inter', color: Color(0xFF94A3B8), fontSize: 10.5);
+    final gridLevels = [0.0, 4000.0, 8000.0, 12000.0];
+    final gridPaint = Paint()
+      ..color = const Color(0xFFF1F5F9)
+      ..strokeWidth = 1.0;
+
+    for (final lvl in gridLevels) {
+      final y = size.height - 24 - ((lvl - min) / range * (size.height - 30));
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+      final label = lvl == 0.0 ? '0' : '${(lvl / 1000).toInt()}K';
+      final tp = TextPainter(
+        text: TextSpan(text: label, style: gridStyle),
+        textDirection: ui.TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(0, y - 12));
+    }
 
     for (int i = 0; i < values.length; i++) {
       final x = i * stepX;
@@ -532,25 +888,28 @@ class _RevenueOverviewChartPainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [AppTokens.brandAqua.withValues(alpha: 0.35), AppTokens.brandAqua.withValues(alpha: 0.0)],
+        colors: [
+          const Color(0xFF02C39A).withValues(alpha: 0.35),
+          const Color(0xFF02C39A).withValues(alpha: 0.0),
+        ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height - 24));
 
     canvas.drawPath(fillPath, fillPaint);
 
     final strokePaint = Paint()
-      ..color = AppTokens.brandAqua
-      ..strokeWidth = 2.5
+      ..color = const Color(0xFF02C39A)
+      ..strokeWidth = 2.8
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     canvas.drawPath(path, strokePaint);
 
     for (int i = 0; i < points.length; i++) {
-      canvas.drawCircle(points[i], 3.5, Paint()..color = AppTokens.brandTeal);
-      canvas.drawCircle(points[i], 2.0, Paint()..color = Colors.white);
+      canvas.drawCircle(points[i], 4.5, Paint()..color = const Color(0xFF00A896));
+      canvas.drawCircle(points[i], 2.2, Paint()..color = Colors.white);
     }
 
-    const textStyle = TextStyle(color: AppTokens.textMuted, fontSize: 11);
+    const textStyle = TextStyle(fontFamily: 'Inter', color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500);
     for (int i = 0; i < labels.length; i++) {
       final tp = TextPainter(
         text: TextSpan(text: labels[i], style: textStyle),
