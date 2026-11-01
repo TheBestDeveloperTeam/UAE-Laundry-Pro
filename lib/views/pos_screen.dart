@@ -478,50 +478,59 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.t('pos_services'), style: AppTokens.sectionHeading),
-                  const SizedBox(height: 2),
-                  Text(
-                    l10n.t('pos_services_and_products_count', {
-                      'services': _services.length.toString(),
-                      'products': _products.length.toString(),
-                    }),
-                    style: const TextStyle(color: AppTokens.textMuted, fontSize: 12),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.t('pos_services'), style: AppTokens.sectionHeading, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.t('pos_services_and_products_count', {
+                        'services': _services.length.toString(),
+                        'products': _products.length.toString(),
+                      }),
+                      style: const TextStyle(color: AppTokens.textMuted, fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: AppTokens.space8),
               // Customer Selection Chip
-              InkWell(
-                onTap: _selectCustomerDialog,
-                borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppTokens.surfaceSubtle,
-                    borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
-                    border: Border.all(color: AppTokens.borderSubtle),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.person_outline, size: 16, color: AppTokens.brandTeal),
-                      const SizedBox(width: 6),
-                      Text(
-                        _selectedCustomer != null
-                            ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
-                            : l10n.t('walk_in_customer'),
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTokens.textPrimary),
-                      ),
-                      if (_selectedCustomer != null) ...[
-                        const SizedBox(width: 4),
-                        InkWell(
-                          onTap: () => setState(() => _selectedCustomer = null),
-                          child: const Icon(Icons.close, size: 14, color: AppTokens.textMuted),
+              Flexible(
+                child: InkWell(
+                  onTap: _selectCustomerDialog,
+                  borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTokens.surfaceSubtle,
+                      borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                      border: Border.all(color: AppTokens.borderSubtle),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.person_outline, size: 16, color: AppTokens.brandTeal),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            _selectedCustomer != null
+                                ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
+                                : l10n.t('walk_in_customer'),
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTokens.textPrimary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        if (_selectedCustomer != null) ...[
+                          const SizedBox(width: 4),
+                          InkWell(
+                            onTap: () => setState(() => _selectedCustomer = null),
+                            child: const Icon(Icons.close, size: 14, color: AppTokens.textMuted),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -620,12 +629,16 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                                     ),
                                     child: const Icon(Icons.dry_cleaning_outlined, size: 16, color: AppTokens.brandTeal),
                                   ),
-                                  Text(
-                                    'AED $rate',
-                                    style: const TextStyle(
-                                      color: AppTokens.brandTeal,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      'AED $rate',
+                                      style: const TextStyle(
+                                        color: AppTokens.brandTeal,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],

@@ -90,6 +90,10 @@ void main() {
   }
 
   testWidgets('POS shows empty cart message and disabled confirm', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     await tester.pumpWidget(
       wrapWidget(
         PosScreen(
@@ -103,7 +107,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('Cart is empty — tap a service to add'), findsOneWidget);
-    final confirmBtn = tester.widget<FilledButton>(find.byKey(const Key('pos_confirm_btn')));
+    final confirmBtn = tester.widget<ElevatedButton>(find.byKey(const Key('pos_confirm_btn')));
     expect(confirmBtn.onPressed, isNull);
     expect(find.byKey(const Key('pos_pay_btn')), findsNothing);
   });
