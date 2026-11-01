@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
@@ -8,6 +9,7 @@ import 'package:laundrypro_uae/peripherals/features/shared/providers/app_provide
 import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
+import 'package:laundrypro_uae/widgets/status_badge.dart';
 
 class PendingInvoicesScreen extends ConsumerStatefulWidget {
   const PendingInvoicesScreen({super.key, this.salesService});
@@ -33,17 +35,19 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
   }
 
   Future<void> _load() async {
-setState(() => _loading = true);
+    setState(() => _loading = true);
     try {
       final pending = await _sales.listPending();
       final partial = await _sales.listPartial();
-      setState(() {
-        _orders = [...pending, ...partial];
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _orders = [...pending, ...partial];
+          _loading = false;
+        });
+      }
     } catch (e, stack) {
       AppLogger.error('Failed to load pending invoices', tag: 'PendingInvoicesScreen', error: e, stackTrace: stack);
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -75,34 +79,45 @@ setState(() => _loading = true);
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: Text('${context.l10n.t('pos_pay')} — ${order.orderNo}'),
+            backgroundColor: AppTokens.surfacePrimary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusLarge)),
+            title: Text('${context.l10n.t('pos_pay')} - ${order.orderNo}', style: AppTokens.sectionHeading),
             content: SizedBox(
-              width: 420,
+              width: 440,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(AppTokens.space12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppTokens.surfaceSubtle,
+                      borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                      border: Border.all(color: AppTokens.borderSubtle),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total: AED ${order.grandTotal}', style: TextStyle(fontWeight: FontWeight.w600)),
-                        Text('Balance: AED ${balance.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.error)),
+                        Text('Total: AED ${order.grandTotal}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text('Balance: AED ${balance.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.statusCancelled)),
                       ],
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Text(l10n.t('pending_payment_method'), style: Theme.of(context).textTheme.bodySmall),
-                  SizedBox(height: 6),
+                  const SizedBox(height: AppTokens.space16),
+                  Text(l10n.t('pending_payment_method'), style: const TextStyle(fontSize: 12, color: AppTokens.textSecondary)),
+                  const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     initialValue: selectedMethod,
-                    decoration: InputDecoration(border: OutlineInputBorder(), isDense: true),
-                    items: [DropdownMenuItem(value: 'cash', child: Text(l10n.t('pending_cash'))),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppTokens.surfaceSubtle,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
+                      isDense: true,
+                    ),
+                    items: [
+                      DropdownMenuItem(value: 'cash', child: Text(l10n.t('pending_cash'))),
                       DropdownMenuItem(value: 'card', child: Text(l10n.t('pending_card'))),
                       DropdownMenuItem(value: 'cheque', child: Text(l10n.t('pending_cheque'))),
                       DropdownMenuItem(value: 'bank_transfer', child: Text(l10n.t('pending_bank_transfer'))),
@@ -111,23 +126,34 @@ setState(() => _loading = true);
                       if (val != null) setDialogState(() => selectedMethod = val);
                     },
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: AppTokens.space12),
                   TextField(
                     controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppTokens.surfaceSubtle,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
                       labelText: l10n.t('pending_amount_label'),
                       prefixText: 'AED ',
+                      isDense: true,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: AppTokens.space12),
                   TextField(
                     controller: refController,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: AppTokens.surfaceSubtle,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
                       labelText: selectedMethod == 'cheque'
                           ? 'Cheque No. / Bank'
                           : 'Reference / Auth No. (Optional)',
+                      isDense: true,
                     ),
                   ),
                 ],
@@ -135,8 +161,9 @@ setState(() => _loading = true);
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.t('pos_close'))),
-              FilledButton.icon(
-                icon: Icon(Icons.check_circle),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white),
+                icon: const Icon(Icons.check_circle, size: 18),
                 onPressed: () => Navigator.pop(ctx, true),
                 label: Text(context.l10n.t('pos_pay')),
               ),
@@ -199,16 +226,17 @@ setState(() => _loading = true);
     final receipt = ReceiptModel.fromOrderModel(order);
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppTokens.radiusLarge))),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppTokens.space20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Receipt Options — ${receipt.orderNo}', style: Theme.of(context).textTheme.titleMedium),
-            SizedBox(height: 16),
+            Text('Receipt Options - ${receipt.orderNo}', style: AppTokens.sectionHeading),
+            const SizedBox(height: AppTokens.space16),
             ListTile(
-              leading: Icon(Icons.receipt_long),
+              leading: const Icon(Icons.receipt_long, color: AppTokens.brandTeal),
               title: Text(l10n.t('pending_view_thermal')),
               subtitle: Text(l10n.t('pending_thermal_desc')),
               onTap: () {
@@ -221,7 +249,7 @@ setState(() => _loading = true);
                     content: SingleChildScrollView(
                       child: SelectableText(
                         text,
-                        style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                        style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
                       ),
                     ),
                     actions: [
@@ -232,7 +260,7 @@ setState(() => _loading = true);
               },
             ),
             ListTile(
-              leading: Icon(Icons.picture_as_pdf),
+              leading: const Icon(Icons.picture_as_pdf, color: AppTokens.brandTeal),
               title: Text(l10n.t('pending_a4_invoice')),
               subtitle: const Text('Compliant UAE VAT Tax Invoice format'),
               onTap: () async {
@@ -260,7 +288,6 @@ setState(() => _loading = true);
   }
 
   Future<void> _updateStatus(OrderModel order) async {
-    final l10n = context.l10n;
     const statuses = ['confirmed', 'processing', 'ready', 'delivered', 'closed'];
     final selected = await showDialog<String>(
       context: context,
@@ -282,100 +309,160 @@ setState(() => _loading = true);
     final list = _filteredOrders;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.t('pending_invoices')),
-        actions: [IconButton(onPressed: _load, icon: Icon(Icons.refresh))],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+      backgroundColor: AppTokens.canvas,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header Bar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: context.l10n.t('search_orders_hint'),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      isDense: true,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.t('live_orders'), style: AppTokens.pageHeading),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${list.length} orders pending payment or processing',
+                      style: const TextStyle(fontSize: 13, color: AppTokens.textSecondary),
                     ),
-                    onChanged: (val) => setState(() => _searchQuery = val),
-                  ),
-                ),
-                SizedBox(width: 12),
-                SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
-                    const ButtonSegment(value: 'pending', label: Text('Unpaid')),
-                    const ButtonSegment(value: 'partial', label: Text('Partial')),
                   ],
-                  selected: {_filterStatus},
-                  onSelectionChanged: (set) => setState(() => _filterStatus = set.first),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: AppTokens.textSecondary),
+                  onPressed: _load,
                 ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              clipBehavior: Clip.antiAlias,
-              child: AppDataTable(
-                columns: [
-                  const AppDataTableColumn(label: 'Order #', key: 'order_no'),
-                  const AppDataTableColumn(label: 'Customer', key: 'customer_name'),
-                  const AppDataTableColumn(label: 'Status', key: 'status'),
-                  AppDataTableColumn(
-                    label: 'Payment Status', 
-                    cellBuilder: (row) {
-                      final status = row['payment_status']?.toString().toUpperCase() ?? '';
-                      final isPartial = status == 'PARTIAL';
-                      return Text(
-                        status,
-                        style: TextStyle(
-                          color: isPartial ? Colors.amber.shade900 : Colors.red.shade700,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      );
-                    },
+            const SizedBox(height: AppTokens.space16),
+
+            // Filter Bar
+            Container(
+              padding: const EdgeInsets.all(AppTokens.space12),
+              decoration: AppTokens.cardDecoration,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search, size: 20, color: AppTokens.textMuted),
+                        hintText: context.l10n.t('search_orders_hint'),
+                        filled: true,
+                        fillColor: AppTokens.surfaceSubtle,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.borderSubtle)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium), borderSide: const BorderSide(color: AppTokens.brandTeal)),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      onChanged: (val) => setState(() => _searchQuery = val),
+                    ),
                   ),
-                  const AppDataTableColumn(label: 'Total', key: 'grand_total', numeric: true),
-                  const AppDataTableColumn(label: 'Balance Due', key: 'balance_due', numeric: true),
-                  AppDataTableColumn(
-                    label: 'Actions',
-                    cellBuilder: (row) {
-                      final orderId = row['id'] as int;
-                      final order = list.firstWhere((o) => o.id == orderId);
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FilledButton.tonal(
-                            onPressed: () => _openPaymentDialog(order),
-                            child: Text(context.l10n.t('pay_action')),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.more_vert),
-                            onPressed: () => _showReceiptOptions(order),
-                          ),
-                        ],
-                      );
-                    },
+                  const SizedBox(width: AppTokens.space16),
+                  SegmentedButton<String>(
+                    segments: [
+                      ButtonSegment(value: 'all', label: Text(context.l10n.t('all'))),
+                      const ButtonSegment(value: 'pending', label: Text('Unpaid')),
+                      const ButtonSegment(value: 'partial', label: Text('Partial')),
+                    ],
+                    selected: {_filterStatus},
+                    onSelectionChanged: (set) => setState(() => _filterStatus = set.first),
                   ),
                 ],
-                data: list.map((o) => o.toJson()).toList(),
-                isLoading: _loading,
-                emptyMessage: l10n.t('pending_invoices_empty'),
-                onRowTap: (row) {
-                  final orderId = row['id'] as int;
-                  final order = list.firstWhere((o) => o.id == orderId);
-                  _updateStatus(order);
-                },
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: AppTokens.space16),
+
+            // Live Orders Table
+            Expanded(
+              child: Container(
+                decoration: AppTokens.cardDecoration,
+                clipBehavior: Clip.antiAlias,
+                child: AppDataTable(
+                  columns: [
+                    const AppDataTableColumn(label: 'Order #', key: 'order_no'),
+                    const AppDataTableColumn(label: 'Customer', key: 'customer_name'),
+                    AppDataTableColumn(
+                      label: 'Status',
+                      cellBuilder: (row) {
+                        final status = row['status']?.toString().toLowerCase() ?? 'received';
+                        OrderStage stage = OrderStage.received;
+                        if (status.contains('wash')) stage = OrderStage.washing;
+                        if (status.contains('finish') || status.contains('press')) stage = OrderStage.finishing;
+                        if (status.contains('ready')) stage = OrderStage.ready;
+                        if (status.contains('deliver')) stage = OrderStage.delivered;
+                        if (status.contains('cancel') || status.contains('void')) stage = OrderStage.cancelled;
+                        return StatusBadge(label: status.toUpperCase(), stage: stage, compact: true);
+                      },
+                    ),
+                    AppDataTableColumn(
+                      label: 'Payment Status',
+                      cellBuilder: (row) {
+                        final status = row['payment_status']?.toString().toUpperCase() ?? '';
+                        final isPartial = status == 'PARTIAL';
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isPartial ? AppTokens.statusBgFinishing : AppTokens.statusBgCancelled,
+                            borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+                          ),
+                          child: Text(
+                            status,
+                            style: TextStyle(
+                              color: isPartial ? AppTokens.statusFinishing : AppTokens.statusCancelled,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const AppDataTableColumn(label: 'Total (AED)', key: 'grand_total', numeric: true),
+                    const AppDataTableColumn(label: 'Balance Due (AED)', key: 'balance_due', numeric: true),
+                    AppDataTableColumn(
+                      label: 'Actions',
+                      cellBuilder: (row) {
+                        final orderId = row['id'] as int;
+                        final order = list.firstWhere((o) => o.id == orderId);
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTokens.brandTeal,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusSmall)),
+                              ),
+                              onPressed: () => _openPaymentDialog(order),
+                              child: Text(context.l10n.t('pay_action'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.more_vert, size: 18, color: AppTokens.textSecondary),
+                              onPressed: () => _showReceiptOptions(order),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                  data: list.map((o) => o.toJson()).toList(),
+                  isLoading: _loading,
+                  emptyMessage: l10n.t('pending_invoices_empty'),
+                  onRowTap: (row) {
+                    final orderId = row['id'] as int;
+                    final order = list.firstWhere((o) => o.id == orderId);
+                    _updateStatus(order);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

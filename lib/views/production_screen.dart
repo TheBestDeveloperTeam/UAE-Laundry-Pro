@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
-import 'package:laundrypro_uae/widgets/laundry_lottie.dart';
 
 class ProductionScreen extends StatefulWidget {
   const ProductionScreen({super.key, this.salesService});
@@ -56,7 +56,6 @@ class _ProductionScreenState extends State<ProductionScreen> {
   }
 
   Future<void> _loadAllStages() async {
-    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final allOrders = await _sales.list(limit: 200);
@@ -71,20 +70,20 @@ class _ProductionScreenState extends State<ProductionScreen> {
         }
       }
 
-      setState(() {
-        _boardData.clear();
-        _boardData.addAll(newBoard);
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _boardData.clear();
+          _boardData.addAll(newBoard);
+          _loading = false;
+        });
+      }
     } catch (_) {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _changeStatus(OrderModel order, String newStatus, {String? notes}) async {
-    final l10n = context.l10n;
     final id = order.id;
-
     try {
       await _sales.updateStatus(id, newStatus);
       await _loadAllStages();
@@ -105,7 +104,9 @@ class _ProductionScreenState extends State<ProductionScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Stage Transition — ${order.orderNo}'),
+        backgroundColor: AppTokens.surfacePrimary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusLarge)),
+        title: Text('Stage Transition - ${order.orderNo}', style: AppTokens.sectionHeading),
         content: SizedBox(
           width: 380,
           child: Column(
@@ -126,17 +127,18 @@ class _ProductionScreenState extends State<ProductionScreen> {
                   );
                 }).toList(),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               ActionChip(
-                backgroundColor: Colors.amber.shade100,
-                avatar: Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber),
-                label: Text('Rework Required'),
+                backgroundColor: AppTokens.statusBgCancelled,
+                avatar: const Icon(Icons.warning_amber_rounded, size: 16, color: AppTokens.statusCancelled),
+                label: const Text('Rework Required', style: TextStyle(color: AppTokens.statusCancelled)),
                 onPressed: () => Navigator.pop(ctx, 'rework_required'),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: notesController,
-                decoration: InputDecoration(border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
                   labelText: l10n.t('production_qc_notes'),
                 ),
               ),
@@ -157,19 +159,17 @@ class _ProductionScreenState extends State<ProductionScreen> {
   Color _getStageColor(String stage) {
     switch (stage) {
       case 'received':
-        return Colors.blueGrey;
+        return AppTokens.statusReceived;
       case 'sorting':
-        return Colors.indigo;
       case 'processing':
-        return Colors.blue;
+        return AppTokens.statusWashing;
       case 'quality_check':
-        return Colors.purple;
+        return AppTokens.statusFinishing;
       case 'packed':
-        return Colors.teal;
       case 'ready_for_collection':
-        return Colors.green;
+        return AppTokens.statusReady;
       default:
-        return Colors.grey;
+        return AppTokens.textSecondary;
     }
   }
 
@@ -178,51 +178,80 @@ class _ProductionScreenState extends State<ProductionScreen> {
     final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.t('production')),
-        actions: [
-          IconButton(
-            icon: Icon(_isKanbanMode ? Icons.view_list : Icons.view_kanban),
-            tooltip: _isKanbanMode ? 'List View' : 'Kanban Board',
-            onPressed: () => setState(() => _isKanbanMode = !_isKanbanMode),
-          ),
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadAllStages,
-          ),
-        ],
-      ),
-      body: LaundryLottieBackground(
-        logicalId: 'production.bg.light',
+      backgroundColor: AppTokens.canvas,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.space20),
         child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Page Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.qr_code_scanner),
-                      hintText: l10n.t('scan_or_search_orders_hint'),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      isDense: true,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.t('production'), style: AppTokens.pageHeading),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Live plant floor workflow & machine queue',
+                      style: TextStyle(fontSize: 13, color: AppTokens.textSecondary),
                     ),
-                    onChanged: (val) => setState(() => _searchFilter = val.trim().toLowerCase()),
-                  ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTokens.surfacePrimary,
+                        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                        border: Border.all(color: AppTokens.borderSubtle),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(_isKanbanMode ? Icons.view_kanban_rounded : Icons.view_list_rounded, color: AppTokens.brandTeal),
+                            tooltip: _isKanbanMode ? 'Kanban View' : 'Table View',
+                            onPressed: () => setState(() => _isKanbanMode = !_isKanbanMode),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.refresh_rounded, color: AppTokens.textSecondary),
+                            onPressed: _loadAllStages,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _isKanbanMode
-                    ? _buildKanbanBoard()
-                    : _buildTabularView(),
-          ),
-        ],
+            const SizedBox(height: AppTokens.space16),
+
+            // Search Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: 8),
+              decoration: AppTokens.cardDecoration,
+              child: TextField(
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.qr_code_scanner, color: AppTokens.brandTeal),
+                  hintText: l10n.t('scan_or_search_orders_hint'),
+                  border: InputBorder.none,
+                  isDense: true,
+                ),
+                onChanged: (val) => setState(() => _searchFilter = val.trim().toLowerCase()),
+              ),
+            ),
+            const SizedBox(height: AppTokens.space16),
+
+            // Board Viewport
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _isKanbanMode
+                      ? _buildKanbanBoard()
+                      : _buildTabularView(),
+            ),
+          ],
         ),
       ),
     );
@@ -231,7 +260,6 @@ class _ProductionScreenState extends State<ProductionScreen> {
   Widget _buildKanbanBoard() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.all(12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: _kanbanStages.map((stage) {
@@ -251,24 +279,19 @@ class _ProductionScreenState extends State<ProductionScreen> {
                 width: 280,
                 margin: const EdgeInsetsDirectional.only(end: 12),
                 decoration: BoxDecoration(
-                  color: candidateData.isNotEmpty
-                      ? stageColor.withValues(alpha: 0.15)
-                      : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: candidateData.isNotEmpty ? stageColor : Colors.transparent,
-                    width: 2,
-                  ),
+                  color: candidateData.isNotEmpty ? stageColor.withValues(alpha: 0.1) : AppTokens.surfacePrimary,
+                  borderRadius: BorderRadius.circular(AppTokens.radiusLarge),
+                  border: Border.all(color: candidateData.isNotEmpty ? stageColor : AppTokens.borderSubtle),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: stageColor.withValues(alpha: 0.1),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                        border: Border(bottom: BorderSide(color: stageColor.withValues(alpha: 0.3))),
+                        color: stageColor.withValues(alpha: 0.08),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTokens.radiusLarge)),
+                        border: Border(bottom: BorderSide(color: stageColor.withValues(alpha: 0.2))),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -277,23 +300,30 @@ class _ProductionScreenState extends State<ProductionScreen> {
                             stage.replaceAll('_', ' ').toUpperCase(),
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: stageColor),
                           ),
-                          Badge(
-                            label: Text('${orders.length}'),
-                            backgroundColor: stageColor,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: stageColor,
+                              borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+                            ),
+                            child: Text(
+                              '${orders.length}',
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ],
                       ),
                     ),
                     Expanded(
                       child: orders.isEmpty
-                          ? Center(
+                          ? const Center(
                               child: Text(
                                 'No orders',
-                                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                                style: TextStyle(color: AppTokens.textMuted, fontSize: 12),
                               ),
                             )
                           : ListView.builder(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(AppTokens.space8),
                               itemCount: orders.length,
                               itemBuilder: (context, index) {
                                 final o = orders[index];
@@ -301,13 +331,13 @@ class _ProductionScreenState extends State<ProductionScreen> {
                                   data: o,
                                   feedback: Material(
                                     elevation: 6,
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
                                     child: Container(
                                       width: 260,
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.surface,
-                                        borderRadius: BorderRadius.circular(8),
+                                        color: AppTokens.surfacePrimary,
+                                        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
                                         border: Border.all(color: stageColor),
                                       ),
                                       child: Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -335,63 +365,69 @@ class _ProductionScreenState extends State<ProductionScreen> {
   Widget _buildOrderCard(OrderModel o, String stage, Color stageColor) {
     final next = _nextStatus[stage];
 
-    return Card(
-      elevation: 1,
+    return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                IconButton(
-                  icon: const Icon(Icons.more_horiz, size: 18),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () => _showStatusDialog(o),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Customer: ${o.customerName ?? 'Walk-In'}',
-              style: const TextStyle(fontSize: 12, color: Colors.black87),
-            ),
-            Text(
-              'Promised: ${o.promisedDate ?? 'Standard'}',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'AED ${o.grandTotal.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-                ),
-                if (next != null)
-                  FilledButton.tonal(
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: () => _changeStatus(o, next),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(next.replaceAll('_', ' '), style: const TextStyle(fontSize: 11)),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.arrow_forward, size: 14),
-                      ],
-                    ),
+      padding: const EdgeInsets.all(AppTokens.space12),
+      decoration: BoxDecoration(
+        color: AppTokens.surfacePrimary,
+        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+        border: Border.all(color: AppTokens.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTokens.textPrimary)),
+              IconButton(
+                icon: const Icon(Icons.more_horiz, size: 18, color: AppTokens.textMuted),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => _showStatusDialog(o),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Customer: ${o.customerName ?? 'Walk-In'}',
+            style: const TextStyle(fontSize: 12, color: AppTokens.textSecondary),
+          ),
+          Text(
+            'Promised: ${o.promisedDate ?? 'Standard'}',
+            style: const TextStyle(fontSize: 11, color: AppTokens.textMuted),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'AED ${o.grandTotal.toStringAsFixed(2)}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTokens.textPrimary),
+              ),
+              if (next != null)
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTokens.brandTeal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    visualDensity: VisualDensity.compact,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusSmall)),
                   ),
-              ],
-            ),
-          ],
-        ),
+                  onPressed: () => _changeStatus(o, next),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(next.replaceAll('_', ' '), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward, size: 14),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -406,33 +442,39 @@ class _ProductionScreenState extends State<ProductionScreen> {
       return o.orderNo.toLowerCase().contains(_searchFilter);
     }).toList();
 
-    return ListView.separated(
-      itemCount: filtered.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (context, i) {
-        final o = filtered[i];
-        final current = o.status;
-        final next = _nextStatus[current];
+    return Container(
+      decoration: AppTokens.cardDecoration,
+      clipBehavior: Clip.antiAlias,
+      child: ListView.separated(
+        itemCount: filtered.length,
+        separatorBuilder: (_, __) => const Divider(height: 1, color: AppTokens.borderSubtle),
+        itemBuilder: (context, i) {
+          final o = filtered[i];
+          final current = o.status;
+          final next = _nextStatus[current];
 
-        return ListTile(
-          title: Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text('Stage: ${current.toUpperCase()} · Total: AED ${o.grandTotal.toStringAsFixed(2)}'),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (next != null)
-                FilledButton.tonal(
-                  onPressed: () => _changeStatus(o, next),
-                  child: Text('Move to ${next.replaceAll('_', ' ').toUpperCase()}'),
+          return ListTile(
+            title: Text(o.orderNo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            subtitle: Text('Stage: ${current.toUpperCase()} - Total: AED ${o.grandTotal.toStringAsFixed(2)}', style: const TextStyle(color: AppTokens.textSecondary)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (next != null)
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: AppTokens.brandTeal, foregroundColor: Colors.white, elevation: 0),
+                    onPressed: () => _changeStatus(o, next),
+                    child: Text('Move to ${next.replaceAll('_', ' ').toUpperCase()}'),
+                  ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.tune, color: AppTokens.textSecondary),
+                  onPressed: () => _showStatusDialog(o),
                 ),
-              IconButton(
-                icon: const Icon(Icons.tune),
-                onPressed: () => _showStatusDialog(o),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

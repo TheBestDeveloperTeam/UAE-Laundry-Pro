@@ -1,8 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
@@ -17,6 +17,7 @@ import 'package:laundrypro_uae/services/customer_service.dart';
 import 'package:laundrypro_uae/services/peripheral_print_service.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 import 'package:laundrypro_uae/models/cart_line_model.dart';
+
 class PosScreen extends ConsumerStatefulWidget {
   const PosScreen({
     super.key,
@@ -84,7 +85,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   Future<void> _load() async {
-setState(() => _loading = true);
+    setState(() => _loading = true);
     try {
       final services = await _sales.loadServices();
       final products = await _catalog.listProducts();
@@ -119,7 +120,6 @@ setState(() => _loading = true);
     required double rate,
     List<Map<String, dynamic>> modifiers = const [],
   }) {
-    final l10n = context.l10n;
     final existing = _cart.where((l) => l.itemType == itemType && l.itemId == itemId).toList();
     setState(() {
       if (existing.isNotEmpty && modifiers.isEmpty) {
@@ -137,15 +137,10 @@ setState(() => _loading = true);
   }
 
   void _addService(ServiceModel service) {
-    final l10n = context.l10n;
-    final id = service.id;
-    final name = service.name;
-    final rate = service.baseRate;
-    _addLine(itemType: 'service', itemId: id, name: name, rate: rate);
+    _addLine(itemType: 'service', itemId: service.id, name: service.name, rate: service.baseRate);
   }
 
   void _addProduct(Map<String, dynamic> product) {
-    final l10n = context.l10n;
     final id = int.tryParse(product['id']?.toString() ?? '') ?? 0;
     final name = product['name']?.toString() ?? '';
     final rate = double.tryParse(product['base_rate']?.toString() ?? '0') ?? 0;
@@ -153,13 +148,11 @@ setState(() => _loading = true);
   }
 
   Future<void> _handleScan(String code) async {
-    final l10n = context.l10n;
     if (code.trim().isEmpty || _processing) return;
     final scanned = code.trim();
 
-    // 1. Check Service code
     final service = _services.cast<ServiceModel?>().firstWhere(
-      (s) => s?.code == scanned,
+      (s) => s?.code == scanned || s?.sku == scanned,
       orElse: () => null,
     );
     if (service != null) {
@@ -167,18 +160,15 @@ setState(() => _loading = true);
       return;
     }
 
-    // 2. Check Product barcode
-    try {
-      final product = await _catalog.findProductByBarcode(scanned);
-      if (product != null) {
-        _addProduct(product);
-        return;
-      }
-    } catch (e) {
-      AppLogger.warning('Barcode catalog lookup failed', tag: 'PosScreen', error: e);
+    final product = _products.cast<Map<String, dynamic>?>().firstWhere(
+      (p) => p?['barcode'] == scanned || p?['sku'] == scanned,
+      orElse: () => null,
+    );
+    if (product != null) {
+      _addProduct(product);
+      return;
     }
 
-    // 3. Check Customer code
     final customer = _customers.cast<CustomerModel?>().firstWhere(
       (c) => c?.customerCode == scanned || c?.phone == scanned,
       orElse: () => null,
@@ -316,7 +306,7 @@ setState(() => _loading = true);
           TextButton(
             onPressed: () async {
               final result = await _printService().printOrder(
-                order.toJson(), // Temporary for compilation
+                order.toJson(),
                 businessName: _businessName,
               );
               if (!ctx.mounted) return;
@@ -405,336 +395,441 @@ setState(() => _loading = true);
             }
           }
         },
-        SingleActivator(LogicalKeyboardKey.f5): _load,
+        const SingleActivator(LogicalKeyboardKey.f5): _load,
       },
       child: KeyboardListener(
         autofocus: true,
         focusNode: _scannerFocus,
         onKeyEvent: ref.read(scannerControllerProvider),
         child: Scaffold(
-        appBar: AppBar(
-          title: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                Text(l10n.t('pos')),
-                SizedBox(width: 16),
-                // Customer Selection Chip
-                ActionChip(
-                  avatar: Icon(Icons.person, size: 16),
-                  label: Text(
-                    _selectedCustomer != null
-                        ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
-                        : l10n.t('walk_in_customer'),
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  onPressed: _selectCustomerDialog,
-                ),
-                if (_selectedCustomer != null)
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 16),
-                    onPressed: () => setState(() => _selectedCustomer = null),
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
-          ],
-        ),
-        body: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : LayoutBuilder(
-                builder: (context, constraints) {
-                  final isCompact = constraints.maxWidth < 600;
-                  final catalogWidget = Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                          Wrap(
-                            alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(l10n.t('pos_services'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                              Text(
-                                l10n.t('pos_services_and_products_count', {
-                                  'services': _services.length.toString(),
-                                  'products': _products.length.toString(),
-                                }),
-                                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 10),
-                          TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: l10n.t('search_services_hint'),
-                              prefixIcon: const Icon(Icons.search, size: 20),
-                              suffixIcon: _searchFilter.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear, size: 18),
-                                      onPressed: () {
-                                        setState(() {
-                                          _searchController.clear();
-                                          _searchFilter = '';
-                                        });
-                                      },
-                                    )
-                                  : null,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            ),
-                            onChanged: (val) {
-                              setState(() {
-                                _searchFilter = val.trim().toLowerCase();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          Expanded(
-                            child: Builder(
-                              builder: (context) {
-    final l10n = context.l10n;
-                                final filtered = _services.where((s) {
-                                  if (_searchFilter.isEmpty) return true;
-                                  final name = s.name.toLowerCase();
-                                  final code = (s.code ?? '').toLowerCase();
-                                  return name.contains(_searchFilter) || code.contains(_searchFilter);
-                                }).toList();
+          backgroundColor: AppTokens.canvas,
+          body: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 950;
 
-                                if (filtered.isEmpty) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.search_off_rounded, size: 40, color: Colors.grey.shade400),
-                                        SizedBox(height: 8),
-                                        Text(l10n.t('pos_no_services')),
-                                      ],
-                                    ),
-                                  );
-                                }
+                    final catalogWidget = _buildCatalogPanel(context);
+                    final cartWidget = _buildCartDrawer(context);
 
-                                return GridView.builder(
-                                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                                    maxCrossAxisExtent: isCompact ? 180 : 160,
-                                    childAspectRatio: isCompact ? 1.6 : 1.4,
-                                    crossAxisSpacing: 8,
-                                    mainAxisSpacing: 8,
-                                  ),
-                                  itemCount: filtered.length,
-                                  itemBuilder: (context, i) {
-                                    final s = filtered[i];
-                                    final rate = s.baseRate.toString();
-                                    return OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.all(8),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      ),
-                                      onPressed: () => _addService(s),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            s.name,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text('AED $rate', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-
-                  final cartWidget = Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    if (isCompact) {
+                      return DefaultTabController(
+                        length: 2,
+                        child: Column(
                           children: [
-                            Text(l10n.t('pos_cart'), style: Theme.of(context).textTheme.titleMedium),
-                            if (_cart.isNotEmpty)
-                              TextButton.icon(
-                                icon: Icon(Icons.delete_outline, size: 16),
-                                label: Text(l10n.t('clear')),
-                                onPressed: () => setState(() => _cart.clear()),
+                            Container(
+                              color: AppTokens.surfacePrimary,
+                              child: TabBar(
+                                labelColor: AppTokens.brandTeal,
+                                indicatorColor: AppTokens.brandTeal,
+                                tabs: [
+                                  Tab(icon: const Icon(Icons.grid_view), text: l10n.t('pos_catalog')),
+                                  Tab(icon: const Icon(Icons.shopping_cart), text: l10n.t('pos_cart')),
+                                ],
                               ),
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                children: [
+                                  catalogWidget,
+                                  cartWidget,
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                        SizedBox(height: 8),
-                        Expanded(
-                          child: _cart.isEmpty
-                              ? Center(child: Text(l10n.t('pos_cart_empty')))
-                              : ListView.builder(
-                                  itemCount: _cart.length,
-                                  itemBuilder: (context, i) {
-                                    final line = _cart[i];
-                                    final rateText = l10n.t('pos_rate_qty', {
-                                      'rate': line.rate.toStringAsFixed(2),
-                                      'qty': line.quantity.toString(),
-                                    });
-                                    final discText = line.discount > 0
-                                        ? l10n.t('pos_disc_deduction', {
-                                            'disc': line.discount.toStringAsFixed(2),
-                                          })
-                                        : '';
-                                    return ListTile(
-                                      title: Text(line.name),
-                                      subtitle: Text('$rateText$discText'),
-                                      trailing: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'AED ${line.lineTotal.toStringAsFixed(2)}',
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.remove_circle_outline),
-                                            onPressed: () {
-                                              setState(() {
-                                                if (line.quantity > 1) {
-                                                  line.quantity--;
-                                                } else {
-                                                  _cart.removeAt(i);
-                                                }
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
+                      );
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.all(AppTokens.space16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 3, child: catalogWidget),
+                          const SizedBox(width: AppTokens.space16),
+                          Expanded(flex: 2, child: cartWidget),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCatalogPanel(BuildContext context) {
+    final l10n = context.l10n;
+    final filtered = _services.where((s) {
+      if (_searchFilter.isEmpty) return true;
+      final name = s.name.toLowerCase();
+      final code = (s.code ?? '').toLowerCase();
+      return name.contains(_searchFilter) || code.contains(_searchFilter);
+    }).toList();
+
+    return Container(
+      decoration: AppTokens.cardDecoration,
+      padding: const EdgeInsets.all(AppTokens.space20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header Bar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.t('pos_services'), style: AppTokens.sectionHeading),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.t('pos_services_and_products_count', {
+                      'services': _services.length.toString(),
+                      'products': _products.length.toString(),
+                    }),
+                    style: const TextStyle(color: AppTokens.textMuted, fontSize: 12),
+                  ),
+                ],
+              ),
+              // Customer Selection Chip
+              InkWell(
+                onTap: _selectCustomerDialog,
+                borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTokens.surfaceSubtle,
+                    borderRadius: BorderRadius.circular(AppTokens.radiusSmall),
+                    border: Border.all(color: AppTokens.borderSubtle),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person_outline, size: 16, color: AppTokens.brandTeal),
+                      const SizedBox(width: 6),
+                      Text(
+                        _selectedCustomer != null
+                            ? '${_selectedCustomer!.name} (${_selectedCustomer!.phone ?? ''})'
+                            : l10n.t('walk_in_customer'),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTokens.textPrimary),
+                      ),
+                      if (_selectedCustomer != null) ...[
+                        const SizedBox(width: 4),
+                        InkWell(
+                          onTap: () => setState(() => _selectedCustomer = null),
+                          child: const Icon(Icons.close, size: 14, color: AppTokens.textMuted),
                         ),
-                        Divider(),
-                        // Financial Breakdown
-                        SingleChildScrollView(
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTokens.space16),
+
+          // Search Box
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: l10n.t('search_services_hint'),
+              prefixIcon: const Icon(Icons.search, size: 20, color: AppTokens.textMuted),
+              suffixIcon: _searchFilter.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () {
+                        setState(() {
+                          _searchController.clear();
+                          _searchFilter = '';
+                        });
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: AppTokens.surfaceSubtle,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                borderSide: const BorderSide(color: AppTokens.borderSubtle),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                borderSide: const BorderSide(color: AppTokens.borderSubtle),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                borderSide: const BorderSide(color: AppTokens.brandTeal),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+            onChanged: (val) {
+              setState(() {
+                _searchFilter = val.trim().toLowerCase();
+              });
+            },
+          ),
+          const SizedBox(height: AppTokens.space16),
+
+          // Garments & Services Grid
+          Expanded(
+            child: filtered.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.search_off_rounded, size: 48, color: AppTokens.textMuted),
+                        const SizedBox(height: 8),
+                        Text(l10n.t('pos_no_services'), style: const TextStyle(color: AppTokens.textSecondary)),
+                      ],
+                    ),
+                  )
+                : GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 180,
+                      childAspectRatio: 1.45,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, i) {
+                      final s = filtered[i];
+                      final rate = s.baseRate.toStringAsFixed(2);
+                      return InkWell(
+                        onTap: () => _addService(s),
+                        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                        hoverColor: AppTokens.surfaceHover,
+                        child: Container(
+                          padding: const EdgeInsets.all(AppTokens.space10),
+                          decoration: BoxDecoration(
+                            color: AppTokens.surfacePrimary,
+                            borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                            border: Border.all(color: AppTokens.borderSubtle),
+                          ),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Expanded(child: Text('${l10n.t('lines_subtotal')}:')),
-                                  Text('AED ${_linesSubtotal.toStringAsFixed(2)}'),
-                                ],
-                              ),
-                              if (_orderDiscount > 0)
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(child: Text('${l10n.t('order_discount')}:')),
-                                    Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: TextStyle(color: Colors.red)),
-                                  ],
-                                ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(child: Text('${l10n.t('uae_vat_label')}:')),
-                                  Text('AED ${_vatAmount.toStringAsFixed(2)}'),
-                                ],
-                              ),
-                              SizedBox(height: 6),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      '${l10n.t('pos_total')}:',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: AppTokens.brandTeal.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(4),
                                     ),
+                                    child: const Icon(Icons.dry_cleaning_outlined, size: 16, color: AppTokens.brandTeal),
                                   ),
                                   Text(
-                                    'AED ${_grandTotal.toStringAsFixed(2)}',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.primary,
-                                        ),
+                                    'AED $rate',
+                                    style: const TextStyle(
+                                      color: AppTokens.brandTeal,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 12),
-                              if (_confirmedOrder == null)
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: FilledButton(
-                                    key: Key('pos_confirm_btn'),
-                                    onPressed: _cart.isEmpty || _processing ? null : _confirmSale,
-                                    child: _processing
-                                        ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                                        : Text(l10n.t('pos_confirm')),
-                                  ),
-                                )
-                              else ...[
-                                Text('${l10n.t('pos_confirmed')}: ${_confirmedOrder!.orderNo}'),
-                                SizedBox(height: 8),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: FilledButton(
-                                    key: Key('pos_pay_btn'),
-                                    onPressed: _processing ? null : _pay,
-                                    child: Text(l10n.t('pos_pay')),
-                                  ),
-                                ),
-                              ],
+                              Text(
+                                s.name,
+                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTokens.textPrimary),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ],
                           ),
                         ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartDrawer(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Container(
+      decoration: AppTokens.cardDecoration,
+      padding: const EdgeInsets.all(AppTokens.space20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(l10n.t('pos_cart'), style: AppTokens.sectionHeading),
+              if (_cart.isNotEmpty)
+                TextButton.icon(
+                  icon: const Icon(Icons.delete_outline, size: 16, color: AppTokens.statusCancelled),
+                  label: Text(l10n.t('clear'), style: const TextStyle(color: AppTokens.statusCancelled)),
+                  onPressed: () => setState(() => _cart.clear()),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppTokens.space12),
+
+          // Cart Line Items List
+          Expanded(
+            child: _cart.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.shopping_cart_outlined, size: 48, color: AppTokens.textMuted),
+                        const SizedBox(height: 8),
+                        Text(l10n.t('pos_cart_empty'), style: const TextStyle(color: AppTokens.textSecondary)),
                       ],
                     ),
-                  );
-
-                  if (isCompact) {
-                    return DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: [
-                          TabBar(
-                            tabs: [
-                              Tab(icon: Icon(Icons.grid_view), text: l10n.t('pos_catalog')),
-                              Tab(icon: Icon(Icons.shopping_cart), text: l10n.t('pos_cart')),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              children: [
-                                catalogWidget,
-                                cartWidget,
-                              ],
+                  )
+                : ListView.separated(
+                    itemCount: _cart.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppTokens.borderSubtle),
+                    itemBuilder: (context, i) {
+                      final line = _cart[i];
+                      final rateText = l10n.t('pos_rate_qty', {
+                        'rate': line.rate.toStringAsFixed(2),
+                        'qty': line.quantity.toString(),
+                      });
+                      final discText = line.discount > 0
+                          ? l10n.t('pos_disc_deduction', {
+                              'disc': line.discount.toStringAsFixed(2),
+                            })
+                          : '';
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(line.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                                  Text('$rateText$discText', style: const TextStyle(fontSize: 12, color: AppTokens.textMuted)),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                            Text(
+                              'AED ${line.lineTotal.toStringAsFixed(2)}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  if (line.quantity > 1) {
+                                    line.quantity--;
+                                  } else {
+                                    _cart.removeAt(i);
+                                  }
+                                });
+                              },
+                              child: const Icon(Icons.remove_circle_outline, size: 18, color: AppTokens.textMuted),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          const Divider(color: AppTokens.borderSubtle),
+          const SizedBox(height: AppTokens.space8),
 
-                  return Row(
-                    children: [
-                      Expanded(flex: 3, child: catalogWidget),
-                      const VerticalDivider(width: 1),
-                      Expanded(flex: 2, child: cartWidget),
-                    ],
-                  );
-                },
+          // Financial Breakdown
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: Text('${l10n.t('lines_subtotal')}:', style: const TextStyle(color: AppTokens.textSecondary))),
+                  Text('AED ${_linesSubtotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w500)),
+                ],
               ),
+              const SizedBox(height: 4),
+              if (_orderDiscount > 0) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text('${l10n.t('order_discount')}:', style: const TextStyle(color: AppTokens.textSecondary))),
+                    Text('-AED ${_orderDiscount.toStringAsFixed(2)}', style: const TextStyle(color: AppTokens.statusCancelled)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+              ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: Text('${l10n.t('uae_vat_label')}:', style: const TextStyle(color: AppTokens.textSecondary))),
+                  Text('AED ${_vatAmount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w500)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${l10n.t('pos_total')}:',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTokens.textPrimary),
+                    ),
+                  ),
+                  Text(
+                    'AED ${_grandTotal.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTokens.brandTeal),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTokens.space16),
+
+              if (_confirmedOrder == null)
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    key: const Key('pos_confirm_btn'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTokens.brandTeal,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
+                      elevation: 0,
+                    ),
+                    onPressed: _cart.isEmpty || _processing ? null : _confirmSale,
+                    child: _processing
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text(l10n.t('pos_confirm'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                )
+              else ...[
+                Text(
+                  '${l10n.t('pos_confirmed')}: ${_confirmedOrder!.orderNo}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTokens.statusReady),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    key: const Key('pos_pay_btn'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTokens.statusReady,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
+                      elevation: 0,
+                    ),
+                    onPressed: _processing ? null : _pay,
+                    child: Text(l10n.t('pos_pay'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _PaymentResult {
@@ -782,7 +877,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(labelText: l10n.t('pos_amount')),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'cash', label: Text(l10n.t('pos_payment_cash'))),
