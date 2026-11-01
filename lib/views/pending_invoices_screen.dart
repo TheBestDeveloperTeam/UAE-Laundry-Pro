@@ -5,10 +5,13 @@ import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/receipt_model.dart';
 import 'package:laundrypro_uae/core/receipt_renderer.dart';
+import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
 import 'package:laundrypro_uae/models/order_model.dart';
+import 'package:laundrypro_uae/services/offline_first_sales_service.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
+import 'package:laundrypro_uae/widgets/order_detail_dialog.dart';
 import 'package:laundrypro_uae/widgets/status_badge.dart';
 
 class PendingInvoicesScreen extends ConsumerStatefulWidget {
@@ -21,7 +24,7 @@ class PendingInvoicesScreen extends ConsumerStatefulWidget {
 }
 
 class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
-  late final SalesService _sales;
+  late SalesService _sales;
   List<OrderModel> _orders = [];
   bool _loading = true;
   String _searchQuery = '';
@@ -30,7 +33,19 @@ class _PendingInvoicesScreenState extends ConsumerState<PendingInvoicesScreen> {
   @override
   void initState() {
     super.initState();
-    _sales = widget.salesService ?? SalesService();
+    _initSales();
+  }
+
+  void _initSales() {
+    if (widget.salesService != null) {
+      _sales = widget.salesService!;
+    } else {
+      AppDatabase? db;
+      try {
+        db = ref.read(appDatabaseProvider);
+      } catch (_) {}
+      _sales = OfflineFirstSalesService(database: db);
+    }
     _load();
   }
 
