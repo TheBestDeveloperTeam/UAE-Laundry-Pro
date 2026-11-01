@@ -32,3 +32,4 @@ erDiagram
 ## 3. Production Safety Guard
 - Demo data is seeded only when the local database contains fewer than 100 records (`seedIfEmpty`).
 - Production resets require explicit developer intent and cannot trigger during live operation.
+

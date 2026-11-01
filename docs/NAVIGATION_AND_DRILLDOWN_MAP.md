@@ -61,3 +61,4 @@ flowchart TD
 1. Operator opens `/production`.
 2. Orders appear categorized by stages (`Received`, `Washing`, `Finishing`, `Ready`).
 3. Clicking stage status buttons updates order stage in SQLite and re-aggregates dashboard pipeline numbers.
+

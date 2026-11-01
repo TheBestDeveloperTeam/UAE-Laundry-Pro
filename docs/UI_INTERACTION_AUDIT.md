@@ -34,3 +34,4 @@ This register documents every visible, interactive control across all 33 views o
 | `QA_STOCK_RCV` | Quick Actions Panel | `_QuickActionHoverTile` | Click / Tap | Inventory workflow | Navigates to `/inventory` | Verified |
 | `GRID_SCROLL_V` | All Data Tables | `AppDataTable` | Mousewheel / Touch | `DataTable` | Vertical scroll with persistent trackpad thumb | Verified |
 | `GRID_SCROLL_H` | All Data Tables | `AppDataTable` | Trackpad / Drag | `DataTable` | Horizontal scroll for multi-column enterprise tables | Verified |
+
