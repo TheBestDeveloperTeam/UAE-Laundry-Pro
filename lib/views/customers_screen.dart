@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/logger.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/models/customer_model.dart';
+import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
 import 'package:laundrypro_uae/services/customer_service.dart';
+import 'package:laundrypro_uae/services/offline_first_customer_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
 import 'package:laundrypro_uae/widgets/app_form_dialog.dart';
 
@@ -17,7 +20,7 @@ class CustomersScreen extends StatefulWidget {
 }
 
 class _CustomersScreenState extends State<CustomersScreen> {
-  late final CustomerService _service;
+  late CustomerService _service;
   List<CustomerModel> _customers = [];
   bool _loading = true;
 
@@ -26,7 +29,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   void initState() {
     super.initState();
-    _service = widget.customerService ?? CustomerService();
+    _initService();
+  }
+
+  void _initService() {
+    if (widget.customerService != null) {
+      _service = widget.customerService!;
+    } else {
+      AppDatabase? db;
+      try {
+        db = context.read<AppDatabase>();
+      } catch (_) {}
+      _service = OfflineFirstCustomerService(database: db);
+    }
     _load();
   }
 
