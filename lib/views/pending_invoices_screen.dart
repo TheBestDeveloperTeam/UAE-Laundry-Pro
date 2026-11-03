@@ -11,7 +11,6 @@ import 'package:laundrypro_uae/models/order_model.dart';
 import 'package:laundrypro_uae/services/offline_first_sales_service.dart';
 import 'package:laundrypro_uae/services/sales_service.dart';
 import 'package:laundrypro_uae/widgets/app_data_table.dart';
-import 'package:laundrypro_uae/widgets/order_detail_dialog.dart';
 import 'package:laundrypro_uae/widgets/status_badge.dart';
 
 class PendingInvoicesScreen extends ConsumerStatefulWidget {

@@ -15,8 +15,7 @@ class InteractiveRevenueChart extends StatefulWidget {
 
 class _InteractiveRevenueChartState extends State<InteractiveRevenueChart> {
   int? _hoveredIndex;
-  Offset? _mousePosition;
-
+  
   final List<double> values = const [3000.0, 4800.0, 4200.0, 5800.0, 6200.0, 7500.0, 8400.0];
   final List<String> labels = const ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
   final List<int> orderCounts = const [24, 38, 31, 45, 52, 60, 68];
@@ -34,13 +33,13 @@ class _InteractiveRevenueChartState extends State<InteractiveRevenueChart> {
             final nearestIndex = (x / stepX).round().clamp(0, values.length - 1);
             setState(() {
               _hoveredIndex = nearestIndex;
-              _mousePosition = event.localPosition;
+              
             });
           },
           onExit: (_) {
             setState(() {
               _hoveredIndex = null;
-              _mousePosition = null;
+              
             });
           },
           child: GestureDetector(
@@ -188,8 +187,8 @@ class _InteractiveRevenueChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          const Color(0xFF02C39A).withOpacity(0.35),
-          const Color(0xFF02C39A).withOpacity(0.0),
+          const Color(0xFF02C39A).withValues(alpha: 0.35),
+          const Color(0xFF02C39A).withValues(alpha: 0.0),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height - 24));
 
@@ -207,7 +206,7 @@ class _InteractiveRevenueChartPainter extends CustomPainter {
     if (hoveredIndex != null) {
       final activePoint = points[hoveredIndex!];
       final linePaint = Paint()
-        ..color = const Color(0xFF00A896).withOpacity(0.4)
+        ..color = const Color(0xFF00A896).withValues(alpha: 0.4)
         ..strokeWidth = 1.5;
       canvas.drawLine(
         Offset(activePoint.dx, 0),

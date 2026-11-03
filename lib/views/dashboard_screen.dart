@@ -58,16 +58,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!mounted) return;
 
     try {
-      final results = await Future.wait([
+      await Future.wait([
         _reports.todaySalesSummary().catchError((_) => const DashboardMetricsModel()),
         _reports.salesSummary().catchError((_) => const DashboardMetricsModel()),
       ]);
 
-      if (mounted) {
-        setState(() {
-          _today = results[0];
-        });
-      }
+      
     } catch (_) {}
 
     // Query real local SQLite database if available
@@ -93,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _readyCount = (rdyRes.first['c'] as int?) ?? 7;
             final sum = revRes.first['s'];
             if (sum is num && sum > 0) {
-              _todayRevenue = (sum as num).toDouble() / 10;
+              _todayRevenue = sum.toDouble() / 10;
             }
           });
         }
@@ -104,7 +100,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final userName = auth.user?.fullName?.split(' ').first ?? 'Sarah';
+    final userName = auth.user?.fullName.split(' ').first ?? 'Sarah';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
@@ -273,8 +269,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 1100;
-        final cardWidth = isCompact ? (constraints.maxWidth - 16) / 2 : (constraints.maxWidth - (16 * 3)) / 4;
-
+        
         final cards = [
           MetricCard(
             title: "Today's Revenue",
@@ -786,10 +781,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ? _recentOrders.map((ord) {
             final st = (ord['status'] ?? 'ready').toString().toLowerCase();
             OrderStage stage;
-            if (st == 'washing') stage = OrderStage.washing;
-            else if (st == 'finishing') stage = OrderStage.finishing;
-            else if (st == 'received') stage = OrderStage.received;
-            else stage = OrderStage.ready;
+            if (st == 'washing') {
+              stage = OrderStage.washing;
+            } else if (st == 'finishing') {
+              stage = OrderStage.finishing;
+            } else if (st == 'received') {
+              stage = OrderStage.received;
+            } else {
+              stage = OrderStage.ready;
+            }
 
             final totalVal = (ord['grand_total'] as num?)?.toDouble() ?? 50.0;
             return {
@@ -941,7 +941,7 @@ class _QuickActionHoverTileState extends State<_QuickActionHoverTile> {
             decoration: BoxDecoration(
               color: _isHovered ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
               border: Border.all(
-                color: _isHovered ? const Color(0xFF00A896).withOpacity(0.4) : const Color(0xFFE2E8F0),
+                color: _isHovered ? const Color(0xFF00A896).withValues(alpha: 0.4) : const Color(0xFFE2E8F0),
               ),
               borderRadius: BorderRadius.circular(10),
               boxShadow: _isHovered

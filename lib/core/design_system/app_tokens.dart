@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Centralized Design Tokens for LaundryPro UAE Business OS v3.0.0.
@@ -175,7 +174,7 @@ abstract class AppTokens {
   );
 
   static BoxDecoration royalGlassDecoration = BoxDecoration(
-    color: Colors.white.withOpacity(0.92),
+    color: Colors.white.withValues(alpha: 0.92),
     borderRadius: BorderRadius.circular(radiusXLarge),
     border: Border.all(color: const Color(0xFFE5EBF2), width: 1.2),
     boxShadow: const [

@@ -31,7 +31,7 @@ class OrderDetailDialog extends StatelessWidget {
   }) {
     showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.4),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       builder: (ctx) => OrderDetailDialog(
         orderNumber: orderNumber,
         customerName: customerName,
@@ -144,7 +144,7 @@ class OrderDetailDialog extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppTokens.brandTeal.withOpacity(0.12),
+                              color: AppTokens.brandTeal.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(

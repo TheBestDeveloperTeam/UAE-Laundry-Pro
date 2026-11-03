@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
@@ -12,7 +11,7 @@ class GlobalSearchDialog extends StatefulWidget {
   static Future<void> show(BuildContext context, {AppDatabase? database}) {
     return showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.45),
+      barrierColor: Colors.black.withValues(alpha: 0.45),
       builder: (ctx) => GlobalSearchDialog(database: database),
     );
   }

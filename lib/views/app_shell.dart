@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
-import 'package:laundrypro_uae/core/design_system/responsive_layout.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
@@ -21,12 +20,11 @@ class AppShell extends StatefulWidget {
 }
 
 class _NavEntry {
-  const _NavEntry(this.route, this.icon, this.labelKey, {this.permission});
+  const _NavEntry(this.route, this.icon, this.labelKey);
   final String route;
   final IconData icon;
   final String labelKey;
-  final String? permission;
-}
+  }
 
 class _AppShellState extends State<AppShell> {
   final bool _sidebarExpanded = true;
@@ -211,7 +209,7 @@ class _AppShellState extends State<AppShell> {
                 child: Text(
                   'Laundry operations, in control.',
                   style: TextStyle(
-                    color: AppTokens.textMuted.withOpacity(0.8),
+                    color: AppTokens.textMuted.withValues(alpha: 0.8),
                     fontSize: 11,
                     fontStyle: FontStyle.italic,
                   ),

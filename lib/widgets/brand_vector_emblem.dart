@@ -67,7 +67,7 @@ class _BrandVectorPainter extends CustomPainter {
     final borderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0
-      ..color = Colors.white.withOpacity(0.35);
+      ..color = Colors.white.withValues(alpha: 0.35);
     canvas.drawRRect(rrect, borderPaint);
 
     // Inner Washing Vortex Vector Path
@@ -85,7 +85,7 @@ class _BrandVectorPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = size.width * 0.07
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white.withOpacity(0.85);
+      ..color = Colors.white.withValues(alpha: 0.85);
     canvas.drawArc(arcRect2, 1.2, 3.8, false, vortexPaint2);
 
     // Center Gold Core Star/Dot (Symbolizing Royal UAE Quality)
