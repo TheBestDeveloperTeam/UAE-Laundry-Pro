@@ -127,8 +127,12 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
     return Dialog(
       alignment: Alignment.topCenter,
       insetPadding: const EdgeInsets.only(top: 80, left: 32, right: 32),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+      ),
       elevation: 24,
+      shadowColor: const Color(0x330D1E36),
       backgroundColor: Colors.white,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 680, maxHeight: 600),
