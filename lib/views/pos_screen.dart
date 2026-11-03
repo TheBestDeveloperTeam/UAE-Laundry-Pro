@@ -612,7 +612,14 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                           decoration: BoxDecoration(
                             color: AppTokens.surfacePrimary,
                             borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-                            border: Border.all(color: AppTokens.borderSubtle),
+                            border: Border.all(color: AppTokens.borderSubtle, width: 1.2),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x06081426),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -807,7 +814,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                       backgroundColor: AppTokens.brandTeal,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMedium)),
-                      elevation: 0,
+                      elevation: 2,
+                      shadowColor: AppTokens.brandTeal.withValues(alpha: 0.4),
                     ),
                     onPressed: _cart.isEmpty || _processing ? null : _confirmSale,
                     child: _processing
