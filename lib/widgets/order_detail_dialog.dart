@@ -47,7 +47,12 @@ class OrderDetailDialog extends StatelessWidget {
     final vat = grandTotal - subtotal;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+      ),
+      elevation: 12,
+      shadowColor: const Color(0x220D1E36),
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: ConstrainedBox(
@@ -207,8 +212,8 @@ class OrderDetailDialog extends StatelessWidget {
                 children: [
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF475569),
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      foregroundColor: AppTokens.textPrimary,
+                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
