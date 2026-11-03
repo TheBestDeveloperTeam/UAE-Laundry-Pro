@@ -155,7 +155,10 @@ class _AppShellState extends State<AppShell> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: sidebarWidth,
-      color: AppTokens.brandNavy,
+      decoration: const BoxDecoration(
+        color: AppTokens.brandNavy,
+        border: Border(right: BorderSide(color: AppTokens.brandNavyBorder, width: 1.0)),
+      ),
       child: Column(
         children: [
           // Logo & Brand Lockup
@@ -337,8 +340,24 @@ class _AppShellState extends State<AppShell> {
         margin: const EdgeInsets.symmetric(vertical: 2),
         padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12),
         decoration: BoxDecoration(
-          color: isActive ? AppTokens.brandTeal : Colors.transparent,
+          gradient: isActive
+              ? const LinearGradient(
+                  colors: [AppTokens.brandTeal, Color(0xFF00C9A7)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                )
+              : null,
+          color: isActive ? null : Colors.transparent,
           borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppTokens.brandTeal.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
