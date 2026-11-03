@@ -8,6 +8,7 @@ import 'package:laundrypro_uae/core/localization_extension.dart';
 import 'package:laundrypro_uae/peripherals/core/storage/app_database.dart';
 import 'package:laundrypro_uae/providers/auth_provider.dart';
 import 'package:laundrypro_uae/providers/locale_provider.dart';
+import 'package:laundrypro_uae/widgets/brand_vector_emblem.dart';
 import 'package:laundrypro_uae/widgets/global_search_dialog.dart';
 import 'package:laundrypro_uae/widgets/hardware_status_bar.dart';
 
@@ -164,15 +165,7 @@ class _AppShellState extends State<AppShell> {
             alignment: Alignment.centerLeft,
             child: Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppTokens.brandTeal,
-                    borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-                  ),
-                  child: const Icon(Icons.local_laundry_service_rounded, color: Colors.white, size: 22),
-                ),
+                const BrandVectorEmblem(size: 36),
                 if (isExpanded) ...[
                   const SizedBox(width: AppTokens.space12),
                   const Expanded(
