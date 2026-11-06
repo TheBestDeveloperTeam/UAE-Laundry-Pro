@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:laundrypro_uae/widgets/laundry_lottie.dart';
+import 'package:laundrypro_uae/widgets/empty_state_vector_emblem.dart';
 
 class EmptyState extends StatelessWidget {
   final String? title;
@@ -50,14 +51,10 @@ class EmptyState extends StatelessWidget {
                   child: LaundryLottie(logicalId: lottieLogicalId!),
                 )
               else
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, size: 36, color: theme.colorScheme.primary),
+                EmptyStateVectorEmblem(
+                  size: 80,
+                  accentColor: theme.colorScheme.primary,
+                  iconData: icon,
                 ),
               const SizedBox(height: 20),
               if (title != null) ...[
