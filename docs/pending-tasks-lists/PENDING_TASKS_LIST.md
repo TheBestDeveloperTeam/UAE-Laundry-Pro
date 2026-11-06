@@ -9,7 +9,7 @@
 - [ ] **Lottie Animation Asset Pack Integration:**
   - Embed lightweight Lottie JSON animations for empty states, stage promotions, and payment success checkmarks into `assets/animations/`.
   - Replace static fallback icons in `EmptyState` with animated vector graphics.
-- [ ] **Advanced Customer Loyalty Engine:**
+- [x] **Advanced Customer Loyalty Engine:**
   - Automated tier upgrade calculation (Silver $\to$ Gold $\to$ Platinum) based on rolling 90-day spend.
   - WhatsApp Business Cloud API integration for direct tax invoice PDF dispatch.
 - [ ] **Multi-Camera Barcode & QR Reader:**
