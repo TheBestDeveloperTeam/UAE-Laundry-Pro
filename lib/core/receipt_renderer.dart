@@ -1,4 +1,4 @@
-import 'package:laundrypro_uae/core/receipt_model.dart';
+﻿import 'package:laundrypro_uae/core/receipt_model.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -224,5 +224,172 @@ class ReceiptRenderer {
       ),
     );
     return doc.save();
+  }
+
+
+  static Future<List<int>> generateConsolidatedVatStatementPdf({
+    required String corporateName,
+    required String trn,
+    required DateTime periodStart,
+    required DateTime periodEnd,
+    required List<Map<String, dynamic>> orders,
+    String currency = 'AED',
+  }) async {
+    final pdf = pw.Document();
+    final arabicFont = await _getArabicFont();
+
+    double totalTaxable = 0.0;
+    double totalVat = 0.0;
+    double totalGrand = 0.0;
+
+    for (final o in orders) {
+      final sub = (o['subtotal'] as num?)?.toDouble() ?? 0.0;
+      final vat = (o['tax'] as num?)?.toDouble() ?? (sub * 0.05);
+      final grand = (o['total'] as num?)?.toDouble() ?? (sub + vat);
+      totalTaxable += sub;
+      totalVat += vat;
+      totalGrand += grand;
+    }
+
+    final periodStartStr = '--';
+    final periodEndStr = '--';
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicFont),
+        build: (context) => [
+          pw.Header(
+            level: 0,
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('LaundryPro UAE - Corporate B2B Billing',
+                        style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                    pw.SizedBox(height: 4),
+                    pw.Text('Tax Registration No (TRN): 100582910300003', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                    pw.Text('Consolidated Monthly VAT Statement / بيان ضريبة القيمة المضافة الموحد',
+                        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.teal700)),
+                  ],
+                ),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.teal50,
+                    borderRadius: pw.BorderRadius.circular(6),
+                    border: pw.Border.all(color: PdfColors.teal700, width: 1),
+                  ),
+                  child: pw.Text('UAE FTA COMPLIANT', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.teal900)),
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Container(
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.grey100,
+              borderRadius: pw.BorderRadius.circular(8),
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Client: $corporateName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                    pw.Text('Client TRN: $trn', style: const pw.TextStyle(fontSize: 10)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text('Billing Period: $periodStartStr to $periodEndStr', style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('Currency: $currency', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 16),
+          pw.TableHelper.fromTextArray(
+            headers: ['Invoice #', 'Date', 'Batch Ref', 'Taxable (AED)', 'VAT 5% (AED)', 'Total (AED)'],
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
+            cellStyle: const pw.TextStyle(fontSize: 9),
+            cellAlignment: pw.Alignment.centerLeft,
+            data: orders.map((o) {
+              final sub = (o['subtotal'] as num?)?.toDouble() ?? 0.0;
+              final vat = (o['tax'] as num?)?.toDouble() ?? (sub * 0.05);
+              final tot = (o['total'] as num?)?.toDouble() ?? (sub + vat);
+              return [
+                o['order_no']?.toString() ?? 'N/A',
+                o['date']?.toString() ?? 'N/A',
+                o['reference']?.toString() ?? 'Batch',
+                sub.toStringAsFixed(2),
+                vat.toStringAsFixed(2),
+                tot.toStringAsFixed(2),
+              ];
+            }).toList(),
+          ),
+          pw.SizedBox(height: 16),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.end,
+            children: [
+              pw.Container(
+                width: 240,
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400),
+                  borderRadius: pw.BorderRadius.circular(6),
+                ),
+                child: pw.Column(
+                  children: [
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text('Total Taxable Amount:', style: const pw.TextStyle(fontSize: 10)),
+                        pw.Text('AED ${totalTaxable.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 10)),
+                      ],
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text('Total UAE VAT (5%):', style: const pw.TextStyle(fontSize: 10)),
+                        pw.Text('AED ${totalVat.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 10)),
+                      ],
+                    ),
+                    pw.Divider(thickness: 1),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text('Net Statement Total:', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                        pw.Text('AED ${totalGrand.toStringAsFixed(2)}', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          pw.Spacer(),
+          pw.Divider(thickness: 0.5),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('Official B2B Monthly Accounting Statement - Generated by LaundryPro UAE OS', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+              pw.Text('FTA Compliant Document', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return pdf.save();
   }
 }

@@ -687,5 +687,16 @@
   "todays_revenue": "إيرادات اليوم",
   "orders_today": "طلبات اليوم",
   "in_production": "قيد التشغيل",
-  "ready_for_pickup": "جاهز للتسليم"
+  "ready_for_pickup": "جاهز للتسليم",
+  "portal_tab_retail": "طلبات الأفراد والتجزئة",
+  "portal_tab_corporate": "الشركات والفنادق (B2B)",
+  "corporate_schedule_pickup": "جدولة استلام شحنة جديدة",
+  "corporate_download_vat_statement": "كشف ضريبة القيمة المضافة الشهري",
+  "corporate_client_name": "اسم الفندق / العميل المؤسسي",
+  "corporate_trn": "رقم التسجيل الضريبي (TRN)",
+  "corporate_est_garments": "العدد التقديري للقطع",
+  "corporate_pickup_success": "تمت جدولة استلام شحنة الشركات بنجاح!",
+  "scanner_camera_select": "اختيار الكاميرا عالية السرعة",
+  "scanner_detect_cameras": "الكشف عن الكاميرات المتصلة",
+  "scanner_drive_through_mode": "وضع استلام السيارات / حر اليدين"
 }

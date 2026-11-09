@@ -687,5 +687,16 @@
   "todays_revenue": "Today's Revenue",
   "orders_today": "Orders Today",
   "in_production": "In Production",
-  "ready_for_pickup": "Ready for Pickup"
+  "ready_for_pickup": "Ready for Pickup",
+  "portal_tab_retail": "Individual & Retail Orders",
+  "portal_tab_corporate": "Corporate B2B & Hotels",
+  "corporate_schedule_pickup": "Schedule Batch Pickup",
+  "corporate_download_vat_statement": "Monthly VAT Statement",
+  "corporate_client_name": "Corporate Client / Hotel",
+  "corporate_trn": "Tax Registration No (TRN)",
+  "corporate_est_garments": "Estimated Garments",
+  "corporate_pickup_success": "Corporate batch pickup scheduled successfully!",
+  "scanner_camera_select": "Select High-Speed Camera",
+  "scanner_detect_cameras": "Detect Connected Cameras",
+  "scanner_drive_through_mode": "Drive-Through / Hands-Free Mode"
 }

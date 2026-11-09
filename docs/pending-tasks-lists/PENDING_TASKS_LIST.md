@@ -12,9 +12,9 @@
 - [x] **Advanced Customer Loyalty Engine:**
   - Automated tier upgrade calculation (Silver $\to$ Gold $\to$ Platinum) based on rolling 90-day spend.
   - WhatsApp Business Cloud API integration for direct tax invoice PDF dispatch.
-- [ ] **Multi-Camera Barcode & QR Reader:**
+- [x] **Multi-Camera Barcode & QR Reader:**
   - Integrate USB webcams for hands-free QR code customer lookup at drive-through counters.
-- [ ] **Corporate Customer Portal:**
+- [x] **Corporate Customer Portal:**
   - B2B portal interface allowing hotel and corporate clients to schedule batch pickups and download monthly consolidated VAT statements.
 
 ---

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 import 'package:laundrypro_uae/core/localization_extension.dart';
+import 'package:laundrypro_uae/peripherals/scanners/barcode_scanner_manager.dart';
 import 'package:laundrypro_uae/peripherals/core/scanner/scanner_models.dart';
 import 'package:laundrypro_uae/peripherals/features/shared/providers/app_providers.dart';
 
@@ -23,6 +25,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   String _lastJson = '{}';
   final List<ScannerPacketModel> _history = [];
   int _scanCount = 0;
+  List<CameraDeviceDescriptor> _cameras = [];
+  String? _selectedCamera;
+  bool _driveThroughHandsFree = true;
 
   @override
   void initState() {
@@ -34,12 +39,26 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         }
       });
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshCameras();
+    });
   }
 
   @override
   void dispose() {
     _inputController.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshCameras() async {
+    final mgr = ref.read(barcodeScannerProvider);
+    final cams = await mgr.discoverCameras();
+    if (mounted) {
+      setState(() {
+        _cameras = cams;
+        _selectedCamera = mgr.selectedCameraId;
+      });
+    }
   }
 
   void _clearBeforeNewScan() {
@@ -77,20 +96,80 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  'Barcode Scanner',
+                  'Barcode & QR Multi-Camera Scanner',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               Chip(
                 avatar: const Icon(Icons.qr_code_scanner, size: 16),
-                label: Text('Scans: $_scanCount'),
+                label: Text('Scans: ' + _scanCount.toString()),
               ),
             ],
           ),
           const SizedBox(height: 8),
           const Text(
-            'Keyboard-wedge / HID scanners are supported via the app-wide listener. '
-            'Each new scan replaces the previous value below.',
+            'Supports USB HID high-speed barcode wedges, UVC webcams for drive-through lanes, and macro counter lenses.',
+          ),
+          const SizedBox(height: 16),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.videocam, color: AppTokens.brandTeal),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.t('scanner_camera_select'),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        tooltip: l10n.t('scanner_detect_cameras'),
+                        icon: const Icon(Icons.refresh, size: 20),
+                        onPressed: _refreshCameras,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedCamera,
+                    decoration: const InputDecoration(
+                      labelText: 'Active Optical Camera Sensor',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    items: _cameras.map((c) => DropdownMenuItem<String>(
+                      value: c.id,
+                      child: Text(c.name, style: const TextStyle(fontSize: 13)),
+                    )).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _selectedCamera = val);
+                        ref.read(barcodeScannerProvider).selectCamera(val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: Text(l10n.t('scanner_drive_through_mode'), style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: const Text('Continuous autofocus & automatic high-gain exposure for fast vehicle window scanning'),
+                    value: _driveThroughHandsFree,
+                    activeThumbColor: AppTokens.brandTeal,
+                    onChanged: (val) => setState(() => _driveThroughHandsFree = val),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           TextField(

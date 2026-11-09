@@ -190,7 +190,6 @@ class LocalBusinessDatabase {
     }
 
     // 3. Seed 1,000+ Realistic Orders with Line Items & Payments
-    final statuses = ['received', 'washing', 'finishing', 'ready', 'delivered'];
     final paymentMethods = ['Cash', 'Credit Card', 'Apple Pay', 'Tabby', 'Bank Transfer'];
     final now = DateTime.now();
 
