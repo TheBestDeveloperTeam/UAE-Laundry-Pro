@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:laundrypro_uae/core/design_system/app_tokens.dart';
 
-/// Pure Vector Custom-Painted Brand Lockup Emblem for LaundryPro UAE.
-/// Zero raster graphics; mathematically drawn Bézier arches, wash spiral, and luxury star.
+/// Official Brand Lockup Emblem for LaundryPro UAE.
+/// Loads the official branding asset matching the executable application icon,
+/// with rounded frosted squircle container and high-DPI scaling.
 class BrandVectorEmblem extends StatelessWidget {
   const BrandVectorEmblem({
     super.key,
@@ -18,14 +20,34 @@ class BrandVectorEmblem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _BrandVectorPainter(
-          primaryColor: primaryColor,
-          accentColor: accentColor,
-          goldColor: goldColor,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(size * 0.26),
+        boxShadow: [
+          BoxShadow(
+            color: AppTokens.brandTeal.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(size * 0.26),
+        child: Image.asset(
+          'assets/images/branding/logo_128x128.png',
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => CustomPaint(
+            size: Size(size, size),
+            painter: _BrandVectorPainter(
+              primaryColor: primaryColor,
+              accentColor: accentColor,
+              goldColor: goldColor,
+            ),
+          ),
         ),
       ),
     );
@@ -51,7 +73,7 @@ class _BrandVectorPainter extends CustomPainter {
     // Outer squircle container
     final rrect = RRect.fromRectAndRadius(
       Rect.fromLTWH(0, 0, size.width, size.height),
-      Radius.circular(size.width * 0.28),
+      Radius.circular(size.width * 0.26),
     );
 
     final bgPaint = Paint()
@@ -63,14 +85,13 @@ class _BrandVectorPainter extends CustomPainter {
 
     canvas.drawRRect(rrect, bgPaint);
 
-    // Subtle outer border highlight
     final borderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0
       ..color = Colors.white.withValues(alpha: 0.35);
     canvas.drawRRect(rrect, borderPaint);
 
-    // Inner Washing Vortex Vector Path
+    // Washing vortex
     final vortexPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = size.width * 0.08
@@ -88,7 +109,6 @@ class _BrandVectorPainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.85);
     canvas.drawArc(arcRect2, 1.2, 3.8, false, vortexPaint2);
 
-    // Center Gold Core Star/Dot (Symbolizing Royal UAE Quality)
     final goldPaint = Paint()..color = goldColor;
     canvas.drawCircle(center, radius * 0.14, goldPaint);
   }
@@ -96,4 +116,3 @@ class _BrandVectorPainter extends CustomPainter {
   @override
   bool shouldRepaint(_BrandVectorPainter oldDelegate) => false;
 }
-
