@@ -251,48 +251,81 @@ class _AppShellState extends State<AppShell> {
             child: Row(
               mainAxisAlignment: isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
               children: [
-                Tooltip(
-                  message: !isExpanded ? 'Sign Out ()' : '',
-                  child: InkWell(
-                    onTap: !isExpanded
-                        ? () async {
-                            try {
-                              await context.read<AuthProvider>().logout();
-                            } catch (_) {}
-                            if (context.mounted) {
-                              context.go('/login');
-                            }
+                if (!isExpanded) ...[
+                  Tooltip(
+                    message: 'Sign Out ()',
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () async {
+                          final auth = context.read<AuthProvider>();
+                          try {
+                            await auth.logout();
+                          } catch (_) {}
+                          if (context.mounted) {
+                            context.go('/login');
                           }
-                        : null,
-                    borderRadius: BorderRadius.circular(20),
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: AppTokens.brandTeal,
-                          child: Text(
-                            (user?.fullName ?? 'SA').substring(0, (user?.fullName?.length ?? 2) >= 2 ? 2 : 1).toUpperCase(),
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        hoverColor: AppTokens.brandNavyActive,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: AppTokens.brandTeal,
+                                child: Text(
+                                  (user?.fullName ?? 'SA').substring(0, (user?.fullName?.length ?? 2) >= 2 ? 2 : 1).toUpperCase(),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                              ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 9,
+                                  height: 9,
+                                  decoration: BoxDecoration(
+                                    color: AppTokens.statusReady,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppTokens.brandNavy, width: 1.5),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: 9,
-                            height: 9,
-                            decoration: BoxDecoration(
-                              color: AppTokens.statusReady,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppTokens.brandNavy, width: 1.5),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                if (isExpanded) ...[
+                ] else ...[
+                  // Expanded Avatar & Identity Info
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: AppTokens.brandTeal,
+                        child: Text(
+                          (user?.fullName ?? 'SA').substring(0, (user?.fullName?.length ?? 2) >= 2 ? 2 : 1).toUpperCase(),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 9,
+                          height: 9,
+                          decoration: BoxDecoration(
+                            color: AppTokens.statusReady,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTokens.brandNavy, width: 1.5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(width: AppTokens.space12),
                   Expanded(
                     child: Column(
@@ -311,17 +344,25 @@ class _AppShellState extends State<AppShell> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.logout_rounded, color: AppTokens.textMuted, size: 18),
-                    onPressed: () async {
-                      try {
-                        await context.read<AuthProvider>().logout();
-                      } catch (_) {}
-                      if (context.mounted) {
-                        context.go('/login');
-                      }
-                    },
-                    tooltip: 'Sign Out',
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () async {
+                        final auth = context.read<AuthProvider>();
+                        try {
+                          await auth.logout();
+                        } catch (_) {}
+                        if (context.mounted) {
+                          context.go('/login');
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      hoverColor: AppTokens.brandNavyActive,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(Icons.logout_rounded, color: AppTokens.textMuted, size: 20),
+                      ),
+                    ),
                   ),
                 ],
               ],

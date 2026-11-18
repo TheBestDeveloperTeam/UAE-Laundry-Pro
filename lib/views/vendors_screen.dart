@@ -92,6 +92,9 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           initialValue: paymentTerms,
+                          borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                          elevation: 4,
+                          dropdownColor: AppTokens.surfacePrimary,
                           decoration: const InputDecoration(labelText: 'Payment Terms'),
                           items: const [
                             DropdownMenuItem(value: 'Immediate', child: Text('Immediate / Cash')),

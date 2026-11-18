@@ -159,6 +159,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
                         initialValue: tier,
+                        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                        elevation: 4,
+                        dropdownColor: AppTokens.surfacePrimary,
                         decoration: InputDecoration(
                           labelText: l10n.t('customer_loyalty_label'),
                           isDense: true,
