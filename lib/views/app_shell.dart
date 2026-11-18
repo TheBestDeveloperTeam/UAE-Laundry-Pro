@@ -330,54 +330,140 @@ class _AppShellState extends State<AppShell> {
     final l10n = context.l10n;
     final isActive = currentPath.startsWith(item.route);
 
-    return InkWell(
-      onTap: () => context.go(item.route),
-      borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-      child: Container(
-        height: 40,
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12),
-        decoration: BoxDecoration(
-          gradient: isActive
-              ? const LinearGradient(
-                  colors: [AppTokens.brandTeal, Color(0xFF00C9A7)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                )
-              : null,
-          color: isActive ? null : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: AppTokens.brandTeal.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
+    final navItemContent = AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeInOut,
+      height: 44,
+      margin: const EdgeInsets.symmetric(vertical: 2.5),
+      padding: EdgeInsets.symmetric(horizontal: isExpanded ? 14 : 0),
+      decoration: BoxDecoration(
+        color: isActive
+            ? AppTokens.brandTeal.withValues(alpha: 0.16)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+        border: Border.all(
+          color: isActive
+              ? AppTokens.cyberAqua.withValues(alpha: 0.45)
+              : Colors.transparent,
+          width: 1.0,
         ),
-        child: Row(
-          children: [
-            Icon(item.icon, color: isActive ? Colors.white : AppTokens.textMuted, size: 20),
-            if (isExpanded) ...[
-              const SizedBox(width: AppTokens.space12),
-              Expanded(
-                child: Text(
-                  l10n.t(item.labelKey),
-                  style: TextStyle(
-                    color: isActive ? Colors.white : const Color(0xFFC7D2FE),
-                    fontSize: 13,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: AppTokens.cyberAqua.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+          // Active Indicator Accent Bar on the Leading Edge
+          if (isActive)
+            Positioned(
+              left: isExpanded ? 0 : 4,
+              top: 8,
+              bottom: 8,
+              child: Container(
+                width: 3.5,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTokens.cyberAqua, AppTokens.brandTeal],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTokens.cyberAqua.withValues(alpha: 0.6),
+                      blurRadius: 6,
+                    ),
+                  ],
                 ),
               ),
+            ),
+
+          Row(
+            mainAxisAlignment: isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+            children: [
+              if (isExpanded) const SizedBox(width: 8),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppTokens.cyberAqua.withValues(alpha: 0.15)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  item.icon,
+                  color: isActive ? AppTokens.cyberAqua : AppTokens.textMuted,
+                  size: 19,
+                ),
+              ),
+              if (isExpanded) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.t(item.labelKey),
+                    style: TextStyle(
+                      color: isActive ? Colors.white : const Color(0xFFC7D2FE),
+                      fontSize: 13,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                      letterSpacing: isActive ? 0.15 : 0.0,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (isActive)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    margin: const EdgeInsets.only(right: 2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTokens.cyberAqua,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTokens.cyberAqua.withValues(alpha: 0.8),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
+
+    final inkWell = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.go(item.route),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+        hoverColor: AppTokens.brandNavyActive.withValues(alpha: 0.6),
+        splashColor: AppTokens.brandTeal.withValues(alpha: 0.2),
+        highlightColor: Colors.transparent,
+        child: navItemContent,
+      ),
+    );
+
+    if (!isExpanded) {
+      return Tooltip(
+        message: l10n.t(item.labelKey),
+        preferBelow: false,
+        verticalOffset: 20,
+        child: inkWell,
+      );
+    }
+
+    return inkWell;
   }
 
   Widget _buildWorkspaceTopbar({
