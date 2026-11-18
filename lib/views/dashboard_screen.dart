@@ -42,7 +42,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     _currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
     _reports = widget.reportsService ?? ReportsService();
-    _loadSummary();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSummary();
+    });
     _refreshTimer = Timer.periodic(const Duration(seconds: 60), (_) => _loadSummary());
   }
 

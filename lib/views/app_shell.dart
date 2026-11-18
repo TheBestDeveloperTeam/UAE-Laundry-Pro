@@ -249,31 +249,48 @@ class _AppShellState extends State<AppShell> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12, vertical: AppTokens.space12),
             child: Row(
+              mainAxisAlignment: isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
               children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: AppTokens.brandTeal,
-                      child: Text(
-                        (user?.fullName ?? 'SA').substring(0, (user?.fullName?.length ?? 2) >= 2 ? 2 : 1).toUpperCase(),
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 9,
-                        height: 9,
-                        decoration: BoxDecoration(
-                          color: AppTokens.statusReady,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppTokens.brandNavy, width: 1.5),
+                Tooltip(
+                  message: !isExpanded ? 'Sign Out ()' : '',
+                  child: InkWell(
+                    onTap: !isExpanded
+                        ? () async {
+                            try {
+                              await context.read<AuthProvider>().logout();
+                            } catch (_) {}
+                            if (context.mounted) {
+                              context.go('/login');
+                            }
+                          }
+                        : null,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppTokens.brandTeal,
+                          child: Text(
+                            (user?.fullName ?? 'SA').substring(0, (user?.fullName?.length ?? 2) >= 2 ? 2 : 1).toUpperCase(),
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 9,
+                            height: 9,
+                            decoration: BoxDecoration(
+                              color: AppTokens.statusReady,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppTokens.brandNavy, width: 1.5),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
                 if (isExpanded) ...[
                   const SizedBox(width: AppTokens.space12),
@@ -296,7 +313,14 @@ class _AppShellState extends State<AppShell> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.logout_rounded, color: AppTokens.textMuted, size: 18),
-                    onPressed: () => context.go('/login'),
+                    onPressed: () async {
+                      try {
+                        await context.read<AuthProvider>().logout();
+                      } catch (_) {}
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
+                    },
                     tooltip: 'Sign Out',
                   ),
                 ],
@@ -528,6 +552,8 @@ class _AppShellState extends State<AppShell> {
           // Interactive Branch Selector
           PopupMenuButton<String>(
             tooltip: 'Select Branch',
+            position: PopupMenuPosition.under,
+            offset: const Offset(0, 8),
             initialValue: _selectedBranch,
             onSelected: (branch) {
               setState(() => _selectedBranch = branch);
@@ -544,6 +570,8 @@ class _AppShellState extends State<AppShell> {
           // Interactive Terminal Selector
           PopupMenuButton<String>(
             tooltip: 'Select Terminal',
+            position: PopupMenuPosition.under,
+            offset: const Offset(0, 8),
             initialValue: _selectedTerminal,
             onSelected: (term) {
               setState(() => _selectedTerminal = term);

@@ -78,6 +78,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 children: [
                   DropdownButtonFormField<int>(
                     initialValue: selectedCatId,
+                    borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+                    elevation: 4,
+                    dropdownColor: AppTokens.surfacePrimary,
                     decoration: InputDecoration(
                       labelText: l10n.t('category_id'),
                       border: const OutlineInputBorder(),

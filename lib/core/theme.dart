@@ -125,6 +125,46 @@ class AppTheme {
         ),
       ),
 
+      // Popup & Dropdown Menu Styling (Opens below trigger with refined radius & elevation)
+      popupMenuTheme: PopupMenuThemeData(
+        color: AppTokens.surfacePrimary,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+          side: const BorderSide(color: AppTokens.borderSubtle, width: 1.0),
+        ),
+        position: PopupMenuPosition.under,
+        surfaceTintColor: Colors.transparent,
+      ),
+
+      menuTheme: MenuThemeData(
+        style: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll<Color>(AppTokens.surfacePrimary),
+          elevation: const WidgetStatePropertyAll<double>(8),
+          shape: WidgetStatePropertyAll<OutlinedBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+              side: const BorderSide(color: AppTokens.borderSubtle, width: 1.0),
+            ),
+          ),
+          surfaceTintColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        ),
+      ),
+
+      dropdownMenuTheme: DropdownMenuThemeData(
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll<Color>(AppTokens.surfacePrimary),
+          elevation: const WidgetStatePropertyAll<double>(8),
+          shape: WidgetStatePropertyAll<OutlinedBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
+              side: const BorderSide(color: AppTokens.borderSubtle, width: 1.0),
+            ),
+          ),
+          surfaceTintColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        ),
+      ),
+
       // Cards
       cardTheme: CardThemeData(
         color: AppTokens.surfacePrimary,

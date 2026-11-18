@@ -100,19 +100,49 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
           }
         }
       } else {
-        // Fallback demo results if DB uninitialized
-        setState(() {
-          _orderResults = [
-            {'order_number': 'LP-10482', 'customer_name': 'Aisha Khan', 'grand_total': 86.0, 'status': 'ready'},
-            {'order_number': 'LP-10481', 'customer_name': 'Omar Hassan', 'grand_total': 145.0, 'status': 'finishing'},
-          ];
-          _customerResults = [
-            {'name': 'Mohammed Al Nuaimi', 'phone': '0501234567', 'balance': 0.0, 'loyalty_tier': 'Silver'},
-            {'name': 'Fatima Al Zarooni', 'phone': '0559876543', 'balance': 50.0, 'loyalty_tier': 'Gold'},
-          ];
-          _inventoryResults = [];
-          _isLoading = false;
-        });
+        // Fallback demo results if DB uninitialized or offline
+        const allOrders = [
+          {'order_number': 'LP-10482', 'customer_name': 'Aisha Khan', 'grand_total': 86.0, 'status': 'ready'},
+          {'order_number': 'LP-10481', 'customer_name': 'Omar Hassan', 'grand_total': 145.0, 'status': 'finishing'},
+          {'order_number': 'LP-10480', 'customer_name': 'Mariam Ali', 'grand_total': 72.0, 'status': 'washing'},
+          {'order_number': 'LP-10479', 'customer_name': 'Zayd Ahmed', 'grand_total': 55.0, 'status': 'received'},
+        ];
+        const allCustomers = [
+          {'name': 'Aisha Khan', 'phone': '0501234567', 'balance': 0.0, 'loyalty_tier': 'Silver'},
+          {'name': 'Omar Hassan', 'phone': '0559876543', 'balance': 50.0, 'loyalty_tier': 'Gold'},
+          {'name': 'Mariam Ali', 'phone': '0523456789', 'balance': 0.0, 'loyalty_tier': 'Platinum'},
+          {'name': 'Mohammed Al Nuaimi', 'phone': '0509988776', 'balance': 120.0, 'loyalty_tier': 'Bronze'},
+        ];
+        const allInventory = [
+          {'name': 'Eco Detergent Pro', 'sku': 'DET-001', 'stock_quantity': 45, 'category': 'Chemicals'},
+          {'name': 'Fabric Softener Lavender', 'sku': 'SFT-002', 'stock_quantity': 28, 'category': 'Chemicals'},
+          {'name': 'Garment Poly Bags (Roll)', 'sku': 'BAG-100', 'stock_quantity': 150, 'category': 'Packaging'},
+        ];
+
+        final q = query.toLowerCase().trim();
+        if (mounted) {
+          setState(() {
+            if (q.isEmpty) {
+              _orderResults = allOrders;
+              _customerResults = allCustomers;
+              _inventoryResults = allInventory;
+            } else {
+              _orderResults = allOrders.where((o) =>
+                (o['order_number'] as String).toLowerCase().contains(q) ||
+                (o['customer_name'] as String).toLowerCase().contains(q)
+              ).toList();
+              _customerResults = allCustomers.where((c) =>
+                (c['name'] as String).toLowerCase().contains(q) ||
+                (c['phone'] as String).toLowerCase().contains(q)
+              ).toList();
+              _inventoryResults = allInventory.where((i) =>
+                (i['name'] as String).toLowerCase().contains(q) ||
+                (i['sku'] as String).toLowerCase().contains(q)
+              ).toList();
+            }
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
